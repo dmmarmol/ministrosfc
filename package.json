@@ -1,0 +1,11 @@
+{
+  "name": "ministrosfc",
+  "version": "0.0.1",
+  "description": "Amateur football team platform",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Diego Martin Marmol <diegomartinmarmol@gmail.com>",
+  "license": "ISC"
+}
