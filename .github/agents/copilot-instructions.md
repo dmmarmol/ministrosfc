@@ -1,10 +1,12 @@
 # ministrosfc Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-03-21
+Auto-generated from all feature plans. Last updated: 2026-03-23
 
 ## Active Technologies
 - TypeScript 5.3.3 / Node.js 23+ + npm workspaces (no added libs — this phase is config only) (002-monorepo-setup)
 - PostgreSQL 15 (dev, port 5100), Redis 7 (dev, port 5101) — docker-compose.yml (002-monorepo-setup)
+- TypeScript 5.3 (strict mode) / Node.js 20.18.1 (LTS) + Prisma 5.x (already present), `csv-parse` (new), `dotenv` (new) (003-data-hydration)
+- PostgreSQL 16 via Podman container on port 5100 — Prisma client already configured (003-data-hydration)
 
 - **Language/Runtime**: TypeScript 5.x, Node.js 23+ LTS
 - **Backend**: Nest.js + Express, Prisma 5.x ORM, PostgreSQL 15+
@@ -95,10 +97,10 @@ npx prisma studio                  # Open Prisma Studio GUI
 - **Guest Players**: playerType=GUEST, linked to inviting player via invitedById
 
 ## Recent Changes
+- 003-data-hydration: Added TypeScript 5.3 (strict mode) / Node.js 20.18.1 (LTS) + Prisma 5.x (already present), `csv-parse` (new), `dotenv` (new)
 - 002-monorepo-setup: Added TypeScript 5.3.3 / Node.js 23+ + npm workspaces (no added libs — this phase is config only)
 
 - 001-ministrosfc-monorepo: Added monorepo structure with shared/cms/frontend packages
-- Deployment platform: Fly.io (3 free VMs)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
