@@ -24,23 +24,23 @@ All three CSVs are exported from specific tabs of `Ministros F.C. - Datos` sprea
 
 One row per game. **Primary source** for `Game`, `OpponentTeam`, and `Tournament` records.
 
-| # | Column | Example | Notes |
-|---|---|---|---|
-| 1 | Fecha | `09/09/2023` | DD/MM/YYYY — game date |
-| 2 | Torneo | `Liga` | Short tournament name (year prefix added during grouping) |
-| 3 | Comienzo | `10:00` | Start time — stored in `game.notes` |
-| 4 | Finalización | `11:30` | End time — stored in `game.notes` |
-| 5 | Equipo | `Ministros` | Always constant — ignored |
-| 6 | Rival | `La Cocina` | Opponent team name → `OpponentTeam.name` |
-| 7 | Estadio | `Club Social Y Deportivo Pintita` | Venue → `game.location` |
-| 8 | Goles Convertidos | `0` | Ministros goals → `game.homeTeamScore` |
-| 9 | Goles Recibidos | `4` | Opponent goals → `game.awayTeamScore` |
-| 10 | Resultado | `0-4` | Score string — used for validation only |
-| 11 | Conclusión | `P` | G=Win, P=Loss, E=Draw — used to set `game.status = COMPLETED` |
-| 12 | Apariciones | `TRUE` | Whether player appearance data was recorded for this game |
-| 13 | DT | `Juan Pablo Garnero` | Coach name — stored in `game.notes` |
-| 14 | Comentarios | `Eramos 11 justos` | Game notes → appended to `game.notes` |
-| 15 | Foto | `TRUE` | Whether team photo taken — not stored |
+| #   | Column            | Example                           | Notes                                                         |
+| --- | ----------------- | --------------------------------- | ------------------------------------------------------------- |
+| 1   | Fecha             | `09/09/2023`                      | DD/MM/YYYY — game date                                        |
+| 2   | Torneo            | `Liga`                            | Short tournament name (year prefix added during grouping)     |
+| 3   | Comienzo          | `10:00`                           | Start time — stored in `game.notes`                           |
+| 4   | Finalización      | `11:30`                           | End time — stored in `game.notes`                             |
+| 5   | Equipo            | `Ministros`                       | Always constant — ignored                                     |
+| 6   | Rival             | `La Cocina`                       | Opponent team name → `OpponentTeam.name`                      |
+| 7   | Estadio           | `Club Social Y Deportivo Pintita` | Venue → `game.location`                                       |
+| 8   | Goles Convertidos | `0`                               | Ministros goals → `game.homeTeamScore`                        |
+| 9   | Goles Recibidos   | `4`                               | Opponent goals → `game.awayTeamScore`                         |
+| 10  | Resultado         | `0-4`                             | Score string — used for validation only                       |
+| 11  | Conclusión        | `P`                               | G=Win, P=Loss, E=Draw — used to set `game.status = COMPLETED` |
+| 12  | Apariciones       | `TRUE`                            | Whether player appearance data was recorded for this game     |
+| 13  | DT                | `Juan Pablo Garnero`              | Coach name — stored in `game.notes`                           |
+| 14  | Comentarios       | `Eramos 11 justos`                | Game notes → appended to `game.notes`                         |
+| 15  | Foto              | `TRUE`                            | Whether team photo taken — not stored                         |
 
 **Tournament uniqueness**: Historial uses short names (e.g., `Amistoso`). Since the same short name recurs across years (2024 Amistoso, 2025 Amistoso), tournaments are identified by **`Torneo + year(Fecha)`** and stored with a year prefix: `"2024 Amistoso"`, `"2025 Amistoso"`, etc.
 
@@ -52,38 +52,39 @@ One row per game. **Primary source** for `Game`, `OpponentTeam`, and `Tournament
 
 One row per player (61 total). **Primary source** for `Player` and `Contact` records.
 
-| # | Column | Example | Notes |
-|---|---|---|---|
-| 1 | Jugador | `Diego Marmol` | → `player.name` |
-| 2 | Apodo | `Dieguito` | → `player.nickname`; `??` → store as `null` |
-| 3 | Nacimiento | `1991` | Birth year → `player.dateOfBirth` as string (`"1991"`) |
-| 4 | Edad | `35` | Computed age — ignored |
-| 5 | Altura | `180` | → `player.height` (integer, cm) |
-| 6 | Numero | `3` | → `player.jerseyNumber` (integer) |
-| 7 | Pie | `Ambidiestro` | → `player.dominantFoot` (see enum mapping) |
-| 8 | Posición | `LB,RB,CB,SMF` | First valid position → `player.position`; multiples logged and discarded |
-| 9 | DNI | `12345678` | → `player.nationalId` |
-| 10 | Telefono | `+54 9 11 5120-6894` | → `Contact.phone` (contact row only created if non-empty) |
-| 11 | Imagen (URL) | *(Brave search placeholder)* | Ignored — overridden by `https://placehold.co/200x200?text=Player` |
+| #   | Column       | Example                      | Notes                                                                    |
+| --- | ------------ | ---------------------------- | ------------------------------------------------------------------------ |
+| 1   | Jugador      | `Diego Marmol`               | → `player.name`                                                          |
+| 2   | Apodo        | `Dieguito`                   | → `player.nickname`; `??` → store as `null`                              |
+| 3   | Nacimiento   | `1991`                       | Birth year → `player.dateOfBirth` as string (`"1991"`)                   |
+| 4   | Edad         | `35`                         | Computed age — ignored                                                   |
+| 5   | Altura       | `180`                        | → `player.height` (integer, cm)                                          |
+| 6   | Numero       | `3`                          | → `player.jerseyNumber` (integer)                                        |
+| 7   | Pie          | `Ambidiestro`                | → `player.dominantFoot` (see enum mapping)                               |
+| 8   | Posición     | `LB,RB,CB,SMF`               | First valid position → `player.position`; multiples logged and discarded |
+| 9   | DNI          | `12345678`                   | → `player.nationalId`                                                    |
+| 10  | Telefono     | `+54 9 11 5120-6894`         | → `Contact.phone` (contact row only created if non-empty)                |
+| 11  | Imagen (URL) | _(Brave search placeholder)_ | Ignored — overridden by `https://placehold.co/200x200?text=Player`       |
 
 **Field mappings:**
 
 Foot enum:
 
-| CSV value | Schema enum |
-|---|---|
-| `Zurdo` | `LEFT` |
-| `Diestro` | `RIGHT` |
+| CSV value     | Schema enum    |
+| ------------- | -------------- |
+| `Zurdo`       | `LEFT`         |
+| `Diestro`     | `RIGHT`        |
 | `Ambidiestro` | `AMBIDEXTROUS` |
 
 Position unmapped values (not in schema enum):
 
-| CSV value | Resolution |
-|---|---|
-| `SMF` | Map to `CMF` (side-mid treated as central for now) |
-| `LIB` | Map to `CB` (libero is a sweeper-center back role) |
+| CSV value | Resolution                                         |
+| --------- | -------------------------------------------------- |
+| `SMF`     | Map to `CMF` (side-mid treated as central for now) |
+| `LIB`     | Map to `CB` (libero is a sweeper-center back role) |
 
 **Guest player detection** — `playerType = GUEST` if **either** of:
+
 - `player.name` contains `"Amigo de"` or `"Amigo del"` (case-insensitive)
 - `player.nickname` contains `"Amigo de"` or `"Amigo del"` (case-insensitive)
 
@@ -95,20 +96,20 @@ All imported players → `status = ACTIVE`.
 
 One row per player-game appearance. **Primary source** for `GameParticipant` records.
 
-| # | Column | Example | Notes |
-|---|---|---|---|
-| 1 | Fecha | `2023/09/09` | YYYY/MM/DD format — used as game lookup key |
-| 2 | Rival | `La Cocina` | Opponent name — used as game lookup key |
-| 3 | Torneo | `Liga` | Tournament name — not used for lookup (Fecha+Rival is sufficient) |
-| 4 | Resultado | `0-4` | Score string — validation only |
-| 5 | (Conclusión) | `P` | 5th column has G/P/E — validation only |
-| 6 | Jugador (name) | `Diego Marmol` | → `player.name` lookup key |
-| 7 | Jugador (nickname) | `Dieguito` | Secondary lookup fallback |
-| 8 | Goles | `0` | → `GameParticipant.goalsScored` |
-| 9 | Amarilla | `0` | → `GameParticipant.yellowCards` |
-| 10 | Roja | `0` | → `GameParticipant.redCards` |
-| 11 | Titular/Suplente | `Titular` | Not stored in current schema — logged and discarded |
-| 12 | Comentarios | `Lesion: Tirón...` | → `GameParticipant.notes` |
+| #   | Column             | Example            | Notes                                                             |
+| --- | ------------------ | ------------------ | ----------------------------------------------------------------- |
+| 1   | Fecha              | `2023/09/09`       | YYYY/MM/DD format — used as game lookup key                       |
+| 2   | Rival              | `La Cocina`        | Opponent name — used as game lookup key                           |
+| 3   | Torneo             | `Liga`             | Tournament name — not used for lookup (Fecha+Rival is sufficient) |
+| 4   | Resultado          | `0-4`              | Score string — validation only                                    |
+| 5   | (Conclusión)       | `P`                | 5th column has G/P/E — validation only                            |
+| 6   | Jugador (name)     | `Diego Marmol`     | → `player.name` lookup key                                        |
+| 7   | Jugador (nickname) | `Dieguito`         | Secondary lookup fallback                                         |
+| 8   | Goles              | `0`                | → `GameParticipant.goalsScored`                                   |
+| 9   | Amarilla           | `0`                | → `GameParticipant.yellowCards`                                   |
+| 10  | Roja               | `0`                | → `GameParticipant.redCards`                                      |
+| 11  | Titular/Suplente   | `Titular`          | Not stored in current schema — logged and discarded               |
+| 12  | Comentarios        | `Lesion: Tirón...` | → `GameParticipant.notes`                                         |
 
 **Game lookup key**: `Fecha (YYYY/MM/DD) + Rival`. During processing, the game lookup map is keyed by `YYYY-MM-DD:RivalName` (Apariciones dates are already YYYY/MM/DD; Historial dates are converted from DD/MM/YYYY during game import).
 
@@ -123,6 +124,7 @@ One row per player-game appearance. **Primary source** for `GameParticipant` rec
 ### SC-001 — Spreadsheet Structure ✅ FULLY RESOLVED
 
 Three raw data tabs confirmed and exported as CSV:
+
 1. **Historial** (game records) — one row per game, ~63 records
 2. **Jugadores** (player roster) — one row per player, 61 records
 3. **Apariciones** (player appearances) — one row per player-game, ~700+ records
@@ -131,12 +133,13 @@ A separate summary tab (`Estadisticas_Generales`) exists but contains only aggre
 
 ### SC-002 — Data Formats ✅ RESOLVED
 
-| Source | Date format | Parse strategy |
-|---|---|---|
-| Historial.csv | `DD/MM/YYYY` | `dd/MM/yyyy` → UTC DateTime |
+| Source          | Date format  | Parse strategy                             |
+| --------------- | ------------ | ------------------------------------------ |
+| Historial.csv   | `DD/MM/YYYY` | `dd/MM/yyyy` → UTC DateTime                |
 | Apariciones.csv | `YYYY/MM/DD` | `yyyy/MM/dd` → UTC DateTime (or ISO-parse) |
 
 Other formats:
+
 - Scores: `N-N` string → split on `-` → `homeTeamScore` / `awayTeamScore`
 - Game time: `HH:MM` → stored as string in `game.notes`
 
@@ -147,6 +150,7 @@ All Jugadores.csv image URLs are the same Brave Search placeholder — not real 
 ### SC-004 — Idempotency Strategy ✅ RESOLVED
 
 **Full Replace**: On each run, truncate all target tables in reverse FK order, then re-insert all records from the CSVs. Truncation order:
+
 ```
 GameParticipant → Statistics → Game → Contact → Player → Tournament → OpponentTeam
 ```
@@ -224,25 +228,25 @@ The admin places the three exported CSVs in `packages/cms/data/imports/`, then r
 
 ## Key Entities and Source Mapping
 
-| Entity | Primary Source | Est. Records | Key fields populated |
-|---|---|---|---|
-| `OpponentTeam` | Historial.csv (unique `Rival` values) | 26 | `name` only |
-| `Tournament` | Historial.csv (grouped by `Torneo + year`) | 9 | `name` (year-prefixed), `competitionType`, `startDate`, `endDate` |
-| `Player` | Jugadores.csv | 61 | All available fields |
-| `Contact` | Jugadores.csv (`Telefono` column) | ~30 | `phone` only |
-| `Game` | Historial.csv | ~63 | `date`, `opponent FK`, `tournament FK`, `homeTeamScore`, `awayTeamScore`, `status`, `notes` |
-| `GameParticipant` | Apariciones.csv | ~700+ | `player FK`, `game FK`, `goalsScored`, `yellowCards`, `redCards`, `notes`, `confirmationStatus = CONFIRMED` |
+| Entity            | Primary Source                             | Est. Records | Key fields populated                                                                                        |
+| ----------------- | ------------------------------------------ | ------------ | ----------------------------------------------------------------------------------------------------------- |
+| `OpponentTeam`    | Historial.csv (unique `Rival` values)      | 26           | `name` only                                                                                                 |
+| `Tournament`      | Historial.csv (grouped by `Torneo + year`) | 9            | `name` (year-prefixed), `competitionType`, `startDate`, `endDate`                                           |
+| `Player`          | Jugadores.csv                              | 61           | All available fields                                                                                        |
+| `Contact`         | Jugadores.csv (`Telefono` column)          | ~30          | `phone` only                                                                                                |
+| `Game`            | Historial.csv                              | ~63          | `date`, `opponent FK`, `tournament FK`, `homeTeamScore`, `awayTeamScore`, `status`, `notes`                 |
+| `GameParticipant` | Apariciones.csv                            | ~700+        | `player FK`, `game FK`, `goalsScored`, `yellowCards`, `redCards`, `notes`, `confirmationStatus = CONFIRMED` |
 
 **Tournament‐to-CompetitionType mapping:**
 
-| Torneo (raw) | CompetitionType |
-|---|---|
-| `Liga` | `LEAGUE` |
-| `Torneo Apertura` | `SEASON` |
-| `Torneo Clausura` | `SEASON` |
-| `Torneo Mundialito` | `CUP` |
-| `Copa de Oro` | `CUP` |
-| `Amistoso` | `FRIENDLY` |
+| Torneo (raw)        | CompetitionType |
+| ------------------- | --------------- |
+| `Liga`              | `LEAGUE`        |
+| `Torneo Apertura`   | `SEASON`        |
+| `Torneo Clausura`   | `SEASON`        |
+| `Torneo Mundialito` | `CUP`           |
+| `Copa de Oro`       | `CUP`           |
+| `Amistoso`          | `FRIENDLY`      |
 
 ---
 
@@ -263,4 +267,3 @@ The admin places the three exported CSVs in `packages/cms/data/imports/`, then r
 - **Starter/sub designation** — `Titular/Suplente` from Apariciones.csv not stored (schema gap, tracked as future enhancement)
 - **Per-game assists** — not in Apariciones.csv; `assists` defaults to `0`
 - **Statistics aggregations** — `Statistics` model not populated by this script; computed separately
-

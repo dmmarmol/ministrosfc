@@ -9,17 +9,21 @@ This guide explains how to export data from Google Sheets and import it into the
 ## Prerequisites
 
 1. **Docker / Podman containers running**:
+
    ```bash
    npm run docker:up
    ```
+
    Verify: `ministrosfc-postgres` is healthy on port 5100.
 
 2. **Prisma schema applied**:
+
    ```bash
    npm run gen:prisma
    ```
 
 3. **`packages/cms/.env` configured** with a valid `DATABASE_URL`:
+
    ```
    DATABASE_URL="postgresql://ministrosfc:ministrosfc@localhost:5100/ministrosfc?schema=public"
    ```
@@ -39,10 +43,10 @@ Open `Ministros F.C. - Datos` in Google Sheets.
 
 Export **each of these three tabs** as a separate CSV file:
 
-| Tab name | Download as | Save as |
-|---|---|---|
-| `Historial` | File → Download → CSV | `Historial.csv` |
-| `Jugadores` | File → Download → CSV | `Jugadores.csv` |
+| Tab name      | Download as           | Save as           |
+| ------------- | --------------------- | ----------------- |
+| `Historial`   | File → Download → CSV | `Historial.csv`   |
+| `Jugadores`   | File → Download → CSV | `Jugadores.csv`   |
 | `Apariciones` | File → Download → CSV | `Apariciones.csv` |
 
 > **Note**: Google Sheets CSV export preserves the exact column names and formats the script expects. Do not modify the exported files before importing.
@@ -73,6 +77,7 @@ npm run seed:import -- --dry-run
 ```
 
 Expected console output:
+
 ```
 [dry-run] OpponentTeams: 26 records would be inserted
 [dry-run] Tournaments:   9 records would be inserted
@@ -92,6 +97,7 @@ npm run seed:import
 ```
 
 Expected console output:
+
 ```
 [import] Truncating tables...
 [import] Inserting OpponentTeams... 26 inserted
@@ -140,13 +146,13 @@ npm run seed:import
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---|---|
-| `DATABASE_URL missing` | Check `packages/cms/.env` exists and has the correct value |
-| `Cannot find module '@prisma/client'` | Run `npm run gen:prisma` to regenerate the Prisma client |
-| `ENOENT: no such file` for CSV | Confirm all three CSV files are in `packages/cms/data/imports/` |
-| Game not found for date+rival | Check the Apariciones.csv `Fecha` column format is `YYYY/MM/DD` |
-| `connect ECONNREFUSED :5100` | Run `npm run docker:up` to start the PostgreSQL container |
+| Problem                               | Solution                                                        |
+| ------------------------------------- | --------------------------------------------------------------- |
+| `DATABASE_URL missing`                | Check `packages/cms/.env` exists and has the correct value      |
+| `Cannot find module '@prisma/client'` | Run `npm run gen:prisma` to regenerate the Prisma client        |
+| `ENOENT: no such file` for CSV        | Confirm all three CSV files are in `packages/cms/data/imports/` |
+| Game not found for date+rival         | Check the Apariciones.csv `Fecha` column format is `YYYY/MM/DD` |
+| `connect ECONNREFUSED :5100`          | Run `npm run docker:up` to start the PostgreSQL container       |
 
 ---
 

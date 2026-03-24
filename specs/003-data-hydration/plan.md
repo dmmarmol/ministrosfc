@@ -27,16 +27,16 @@ Import real Ministros FC match data from three Google Sheets CSV exports (`Histo
 
 ## Constitution Check
 
-*Gate evaluated against Constitution v1.1.0*
+_Gate evaluated against Constitution v1.1.0_
 
-| Principle | Status | Notes |
-|---|---|---|
-| I. Feature-Driven Architecture | ✅ Pass | Clear user impact: admin can seed real data with one command |
-| II. Spec-First | ✅ Pass | `spec.md` fully written and all clarifications resolved before planning |
-| III. Plan-Driven Implementation | ✅ Pass | This document; `data-model.md` and `contracts/cli-contract.md` define all design decisions |
-| IV. TDD Quality Gates | ✅ Pass | Transformer functions (date parsing, position mapping, guest detection, note assembly) must have unit tests written first; 80% coverage required |
-| V. Component Isolation | ✅ Pass | Script split into: `parsers/` (CSV → raw rows), `transformers/` (raw → Prisma input), `importers/` (Prisma writes) |
-| VI. Data Flow | ✅ Pass | CSV files are the input; Prisma is the sink; in-memory maps carry FK state between steps; no bidirectional state |
+| Principle                       | Status  | Notes                                                                                                                                            |
+| ------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| I. Feature-Driven Architecture  | ✅ Pass | Clear user impact: admin can seed real data with one command                                                                                     |
+| II. Spec-First                  | ✅ Pass | `spec.md` fully written and all clarifications resolved before planning                                                                          |
+| III. Plan-Driven Implementation | ✅ Pass | This document; `data-model.md` and `contracts/cli-contract.md` define all design decisions                                                       |
+| IV. TDD Quality Gates           | ✅ Pass | Transformer functions (date parsing, position mapping, guest detection, note assembly) must have unit tests written first; 80% coverage required |
+| V. Component Isolation          | ✅ Pass | Script split into: `parsers/` (CSV → raw rows), `transformers/` (raw → Prisma input), `importers/` (Prisma writes)                               |
+| VI. Data Flow                   | ✅ Pass | CSV files are the input; Prisma is the sink; in-memory maps carry FK state between steps; no bidirectional state                                 |
 
 **No violations — no justification needed.**
 
@@ -113,22 +113,27 @@ packages/cms/
 ## Architecture Decisions
 
 ### AD-001 — CSV Parsing Library
+
 **Decision**: `csv-parse/sync` (synchronous subpath)
 **Rationale**: TypeScript-native types, no streaming required, handles edge cases reliably. See `research.md R-001`.
 
 ### AD-002 — Full Replace via Prisma Interactive Transaction
+
 **Decision**: `prisma.$transaction(async (tx) => { TRUNCATE; createMany... })`
 **Rationale**: Atomicity — if any insert fails, the truncate rolls back. Chunked at 500 rows to stay under PostgreSQL's bind-parameter limit. See `research.md R-002`.
 
 ### AD-003 — Pre-generated UUIDs for FK resolution
+
 **Decision**: All entity IDs generated with `crypto.randomUUID()` before insertion, not after
 **Rationale**: `createMany` does not return inserted records. Pre-generating IDs allows subsequent entities to reference them as FKs via in-memory maps without extra DB queries. Eliminates the need for `createManyAndReturn`.
 
 ### AD-004 — Tournament year-prefix naming
+
 **Decision**: `"${year} ${torneo}"` as tournament name (e.g., `"2024 Amistoso"`)
 **Rationale**: `Torneo` short names repeat across years. Year prefix ensures uniqueness and matches display names in the statistics dashboard. See `research.md R-004`.
 
 ### AD-005 — dotenv loading via `-r dotenv/config`
+
 **Decision**: `ts-node ... -r dotenv/config` (require-flag approach)
 **Rationale**: Guarantees `DATABASE_URL` is available before Prisma client is instantiated, even in ESM-adjacent TypeScript. See `research.md R-003`.
 
@@ -136,10 +141,10 @@ packages/cms/
 
 ## Dependencies to Add
 
-| Package | Target | Version | Why |
-|---|---|---|---|
-| `csv-parse` | `packages/cms` devDependencies | `^5.5.0` | CSV parsing |
-| `dotenv` | `packages/cms` devDependencies | `^16.0.0` | Load `DATABASE_URL` from `.env` before Prisma init |
+| Package     | Target                         | Version   | Why                                                |
+| ----------- | ------------------------------ | --------- | -------------------------------------------------- |
+| `csv-parse` | `packages/cms` devDependencies | `^5.5.0`  | CSV parsing                                        |
+| `dotenv`    | `packages/cms` devDependencies | `^16.0.0` | Load `DATABASE_URL` from `.env` before Prisma init |
 
 No new runtime (production) dependencies. Both are dev-only: used only in the seeding script.
 
@@ -148,11 +153,13 @@ No new runtime (production) dependencies. Both are dev-only: used only in the se
 ## Scripts to Add
 
 **`packages/cms/package.json`**:
+
 ```json
 "seed:import": "ts-node --project tsconfig.json -r dotenv/config src/scripts/seed-import.ts"
 ```
 
 **Root `package.json`**:
+
 ```json
 "seed:import": "npm run seed:import --workspace=@ministrosfc/cms"
 ```
@@ -162,6 +169,7 @@ No new runtime (production) dependencies. Both are dev-only: used only in the se
 ## Gitignore Additions
 
 **`packages/cms/.gitignore`** (or root `.gitignore`):
+
 ```
 packages/cms/data/imports/*.csv
 ```
@@ -172,15 +180,15 @@ The `.gitkeep` file inside `data/imports/` keeps the directory tracked in git.
 
 ## Risks and Mitigations
 
-| Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| Player name mismatch between Jugadores.csv and Apariciones.csv | Medium | Medium | Case-insensitive + trimmed lookup; nickname fallback; warn-and-skip for unresolved |
-| `Jugador (61)` header changes as player count changes | Low | Low | Detect column by `startsWith("Jugador")` rather than exact match |
-| Future CSV format changes (column reorder) | Low | High | Parser types explicitly map by column name, not by index (except Apariciones col 5 which has no header) |
-| Partial truncate with failed insert leaves DB empty | Low | High | TRUNCATE inside the same `$transaction` — rolls back if any subsequent insert fails |
-| Running on production DB accidentally | Low | Critical | Script reads from `packages/cms/.env` only; document clearly in quickstart that this is pre-prod only |
+| Risk                                                           | Likelihood | Impact   | Mitigation                                                                                              |
+| -------------------------------------------------------------- | ---------- | -------- | ------------------------------------------------------------------------------------------------------- |
+| Player name mismatch between Jugadores.csv and Apariciones.csv | Medium     | Medium   | Case-insensitive + trimmed lookup; nickname fallback; warn-and-skip for unresolved                      |
+| `Jugador (61)` header changes as player count changes          | Low        | Low      | Detect column by `startsWith("Jugador")` rather than exact match                                        |
+| Future CSV format changes (column reorder)                     | Low        | High     | Parser types explicitly map by column name, not by index (except Apariciones col 5 which has no header) |
+| Partial truncate with failed insert leaves DB empty            | Low        | High     | TRUNCATE inside the same `$transaction` — rolls back if any subsequent insert fails                     |
+| Running on production DB accidentally                          | Low        | Critical | Script reads from `packages/cms/.env` only; document clearly in quickstart that this is pre-prod only   |
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
+| -------------------------- | ------------------ | ------------------------------------ |
+| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |

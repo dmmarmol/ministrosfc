@@ -13,6 +13,7 @@ ts-node src/scripts/seed-import.ts [flags]
 ```
 
 Via npm (preferred):
+
 ```bash
 npm run seed:import              # full import
 npm run seed:import -- --dry-run # dry run
@@ -23,11 +24,11 @@ npm run seed:import -- --input /custom/path
 
 ## Flags
 
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `--dry-run` | boolean | `false` | Parse and validate all CSVs; print plan; make zero DB writes |
-| `--input <path>` | string | `packages/cms/data/imports/` | Directory containing the three CSV files |
-| `--verbose` | boolean | `false` | Print each row being processed (useful for debugging skipped rows) |
+| Flag             | Type    | Default                      | Description                                                        |
+| ---------------- | ------- | ---------------------------- | ------------------------------------------------------------------ |
+| `--dry-run`      | boolean | `false`                      | Parse and validate all CSVs; print plan; make zero DB writes       |
+| `--input <path>` | string  | `packages/cms/data/imports/` | Directory containing the three CSV files                           |
+| `--verbose`      | boolean | `false`                      | Print each row being processed (useful for debugging skipped rows) |
 
 ---
 
@@ -37,11 +38,11 @@ npm run seed:import -- --input /custom/path
 
 The script expects exactly three files in the `--input` directory:
 
-| Filename | Required | Description |
-|---|---|---|
-| `Historial.csv` | ✅ Yes | Game records — one row per game |
-| `Jugadores.csv` | ✅ Yes | Player roster — one row per player |
-| `Apariciones.csv` | ✅ Yes | Player appearances — one row per player-game |
+| Filename          | Required | Description                                  |
+| ----------------- | -------- | -------------------------------------------- |
+| `Historial.csv`   | ✅ Yes   | Game records — one row per game              |
+| `Jugadores.csv`   | ✅ Yes   | Player roster — one row per player           |
+| `Apariciones.csv` | ✅ Yes   | Player appearances — one row per player-game |
 
 If any required file is missing, the script exits with code `1` and prints an error message before touching the database.
 
@@ -55,12 +56,14 @@ If any required file is missing, the script exits with code `1` and prints an er
 ### Expected Column Headers
 
 **`Historial.csv`** (exact names, 15 named columns):
+
 ```
 Fecha, Torneo, Comienzo, Finalización, Equipo, Rival, Estadio,
 Goles Convertidos, Goles Recibidos, Resultado, Conclusión, Apariciones, DT, Comentarios, Foto
 ```
 
 **`Jugadores.csv`** (exact names, 11 named columns):
+
 ```
 Jugador (61), Apodo, Nacimiento, Edad, Altura, Numero, Pie, Posición, DNI, Telefono, Imagen (URL)
 ```
@@ -68,6 +71,7 @@ Jugador (61), Apodo, Nacimiento, Edad, Altura, Numero, Pie, Posición, DNI, Tele
 > Note: The "61" in `Jugador (61)` is the current player count embedded in the header. The script matches this column by detecting the key starting with `Jugador`. If the count changes, the column will still be resolved correctly.
 
 **`Apariciones.csv`** (exact names for key columns):
+
 ```
 Fecha, Rival, Torneo, Resultado, [col5], Jugador, Jugador, Goles, Amarilla, Roja, Titular/Suplente, Comentarios
 ```
@@ -125,21 +129,21 @@ Fecha, Rival, Torneo, Resultado, [col5], Jugador, Jugador, Goles, Amarilla, Roja
 
 ## Exit Codes
 
-| Code | Meaning |
-|---|---|
-| `0` | Import completed successfully (or dry-run completed with no errors) |
-| `1` | Missing required input file(s) |
-| `2` | CSV parsing error (malformed file) |
-| `3` | Database connection error |
-| `4` | Database transaction error (imported partially; rolled back) |
+| Code | Meaning                                                             |
+| ---- | ------------------------------------------------------------------- |
+| `0`  | Import completed successfully (or dry-run completed with no errors) |
+| `1`  | Missing required input file(s)                                      |
+| `2`  | CSV parsing error (malformed file)                                  |
+| `3`  | Database connection error                                           |
+| `4`  | Database transaction error (imported partially; rolled back)        |
 
 ---
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|---|---|---|
-| `DATABASE_URL` | ✅ Yes | PostgreSQL connection string; read from `packages/cms/.env` (via `-r dotenv/config`) |
+| Variable       | Required | Description                                                                          |
+| -------------- | -------- | ------------------------------------------------------------------------------------ |
+| `DATABASE_URL` | ✅ Yes   | PostgreSQL connection string; read from `packages/cms/.env` (via `-r dotenv/config`) |
 
 ---
 
@@ -148,6 +152,7 @@ Fecha, Rival, Torneo, Resultado, [col5], Jugador, Jugador, Goles, Amarilla, Roja
 Running the script multiple times with identical input files produces identical database state. The Full Replace strategy (truncate + re-insert) ensures no duplicate data accumulates.
 
 Side effects:
+
 - All `OpponentTeam`, `Tournament`, `Player`, `Contact`, `Game`, `GameParticipant` records are replaced
 - `Statistics` records are truncated (this import does not populate Statistics)
 - `User`, `TeamInfo` records are NOT touched (not in scope of this import)

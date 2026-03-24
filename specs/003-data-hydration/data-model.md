@@ -18,14 +18,14 @@ All entities are defined in the existing Prisma schema (`packages/cms/prisma/sch
 
 **Extraction logic**: Collect all distinct, trimmed `Rival` values from Historial.csv
 
-| Prisma field | Value | Notes |
-|---|---|---|
-| `id` | `crypto.randomUUID()` | Pre-generated; reused in Game FK map |
-| `name` | `Rival` (trimmed) | Unique constraint; used as FK lookup key |
-| `logoUrl` | `null` | Not in spreadsheet |
-| `colors` | `null` | Not in spreadsheet |
-| `city` | `null` | Not in spreadsheet |
-| `country` | `null` | Not in spreadsheet |
+| Prisma field | Value                 | Notes                                    |
+| ------------ | --------------------- | ---------------------------------------- |
+| `id`         | `crypto.randomUUID()` | Pre-generated; reused in Game FK map     |
+| `name`       | `Rival` (trimmed)     | Unique constraint; used as FK lookup key |
+| `logoUrl`    | `null`                | Not in spreadsheet                       |
+| `colors`     | `null`                | Not in spreadsheet                       |
+| `city`       | `null`                | Not in spreadsheet                       |
+| `country`    | `null`                | Not in spreadsheet                       |
 
 **Validation**: Skip if `Rival` is empty or whitespace-only (log warning).
 
@@ -38,18 +38,19 @@ All entities are defined in the existing Prisma schema (`packages/cms/prisma/sch
 **Source**: `Historial.csv` — derived by grouping games by `(Torneo + year(Fecha))`
 
 **Derivation logic**:
+
 1. Parse all `Fecha` values from Historial.csv (format: `DD/MM/YYYY`)
 2. Group by `{ torneo: row.Torneo, year: getYear(parsedDate) }`
 3. For each group: `name = "${year} ${torneo}"`, `startDate = min(parsedDates)`, `endDate = max(parsedDates)`
 
-| Prisma field | Derived from | Notes |
-|---|---|---|
-| `id` | `crypto.randomUUID()` | Pre-generated; reused in Game FK map |
-| `name` | `"${year} ${torneo}"` | e.g., `"2024 Amistoso"` |
-| `competitionType` | Mapped from `torneo` (see table below) | |
-| `startDate` | `min(Fecha)` in group | First game date of tournament |
-| `endDate` | `max(Fecha)` in group | Last game date of tournament |
-| `description` | `null` | Not in spreadsheet |
+| Prisma field      | Derived from                           | Notes                                |
+| ----------------- | -------------------------------------- | ------------------------------------ |
+| `id`              | `crypto.randomUUID()`                  | Pre-generated; reused in Game FK map |
+| `name`            | `"${year} ${torneo}"`                  | e.g., `"2024 Amistoso"`              |
+| `competitionType` | Mapped from `torneo` (see table below) |                                      |
+| `startDate`       | `min(Fecha)` in group                  | First game date of tournament        |
+| `endDate`         | `max(Fecha)` in group                  | Last game date of tournament         |
+| `description`     | `null`                                 | Not in spreadsheet                   |
 
 **CompetitionType mapping**:
 | Torneo (raw) | `competitionType` |
@@ -60,7 +61,7 @@ All entities are defined in the existing Prisma schema (`packages/cms/prisma/sch
 | `Torneo Mundialito` | `CUP` |
 | `Copa de Oro` | `CUP` |
 | `Amistoso` | `FRIENDLY` |
-| *(any other)* | `LEAGUE` (fallback; log warning) |
+| _(any other)_ | `LEAGUE` (fallback; log warning) |
 
 **Records expected**: 9
 
@@ -70,20 +71,20 @@ All entities are defined in the existing Prisma schema (`packages/cms/prisma/sch
 
 **Source**: `Jugadores.csv` — one row per player
 
-| CSV column | Prisma field | Transformation |
-|---|---|---|
-| `Jugador` | `name` | Trim whitespace |
-| `Apodo` | `nickname` | Trim; store `null` if empty or value is `??` |
-| `Nacimiento` | `dateOfBirth` | Store as string (year only, e.g., `"1991"`); null if empty |
-| `Altura` | `height` | `parseInt()`, null if empty or non-numeric |
-| `Numero` | `jerseyNumber` | `parseInt()`, null if empty or non-numeric |
-| `Pie` | `dominantFoot` | See enum mapping below; null if empty |
-| `Posición` | `position` | Split on `,`, take first valid enum value; null if none valid |
-| `DNI` | `nationalId` | Trim; null if empty |
-| `Imagen (URL)` | `photoUrl` | Always overridden with `https://placehold.co/200x200?text=Player` |
-| *(derived)* | `playerType` | `GUEST` if name or nickname contains `"Amigo de"` or `"Amigo del"` (case-insensitive); else `REGISTERED` |
-| *(constant)* | `status` | Always `ACTIVE` |
-| *(constant)* | `invitedById` | Always `null` (no user accounts in this import) |
+| CSV column     | Prisma field   | Transformation                                                                                           |
+| -------------- | -------------- | -------------------------------------------------------------------------------------------------------- |
+| `Jugador`      | `name`         | Trim whitespace                                                                                          |
+| `Apodo`        | `nickname`     | Trim; store `null` if empty or value is `??`                                                             |
+| `Nacimiento`   | `dateOfBirth`  | Store as string (year only, e.g., `"1991"`); null if empty                                               |
+| `Altura`       | `height`       | `parseInt()`, null if empty or non-numeric                                                               |
+| `Numero`       | `jerseyNumber` | `parseInt()`, null if empty or non-numeric                                                               |
+| `Pie`          | `dominantFoot` | See enum mapping below; null if empty                                                                    |
+| `Posición`     | `position`     | Split on `,`, take first valid enum value; null if none valid                                            |
+| `DNI`          | `nationalId`   | Trim; null if empty                                                                                      |
+| `Imagen (URL)` | `photoUrl`     | Always overridden with `https://placehold.co/200x200?text=Player`                                        |
+| _(derived)_    | `playerType`   | `GUEST` if name or nickname contains `"Amigo de"` or `"Amigo del"` (case-insensitive); else `REGISTERED` |
+| _(constant)_   | `status`       | Always `ACTIVE`                                                                                          |
+| _(constant)_   | `invitedById`  | Always `null` (no user accounts in this import)                                                          |
 
 **Foot enum mapping**:
 | CSV value | `dominantFoot` |
@@ -91,7 +92,7 @@ All entities are defined in the existing Prisma schema (`packages/cms/prisma/sch
 | `Zurdo` | `LEFT` |
 | `Diestro` | `RIGHT` |
 | `Ambidiestro` | `AMBIDEXTROUS` |
-| *(empty)* | `null` |
+| _(empty)_ | `null` |
 
 **Position unmapped values**:
 | CSV value | Mapped to | Reason |
@@ -102,12 +103,14 @@ All entities are defined in the existing Prisma schema (`packages/cms/prisma/sch
 **Multi-position handling**: Split `Posición` on `,`. Apply `SMF→CMF` / `LIB→CB` substitutions. Store only the first recognized enum value. Log discarded positions as informational warnings.
 
 **Guest detection rule**:
+
 ```typescript
 const isGuest = (name: string, nickname: string | null): boolean => {
-  const patterns = ['amigo de', 'amigo del'];
-  return patterns.some(p =>
-    name.toLowerCase().includes(p) ||
-    (nickname ?? '').toLowerCase().includes(p)
+  const patterns = ["amigo de", "amigo del"];
+  return patterns.some(
+    (p) =>
+      name.toLowerCase().includes(p) ||
+      (nickname ?? "").toLowerCase().includes(p),
   );
 };
 ```
@@ -122,12 +125,12 @@ const isGuest = (name: string, nickname: string | null): boolean => {
 
 **Source**: `Jugadores.csv` — same rows as Player; conditional on `Telefono` being non-empty
 
-| CSV column | Prisma field | Notes |
-|---|---|---|
-| *(Player FK)* | `playerId` | Pre-generated UUID from the Player row |
-| `Telefono` | `phone` | Stored as-is; no normalization |
-| *(absent)* | `whatsapp` | `null` |
-| *(absent)* | `emergencyContact` | `null` |
+| CSV column    | Prisma field       | Notes                                  |
+| ------------- | ------------------ | -------------------------------------- |
+| _(Player FK)_ | `playerId`         | Pre-generated UUID from the Player row |
+| `Telefono`    | `phone`            | Stored as-is; no normalization         |
+| _(absent)_    | `whatsapp`         | `null`                                 |
+| _(absent)_    | `emergencyContact` | `null`                                 |
 
 **Condition**: Only create Contact if `Telefono.trim()` is non-empty.
 
@@ -139,36 +142,40 @@ const isGuest = (name: string, nickname: string | null): boolean => {
 
 **Source**: `Historial.csv` — one row per game
 
-| CSV column | Prisma field | Transformation |
-|---|---|---|
-| `Fecha` | `date` | Parse `DD/MM/YYYY` → UTC DateTime (`YYYY-MM-DDT00:00:00.000Z`) |
-| `Rival` | `opponentTeamId` | Lookup from OpponentTeam map by trimmed name |
-| *(derived)* | `tournamentId` | Lookup from Tournament map by `"${year} ${torneo}"` key; `null` if not found |
-| `Estadio` | `location` | Trim; null if empty |
-| *(derived)* | `competitionType` | Same mapping as Tournament's `competitionType`; uses Torneo column |
-| `Goles Convertidos` | `homeTeamScore` | `parseInt()`; null if empty or non-numeric |
-| `Goles Recibidos` | `awayTeamScore` | `parseInt()`; null if empty or non-numeric |
-| `Conclusión` | `status` | `G`, `P`, `E` → `COMPLETED`; empty → `SCHEDULED`; `FALSE` → skip row |
-| *(assembled)* | `notes` | See assembly rule below |
-| *(constant)* | `possession` | `null` |
-| *(constant)* | `shotsOnTarget` | `null` |
-| *(constant)* | `fouls` | `null` |
+| CSV column          | Prisma field      | Transformation                                                               |
+| ------------------- | ----------------- | ---------------------------------------------------------------------------- |
+| `Fecha`             | `date`            | Parse `DD/MM/YYYY` → UTC DateTime (`YYYY-MM-DDT00:00:00.000Z`)               |
+| `Rival`             | `opponentTeamId`  | Lookup from OpponentTeam map by trimmed name                                 |
+| _(derived)_         | `tournamentId`    | Lookup from Tournament map by `"${year} ${torneo}"` key; `null` if not found |
+| `Estadio`           | `location`        | Trim; null if empty                                                          |
+| _(derived)_         | `competitionType` | Same mapping as Tournament's `competitionType`; uses Torneo column           |
+| `Goles Convertidos` | `homeTeamScore`   | `parseInt()`; null if empty or non-numeric                                   |
+| `Goles Recibidos`   | `awayTeamScore`   | `parseInt()`; null if empty or non-numeric                                   |
+| `Conclusión`        | `status`          | `G`, `P`, `E` → `COMPLETED`; empty → `SCHEDULED`; `FALSE` → skip row         |
+| _(assembled)_       | `notes`           | See assembly rule below                                                      |
+| _(constant)_        | `possession`      | `null`                                                                       |
+| _(constant)_        | `shotsOnTarget`   | `null`                                                                       |
+| _(constant)_        | `fouls`           | `null`                                                                       |
 
 **`game.notes` assembly**:
+
 ```typescript
 const parts: string[] = [];
 if (row.DT) parts.push(`DT: ${row.DT}`);
-if (row.Comienzo && row.Finalización) parts.push(`Horario: ${row.Comienzo}–${row.Finalización}`);
+if (row.Comienzo && row.Finalización)
+  parts.push(`Horario: ${row.Comienzo}–${row.Finalización}`);
 if (row.Comentarios) parts.push(row.Comentarios);
-const notes = parts.length > 0 ? parts.join('\n') : null;
+const notes = parts.length > 0 ? parts.join("\n") : null;
 ```
 
 **Row skipping**:
+
 - Skip if `Rival` is empty
 - Skip if `Fecha` is empty or unparseable
 - Skip if `Conclusión` value is `FALSE` (these are empty placeholder rows at the end of the sheet)
 
 **Game lookup key** (for Apariciones cross-reference):
+
 ```typescript
 const gameKey = `${toISO(parsedDate)}:${rival.trim().toLowerCase()}`;
 // e.g., "2023-09-09:la cocina"
@@ -182,22 +189,23 @@ const gameKey = `${toISO(parsedDate)}:${rival.trim().toLowerCase()}`;
 
 **Source**: `Apariciones.csv` — one row per player-game appearance
 
-| CSV column | Prisma field | Transformation |
-|---|---|---|
-| `Fecha` + `Rival` | `gameId` | Lookup from Game map via `YYYY-MM-DD:rival-lowercase` key |
-| `Jugador (col 6)` | `playerId` | Lookup by `name` (lower+trim); fallback: `Jugador (col 7)` by nickname |
-| `Goles` | `goalsScored` | `parseInt()`, default `0` |
-| `Amarilla` | `yellowCards` | `parseInt()`, default `0` |
-| `Roja` | `redCards` | `parseInt()`, default `0` |
-| `Comentarios` | `notes` | Trim; null if empty |
-| *(constant)* | `confirmationStatus` | `CONFIRMED` |
-| *(constant)* | `assists` | `0` (not in CSV) |
-| *(constant)* | `minutesPlayed` | `null` (not in CSV) |
-| *(constant)* | `confirmedById` | `null` |
+| CSV column        | Prisma field         | Transformation                                                         |
+| ----------------- | -------------------- | ---------------------------------------------------------------------- |
+| `Fecha` + `Rival` | `gameId`             | Lookup from Game map via `YYYY-MM-DD:rival-lowercase` key              |
+| `Jugador (col 6)` | `playerId`           | Lookup by `name` (lower+trim); fallback: `Jugador (col 7)` by nickname |
+| `Goles`           | `goalsScored`        | `parseInt()`, default `0`                                              |
+| `Amarilla`        | `yellowCards`        | `parseInt()`, default `0`                                              |
+| `Roja`            | `redCards`           | `parseInt()`, default `0`                                              |
+| `Comentarios`     | `notes`              | Trim; null if empty                                                    |
+| _(constant)_      | `confirmationStatus` | `CONFIRMED`                                                            |
+| _(constant)_      | `assists`            | `0` (not in CSV)                                                       |
+| _(constant)_      | `minutesPlayed`      | `null` (not in CSV)                                                    |
+| _(constant)_      | `confirmedById`      | `null`                                                                 |
 
 **Date parsing**: Apariciones uses `YYYY/MM/DD` → replace all `/` with `-` → ISO date string.
 
 **Row skipping**:
+
 - Skip if game lookup key not found in game map (log warning: "No game found for date+rival")
 - Skip if player name lookup fails (log warning: "No player found: {name}")
 - Skip duplicate `(gameId, playerId)` pairs (the schema has a `@@unique` constraint)
@@ -223,6 +231,7 @@ GameParticipant (FK: gameId → Game, playerId → Player)
 ```
 
 **Truncate order** (reverse of above):
+
 ```
 GameParticipant → Statistics → Game → Contact → Player → Tournament → OpponentTeam
 ```
@@ -233,12 +242,12 @@ Note: `Statistics` is truncated (even though this import doesn't populate it) to
 
 ## State Transitions
 
-| Entity | Status field | Imported value | Notes |
-|---|---|---|---|
-| `Player` | `status: PlayerStatus` | Always `ACTIVE` | Admin deactivates retired players via CMS |
-| `Player` | `playerType: PlayerType` | `GUEST` or `REGISTERED` | Determined by name/nickname pattern |
-| `Game` | `status: GameStatus` | `COMPLETED` if Conclusión ∈ {G,P,E}; `SCHEDULED` if empty | |
-| `GameParticipant` | `confirmationStatus` | Always `CONFIRMED` | Appearing in Apariciones = confirmed attendance |
+| Entity            | Status field             | Imported value                                            | Notes                                           |
+| ----------------- | ------------------------ | --------------------------------------------------------- | ----------------------------------------------- |
+| `Player`          | `status: PlayerStatus`   | Always `ACTIVE`                                           | Admin deactivates retired players via CMS       |
+| `Player`          | `playerType: PlayerType` | `GUEST` or `REGISTERED`                                   | Determined by name/nickname pattern             |
+| `Game`            | `status: GameStatus`     | `COMPLETED` if Conclusión ∈ {G,P,E}; `SCHEDULED` if empty |                                                 |
+| `GameParticipant` | `confirmationStatus`     | Always `CONFIRMED`                                        | Appearing in Apariciones = confirmed attendance |
 
 ---
 
@@ -247,9 +256,9 @@ Note: `Statistics` is truncated (even though this import doesn't populate it) to
 ```typescript
 type IdMap = Record<string, string>; // name/key → UUID
 
-const opponentTeamMap: IdMap = {};   // 'La Cocina' → 'uuid-...'
-const tournamentMap: IdMap = {};     // '2024 Amistoso' → 'uuid-...'
-const playerMapByName: IdMap = {};   // 'diego marmol' → 'uuid-...'
+const opponentTeamMap: IdMap = {}; // 'La Cocina' → 'uuid-...'
+const tournamentMap: IdMap = {}; // '2024 Amistoso' → 'uuid-...'
+const playerMapByName: IdMap = {}; // 'diego marmol' → 'uuid-...'
 const playerMapByNickname: IdMap = {}; // 'dieguito' → 'uuid-...'
-const gameMap: IdMap = {};           // '2023-09-09:la cocina' → 'uuid-...'
+const gameMap: IdMap = {}; // '2023-09-09:la cocina' → 'uuid-...'
 ```
