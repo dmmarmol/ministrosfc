@@ -1,0 +1,21 @@
+# Ministros FC - Backend CMS
+app = "ministrosfc-cms"
+primary_region = "gru"
+
+[build]
+
+[http_service]
+  internal_port = 5102
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+[env]
+  API_PORT = "5102"
+  NODE_ENV = "production"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512

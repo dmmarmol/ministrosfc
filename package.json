@@ -1,11 +1,31 @@
 {
   "name": "ministrosfc",
   "version": "0.0.1",
-  "description": "Amateur football team platform",
-  "main": "index.js",
+  "description": "Amateur football team platform - Monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "docker:up": "podman-compose up -d",
+    "docker:down": "podman-compose down",
+    "docker:logs": "podman-compose logs -f",
+    "build:all": "npm run build --workspaces --if-present",
+    "dev:all": "npm run dev --workspaces --if-present",
+    "test:all": "npm test --workspaces --if-present",
+    "gen:prisma": "npm run prisma:generate --workspace=@ministrosfc/cms",
+    "lint:all": "npm run lint --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
+    "install:all": "npm install"
   },
   "author": "Diego Martin Marmol <diegomartinmarmol@gmail.com>",
-  "license": "ISC"
+  "license": "ISC",
+  "engines": {
+    "node": ">=23.0.0",
+    "npm": ">=10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  }
 }

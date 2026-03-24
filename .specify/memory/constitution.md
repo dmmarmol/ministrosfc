@@ -1,19 +1,35 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version: 1.0.0 (initial creation)
+Version change: 1.0.0 → 1.1.0 (MINOR — new testing constraints added)
 Ratified: 2026-03-17
-Last Amended: 2026-03-17
+Last Amended: 2026-03-18
 
-Initial Constitution Creation for Ministros FC Amateur Football Team Platform
-- All initial principles established for a full-stack web application
-- Templates synchronized: spec-template.md, plan-template.md, tasks-template.md
-- No prior version to compare against
+Amendment: Add Testing Tooling and Conventions
+- Added "Testing Tooling and Conventions" subsection under Quality and Testing Standards
+- Added four new MUST/SHOULD rules covering:
+    * Vitest as test runner in packages/frontend (MUST)
+    * Vitest preferred in packages/cms, Jest acceptable until migrated (SHOULD)
+    * Explicit imports in every Nuxt file despite auto-import (MUST)
+    * Typed mock objects in unit tests (MUST)
+- Updated Technology Standards > Testing line to reflect per-package tooling
+
+Modified sections:
+  ✅ Development Stack and Constraints > Technology Standards (Testing line)
+  ✅ Quality and Testing Standards (new subsection appended)
+
+Templates reviewed:
+  ✅ plan-template.md       — generic Testing placeholder, no change needed
+  ✅ spec-template.md       — no testing tool references, no change needed
+  ✅ tasks-template.md      — no testing tool references, no change needed
+  ✅ checklist-template.md  — sample items only, no change needed
+
+Deferred TODOs: none
 -->
 
 # Ministros FC Constitution
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-03-17
+**Version**: 1.1.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-03-18
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -149,7 +165,7 @@ This constitution establishes the architectural principles, development workflow
 - **Runtime**: Node.js (latest LTS, minimum v18)
 - **Language**: TypeScript (strict mode MANDATORY)
 - **Package Manager**: npm (pinned versions in package-lock.json)
-- **Testing**: Jest (unit/integration), Playwright (E2E)
+- **Testing**: Vitest (unit/integration in `packages/frontend`; preferred in `packages/cms`), Playwright (E2E)
 - **Code Quality**: ESLint, Prettier (enforced in pre-commit hooks)
 - **Version Control**: Git with conventional commits
 
@@ -323,6 +339,20 @@ feature/
 - **Integration tests**: Feature workflows, API interactions, data flow
 - **E2E tests** (Playwright): User-facing scenarios, multi-step workflows
 - **Snapshot tests**: Sparingly, only for stable UI structures; require explicit reviews
+
+### Testing Tooling and Conventions
+
+- **MUST** use **Vitest** as the test runner in `packages/frontend`.
+- **SHOULD** use **Vitest** in `packages/cms`. Jest remains acceptable until a migration is feasible; any
+  new CMS test file MUST prefer Vitest if the suite has already been migrated.
+- **MUST** write explicit imports in every Nuxt-related file (components, composables, pages, plugins),
+  even when `nuxt.config.ts` auto-imports are enabled. Explicit imports ensure test mocking works
+  correctly and prevent missing IntelliSense references during refactoring.
+- **MUST** annotate unit test mock objects with explicit TypeScript types. `vi.fn()` / `jest.fn()`
+  wrappers MUST carry the correct function signature; stub objects MUST satisfy the matching
+  interface or type alias (no `as any` escape hatches in test setup code).
+
+---
 
 ### Performance Standards
 

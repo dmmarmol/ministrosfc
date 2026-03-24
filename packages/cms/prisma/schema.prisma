@@ -1,0 +1,310 @@
+// Ministros FC - Prisma Schema
+// PostgreSQL database schema for the Ministros FC platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  EDITOR
+  PLAYER
+}
+
+enum PlayerType {
+  REGISTERED
+  GUEST
+}
+
+enum PlayerStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum Position {
+  GK
+  CB
+  RB
+  LB
+  RWB
+  LWB
+  DMF
+  CMF
+  AMF
+  RMF
+  LMF
+  SS
+  CF
+  RWF
+  LWF
+}
+
+enum Foot {
+  LEFT
+  RIGHT
+  AMBIDEXTROUS
+}
+
+enum GameStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum CompetitionType {
+  FRIENDLY
+  LEAGUE
+  CUP
+  PLAYOFF
+  SEASON
+}
+
+enum ConfirmationStatus {
+  NOT_RESPONDED
+  CONFIRMED
+  DECLINED
+}
+
+// ─────────────────────────────────────────
+// USER
+// ─────────────────────────────────────────
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         Role      @default(PLAYER)
+  player       Player?   @relation(fields: [playerId], references: [id], onDelete: SetNull)
+  playerId     String?   @unique
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
+
+  @@index([email])
+  @@index([role])
+}
+
+// ─────────────────────────────────────────
+// PLAYER
+// ─────────────────────────────────────────
+
+model Player {
+  id         String       @id @default(uuid())
+  name       String       @db.VarChar(255)
+  nickname   String?      @db.VarChar(100)
+  playerType PlayerType   @default(REGISTERED)
+  status     PlayerStatus @default(ACTIVE)
+
+  invitedBy     Player?  @relation("GuestInvites", fields: [invitedById], references: [id], onDelete: SetNull)
+  invitedById   String?
+  invitedGuests Player[] @relation("GuestInvites")
+
+  position     Position?
+  jerseyNumber Int?
+  dateOfBirth  String?
+  height       Int?
+  dominantFoot Foot?
+  nationalId   String?
+  photoUrl     String?
+
+  contactInfo      Contact?         @relation("PlayerContact")
+  stats            Statistics[]     @relation("PlayerStats")
+  gameParticipants GameParticipant[] @relation("PlayerParticipant")
+  confirmedParticipants GameParticipant[] @relation("ConfirmedParticipants")
+  user             User?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([playerType])
+  @@index([position])
+  @@index([invitedById])
+}
+
+// ─────────────────────────────────────────
+// CONTACT
+// ─────────────────────────────────────────
+
+model Contact {
+  id       String  @id @default(uuid())
+  playerId String  @unique
+  player   Player  @relation("PlayerContact", fields: [playerId], references: [id], onDelete: Cascade)
+
+  phone            String?
+  whatsapp         String?
+  emergencyContact String?
+}
+
+// ─────────────────────────────────────────
+// OPPONENT TEAM
+// ─────────────────────────────────────────
+
+model OpponentTeam {
+  id      String  @id @default(uuid())
+  name    String  @unique @db.VarChar(255)
+  logoUrl String?
+  colors  String? @db.VarChar(100)
+  city    String? @db.VarChar(255)
+  country String? @db.VarChar(100)
+
+  games Game[] @relation("OpponentGames")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}
+
+// ─────────────────────────────────────────
+// TEAM INFO (Owner Team - single record)
+// ─────────────────────────────────────────
+
+model TeamInfo {
+  id           String  @id @default(uuid())
+  name         String  @db.VarChar(255)
+  description  String? @db.Text
+  foundedYear  Int?
+  colors       String? @db.VarChar(100)
+  logoUrl      String?
+  location     String? @db.VarChar(255)
+  contactEmail String? @db.VarChar(255)
+  website      String? @db.VarChar(255)
+  socialLinks  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────
+// TOURNAMENT
+// ─────────────────────────────────────────
+
+model Tournament {
+  id          String          @id @default(uuid())
+  name        String          @db.VarChar(255)
+  description String?         @db.Text
+  startDate   DateTime
+  endDate     DateTime
+  competitionType CompetitionType  @default(LEAGUE)
+
+  games      Game[]       @relation("TournamentGames")
+  statistics Statistics[] @relation("TournamentStats")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([startDate])
+  @@index([competitionType])
+}
+
+// ─────────────────────────────────────────
+// GAME
+// ─────────────────────────────────────────
+
+model Game {
+  id             String          @id @default(uuid())
+  opponentTeam   OpponentTeam    @relation("OpponentGames", fields: [opponentTeamId], references: [id], onDelete: Restrict)
+  opponentTeamId String
+  tournament     Tournament?     @relation("TournamentGames", fields: [tournamentId], references: [id], onDelete: SetNull)
+  tournamentId   String?
+
+  date            DateTime
+  location        String?         @db.VarChar(255)
+  competitionType CompetitionType @default(FRIENDLY)
+  status          GameStatus      @default(SCHEDULED)
+
+  homeTeamScore Int?
+  awayTeamScore Int?
+  possession    Float?
+  shotsOnTarget Int?
+  fouls         Int?
+  notes         String? @db.Text
+
+  participants GameParticipant[] @relation("GameParticipants")
+  statistics   Statistics[]      @relation("GameStats")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+  @@index([status])
+  @@index([opponentTeamId])
+  @@index([tournamentId])
+}
+
+// ─────────────────────────────────────────
+// GAME PARTICIPANT
+// ─────────────────────────────────────────
+
+model GameParticipant {
+  id     String @id @default(uuid())
+  game   Game   @relation("GameParticipants", fields: [gameId], references: [id], onDelete: Cascade)
+  gameId String
+  player Player @relation("PlayerParticipant", fields: [playerId], references: [id], onDelete: Cascade)
+  playerId String
+
+  confirmationStatus ConfirmationStatus @default(NOT_RESPONDED)
+  confirmedBy        Player?            @relation("ConfirmedParticipants", fields: [confirmedById], references: [id], onDelete: SetNull)
+  confirmedById      String?
+  confirmedAt        DateTime?
+  notes              String?
+
+  goalsScored   Int? @default(0)
+  assists       Int? @default(0)
+  yellowCards   Int? @default(0)
+  redCards      Int? @default(0)
+  minutesPlayed Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([gameId, playerId])
+  @@index([gameId])
+  @@index([playerId])
+  @@index([confirmedById])
+  @@index([confirmationStatus])
+}
+
+// ─────────────────────────────────────────
+// STATISTICS
+// ─────────────────────────────────────────
+
+model Statistics {
+  id           String      @id @default(uuid())
+  player       Player      @relation("PlayerStats", fields: [playerId], references: [id], onDelete: Cascade)
+  playerId     String
+  tournament   Tournament? @relation("TournamentStats", fields: [tournamentId], references: [id], onDelete: Cascade)
+  tournamentId String?
+  game         Game?       @relation("GameStats", fields: [gameId], references: [id], onDelete: Cascade)
+  gameId       String?
+
+  goalsScored  Int   @default(0)
+  assists      Int   @default(0)
+  appearances  Int   @default(0)
+  yellowCards  Int   @default(0)
+  redCards     Int   @default(0)
+  totalMinutes Int   @default(0)
+  goalsPerGame Float @default(0)
+  passAccuracy Float?
+
+  createdAt        DateTime @default(now())
+  lastCalculatedAt DateTime @updatedAt
+
+  @@unique([playerId, tournamentId, gameId])
+  @@index([playerId])
+  @@index([tournamentId])
+  @@index([gameId])
+}

@@ -1,0 +1,76 @@
+version: "3.9"
+
+# Ministros FC - Local Development Services
+# Run with: npm run docker:up (uses podman-compose)
+# Or: podman-compose up -d
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: ministrosfc-postgres
+
+    environment:
+      POSTGRES_USER: ${DB_USER:-dev}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-dev123}
+      POSTGRES_DB: ${DB_NAME:-ministrosfc_dev}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+
+    volumes:
+      # Persist database data across container restarts
+      - postgres_data:/var/lib/postgresql/data
+
+    ports:
+      - "${DB_PORT:-5100}:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-dev}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    networks:
+      - ministrosfc-network
+
+    restart: unless-stopped
+
+  # Redis Cache (Optional for v1.0 but included for future use)
+  redis:
+    image: redis:7-alpine
+    container_name: ministrosfc-redis
+
+    command: redis-server --appendonly yes
+
+    volumes:
+      # Persist Redis data
+      - redis_data:/data
+
+    ports:
+      - "${REDIS_PORT:-5101}:6379"
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    networks:
+      - ministrosfc-network
+
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  ministrosfc-network:
+    driver: bridge
+
+# Note: Backend and Frontend services will be run locally via npm run dev for Phase 0-4
+# Production docker services can be added in Phase 5 or when deploying to Fly.io
+
