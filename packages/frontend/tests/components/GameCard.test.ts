@@ -38,28 +38,28 @@ describe("GameCard", () => {
     expect(wrapper.text()).toContain("Estádio Municipal");
   });
 
-  it('shows "Upcoming" badge for SCHEDULED game', () => {
+  it('shows "Próximo" badge for SCHEDULED game', () => {
     const wrapper = mount(GameCard, {
       props: { game: { ...baseGame, status: "SCHEDULED" } },
       global: { stubs: { NuxtLink: NuxtLinkStub } },
     });
-    expect(wrapper.text()).toContain("Upcoming");
+    expect(wrapper.text()).toContain("Próximo");
   });
 
-  it('shows "Live" badge for IN_PROGRESS game', () => {
+  it('shows "En vivo" badge for IN_PROGRESS game', () => {
     const wrapper = mount(GameCard, {
       props: { game: { ...baseGame, status: "IN_PROGRESS" } },
       global: { stubs: { NuxtLink: NuxtLinkStub } },
     });
-    expect(wrapper.text()).toContain("Live");
+    expect(wrapper.text()).toContain("En vivo");
   });
 
-  it('shows "Cancelled" badge for CANCELLED game', () => {
+  it('shows "Cancelado" badge for CANCELLED game', () => {
     const wrapper = mount(GameCard, {
       props: { game: { ...baseGame, status: "CANCELLED" } },
       global: { stubs: { NuxtLink: NuxtLinkStub } },
     });
-    expect(wrapper.text()).toContain("Cancelled");
+    expect(wrapper.text()).toContain("Cancelado");
   });
 
   it("shows score and WIN label when home score > away score", () => {
@@ -76,7 +76,7 @@ describe("GameCard", () => {
     });
     expect(wrapper.text()).toContain("3");
     expect(wrapper.text()).toContain("1");
-    expect(wrapper.text()).toContain("WIN");
+    expect(wrapper.text()).toContain("Victoria");
   });
 
   it("shows WIN with green class when winning", () => {
@@ -93,7 +93,7 @@ describe("GameCard", () => {
     });
     const resultEl = wrapper.find(".text-green-600");
     expect(resultEl.exists()).toBe(true);
-    expect(resultEl.text()).toBe("WIN");
+    expect(resultEl.text()).toBe("Victoria");
   });
 
   it("shows DRAW with yellow class when scores are equal", () => {
@@ -110,7 +110,7 @@ describe("GameCard", () => {
     });
     const resultEl = wrapper.find(".text-yellow-600");
     expect(resultEl.exists()).toBe(true);
-    expect(resultEl.text()).toBe("DRAW");
+    expect(resultEl.text()).toBe("Empate");
   });
 
   it("shows LOSS with red class when losing", () => {
@@ -127,7 +127,7 @@ describe("GameCard", () => {
     });
     const resultEl = wrapper.find(".text-red-600");
     expect(resultEl.exists()).toBe(true);
-    expect(resultEl.text()).toBe("LOSS");
+    expect(resultEl.text()).toBe("Derrota");
   });
 
   it("shows team initials when no logo is provided", () => {
@@ -157,7 +157,7 @@ describe("GameCard", () => {
     expect(img.attributes("src")).toBe(logoUrl);
   });
 
-  it("shows 0-0 for COMPLETED game with null scores", () => {
+  it('shows 0-0 and "Empate" for COMPLETED game with null scores', () => {
     const wrapper = mount(GameCard, {
       props: {
         game: {
@@ -170,6 +170,6 @@ describe("GameCard", () => {
       global: { stubs: { NuxtLink: NuxtLinkStub } },
     });
     expect(wrapper.text()).toContain("0");
-    expect(wrapper.text()).toContain("DRAW");
+    expect(wrapper.text()).toContain("Empate");
   });
 });

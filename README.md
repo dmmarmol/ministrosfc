@@ -80,7 +80,7 @@ Complete platform for managing an amateur soccer team's roster, games, tournamen
 ### Prerequisites
 
 - **Node.js** 23+ LTS
-- **npm** 9+
+- **npm** 10+
 - **Podman** (for PostgreSQL + Redis containers)
 - **Git**
 
