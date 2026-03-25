@@ -42,7 +42,7 @@ export function parseJugadores(csvContent: string): ParsedJugadorRow[] {
       Altura: row["Altura"] ?? "",
       Numero: row["Numero"] ?? "",
       Pie: row["Pie"] ?? "",
-      "Posición": row["Posición"] ?? "",
+      Posición: row["Posición"] ?? "",
       DNI: row["DNI"] ?? "",
       Telefono: row["Telefono"] ?? "",
       "Imagen (URL)": row["Imagen (URL)"] ?? "",

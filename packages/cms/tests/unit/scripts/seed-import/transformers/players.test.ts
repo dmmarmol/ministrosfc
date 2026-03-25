@@ -12,7 +12,7 @@ function makeRow(overrides: Partial<ParsedJugadorRow> = {}): ParsedJugadorRow {
     Altura: "175",
     Numero: "10",
     Pie: "Diestro",
-    "Posición": "CMF",
+    Posición: "CMF",
     DNI: "12345678",
     Telefono: "",
     "Imagen (URL)": "https://example.com/img.jpg",
@@ -53,37 +53,37 @@ describe("buildPlayers", () => {
 
   describe("position mapping", () => {
     it("maps SMF to CMF", () => {
-      const row = makeRow({ "Posición": "SMF" });
+      const row = makeRow({ Posición: "SMF" });
       const { players } = buildPlayers([row]);
       expect(players[0]!.position).toBe("CMF");
     });
 
     it("maps LIB to CB", () => {
-      const row = makeRow({ "Posición": "LIB" });
+      const row = makeRow({ Posición: "LIB" });
       const { players } = buildPlayers([row]);
       expect(players[0]!.position).toBe("CB");
     });
 
     it("keeps valid schema positions as-is", () => {
-      const row = makeRow({ "Posición": "GK" });
+      const row = makeRow({ Posición: "GK" });
       const { players } = buildPlayers([row]);
       expect(players[0]!.position).toBe("GK");
     });
 
     it("takes the first valid position from a comma-separated list", () => {
-      const row = makeRow({ "Posición": "CMF,AMF" });
+      const row = makeRow({ Posición: "CMF,AMF" });
       const { players } = buildPlayers([row]);
       expect(players[0]!.position).toBe("CMF");
     });
 
     it("applies remap on first value in comma list (SMF,CB → CMF)", () => {
-      const row = makeRow({ "Posición": "SMF,CB" });
+      const row = makeRow({ Posición: "SMF,CB" });
       const { players } = buildPlayers([row]);
       expect(players[0]!.position).toBe("CMF");
     });
 
     it("sets position to null when no valid enum value found", () => {
-      const row = makeRow({ "Posición": "UNKNOWN" });
+      const row = makeRow({ Posición: "UNKNOWN" });
       const { players } = buildPlayers([row]);
       expect(players[0]!.position).toBeNull();
     });
@@ -93,7 +93,9 @@ describe("buildPlayers", () => {
     it("always sets photoUrl to the placeholder", () => {
       const row = makeRow({ "Imagen (URL)": "https://real-photo.com/img.jpg" });
       const { players } = buildPlayers([row]);
-      expect(players[0]!.photoUrl).toBe("https://placehold.co/200x200?text=Player");
+      expect(players[0]!.photoUrl).toBe(
+        "https://placehold.co/200x200?text=Player",
+      );
     });
   });
 

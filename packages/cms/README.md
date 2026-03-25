@@ -15,10 +15,10 @@ Bulk-import historical match and player data from three CSV files into the datab
 
 ### Required Files
 
-| File | Description |
-|------|-------------|
-| `Historial.csv` | Match history (date, rival, tournament, result…) |
-| `Jugadores.csv` | Player roster (name, position, date of birth, phone…) |
+| File              | Description                                              |
+| ----------------- | -------------------------------------------------------- |
+| `Historial.csv`   | Match history (date, rival, tournament, result…)         |
+| `Jugadores.csv`   | Player roster (name, position, date of birth, phone…)    |
 | `Apariciones.csv` | Per-game player appearances (goals, cards, starter/sub…) |
 
 The import is **idempotent** — running it multiple times truncates the relevant tables and re-inserts, always leaving the database in the same final state.
@@ -41,13 +41,13 @@ npm run seed:import -- --verbose
 
 ### Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| `0` | Success |
-| `1` | Missing required CSV file(s) |
-| `2` | CSV parse error |
-| `3` | Database connection error |
-| `4` | Database transaction error |
+| Code | Meaning                      |
+| ---- | ---------------------------- |
+| `0`  | Success                      |
+| `1`  | Missing required CSV file(s) |
+| `2`  | CSV parse error              |
+| `3`  | Database connection error    |
+| `4`  | Database transaction error   |
 
 ### Notes
 

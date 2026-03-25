@@ -17,7 +17,9 @@ interface BuildOpponentTeamsResult {
  * The map is keyed by the original trimmed name (not lowercased) to match
  * the lookup in buildGames.
  */
-export function buildOpponentTeams(rows: ParsedHistorialRow[]): BuildOpponentTeamsResult {
+export function buildOpponentTeams(
+  rows: ParsedHistorialRow[],
+): BuildOpponentTeamsResult {
   const seen = new Map<string, string>(); // trimmed name → uuid
 
   for (const row of rows) {

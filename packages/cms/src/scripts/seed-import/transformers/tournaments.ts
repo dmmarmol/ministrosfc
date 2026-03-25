@@ -5,8 +5,8 @@ import type { IdMap } from "../types";
 type CompetitionType = "FRIENDLY" | "LEAGUE" | "CUP" | "PLAYOFF" | "SEASON";
 
 const COMPETITION_TYPE_MAP: Record<string, CompetitionType> = {
-  "Liga": "LEAGUE",
-  "Amistoso": "FRIENDLY",
+  Liga: "LEAGUE",
+  Amistoso: "FRIENDLY",
   "Torneo Apertura": "SEASON",
   "Torneo Clausura": "SEASON",
   "Torneo Mundialito": "CUP",
@@ -34,7 +34,9 @@ interface BuildTournamentsResult {
  *  - endDate: latest game date in that group
  *  - competitionType: mapped from torneo name
  */
-export function buildTournaments(rows: ParsedHistorialRow[]): BuildTournamentsResult {
+export function buildTournaments(
+  rows: ParsedHistorialRow[],
+): BuildTournamentsResult {
   // group key → { id, torneo, dates[] }
   const groups = new Map<
     string,

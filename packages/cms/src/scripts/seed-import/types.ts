@@ -14,14 +14,14 @@ export interface HistorialRow {
   Fecha: string; // DD/MM/YYYY
   Torneo: string;
   Comienzo: string; // HH:MM start time
-  "Finalización": string; // HH:MM end time
+  Finalización: string; // HH:MM end time
   Equipo: string; // Our team name (constant — not stored)
   Rival: string; // → OpponentTeam.name
   Estadio: string; // → Game.location
   "Goles Convertidos": string; // → Game.homeTeamScore
   "Goles Recibidos": string; // → Game.awayTeamScore
   Resultado: string; // "N-N" — validation only
-  "Conclusión": string; // G | P | E | FALSE | ""
+  Conclusión: string; // G | P | E | FALSE | ""
   Apariciones: string; // count — not stored
   DT: string; // → Game.notes prefix
   Comentarios: string; // → Game.notes suffix
@@ -45,7 +45,7 @@ export interface JugadorRow {
   Altura: string; // numeric string (cm) → Player.height
   Numero: string; // numeric string → Player.jerseyNumber
   Pie: string; // Zurdo | Diestro | Ambidiestro → Player.dominantFoot
-  "Posición": string; // comma-separated list → Player.position (first valid)
+  Posición: string; // comma-separated list → Player.position (first valid)
   DNI: string; // → Player.nationalId
   Telefono: string; // → Contact.phone (only when non-empty)
   "Imagen (URL)": string; // always overridden with placeholder URL

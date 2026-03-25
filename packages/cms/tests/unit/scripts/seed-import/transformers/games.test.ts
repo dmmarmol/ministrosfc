@@ -14,20 +14,22 @@ const TOURNAMENT_MAP: IdMap = {
   "2024 Amistoso": "tournament-uuid-2",
 };
 
-function makeRow(overrides: Partial<ParsedHistorialRow["raw"]> = {}): ParsedHistorialRow {
+function makeRow(
+  overrides: Partial<ParsedHistorialRow["raw"]> = {},
+): ParsedHistorialRow {
   return {
     raw: {
       Fecha: "15/03/2024",
       Torneo: "Liga",
       Comienzo: "20:00",
-      "Finalización": "21:30",
+      Finalización: "21:30",
       Equipo: "Ministros FC",
       Rival: "La Cocina",
       Estadio: "Campo Municipal",
       "Goles Convertidos": "2",
       "Goles Recibidos": "1",
       Resultado: "2-1",
-      "Conclusión": "G",
+      Conclusión: "G",
       Apariciones: "8",
       DT: "",
       Comentarios: "",
@@ -69,7 +71,14 @@ describe("buildGames", () => {
     });
 
     it("includes Horario line when Comienzo and Finalización are both present", () => {
-      const rows = [makeRow({ Comienzo: "20:00", "Finalización": "21:30", DT: "", Comentarios: "" })];
+      const rows = [
+        makeRow({
+          Comienzo: "20:00",
+          Finalización: "21:30",
+          DT: "",
+          Comentarios: "",
+        }),
+      ];
       const { data } = buildGames(rows, TEAM_MAP, TOURNAMENT_MAP);
       expect(data[0]!.notes).toContain("Horario: 20:00–21:30");
     });
@@ -81,13 +90,22 @@ describe("buildGames", () => {
     });
 
     it("assembles all parts joined by newline", () => {
-      const rows = [makeRow({ DT: "Juan", Comienzo: "19:00", "Finalización": "20:30", Comentarios: "Lluvia" })];
+      const rows = [
+        makeRow({
+          DT: "Juan",
+          Comienzo: "19:00",
+          Finalización: "20:30",
+          Comentarios: "Lluvia",
+        }),
+      ];
       const { data } = buildGames(rows, TEAM_MAP, TOURNAMENT_MAP);
       expect(data[0]!.notes).toBe("DT: Juan\nHorario: 19:00–20:30\nLluvia");
     });
 
     it("sets notes to null when all parts are empty", () => {
-      const rows = [makeRow({ DT: "", Comienzo: "", "Finalización": "", Comentarios: "" })];
+      const rows = [
+        makeRow({ DT: "", Comienzo: "", Finalización: "", Comentarios: "" }),
+      ];
       const { data } = buildGames(rows, TEAM_MAP, TOURNAMENT_MAP);
       expect(data[0]!.notes).toBeNull();
     });
@@ -97,14 +115,14 @@ describe("buildGames", () => {
     const completedValues = ["G", "P", "E"];
     completedValues.forEach((val) => {
       it(`maps Conclusión="${val}" to COMPLETED`, () => {
-        const rows = [makeRow({ "Conclusión": val })];
+        const rows = [makeRow({ Conclusión: val })];
         const { data } = buildGames(rows, TEAM_MAP, TOURNAMENT_MAP);
         expect(data[0]!.status).toBe("COMPLETED");
       });
     });
 
     it("maps empty Conclusión to SCHEDULED", () => {
-      const rows = [makeRow({ "Conclusión": "" })];
+      const rows = [makeRow({ Conclusión: "" })];
       const { data } = buildGames(rows, TEAM_MAP, TOURNAMENT_MAP);
       expect(data[0]!.status).toBe("SCHEDULED");
     });
@@ -138,7 +156,9 @@ describe("buildGames", () => {
     });
 
     it("sets score to null when field is empty", () => {
-      const rows = [makeRow({ "Goles Convertidos": "", "Goles Recibidos": "" })];
+      const rows = [
+        makeRow({ "Goles Convertidos": "", "Goles Recibidos": "" }),
+      ];
       const { data } = buildGames(rows, TEAM_MAP, TOURNAMENT_MAP);
       expect(data[0]!.homeTeamScore).toBeNull();
       expect(data[0]!.awayTeamScore).toBeNull();

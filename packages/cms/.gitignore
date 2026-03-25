@@ -1,3 +1,2 @@
-# CSV import files — never commit raw data
 data/imports/*.csv
 fix-tests.js

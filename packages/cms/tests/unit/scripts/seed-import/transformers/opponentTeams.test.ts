@@ -9,14 +9,14 @@ function makeRows(rivals: string[]): ParsedHistorialRow[] {
       Fecha: "15/03/2024",
       Torneo: "Liga",
       Comienzo: "20:00",
-      "Finalización": "21:30",
+      Finalización: "21:30",
       Equipo: "Ministros FC",
       Rival: rival,
       Estadio: "",
       "Goles Convertidos": "2",
       "Goles Recibidos": "1",
       Resultado: "2-1",
-      "Conclusión": "G",
+      Conclusión: "G",
       Apariciones: "8",
       DT: "",
       Comentarios: "",
@@ -42,7 +42,7 @@ describe("buildOpponentTeams", () => {
     const { data } = buildOpponentTeams(rows);
     data.forEach((d) => {
       expect(d.id).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
       );
     });
   });

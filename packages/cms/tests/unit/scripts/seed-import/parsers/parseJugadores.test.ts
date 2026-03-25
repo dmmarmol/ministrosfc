@@ -11,7 +11,7 @@ interface RawJugadorOverrides {
   Altura?: string;
   Numero?: string;
   Pie?: string;
-  "Posición"?: string;
+  Posición?: string;
   DNI?: string;
   Telefono?: string;
   "Imagen (URL)"?: string;
@@ -43,7 +43,7 @@ function makeCsv(rows: RawJugadorOverrides[]): string {
     Altura: "175",
     Numero: "10",
     Pie: "Diestro",
-    "Posición": "CMF",
+    Posición: "CMF",
     DNI: "12345678",
     Telefono: "11-1234-5678",
     "Imagen (URL)": "https://example.com/img.jpg",
@@ -113,13 +113,17 @@ describe("parseJugadores", () => {
 
   describe("dynamic header detection", () => {
     it('detects name column when header is "Jugador (61)"', () => {
-      const csv = makeCsv([{ headerName: "Jugador (61)", nameCol: "Ana Lopez" }]);
+      const csv = makeCsv([
+        { headerName: "Jugador (61)", nameCol: "Ana Lopez" },
+      ]);
       const row = parseJugadores(csv)[0]!;
       expect(row.name).toBe("Ana Lopez");
     });
 
     it('detects name column when header is "Jugador (40)" (count changed)', () => {
-      const csv = makeCsv([{ headerName: "Jugador (40)", nameCol: "Carlos Ruiz" }]);
+      const csv = makeCsv([
+        { headerName: "Jugador (40)", nameCol: "Carlos Ruiz" },
+      ]);
       const row = parseJugadores(csv)[0]!;
       expect(row.name).toBe("Carlos Ruiz");
     });

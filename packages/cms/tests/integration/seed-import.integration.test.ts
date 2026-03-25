@@ -8,10 +8,7 @@ import * as path from "path";
 import { PrismaClient } from "@prisma/client";
 import { run } from "../../src/scripts/seed-import/index";
 
-const FIXTURE_DIR = path.resolve(
-  __dirname,
-  "fixtures/seed-import"
-);
+const FIXTURE_DIR = path.resolve(__dirname, "fixtures/seed-import");
 
 const TEST_DB_URL =
   process.env.TEST_DATABASE_URL ??
@@ -27,7 +24,7 @@ async function truncateSeedTables(): Promise<void> {
   // Only truncate the tables that seed-import manages, without touching auth/user data
   await prisma.$executeRawUnsafe(
     `TRUNCATE "GameParticipant", "Statistics", "Game", "Contact", "Player",
-              "Tournament", "OpponentTeam" RESTART IDENTITY CASCADE`
+              "Tournament", "OpponentTeam" RESTART IDENTITY CASCADE`,
   );
 }
 

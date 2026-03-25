@@ -31,7 +31,7 @@ export async function insertAll(
     PrismaClient,
     "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
   >,
-  payload: InsertPayload
+  payload: InsertPayload,
 ): Promise<void> {
   // 1. OpponentTeams (no FK deps)
   for (const batch of chunk(payload.opponentTeams, 500)) {

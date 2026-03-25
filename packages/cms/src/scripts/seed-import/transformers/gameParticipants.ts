@@ -37,7 +37,7 @@ export function buildGameParticipants(
   rows: ParsedAparicionRow[],
   gameMap: IdMap,
   playerMapByName: IdMap,
-  playerMapByNickname: IdMap
+  playerMapByNickname: IdMap,
 ): BuildGameParticipantsResult {
   const data: GameParticipantData[] = [];
   const skipped: SkippedRow[] = [];
@@ -49,7 +49,11 @@ export function buildGameParticipants(
     if (!gameId) {
       const msg = `[warn] GameParticipant skipped — no game found for key "${gameKey}"\n`;
       process.stderr.write(msg);
-      skipped.push({ reason: "game_not_found", gameKey, playerName: raw.Jugador });
+      skipped.push({
+        reason: "game_not_found",
+        gameKey,
+        playerName: raw.Jugador,
+      });
       continue;
     }
 
@@ -62,7 +66,11 @@ export function buildGameParticipants(
     if (!playerId) {
       const msg = `[warn] GameParticipant skipped — no player found: name="${raw.Jugador}" nickname="${raw.nickname}"\n`;
       process.stderr.write(msg);
-      skipped.push({ reason: "player_not_found", gameKey, playerName: raw.Jugador });
+      skipped.push({
+        reason: "player_not_found",
+        gameKey,
+        playerName: raw.Jugador,
+      });
       continue;
     }
 

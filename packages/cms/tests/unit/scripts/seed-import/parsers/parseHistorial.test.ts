@@ -8,14 +8,14 @@ function makeRow(overrides: Partial<HistorialRow> = {}): string {
     Fecha: "15/03/2024",
     Torneo: "Liga",
     Comienzo: "20:00",
-    "Finalización": "21:30",
+    Finalización: "21:30",
     Equipo: "Ministros FC",
     Rival: "La Cocina",
     Estadio: "Campo Municipal",
     "Goles Convertidos": "2",
     "Goles Recibidos": "1",
     Resultado: "2-1",
-    "Conclusión": "G",
+    Conclusión: "G",
     Apariciones: "8",
     DT: "Coach Bob",
     Comentarios: "Buen partido",
@@ -52,14 +52,14 @@ function multiRowCsv(rows: Array<Partial<HistorialRow>>): string {
     Fecha: "15/03/2024",
     Torneo: "Liga",
     Comienzo: "20:00",
-    "Finalización": "21:30",
+    Finalización: "21:30",
     Equipo: "Ministros FC",
     Rival: "La Cocina",
     Estadio: "Campo Municipal",
     "Goles Convertidos": "2",
     "Goles Recibidos": "1",
     Resultado: "2-1",
-    "Conclusión": "G",
+    Conclusión: "G",
     Apariciones: "8",
     DT: "",
     Comentarios: "",
@@ -67,7 +67,9 @@ function multiRowCsv(rows: Array<Partial<HistorialRow>>): string {
   };
   const lines = rows.map((overrides) => {
     const r = { ...defaults, ...overrides } as Record<string, string>;
-    return headers.map((h) => `"${(r[h] ?? "").replace(/"/g, '""')}"`).join(",");
+    return headers
+      .map((h) => `"${(r[h] ?? "").replace(/"/g, '""')}"`)
+      .join(",");
   });
   return [headers.map((h) => `"${h}"`).join(","), ...lines].join("\n");
 }
@@ -79,13 +81,17 @@ describe("parseHistorial", () => {
     it("parses a valid date to ISO YYYY-MM-DD format", () => {
       const csv = makeRow({ Fecha: "15/03/2024" });
       const rows = parseHistorial(csv);
-      expect(rows[0]!.parsedDate.toISOString().startsWith("2024-03-15")).toBe(true);
+      expect(rows[0]!.parsedDate.toISOString().startsWith("2024-03-15")).toBe(
+        true,
+      );
     });
 
     it("parses first-of-year dates correctly", () => {
       const csv = makeRow({ Fecha: "01/01/2023" });
       const rows = parseHistorial(csv);
-      expect(rows[0]!.parsedDate.toISOString().startsWith("2023-01-01")).toBe(true);
+      expect(rows[0]!.parsedDate.toISOString().startsWith("2023-01-01")).toBe(
+        true,
+      );
     });
   });
 
@@ -97,7 +103,7 @@ describe("parseHistorial", () => {
         Estadio: "Cancha Norte",
         "Goles Convertidos": "3",
         "Goles Recibidos": "0",
-        "Conclusión": "G",
+        Conclusión: "G",
         DT: "Marcelo",
         Comentarios: "Gran juego",
       });
@@ -129,11 +135,11 @@ describe("parseHistorial", () => {
 
     it('skips rows where Conclusión is "FALSE"', () => {
       const csv = multiRowCsv([
-        { "Conclusión": "FALSE" },
-        { "Conclusión": "G" },
-        { "Conclusión": "P" },
-        { "Conclusión": "E" },
-        { "Conclusión": "" },
+        { Conclusión: "FALSE" },
+        { Conclusión: "G" },
+        { Conclusión: "P" },
+        { Conclusión: "E" },
+        { Conclusión: "" },
       ]);
       const rows = parseHistorial(csv);
       expect(rows).toHaveLength(4);

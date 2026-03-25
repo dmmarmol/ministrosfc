@@ -1,3 +1,6 @@
+import { navigateTo } from "nuxt/app";
+import { useAuthStore } from "../stores/auth";
+
 /**
  * Nuxt route middleware — protects authenticated and role-restricted routes.
  *

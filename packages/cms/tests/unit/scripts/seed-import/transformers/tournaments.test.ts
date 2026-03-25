@@ -6,7 +6,7 @@ import type { ParsedHistorialRow } from "../../../../../src/scripts/seed-import/
 function makeRow(
   torneo: string,
   fecha: string,
-  rival = "La Cocina"
+  rival = "La Cocina",
 ): ParsedHistorialRow {
   const parts = fecha.split("/").map(Number);
   const day = parts[0]!;
@@ -17,14 +17,14 @@ function makeRow(
       Fecha: fecha,
       Torneo: torneo,
       Comienzo: "20:00",
-      "Finalización": "21:30",
+      Finalización: "21:30",
       Equipo: "Ministros FC",
       Rival: rival,
       Estadio: "",
       "Goles Convertidos": "2",
       "Goles Recibidos": "1",
       Resultado: "2-1",
-      "Conclusión": "G",
+      Conclusión: "G",
       Apariciones: "8",
       DT: "",
       Comentarios: "",
@@ -121,7 +121,7 @@ describe("buildTournaments", () => {
       const rows = [makeRow("Liga", "01/06/2024")];
       const { data } = buildTournaments(rows);
       expect(data[0]!.id).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
       );
     });
   });

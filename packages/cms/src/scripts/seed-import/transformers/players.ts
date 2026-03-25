@@ -7,9 +7,21 @@ const PLACEHOLDER_PHOTO = "https://placehold.co/200x200?text=Player";
 
 // Valid Position enum values from Prisma schema
 const VALID_POSITIONS = new Set([
-  "GK", "CB", "RB", "LB", "RWB", "LWB",
-  "DMF", "CMF", "AMF", "RMF", "LMF",
-  "SS", "CF", "RWF", "LWF",
+  "GK",
+  "CB",
+  "RB",
+  "LB",
+  "RWB",
+  "LWB",
+  "DMF",
+  "CMF",
+  "AMF",
+  "RMF",
+  "LMF",
+  "SS",
+  "CF",
+  "RWF",
+  "LWF",
 ]);
 
 const POSITION_REMAP: Record<string, string> = {
@@ -111,7 +123,12 @@ export function buildPlayers(rows: ParsedJugadorRow[]): BuildPlayersResult {
     // Contact — only when phone is present
     const phone = row.Telefono?.trim();
     if (phone) {
-      contacts.push({ playerId: id, phone, whatsapp: null, emergencyContact: null });
+      contacts.push({
+        playerId: id,
+        phone,
+        whatsapp: null,
+        emergencyContact: null,
+      });
     }
   }
 
