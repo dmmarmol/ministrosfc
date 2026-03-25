@@ -81,7 +81,17 @@ description: "Tasks for feature 014-custom-hostname-dev: Custom Hostname Dev Acc
 
 ---
 
-## Phase 6: Polish & Cross-Cutting Concerns
+## Phase 6: Vite Allowed Hosts
+
+**Purpose**: Vite 6+ blocks requests from non-localhost hostnames by default as a security measure. The `devServer` block already binds to `0.0.0.0`, but Vite's `server.allowedHosts` must explicitly whitelist `localhost.ministrosfc.com` for the custom hostname to work in the browser.
+
+- [x] T008 [US1] Add `localhost.ministrosfc.com` to `vite.server.allowedHosts` in `packages/frontend/nuxt.config.ts` via the `vite` config key so the dev server accepts requests addressed to the custom hostname
+
+**Checkpoint**: Opening `http://localhost.ministrosfc.com:5103` no longer shows "Blocked request. This host is not allowed."
+
+---
+
+## Phase 7: Polish & Cross-Cutting Concerns
 
 **Purpose**: Surface the custom hostname setup in the developer-facing project documentation so new contributors can discover the feature without reading the specs.
 
@@ -96,7 +106,8 @@ description: "Tasks for feature 014-custom-hostname-dev: Custom Hostname Dev Acc
 - **Setup (Phase 1)**: No code tasks — prerequisite is a machine-level `/etc/hosts` entry
 - **Foundational (Phase 2)**: No dependencies — can start immediately; **BLOCKS all user stories**
 - **User Story phases (3, 4, 5)**: All depend on Phase 2 completion; may proceed in parallel after Phase 2
-- **Polish (Phase 6)**: Depends on all user story phases completing
+- **Vite Allowed Hosts (Phase 6)**: Depends on Phase 3 (devServer block must exist); **BLOCKS browser access via custom hostname**
+- **Polish (Phase 7)**: Depends on all user story phases and Phase 6 completing
 
 ### User Story Dependencies
 
