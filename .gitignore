@@ -160,3 +160,8 @@ public/uploads/
 .yarn-integrity
 .parcel-cache
 
+# ============================================
+# Seed Import — raw CSV source files
+# ============================================
+packages/cms/data/imports/*.csv
+

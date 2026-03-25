@@ -16,7 +16,8 @@
     "gen:prisma": "npm run prisma:generate --workspace=@ministrosfc/cms",
     "lint:all": "npm run lint --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
-    "install:all": "npm install"
+    "install:all": "npm install",
+    "seed:import": "npm run seed:import --workspace=@ministrosfc/cms"
   },
   "author": "Diego Martin Marmol <diegomartinmarmol@gmail.com>",
   "license": "ISC",
