@@ -253,8 +253,8 @@ model GameParticipant {
   id     String @id @default(uuid())
   game   Game   @relation("GameParticipants", fields: [gameId], references: [id], onDelete: Cascade)
   gameId String
-  player Player @relation("PlayerParticipant", fields: [playerId], references: [id], onDelete: Cascade)
-  playerId String
+  player   Player? @relation("PlayerParticipant", fields: [playerId], references: [id], onDelete: SetNull)
+  playerId String?
 
   confirmationStatus ConfirmationStatus @default(NOT_RESPONDED)
   confirmedBy        Player?            @relation("ConfirmedParticipants", fields: [confirmedById], references: [id], onDelete: SetNull)

@@ -165,4 +165,54 @@ describe("Player CRUD (integration)", () => {
     );
     expect(res.status).toBe(404);
   });
+
+  it("DELETE /api/v1/players/:id → 204 deletes player (admin)", async () => {
+    // Create a fresh player to delete so we don't break remaining tests
+    const createRes = await request(app)
+      .post("/api/v1/players")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .field("name", "Player To Delete")
+      .field("playerType", "REGISTERED");
+    expect(createRes.status).toBe(201);
+    const deleteId = createRes.body.data.id;
+
+    const res = await request(app)
+      .delete(`/api/v1/players/${deleteId}`)
+      .set("Authorization", `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(204);
+    expect(res.body).toEqual({});
+  });
+
+  it("DELETE /api/v1/players/:id → player absent on follow-up GET after delete", async () => {
+    const createRes = await request(app)
+      .post("/api/v1/players")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .field("name", "To Be Deleted")
+      .field("playerType", "REGISTERED");
+    const deleteId = createRes.body.data.id;
+
+    await request(app)
+      .delete(`/api/v1/players/${deleteId}`)
+      .set("Authorization", `Bearer ${adminToken}`);
+
+    const getRes = await request(app).get(`/api/v1/players/${deleteId}`);
+    expect(getRes.status).toBe(404);
+  });
+
+  it("DELETE /api/v1/players/:id → 404 for unknown UUID", async () => {
+    const res = await request(app)
+      .delete("/api/v1/players/f47ac10b-58cc-4372-a567-0e02b2c3d479")
+      .set("Authorization", `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(404);
+  });
+
+  it("DELETE /api/v1/players/:id → 400 for invalid UUID format", async () => {
+    const res = await request(app)
+      .delete("/api/v1/players/not-a-uuid")
+      .set("Authorization", `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(400);
+  });
 });

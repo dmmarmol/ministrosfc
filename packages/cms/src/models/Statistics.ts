@@ -64,7 +64,7 @@ const StatisticsModel = {
       take: limit,
     });
 
-    const playerIds = results.map((r) => r.playerId);
+    const playerIds = results.map((r) => r.playerId).filter((id): id is string => id !== null);
     const players = await prisma.player.findMany({
       where: { id: { in: playerIds } },
       select: {
@@ -79,7 +79,7 @@ const StatisticsModel = {
     const playerMap = new Map(players.map((p) => [p.id, p]));
 
     return results.map((r) => ({
-      player: playerMap.get(r.playerId),
+      player: r.playerId ? playerMap.get(r.playerId) : undefined,
       appearances: r._count.id,
       goalsScored: r._sum.goalsScored ?? 0,
       assists: r._sum.assists ?? 0,
@@ -100,7 +100,7 @@ const StatisticsModel = {
       orderBy: { _sum: { goalsScored: "desc" } },
     });
 
-    const playerIds = results.map((r) => r.playerId);
+    const playerIds = results.map((r) => r.playerId).filter((id): id is string => id !== null);
     const players = await prisma.player.findMany({
       where: { id: { in: playerIds } },
       select: {
@@ -114,7 +114,7 @@ const StatisticsModel = {
     const playerMap = new Map(players.map((p) => [p.id, p]));
 
     return results.map((r) => ({
-      player: playerMap.get(r.playerId),
+      player: r.playerId ? playerMap.get(r.playerId) : undefined,
       appearances: r._count.id,
       goalsScored: r._sum.goalsScored ?? 0,
       assists: r._sum.assists ?? 0,

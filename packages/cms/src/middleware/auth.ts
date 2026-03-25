@@ -34,10 +34,10 @@ export function authenticate(
     return;
   }
 
-  const token = authHeader.slice(7);
+  const accessToken = authHeader.slice(7);
 
   try {
-    const payload = jwt.verify(token, authConfig.jwtSecret) as JwtPayload;
+    const payload = jwt.verify(accessToken, authConfig.jwtSecret) as JwtPayload;
     req.user = payload;
     next();
   } catch (err) {

@@ -18,7 +18,13 @@ import { GameStatus } from "@prisma/client";
 const router = Router();
 
 const gameCreateSchema = z.object({
-  date: z.string().datetime({ offset: true, message: 'date must be a valid ISO 8601 datetime with timezone offset, e.g. "2026-03-28T14:00:00-03:00"' }),
+  date: z
+    .string()
+    .datetime({
+      offset: true,
+      message:
+        'date must be a valid ISO 8601 datetime with timezone offset, e.g. "2026-03-28T14:00:00-03:00"',
+    }),
   location: z
     .string()
     .max(500, "Location must be 500 characters or less")
@@ -40,7 +46,11 @@ const gameCreateSchema = z.object({
 const gameUpdateSchema = z.object({
   date: z
     .string()
-    .datetime({ offset: true, message: 'date must be a valid ISO 8601 datetime with timezone offset, e.g. "2026-03-28T14:00:00-03:00"' })
+    .datetime({
+      offset: true,
+      message:
+        'date must be a valid ISO 8601 datetime with timezone offset, e.g. "2026-03-28T14:00:00-03:00"',
+    })
     .optional(),
   location: z
     .string()

@@ -28,7 +28,23 @@ const playerCreateSchema = z.object({
   nickname: z.string().max(100).optional(),
   playerType: z.nativeEnum(PlayerType).optional(),
   position: z
-    .enum(["GK","CB","RB","LB","RWB","LWB","DMF","CMF","AMF","RMF","LMF","SS","CF","RWF","LWF"])
+    .enum([
+      "GK",
+      "CB",
+      "RB",
+      "LB",
+      "RWB",
+      "LWB",
+      "DMF",
+      "CMF",
+      "AMF",
+      "RMF",
+      "LMF",
+      "SS",
+      "CF",
+      "RWF",
+      "LWF",
+    ])
     .optional(),
   jerseyNumber: z.coerce.number().int().min(1).max(99).optional(),
   dateOfBirth: z
@@ -160,11 +176,11 @@ router.patch(
   },
 );
 
-// PATCH /api/v1/players/:id/status - Admin only
+// PATCH /api/v1/players/:id/status - Editor or Admin
 router.patch(
   "/:id/status",
   authenticate,
-  requireRole("ADMIN"),
+  requireRole("EDITOR"),
   validate(uuidSchema, "params"),
   validate(playerStatusSchema),
   async (req: Request, res: Response, next: NextFunction) => {
@@ -180,6 +196,26 @@ router.patch(
         "Player status changed",
       );
       res.json({ data: player });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// DELETE /api/v1/players/:id - Admin only
+router.delete(
+  "/:id",
+  authenticate,
+  requireRole("ADMIN"),
+  validate(uuidSchema, "params"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await PlayerService.deletePlayer(req.params.id!);
+      logger.info(
+        { playerId: req.params.id, adminId: req.user?.userId },
+        "Player deleted",
+      );
+      res.status(204).send();
     } catch (err) {
       next(err);
     }

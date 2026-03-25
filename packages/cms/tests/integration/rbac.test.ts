@@ -140,11 +140,11 @@ describe("RBAC (integration)", () => {
       expect(res.status).toBe(403);
     });
 
-    it("DELETE /api/v1/players/:id → 404 (route does not exist)", async () => {
+    it("DELETE /api/v1/players/:id → 403 (insufficient role for player role)", async () => {
       const res = await request(app)
         .delete("/api/v1/players/00000000-0000-0000-0000-000000000000")
         .set("Authorization", `Bearer ${playerToken}`);
-      expect(res.status).toBe(404);
+      expect(res.status).toBe(403);
     });
   });
 
@@ -217,6 +217,99 @@ describe("RBAC (integration)", () => {
           startDate: "2025-01-01",
           endDate: "2025-03-01",
         });
+      expect(res.status).toBe(403);
+    });
+  });
+
+  describe("Player DELETE RBAC (US2)", () => {
+    let testPlayerId: string;
+
+    beforeAll(async () => {
+      const res = await request(app)
+        .post("/api/v1/players")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .field("name", "RBAC Delete Target")
+        .field("playerType", "REGISTERED");
+      testPlayerId = res.body.data.id;
+    });
+
+    it("DELETE /api/v1/players/:id → 401 for unauthenticated request", async () => {
+      const res = await request(app).delete(
+        `/api/v1/players/${testPlayerId}`,
+      );
+      expect(res.status).toBe(401);
+      // Verify player still exists
+      const check = await request(app).get(`/api/v1/players/${testPlayerId}`);
+      expect(check.status).toBe(200);
+    });
+
+    it("DELETE /api/v1/players/:id → 403 for EDITOR token", async () => {
+      const res = await request(app)
+        .delete(`/api/v1/players/${testPlayerId}`)
+        .set("Authorization", `Bearer ${editorToken}`);
+      expect(res.status).toBe(403);
+      // Verify player unchanged
+      const check = await request(app).get(`/api/v1/players/${testPlayerId}`);
+      expect(check.status).toBe(200);
+    });
+
+    it("DELETE /api/v1/players/:id → 404 on second Admin attempt (concurrent delete)", async () => {
+      // Admin deletes the player
+      const first = await request(app)
+        .delete(`/api/v1/players/${testPlayerId}`)
+        .set("Authorization", `Bearer ${adminToken}`);
+      expect(first.status).toBe(204);
+
+      // Second attempt returns 404
+      const second = await request(app)
+        .delete(`/api/v1/players/${testPlayerId}`)
+        .set("Authorization", `Bearer ${adminToken}`);
+      expect(second.status).toBe(404);
+    });
+  });
+
+  describe("Player status toggle RBAC (US3)", () => {
+    let statusPlayerId: string;
+
+    beforeAll(async () => {
+      const res = await request(app)
+        .post("/api/v1/players")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .field("name", "RBAC Status Toggle Player")
+        .field("playerType", "REGISTERED");
+      statusPlayerId = res.body.data.id;
+    });
+
+    it("PATCH /api/v1/players/:id/status → 200 for EDITOR token (INACTIVE)", async () => {
+      const res = await request(app)
+        .patch(`/api/v1/players/${statusPlayerId}/status`)
+        .set("Authorization", `Bearer ${editorToken}`)
+        .send({ status: "INACTIVE" });
+      expect(res.status).toBe(200);
+      expect(res.body.data.status).toBe("INACTIVE");
+    });
+
+    it("PATCH /api/v1/players/:id/status → 200 for EDITOR token (ACTIVE)", async () => {
+      const res = await request(app)
+        .patch(`/api/v1/players/${statusPlayerId}/status`)
+        .set("Authorization", `Bearer ${editorToken}`)
+        .send({ status: "ACTIVE" });
+      expect(res.status).toBe(200);
+      expect(res.body.data.status).toBe("ACTIVE");
+    });
+
+    it("PATCH /api/v1/players/:id/status → 200 for ADMIN token", async () => {
+      const res = await request(app)
+        .patch(`/api/v1/players/${statusPlayerId}/status`)
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({ status: "INACTIVE" });
+      expect(res.status).toBe(200);
+    });
+
+    it("DELETE /api/v1/players/:id → 403 for EDITOR (cross-check from US2)", async () => {
+      const res = await request(app)
+        .delete(`/api/v1/players/${statusPlayerId}`)
+        .set("Authorization", `Bearer ${editorToken}`);
       expect(res.status).toBe(403);
     });
   });

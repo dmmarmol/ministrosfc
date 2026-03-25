@@ -233,6 +233,18 @@ export const PlayerService = {
     return player;
   },
 
+  async deletePlayer(id: string): Promise<void> {
+    const player = await PlayerModel.findById(id);
+    if (!player) {
+      throw createError("Player not found", 404, ErrorCode.PLAYER_NOT_FOUND);
+    }
+    await PlayerModel.deleteById(id);
+    if (player.photoUrl) {
+      deletePlayerPhoto(player.photoUrl).catch(() => {});
+    }
+    await PlayerService.invalidateCache();
+  },
+
   async invalidateCache() {
     const redis = getRedisClient();
     try {
