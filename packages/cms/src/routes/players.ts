@@ -50,20 +50,24 @@ const playerStatusSchema = z.object({
   status: z.nativeEnum(PlayerStatus),
 });
 
+const playerFilterSchema = paginationSchema.extend({
+  status: z.nativeEnum(PlayerStatus).optional(),
+  position: z.string().optional(),
+  search: z.string().optional(),
+  playerType: z.nativeEnum(PlayerType).optional(),
+});
+
 // GET /api/v1/players - Public
 router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const query = paginationSchema.parse(req.query);
-    const { status, position, search, playerType } = req.query as Record<
-      string,
-      string
-    >;
+    const query = playerFilterSchema.parse(req.query);
+    const { status, position, search, playerType } = query;
 
     const result = await PlayerService.searchPlayers({
-      status: (status as PlayerStatus) ?? PlayerStatus.ACTIVE,
+      status: status ?? PlayerStatus.ACTIVE,
       position,
       search,
-      playerType: playerType as PlayerType,
+      playerType,
       page: query.page,
       limit: query.limit,
     });
