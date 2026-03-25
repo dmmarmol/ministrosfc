@@ -137,9 +137,9 @@ describe("PlayerService", () => {
     it("throws 404 when player not found", async () => {
       (PlayerModel.findById as jest.Mock).mockResolvedValue(null);
 
-      await expect(
-        PlayerService.deletePlayer("missing"),
-      ).rejects.toMatchObject({ statusCode: 404 });
+      await expect(PlayerService.deletePlayer("missing")).rejects.toMatchObject(
+        { statusCode: 404 },
+      );
       expect(PlayerModel.deleteById).not.toHaveBeenCalled();
     });
 
@@ -173,9 +173,7 @@ describe("PlayerService", () => {
         new Error("Cloudinary error"),
       );
 
-      await expect(
-        PlayerService.deletePlayer("p3"),
-      ).resolves.toBeUndefined();
+      await expect(PlayerService.deletePlayer("p3")).resolves.toBeUndefined();
     });
 
     it("does not call deletePlayerPhoto when photoUrl is null", async () => {

@@ -64,16 +64,76 @@ async function main(): Promise<void> {
 
   // ─── Registered Players ───────────────────────────────────────────────────────
   const playerData = [
-    { name: "Juan Ramírez",    nickname: "Juampi",     position: Position.GK,  jerseyNumber:  1, dominantFoot: Foot.RIGHT },
-    { name: "Federico Romero", nickname: "Fede",       position: Position.CB,  jerseyNumber:  3, dominantFoot: Foot.RIGHT },
-    { name: "Martín García",   nickname: "Gafo",       position: Position.CB,  jerseyNumber:  4, dominantFoot: Foot.RIGHT },
-    { name: "Pablo Torres",    nickname: "Pablito",    position: Position.CB,  jerseyNumber:  5, dominantFoot: Foot.RIGHT },
-    { name: "Roberto Sánchez", nickname: "Rober",      position: Position.CMF, jerseyNumber:  6, dominantFoot: Foot.RIGHT },
-    { name: "Luis Herrera",    nickname: "Lucho",      position: Position.CF,  jerseyNumber:  7, dominantFoot: Foot.AMBIDEXTROUS },
-    { name: "Héctor Muñoz",    nickname: "Hectorcito", position: Position.CMF, jerseyNumber:  8, dominantFoot: Foot.LEFT },
-    { name: "Carlos López",    nickname: "Carlitos",   position: Position.CF,  jerseyNumber:  9, dominantFoot: Foot.LEFT },
-    { name: "Diego Martín",    nickname: "Diegui",     position: Position.CMF, jerseyNumber: 10, dominantFoot: Foot.RIGHT },
-    { name: "Andrés Vega",     nickname: "Andresito",  position: Position.CF,  jerseyNumber: 11, dominantFoot: Foot.RIGHT },
+    {
+      name: "Juan Ramírez",
+      nickname: "Juampi",
+      position: Position.GK,
+      jerseyNumber: 1,
+      dominantFoot: Foot.RIGHT,
+    },
+    {
+      name: "Federico Romero",
+      nickname: "Fede",
+      position: Position.CB,
+      jerseyNumber: 3,
+      dominantFoot: Foot.RIGHT,
+    },
+    {
+      name: "Martín García",
+      nickname: "Gafo",
+      position: Position.CB,
+      jerseyNumber: 4,
+      dominantFoot: Foot.RIGHT,
+    },
+    {
+      name: "Pablo Torres",
+      nickname: "Pablito",
+      position: Position.CB,
+      jerseyNumber: 5,
+      dominantFoot: Foot.RIGHT,
+    },
+    {
+      name: "Roberto Sánchez",
+      nickname: "Rober",
+      position: Position.CMF,
+      jerseyNumber: 6,
+      dominantFoot: Foot.RIGHT,
+    },
+    {
+      name: "Luis Herrera",
+      nickname: "Lucho",
+      position: Position.CF,
+      jerseyNumber: 7,
+      dominantFoot: Foot.AMBIDEXTROUS,
+    },
+    {
+      name: "Héctor Muñoz",
+      nickname: "Hectorcito",
+      position: Position.CMF,
+      jerseyNumber: 8,
+      dominantFoot: Foot.LEFT,
+    },
+    {
+      name: "Carlos López",
+      nickname: "Carlitos",
+      position: Position.CF,
+      jerseyNumber: 9,
+      dominantFoot: Foot.LEFT,
+    },
+    {
+      name: "Diego Martín",
+      nickname: "Diegui",
+      position: Position.CMF,
+      jerseyNumber: 10,
+      dominantFoot: Foot.RIGHT,
+    },
+    {
+      name: "Andrés Vega",
+      nickname: "Andresito",
+      position: Position.CF,
+      jerseyNumber: 11,
+      dominantFoot: Foot.RIGHT,
+    },
   ];
 
   const players = await Promise.all(
@@ -106,13 +166,25 @@ async function main(): Promise<void> {
   // ─── Opponent Teams ───────────────────────────────────────────────────────────
   const [teamRivers, teamBoca, teamIndependiente] = await Promise.all([
     prisma.opponentTeam.create({
-      data: { name: "Deportivo Riveros",    colors: "Red and White",   city: "Buenos Aires" },
+      data: {
+        name: "Deportivo Riveros",
+        colors: "Red and White",
+        city: "Buenos Aires",
+      },
     }),
     prisma.opponentTeam.create({
-      data: { name: "Club Atlético Norte",  colors: "Blue and Yellow", city: "Buenos Aires" },
+      data: {
+        name: "Club Atlético Norte",
+        colors: "Blue and Yellow",
+        city: "Buenos Aires",
+      },
     }),
     prisma.opponentTeam.create({
-      data: { name: "Los Halcones FC",      colors: "Green and White", city: "Córdoba" },
+      data: {
+        name: "Los Halcones FC",
+        colors: "Green and White",
+        city: "Córdoba",
+      },
     }),
   ]);
   console.log("  ✓ Opponent teams seeded");

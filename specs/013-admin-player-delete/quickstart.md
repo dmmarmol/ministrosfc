@@ -102,6 +102,7 @@ npm test -- --testPathPattern=rbac
 ```
 
 **Environment required for integration tests**:
+
 ```bash
 export TEST_DATABASE_URL="postgresql://user:pass@localhost:5432/ministrosfc_test"
 export REDIS_URL="redis://localhost:6379"
@@ -142,17 +143,17 @@ npx playwright test tests/e2e/admin-player-delete.spec.ts
 
 ## Key Files to Implement (in order)
 
-| Step | File | Change |
-|------|------|--------|
-| 1 | `packages/cms/prisma/schema.prisma` | `GameParticipant.playerId` → nullable + SetNull |
-| 2 | Run `prisma migrate dev` | Generates migration SQL |
-| 3 | `packages/cms/src/models/Player.ts` | Add `deleteById()` method |
-| 4 | `packages/cms/src/services/PlayerService.ts` | Add `deletePlayer()` method |
-| 5 | `packages/cms/src/routes/players.ts` | Add `DELETE /:id` route; fix status to `requireRole("EDITOR")` |
-| 6 | `packages/frontend/src/pages/admin/players/PlayerDeleteModal.vue` | New confirmation modal component |
-| 7 | `packages/frontend/src/pages/admin/players/index.vue` | Admin-only Delete button + modal wiring |
-| 8 | `packages/frontend/src/pages/admin/players/[id]/edit.vue` | Admin-only Delete button on edit page |
-| 9 | Write tests (CMS unit, CMS integration, frontend Vitest, Playwright E2E) | TDD per constitution |
+| Step | File                                                                     | Change                                                         |
+| ---- | ------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| 1    | `packages/cms/prisma/schema.prisma`                                      | `GameParticipant.playerId` → nullable + SetNull                |
+| 2    | Run `prisma migrate dev`                                                 | Generates migration SQL                                        |
+| 3    | `packages/cms/src/models/Player.ts`                                      | Add `deleteById()` method                                      |
+| 4    | `packages/cms/src/services/PlayerService.ts`                             | Add `deletePlayer()` method                                    |
+| 5    | `packages/cms/src/routes/players.ts`                                     | Add `DELETE /:id` route; fix status to `requireRole("EDITOR")` |
+| 6    | `packages/frontend/src/pages/admin/players/PlayerDeleteModal.vue`        | New confirmation modal component                               |
+| 7    | `packages/frontend/src/pages/admin/players/index.vue`                    | Admin-only Delete button + modal wiring                        |
+| 8    | `packages/frontend/src/pages/admin/players/[id]/edit.vue`                | Admin-only Delete button on edit page                          |
+| 9    | Write tests (CMS unit, CMS integration, frontend Vitest, Playwright E2E) | TDD per constitution                                           |
 
 ---
 

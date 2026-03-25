@@ -33,13 +33,11 @@ describe("RBAC (integration)", () => {
 
   beforeAll(async () => {
     // Admin
-    await request(app)
-      .post("/api/v1/auth/register")
-      .send({
-        email: adminEmail,
-        password: "Admin!Rbac99",
-        name: "Admin RBAC",
-      });
+    await request(app).post("/api/v1/auth/register").send({
+      email: adminEmail,
+      password: "Admin!Rbac99",
+      name: "Admin RBAC",
+    });
     await prisma.user.update({
       where: { email: adminEmail },
       data: { role: "ADMIN" },
@@ -50,13 +48,11 @@ describe("RBAC (integration)", () => {
     adminToken = la.body.data.accessToken;
 
     // Editor
-    await request(app)
-      .post("/api/v1/auth/register")
-      .send({
-        email: editorEmail,
-        password: "Editor!Rbac99",
-        name: "Editor RBAC",
-      });
+    await request(app).post("/api/v1/auth/register").send({
+      email: editorEmail,
+      password: "Editor!Rbac99",
+      name: "Editor RBAC",
+    });
     await prisma.user.update({
       where: { email: editorEmail },
       data: { role: "EDITOR" },
@@ -67,13 +63,11 @@ describe("RBAC (integration)", () => {
     editorToken = le.body.data.accessToken;
 
     // Player
-    const lp = await request(app)
-      .post("/api/v1/auth/register")
-      .send({
-        email: playerEmail,
-        password: "Player!Rbac99",
-        name: "Player RBAC",
-      });
+    const lp = await request(app).post("/api/v1/auth/register").send({
+      email: playerEmail,
+      password: "Player!Rbac99",
+      name: "Player RBAC",
+    });
     playerToken = lp.body.data.accessToken;
 
     // Opponent team (for game creation)
@@ -234,9 +228,7 @@ describe("RBAC (integration)", () => {
     });
 
     it("DELETE /api/v1/players/:id → 401 for unauthenticated request", async () => {
-      const res = await request(app).delete(
-        `/api/v1/players/${testPlayerId}`,
-      );
+      const res = await request(app).delete(`/api/v1/players/${testPlayerId}`);
       expect(res.status).toBe(401);
       // Verify player still exists
       const check = await request(app).get(`/api/v1/players/${testPlayerId}`);

@@ -132,6 +132,7 @@
               </button>
               <button
                 v-if="authStore.isAdmin"
+                data-testid="delete-player-btn"
                 class="text-xs text-red-400 hover:text-red-600 transition-colors"
                 @click="playerToDelete = p"
               >
@@ -151,6 +152,9 @@
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from "~/stores/auth";
+import PlayerDeleteModal from "~/components/player/PlayerDeleteModal.vue";
+
 definePageMeta({ layout: "admin", middleware: "auth" });
 useHead({ title: "Players – Admin" });
 
@@ -196,7 +200,9 @@ async function toggleStatus(player: any) {
 async function confirmDelete() {
   if (!playerToDelete.value) return;
   try {
-    await $api(`/api/v1/players/${playerToDelete.value.id}`, { method: "DELETE" });
+    await $api(`/api/v1/players/${playerToDelete.value.id}`, {
+      method: "DELETE",
+    });
     playerToDelete.value = null;
     await refresh();
   } catch (e: any) {

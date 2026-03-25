@@ -18,9 +18,9 @@ Permanently removes a player record and all directly-owned child data. Game part
 
 ### Path Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | UUID string | Yes | The unique identifier of the player to delete |
+| Parameter | Type        | Required | Description                                   |
+| --------- | ----------- | -------- | --------------------------------------------- |
+| `id`      | UUID string | Yes      | The unique identifier of the player to delete |
 
 ### Request
 
@@ -89,15 +89,15 @@ No player exists with the given `id`.
 
 ### Side Effects
 
-| Effect | Description |
-|--------|-------------|
-| Player record | Permanently deleted from `Player` table |
-| Contact record | Cascade-deleted from `Contact` table |
-| Statistics records | Cascade-deleted from `Statistics` table |
-| GameParticipant rows | `playerId` set to `null`; rows are **preserved** |
-| Photo (Cloudinary) | Best-effort deletion; does not affect response status |
-| Redis cache | All `cache:stats:players:list:*` keys invalidated |
-| User record | If linked, `User.playerId` set to `null`; user account preserved |
+| Effect               | Description                                                      |
+| -------------------- | ---------------------------------------------------------------- |
+| Player record        | Permanently deleted from `Player` table                          |
+| Contact record       | Cascade-deleted from `Contact` table                             |
+| Statistics records   | Cascade-deleted from `Statistics` table                          |
+| GameParticipant rows | `playerId` set to `null`; rows are **preserved**                 |
+| Photo (Cloudinary)   | Best-effort deletion; does not affect response status            |
+| Redis cache          | All `cache:stats:players:list:*` keys invalidated                |
+| User record          | If linked, `User.playerId` set to `null`; user account preserved |
 
 ### Race Condition (concurrent deletes)
 
@@ -116,9 +116,9 @@ Toggles a player's status between `ACTIVE` and `INACTIVE`. This is a **reversibl
 
 ### Path Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | UUID string | Yes | The unique identifier of the player |
+| Parameter | Type        | Required | Description                         |
+| --------- | ----------- | -------- | ----------------------------------- |
+| `id`      | UUID string | Yes      | The unique identifier of the player |
 
 ### Request Body
 
@@ -128,9 +128,9 @@ Toggles a player's status between `ACTIVE` and `INACTIVE`. This is a **reversibl
 }
 ```
 
-| Field | Type | Required | Allowed Values |
-|-------|------|----------|---------------|
-| `status` | string | Yes | `"ACTIVE"`, `"INACTIVE"` |
+| Field    | Type   | Required | Allowed Values           |
+| -------- | ------ | -------- | ------------------------ |
+| `status` | string | Yes      | `"ACTIVE"`, `"INACTIVE"` |
 
 ### Response — Success (200 OK)
 
@@ -159,21 +159,21 @@ Same structure as the DELETE endpoint above.
 
 ## Role Matrix Summary
 
-| Operation | PLAYER | EDITOR | ADMIN |
-|-----------|--------|--------|-------|
-| GET player(s) | ✅ public | ✅ public | ✅ public |
-| POST (create player) | ❌ 403 | ❌ 403 | ✅ |
-| PATCH (update player) | ❌ 403 | ❌ 403 | ✅ |
-| PATCH status (toggle) | ❌ 403 | ✅ | ✅ |
-| DELETE (permanent) | ❌ 403 | ❌ 403 | ✅ |
+| Operation             | PLAYER    | EDITOR    | ADMIN     |
+| --------------------- | --------- | --------- | --------- |
+| GET player(s)         | ✅ public | ✅ public | ✅ public |
+| POST (create player)  | ❌ 403    | ❌ 403    | ✅        |
+| PATCH (update player) | ❌ 403    | ❌ 403    | ✅        |
+| PATCH status (toggle) | ❌ 403    | ✅        | ✅        |
+| DELETE (permanent)    | ❌ 403    | ❌ 403    | ✅        |
 
 ---
 
 ## Frontend Visibility Contract
 
-| UI Element | PLAYER | EDITOR | ADMIN |
-|-----------|--------|--------|-------|
-| Activate / Deactivate button | Hidden | ✅ Visible | ✅ Visible |
-| Delete button | Hidden | Hidden | ✅ Visible |
-| Confirmation modal (delete) | N/A | N/A | Shown before DELETE request |
-| Confirmation required (status) | N/A | Not required | Not required |
+| UI Element                     | PLAYER | EDITOR       | ADMIN                       |
+| ------------------------------ | ------ | ------------ | --------------------------- |
+| Activate / Deactivate button   | Hidden | ✅ Visible   | ✅ Visible                  |
+| Delete button                  | Hidden | Hidden       | ✅ Visible                  |
+| Confirmation modal (delete)    | N/A    | N/A          | Shown before DELETE request |
+| Confirmation required (status) | N/A    | Not required | Not required                |

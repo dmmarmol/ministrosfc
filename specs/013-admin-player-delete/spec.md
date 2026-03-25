@@ -4,7 +4,7 @@
 **Created**: 2026-03-25
 **Status**: Draft
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Admin permanently deletes a player (Priority: P1)
 
@@ -63,7 +63,7 @@ An Editor (or Admin) navigates to the players list, finds a player, and toggles 
 - What happens when a valid UUID that does not match any player is submitted for deletion? The system must return 404 Not Found.
 - What happens if the confirmation modal is dismissed via keyboard (Escape key) or clicking outside it? The modal closes and no deletion occurs.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -90,7 +90,7 @@ An Editor (or Admin) navigates to the players list, finds a player, and toggles 
 - **PlayerStatus**: An enumerated state (`ACTIVE`, `INACTIVE`) used for soft-disabling players without removing the record. Status toggling is reversible; permanent deletion is not.
 - **Role**: Determines what operations a user may perform. `ADMIN` can delete and toggle status. `EDITOR` can only toggle status.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
@@ -103,6 +103,6 @@ An Editor (or Admin) navigates to the players list, finds a player, and toggles 
 ## Assumptions
 
 - The existing `PATCH /api/v1/players/:id/status` endpoint and its frontend controls remain unchanged; this feature adds a new `DELETE /api/v1/players/:id` endpoint alongside it.
-- The Prisma schema already defines `onDelete: Cascade` for `PlayerContact` and `PlayerStats`, and `onDelete: SetNull` for nullable player references in game records — these behaviours satisfy FR-005 without schema changes.
-- The ADMIN role in the existing RBAC middleware (`requireRole`) is already defined as a superset of EDITOR; no role hierarchy changes are needed.
-- A reusable confirmation modal component either already exists in the frontend or can be created as a simple inline component scoped to this feature.
+- The Prisma schema defines `onDelete: Cascade` for `PlayerContact` and `PlayerStats`. **`GameParticipant.playerId` does not yet have `onDelete: SetNull`** — Phase 1 of this feature introduces a migration to make the field nullable and add the SetNull behaviour. That migration is a prerequisite before any delete operation can satisfy FR-005 without orphaned-reference errors.
+- The ADMIN role in the existing RBAC middleware (`requireRole`) is defined as a superset of EDITOR (inclusive semantics) — `requireRole("EDITOR")` grants access to both EDITOR and ADMIN users; no role hierarchy changes are needed.
+- A dedicated `PlayerDeleteModal.vue` component will be created under `packages/frontend/src/components/player/` for this feature. It is scoped to the delete confirmation use case only.

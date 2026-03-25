@@ -32,13 +32,11 @@ describe("Player CRUD (integration)", () => {
 
   beforeAll(async () => {
     // Register admin user and manually elevate role
-    const reg = await request(app)
-      .post("/api/v1/auth/register")
-      .send({
-        email: adminEmail,
-        password: "Admin!Secret99",
-        name: "Admin Player Test",
-      });
+    const reg = await request(app).post("/api/v1/auth/register").send({
+      email: adminEmail,
+      password: "Admin!Secret99",
+      name: "Admin Player Test",
+    });
     expect(reg.status).toBe(201);
 
     await prisma.user.update({
@@ -52,13 +50,11 @@ describe("Player CRUD (integration)", () => {
     adminToken = loginAdmin.body.data.accessToken;
 
     // Register editor user
-    const regEditor = await request(app)
-      .post("/api/v1/auth/register")
-      .send({
-        email: editorEmail,
-        password: "Editor!Secret99",
-        name: "Editor Player Test",
-      });
+    const regEditor = await request(app).post("/api/v1/auth/register").send({
+      email: editorEmail,
+      password: "Editor!Secret99",
+      name: "Editor Player Test",
+    });
     expect(regEditor.status).toBe(201);
 
     await prisma.user.update({

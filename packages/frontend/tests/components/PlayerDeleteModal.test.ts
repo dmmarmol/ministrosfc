@@ -48,6 +48,8 @@ describe("PlayerDeleteModal", () => {
       props: { player: basePlayer },
     });
     // Should warn about the action being irreversible
-    expect(wrapper.text().toLowerCase()).toMatch(/permanent|irreversible|cannot be undone/i);
+    expect(wrapper.text().toLowerCase()).toMatch(
+      /permanent|irreversible|cannot be undone/i,
+    );
   });
 });

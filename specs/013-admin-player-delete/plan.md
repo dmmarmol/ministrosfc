@@ -12,7 +12,7 @@ Admins can permanently delete player records via a new `DELETE /api/v1/players/:
 **Language/Version**: TypeScript 5 (strict mode, both packages)  
 **Primary Dependencies**: Express 4, Prisma 5, Zod, Nuxt 3, Vue 3, Pinia, Tailwind CSS  
 **Storage**: PostgreSQL (Prisma ORM) + Redis (cache invalidation)  
-**Testing**: Jest (CMS unit + integration), Vitest (frontend unit + component), Playwright (E2E)  
+**Testing**: Vitest (CMS — new test files MUST use Vitest per constitution §Testing; Jest remains in legacy files until suite migration), Vitest (frontend unit + component), Playwright (E2E)  
 **Target Platform**: Node.js 18+ (CMS), Nuxt 3 SSR/SPA (frontend)  
 **Project Type**: REST web service (CMS) + Nuxt frontend admin panel  
 **Performance Goals**: DELETE response < 200ms p95; cache invalidated synchronously before response  
@@ -21,19 +21,19 @@ Admins can permanently delete player records via a new `DELETE /api/v1/players/:
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Gate | Status | Notes |
-|------|--------|-------|
-| Spec-first (Principle II) | ✅ PASS | `spec.md` complete with user stories, acceptance criteria, edge cases; requirements checklist all green |
-| Plan-driven implementation (Principle III) | ✅ PASS | This plan includes API design, schema changes, component plan |
-| TDD mandate (Principle IV) | ✅ PASS (required) | Tests must be written before implementation; no existing code is changed before tests exist |
-| TypeScript strict | ✅ PASS (required) | All new code uses strict types; no `as any` in test setup |
-| `useRuntime()` composable | ✅ PASS (required) | No direct `import.meta.client/server` usage in frontend source |
-| Explicit imports in Nuxt files | ✅ PASS (required) | All composable/store imports explicit, not auto-import-only |
-| 80% coverage on new code | ✅ PASS (required) | Unit + integration + E2E must meet threshold |
-| No new major dependencies | ✅ PASS | Zero new packages added; only new source code + one Prisma migration |
-| Single-responsibility components | ✅ PASS | `PlayerDeleteModal.vue` scoped to delete use case only |
+| Gate                                       | Status             | Notes                                                                                                   |
+| ------------------------------------------ | ------------------ | ------------------------------------------------------------------------------------------------------- |
+| Spec-first (Principle II)                  | ✅ PASS            | `spec.md` complete with user stories, acceptance criteria, edge cases; requirements checklist all green |
+| Plan-driven implementation (Principle III) | ✅ PASS            | This plan includes API design, schema changes, component plan                                           |
+| TDD mandate (Principle IV)                 | ✅ PASS (required) | Tests must be written before implementation; no existing code is changed before tests exist             |
+| TypeScript strict                          | ✅ PASS (required) | All new code uses strict types; no `as any` in test setup                                               |
+| `useRuntime()` composable                  | ✅ PASS (required) | No direct `import.meta.client/server` usage in frontend source                                          |
+| Explicit imports in Nuxt files             | ✅ PASS (required) | All composable/store imports explicit, not auto-import-only                                             |
+| 80% coverage on new code                   | ✅ PASS (required) | Unit + integration + E2E must meet threshold                                                            |
+| No new major dependencies                  | ✅ PASS            | Zero new packages added; only new source code + one Prisma migration                                    |
+| Single-responsibility components           | ✅ PASS            | `PlayerDeleteModal.vue` scoped to delete use case only                                                  |
 
 **Post-design re-check (Phase 1)**: All gates still pass. Schema migration is isolated (one nullable field). No new abstractions introduced beyond what the spec strictly requires.
 
@@ -76,10 +76,12 @@ packages/cms/
 
 packages/frontend/
 ├── src/
+│   ├── components/
+│   │   └── player/
+│   │       └── PlayerDeleteModal.vue         # NEW: confirmation modal component (NOT in pages/)
 │   └── pages/
 │       └── admin/
 │           └── players/
-│               ├── PlayerDeleteModal.vue     # NEW: confirmation modal component
 │               ├── index.vue                 # MODIFY: Admin-only Delete button + modal
 │               └── [id]/
 │                   └── edit.vue              # MODIFY: Admin-only Delete button on edit page

@@ -31,11 +31,13 @@ The `playerId` field in `GameParticipant` is **non-nullable** with **`onDelete: 
 **Rationale**: FR-005 is an explicit functional requirement, not an assumption. The migration is isolated (one field change + index update), low-risk, and directly satisfies the requirement.
 
 **Alternatives considered**:
+
 - Accept cascade delete → violates FR-005; historical per-game contribution data (goals, assists) is lost irreversibly
 - Application-level soft-delete (add `deletedAt` to Player) → much larger scope change; out of feature scope
 - Denormalize player name into GameParticipant → additional complexity without adding query value; rejected
 
 **Migration scope**:
+
 ```prisma
 model GameParticipant {
   player   Player? @relation("PlayerParticipant", fields: [playerId], references: [id], onDelete: SetNull)
@@ -62,6 +64,7 @@ The RBAC hierarchy is `ADMIN(3) > EDITOR(2) > PLAYER(1)`. Changing to `requireRo
 **Rationale**: Single-line fix that directly satisfies FR-009 without any structural change. The existing hierarchy handles it.
 
 **Alternatives considered**:
+
 - Create a separate EDITOR-facing status endpoint → unnecessary duplication; same endpoint works
 - Add a custom per-endpoint role list → over-engineering; hierarchy already supports this
 
@@ -72,10 +75,12 @@ The RBAC hierarchy is `ADMIN(3) > EDITOR(2) > PLAYER(1)`. Changing to `requireRo
 **Context**: FR-006 requires a confirmation prompt before deletion. FR-007 requires the Delete control is Admin-only.
 
 **Finding**: Inspecting `packages/frontend/src/components/`:
+
 ```
 common/Footer.vue, Header.vue, Navigation.vue
 player/PlayerCard.vue
 ```
+
 No reusable modal/dialog component exists. The current codebase uses `alert()` for error feedback (see `toggleStatus` in `admin/players/index.vue`).
 
 **Decision**: Create a **scoped** `PlayerDeleteModal.vue` component co-located with the players admin pages. No general-purpose modal abstraction needed for this feature.
@@ -83,6 +88,7 @@ No reusable modal/dialog component exists. The current codebase uses `alert()` f
 **Rationale**: Constitution Principle V (Single Responsibility) and the implementation discipline rule against creating abstractions for one-time use. A players-scoped modal is sufficient; a general modal can be extracted later if more use cases emerge.
 
 **Implementation**: The modal will:
+
 - Accept `player` prop (name + id)
 - Emit `confirm` and `cancel` events
 - Show player name in warning text
@@ -96,6 +102,7 @@ No reusable modal/dialog component exists. The current codebase uses `alert()` f
 **Context**: FR-007 requires the Delete button be visible only to Admins in the frontend.
 
 **Finding**: `packages/frontend/src/stores/auth.ts` already exposes:
+
 ```ts
 getters: {
   isAdmin: (state) => state.user?.role === "ADMIN",
@@ -140,15 +147,18 @@ The `useAuthStore().isAdmin` getter can be used directly in templates to conditi
 ## Finding 8: Test Framework Decisions
 
 **CMS tests**: Jest (existing pattern). New tests for:
+
 - `tests/unit/PlayerService.test.ts` — extend with `deletePlayer` cases
 - `tests/integration/player-crud.test.ts` — extend with DELETE endpoint cases
 - `tests/integration/rbac.test.ts` — extend with DELETE 403 for Editor, 401 for unauth
 
 **Frontend tests**: Vitest (constitution mandate for new files). New tests for:
+
 - `tests/components/PlayerDeleteModal.test.ts` — modal emits confirm/cancel correctly
 - `tests/stores/auth.test.ts` — extend if needed (isAdmin getter already tested)
 
 **E2E**: Playwright. New specs for:
+
 - Admin delete flow (with confirmation)
 - Editor cannot see Delete button
 - Status toggle works for Editor
@@ -157,16 +167,16 @@ The `useAuthStore().isAdmin` getter can be used directly in templates to conditi
 
 ## Summary of Changes Required
 
-| Area | Change | Complexity |
-|------|--------|------------|
-| Prisma schema | `GameParticipant.playerId` nullable + SetNull | Low (migration) |
-| CMS route | DELETE `/api/v1/players/:id` (Admin-only) | Low |
-| CMS route | Status PATCH: `requireRole("ADMIN")` → `requireRole("EDITOR")` | Trivial |
-| CMS model | `PlayerModel.deleteById()` | Low |
-| CMS service | `PlayerService.deletePlayer()` | Low |
-| Frontend component | `PlayerDeleteModal.vue` | Low |
-| Frontend page | Players list: Admin-only Delete button + modal | Low |
-| Frontend page | Player edit: Admin-only Delete button + modal | Low |
-| Tests (CMS) | Unit + integration coverage for delete & editor status | Medium |
-| Tests (frontend) | Vitest component test for modal | Low |
-| E2E | Playwright: delete flow + editor guard | Medium |
+| Area               | Change                                                         | Complexity      |
+| ------------------ | -------------------------------------------------------------- | --------------- |
+| Prisma schema      | `GameParticipant.playerId` nullable + SetNull                  | Low (migration) |
+| CMS route          | DELETE `/api/v1/players/:id` (Admin-only)                      | Low             |
+| CMS route          | Status PATCH: `requireRole("ADMIN")` → `requireRole("EDITOR")` | Trivial         |
+| CMS model          | `PlayerModel.deleteById()`                                     | Low             |
+| CMS service        | `PlayerService.deletePlayer()`                                 | Low             |
+| Frontend component | `PlayerDeleteModal.vue`                                        | Low             |
+| Frontend page      | Players list: Admin-only Delete button + modal                 | Low             |
+| Frontend page      | Player edit: Admin-only Delete button + modal                  | Low             |
+| Tests (CMS)        | Unit + integration coverage for delete & editor status         | Medium          |
+| Tests (frontend)   | Vitest component test for modal                                | Low             |
+| E2E                | Playwright: delete flow + editor guard                         | Medium          |

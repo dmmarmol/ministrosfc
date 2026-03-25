@@ -80,7 +80,9 @@ test.describe("Admin: Player Delete flow", () => {
     await page.goto("/admin/players");
 
     // Get first edit link
-    const editLink = page.locator('a[href*="/admin/players/"][href*="/edit"]').first();
+    const editLink = page
+      .locator('a[href*="/admin/players/"][href*="/edit"]')
+      .first();
     await expect(editLink).toBeVisible();
     const editHref = await editLink.getAttribute("href");
     await page.goto(editHref!);
@@ -107,9 +109,9 @@ test.describe("Editor: Delete button is hidden", () => {
     await loginAs(page, EDITOR_EMAIL, EDITOR_PASSWORD);
     await page.goto("/admin/players");
 
-    await expect(
-      page.locator('[data-testid="delete-player-btn"]'),
-    ).toHaveCount(0);
+    await expect(page.locator('[data-testid="delete-player-btn"]')).toHaveCount(
+      0,
+    );
   });
 
   test("Editor sees no Delete button on player edit page", async ({ page }) => {
@@ -123,9 +125,9 @@ test.describe("Editor: Delete button is hidden", () => {
     const editHref = await editLink.getAttribute("href");
     await page.goto(editHref!);
 
-    await expect(
-      page.locator('[data-testid="delete-player-btn"]'),
-    ).toHaveCount(0);
+    await expect(page.locator('[data-testid="delete-player-btn"]')).toHaveCount(
+      0,
+    );
   });
 });
 
@@ -137,9 +139,9 @@ test.describe("Editor: Status toggle works", () => {
     await page.goto("/admin/players?status=ACTIVE");
 
     // No delete buttons
-    await expect(
-      page.locator('[data-testid="delete-player-btn"]'),
-    ).toHaveCount(0);
+    await expect(page.locator('[data-testid="delete-player-btn"]')).toHaveCount(
+      0,
+    );
 
     // Status toggle button should be present
     const toggleBtn = page
@@ -152,8 +154,8 @@ test.describe("Editor: Status toggle works", () => {
     // Status should update (badge changes)
     await page.waitForTimeout(500);
     // Re-check no delete buttons still
-    await expect(
-      page.locator('[data-testid="delete-player-btn"]'),
-    ).toHaveCount(0);
+    await expect(page.locator('[data-testid="delete-player-btn"]')).toHaveCount(
+      0,
+    );
   });
 });
