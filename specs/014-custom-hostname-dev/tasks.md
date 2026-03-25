@@ -99,22 +99,22 @@ description: "Tasks for feature 014-custom-hostname-dev: Custom Hostname Dev Acc
 
 ### Infrastructure Files
 
-- [ ] T009 [P] Update `packages/frontend/Dockerfile`: change `ARG API_URL=http://backend:3001/api` → `http://backend:5102/api`, `ARG API_URL_PUBLIC=http://localhost:3001/api` → `http://localhost:5102/api`, health check default `3000` → `5103`, `EXPOSE 3000` → `EXPOSE 5103`, comment "Nuxt runs on 3000" → "Nuxt runs on 5103"
-- [ ] T010 [P] Update `packages/frontend/fly.toml`: change `internal_port = 3000` → `5103`, `APP_PORT = "3000"` → `"5103"`
+- [x] T009 [P] Update `packages/frontend/Dockerfile`: change `ARG API_URL=http://backend:3001/api` → `http://backend:5102/api`, `ARG API_URL_PUBLIC=http://localhost:3001/api` → `http://localhost:5102/api`, health check default `3000` → `5103`, `EXPOSE 3000` → `EXPOSE 5103`, comment "Nuxt runs on 3000" → "Nuxt runs on 5103"
+- [x] T010 [P] Update `packages/frontend/fly.toml`: change `internal_port = 3000` → `5103`, `APP_PORT = "3000"` → `"5103"``
 
 ### Documentation — README.md
 
-- [ ] T011 [P] Update `README.md` architecture diagram: change `Port: 3000` → `Port: 5103`, `Port: 3001` → `Port: 5102`
-- [ ] T012 [P] Update `README.md` dev commands section: change `Backend API on :3001` → `:5102`, `Frontend on :3000` → `:5103`
+- [x] T011 [P] Update `README.md` architecture diagram: change `Port: 3000` → `Port: 5103`, `Port: 3001` → `Port: 5102`
+- [x] T012 [P] Update `README.md` dev commands section: change `Backend API on :3001` → `:5102`, `Frontend on :3000` → `:5103`
 
 ### Documentation — docs/guides/
 
-- [ ] T013 Update `docs/guides/TECH_STACK.md`: replace all `port 3000` → `port 5103`, `port 3001` → `port 5102`, `localhost:3000` → `localhost:5103`, `localhost:3001` → `localhost:5102`
-- [ ] T014 Update `docs/guides/PODMAN_SETUP.md`: replace all `localhost:3000` → `localhost:5103`, `localhost:3001` → `localhost:5102`, port mappings `3000:3000` → `5103:5103`, `3001:3001` → `5102:5102`, `CORS_ORIGIN` references to use `CORS_ORIGINS` with port 5103, `lsof -i :3000` → `:5103`, `lsof -i :3001` → `:5102`
+- [x] T013 Update `docs/guides/TECH_STACK.md`: replace all `port 3000` → `port 5103`, `port 3001` → `port 5102`, `localhost:3000` → `localhost:5103`, `localhost:3001` → `localhost:5102`
+- [x] T014 Update `docs/guides/PODMAN_SETUP.md`: replace all `localhost:3000` → `localhost:5103`, `localhost:3001` → `localhost:5102`, port mappings `3000:3000` → `5103:5103`, `3001:3001` → `5102:5102`, `CORS_ORIGIN` references to use `CORS_ORIGINS` with port 5103, `lsof -i :3000` → `:5103`, `lsof -i :3001` → `:5102`
 
 ### Spec Legacy References
 
-- [ ] T015 [P] Update `specs/013-admin-player-delete/quickstart.md`: change `localhost:3000` → `localhost:5102` (API) and `localhost:3001` → `localhost:5103` (frontend) based on context of each reference
+- [x] T015 [P] Update `specs/013-admin-player-delete/quickstart.md`: change `localhost:3000` → `localhost:5102` (API) and `localhost:3001` → `localhost:5103` (frontend) based on context of each reference
 
 **Checkpoint**: `grep -rn "3000\|3001" --include="*.md" --include="*.toml" --include="Dockerfile" .` returns zero matches (excluding node_modules and auto-generated files).
 

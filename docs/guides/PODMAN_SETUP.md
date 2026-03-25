@@ -101,9 +101,9 @@ podman container list
 
 | Service         | URL                            | Purpose                    |
 | --------------- | ------------------------------ | -------------------------- |
-| **Frontend**    | http://localhost:3000          | Public team website        |
-| **Backend API** | http://localhost:3001/api      | CMS Admin API              |
-| **API Docs**    | http://localhost:3001/api/docs | Swagger UI (if enabled)    |
+| **Frontend**    | http://localhost:5103          | Public team website        |
+| **Backend API** | http://localhost:5102/api      | CMS Admin API              |
+| **API Docs**    | http://localhost:5102/api/docs | Swagger UI (if enabled)    |
 | **Database**    | localhost:5432                 | PostgreSQL (internal only) |
 | **Redis**       | localhost:6379                 | Cache (internal only)      |
 
@@ -171,7 +171,7 @@ PONG
 
 - **Image**: Built from `packages/cms/Dockerfile`
 - **Container**: `ministrosfc-backend`
-- **Port**: 3001
+- **Port**: 5102
 - **Framework**: Nest.js + Express adapter
 - **Dependencies**: Requires `db` and `redis` healthy
 - **Volume**: Watches `packages/cms/src` for hot-reload (development)
@@ -211,7 +211,7 @@ podman exec -it ministrosfc-backend sh
 
 - **Image**: Built from `packages/frontend/Dockerfile`
 - **Container**: `ministrosfc-frontend`
-- **Port**: 3000
+- **Port**: 5103
 - **Framework**: Nuxt 4 + Vue 3
 - **SSR**: Server-Side Rendering enabled
 - **Dependencies**: Requires `backend` healthy
@@ -219,7 +219,7 @@ podman exec -it ministrosfc-backend sh
 
 **Access Frontend**:
 
-- Browse to http://localhost:3000
+- Browse to http://localhost:5103
 - Public routes require no authentication
 - Admin/Editor routes redirect to login
 
@@ -263,12 +263,12 @@ JWT_SECRET=your-secret-key-min-32-chars
 JWT_EXPIRATION=24h
 
 # API URLs
-API_URL=http://backend:3001/api                           (internal)
-API_URL_PUBLIC=http://localhost:3001/api                  (external)
-PUBLIC_URL=http://localhost:3000                          (frontend URL)
+API_URL=http://backend:5102/api                           (internal)
+API_URL_PUBLIC=http://localhost:5102/api                  (external)
+PUBLIC_URL=http://localhost:5103                          (frontend URL)
 
 # CORS
-CORS_ORIGIN=http://localhost:3000,http://frontend:3000
+CORS_ORIGINS=http://localhost:5103,http://frontend:5103
 
 # Logging
 API_LOG_LEVEL=debug  (development) or info (production)
@@ -278,8 +278,8 @@ API_LOG_LEVEL=debug  (development) or info (production)
 
 | Service    | Internal Port | Host Port | Access                         |
 | ---------- | ------------- | --------- | ------------------------------ |
-| Frontend   | 3000          | 3000      | Public (http://localhost:3000) |
-| Backend    | 3001          | 3001      | Public (http://localhost:3001) |
+| Frontend   | 5103          | 5103      | Public (http://localhost:5103) |
+| Backend    | 5102          | 5102      | Public (http://localhost:5102) |
 | PostgreSQL | 5432          | 5432      | Development only               |
 | Redis      | 6379          | 6379      | Development only               |
 
@@ -402,8 +402,8 @@ podman-compose logs
 
    ```bash
    # Check what's using the port
-   lsof -i :3000
-   lsof -i :3001
+   lsof -i :5103
+   lsof -i :5102
    lsof -i :5432
 
    # Kill process or change port in .env
@@ -461,7 +461,7 @@ podman-compose up -d --build backend
 podman logs -f ministrosfc-frontend
 
 # Verify API connectivity
-curl http://localhost:3001/api/health
+curl http://localhost:5102/api/health
 
 # Clear frontend cache (build new image)
 podman-compose build --no-cache frontend
@@ -518,9 +518,9 @@ services:
       CORS_ORIGIN: https://yourdomain.com
     restart: always
     ports:
-      - "3001:3001"
+      - "5102:5102"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5102/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -534,9 +534,9 @@ services:
       PUBLIC_URL: https://yourdomain.com
     restart: always
     ports:
-      - "3000:3000"
+      - "5103:5103"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      test: ["CMD", "curl", "-f", "http://localhost:5103/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -556,11 +556,11 @@ Set up HTTPS and proxy requests to services:
 # /etc/nginx/conf.d/ministrosfc.conf
 
 upstream backend {
-  server localhost:3001;
+  server localhost:5102;
 }
 
 upstream frontend {
-  server localhost:3000;
+  server localhost:5103;
 }
 
 server {

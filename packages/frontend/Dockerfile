@@ -26,8 +26,8 @@ FROM node:23-alpine AS builder
 WORKDIR /app
 
 ARG NODE_ENV=production
-ARG API_URL=http://backend:3001/api
-ARG API_URL_PUBLIC=http://localhost:3001/api
+ARG API_URL=http://backend:5102/api
+ARG API_URL_PUBLIC=http://localhost:5102/api
 
 ENV NODE_ENV=$NODE_ENV
 ENV API_URL=$API_URL
@@ -79,15 +79,15 @@ COPY .env* ./
 RUN addgroup -g 1001 -S nodejs && adduser -S nuxtjs -u 1001
 USER nuxtjs
 
-# Health check (Nuxt runs on 3000 by default)
+# Health check (Nuxt runs on 5103 by default)
 HEALTHCHECK --interval=15s --timeout=5s --retries=5 --start-period=30s \
-  CMD curl -f http://localhost:${APP_PORT:-3000}/ || exit 1
+  CMD curl -f http://localhost:${APP_PORT:-5103}/ || exit 1
 
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
 # Expose default Nuxt port
-EXPOSE 3000
+EXPOSE 5103
 
 # Start Nuxt application
 CMD ["node", "packages/frontend/.output/server/index.mjs"]
