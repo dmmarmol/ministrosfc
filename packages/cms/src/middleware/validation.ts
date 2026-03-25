@@ -9,15 +9,22 @@ export function validate(schema: ZodSchema, target: ValidationTarget = "body") {
     const result = schema.safeParse(req[target]);
 
     if (!result.success) {
-      res.status(400).json({
+      // Only expose field-level details to authenticated users.
+      // Unauthenticated callers receive a generic message to avoid
+      // leaking schema information to potential attackers.
+      const isAuthenticated = !!req.user;
+      const body: Record<string, unknown> = {
         code: ErrorCode.VALIDATION_ERROR,
         message: "Validation failed",
         statusCode: 400,
-        errors: result.error.issues.map((issue) => ({
+      };
+      if (isAuthenticated) {
+        body.errors = result.error.issues.map((issue) => ({
           field: issue.path.join("."),
           message: issue.message,
-        })),
-      });
+        }));
+      }
+      res.status(400).json(body);
       return;
     }
 
