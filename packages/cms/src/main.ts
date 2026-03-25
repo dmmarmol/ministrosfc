@@ -9,6 +9,9 @@ async function bootstrap(): Promise<void> {
 
   const app = createApp();
 
+  // No explicit host argument — Express defaults to binding on all interfaces
+  // (0.0.0.0), making the API reachable via localhost, 127.0.0.1, and any
+  // hostname that resolves to the local machine (e.g. localhost.ministrosfc.com).
   const server = app.listen(API_PORT, () => {
     logger.info(
       { port: API_PORT },

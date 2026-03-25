@@ -24,6 +24,14 @@ export default defineNuxtConfig({
     port: parseInt(process.env.NUXT_PORT ?? "5103", 10),
   },
 
+  // Bind the Vite dev server to the configured host.
+  // Default is localhost; set NUXT_HOST=0.0.0.0 in .env.local to also accept
+  // requests via custom hostnames such as localhost.ministrosfc.com.
+  devServer: {
+    host: process.env.NUXT_HOST ?? "localhost",
+    port: parseInt(process.env.NUXT_PORT ?? "5103", 10),
+  },
+
   // Auto-import Pinia stores from stores/ directory
   imports: {
     dirs: ["stores"],
