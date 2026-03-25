@@ -79,8 +79,8 @@ description: "Task list for 012-fix-auth-ssr-redirect"
 
 ## Phase 5: Polish & Cross-Cutting Concerns
 
-- [ ] T018 [P] Manual end-to-end verification per `specs/012-fix-auth-ssr-redirect/quickstart.md`: log in, navigate to `/admin/dashboard`, hard-refresh, confirm no redirect
-- [ ] T019 [P] Manual verify unauthenticated path: open private window, navigate to `/admin/players` → confirm redirect to `/login?redirect=%2Fadmin%2Fplayers`
+- [x] T018 [P] Manual end-to-end verification per `specs/012-fix-auth-ssr-redirect/quickstart.md`: log in, navigate to `/admin/dashboard`, hard-refresh, confirm no redirect
+- [x] T019 [P] Manual verify unauthenticated path: open private window, navigate to `/admin/players` → confirm redirect to `/login?redirect=%2Fadmin%2Fplayers`
 - [x] T020 Run `npx vitest run --coverage` from `packages/frontend` and confirm `src/middleware/auth.ts` appears in coverage output with ≥80% line coverage
 
 ---
