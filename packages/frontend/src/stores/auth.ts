@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { useRuntime } from "~/composables/useRuntime";
 
 interface UserInfo {
   id: string;
@@ -39,7 +40,7 @@ export const useAuthStore = defineStore("auth", {
       this.accessToken = data.data.accessToken;
       this.refreshToken = data.data.refreshToken;
       this.user = data.data.user;
-      if (import.meta.client) {
+      if (useRuntime().isClient) {
         localStorage.setItem("refreshToken", data.data.refreshToken);
         localStorage.setItem("user", JSON.stringify(data.data.user));
       }
@@ -61,7 +62,7 @@ export const useAuthStore = defineStore("auth", {
       this.user = null;
       this.accessToken = null;
       this.refreshToken = null;
-      if (import.meta.client) {
+      if (useRuntime().isClient) {
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("user");
       }
@@ -71,7 +72,7 @@ export const useAuthStore = defineStore("auth", {
       const config = useRuntimeConfig();
       const storedToken =
         this.refreshToken ??
-        (import.meta.client ? localStorage.getItem("refreshToken") : null);
+        (useRuntime().isClient ? localStorage.getItem("refreshToken") : null);
       if (!storedToken) throw new Error("No refresh token available");
       const data = await $fetch<{
         data: { accessToken: string; refreshToken: string };
@@ -81,13 +82,13 @@ export const useAuthStore = defineStore("auth", {
       });
       this.accessToken = data.data.accessToken;
       this.refreshToken = data.data.refreshToken;
-      if (import.meta.client) {
+      if (useRuntime().isClient) {
         localStorage.setItem("refreshToken", data.data.refreshToken);
       }
     },
 
     loadFromStorage() {
-      if (!import.meta.client) return;
+      if (!useRuntime().isClient) return;
       const storedUser = localStorage.getItem("user");
       const storedToken = localStorage.getItem("refreshToken");
       if (storedUser && storedToken) {

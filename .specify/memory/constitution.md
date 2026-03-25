@@ -1,35 +1,22 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.0.0 → 1.1.0 (MINOR — new testing constraints added)
+Version change: 1.1.0 → 1.2.0 (MINOR — useRuntime composable mandate added)
 Ratified: 2026-03-17
-Last Amended: 2026-03-18
+Last Amended: 2026-03-24
 
-Amendment: Add Testing Tooling and Conventions
-- Added "Testing Tooling and Conventions" subsection under Quality and Testing Standards
-- Added four new MUST/SHOULD rules covering:
-    * Vitest as test runner in packages/frontend (MUST)
-    * Vitest preferred in packages/cms, Jest acceptable until migrated (SHOULD)
-    * Explicit imports in every Nuxt file despite auto-import (MUST)
-    * Typed mock objects in unit tests (MUST)
-- Updated Technology Standards > Testing line to reflect per-package tooling
+Amendment: Mandate useRuntime composable over import.meta.client / import.meta.server
+- Added MUST rule requiring useRuntime() composable in packages/frontend
+- Prohibits direct use of import.meta.client and import.meta.server outside the composable itself
+- Rationale: enables Vitest mocking of client/server environment without monkeypatching import.meta
 
 Modified sections:
-  ✅ Development Stack and Constraints > Technology Standards (Testing line)
-  ✅ Quality and Testing Standards (new subsection appended)
-
-Templates reviewed:
-  ✅ plan-template.md       — generic Testing placeholder, no change needed
-  ✅ spec-template.md       — no testing tool references, no change needed
-  ✅ tasks-template.md      — no testing tool references, no change needed
-  ✅ checklist-template.md  — sample items only, no change needed
-
-Deferred TODOs: none
+  ✅ Quality and Testing Standards > Testing Tooling and Conventions (new rule appended)
 -->
 
 # Ministros FC Constitution
 
-**Version**: 1.1.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-03-18
+**Version**: 1.2.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-03-24
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -351,6 +338,11 @@ feature/
 - **MUST** annotate unit test mock objects with explicit TypeScript types. `vi.fn()` / `jest.fn()`
   wrappers MUST carry the correct function signature; stub objects MUST satisfy the matching
   interface or type alias (no `as any` escape hatches in test setup code).
+- **MUST** use the `useRuntime()` composable (`src/composables/useRuntime.ts`) instead of
+  `import.meta.client` or `import.meta.server` anywhere in `packages/frontend` source code
+  (stores, components, composables, plugins). Direct access to these Vite meta fields is only
+  permitted inside the `useRuntime` composable itself. This ensures test suites can mock the
+  runtime environment via `vi.mock('~/composables/useRuntime')` without patching import.meta.
 
 ---
 
