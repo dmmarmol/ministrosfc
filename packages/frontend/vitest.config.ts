@@ -32,7 +32,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/**/*.{vue,ts}"],
-      exclude: ["src/plugins/**", "src/middleware/**"],
+      exclude: ["src/plugins/**"],
       thresholds: {
         statements: 60,
         branches: 50,

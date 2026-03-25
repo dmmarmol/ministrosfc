@@ -18,9 +18,9 @@ The core issue is that auth state is persisted in `localStorage` — a client-on
 
 ## Options Considered
 
-| Option | Description | Trade-offs |
-|--------|-------------|------------|
-| **A — Skip on server** | Return early from middleware when running server-side (`import.meta.server`) | Simplest fix. SSR renders the page shell; middleware re-runs client-side with restored state. Zero security regression: protected data is still behind authenticated API calls. |
+| Option                          | Description                                                                                     | Trade-offs                                                                                                                                                                               |
+| ------------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A — Skip on server**          | Return early from middleware when running server-side (`import.meta.server`)                    | Simplest fix. SSR renders the page shell; middleware re-runs client-side with restored state. Zero security regression: protected data is still behind authenticated API calls.          |
 | **B — httpOnly cookie session** | Migrate token storage to a server-readable httpOnly cookie; middleware reads cookie server-side | Fully SSR-safe and more secure. Requires API changes (`Set-Cookie` on login/refresh, CSRF protection). Significantly larger scope — better suited as a dedicated auth hardening feature. |
 
 **Decision: Option A.** The application is a private team management tool, not a public-facing product. The API enforces auth on every data-returning endpoint regardless of SSR. Option A fixes the UX regression immediately with minimal risk. Option B is deferred to a future auth hardening spec.
