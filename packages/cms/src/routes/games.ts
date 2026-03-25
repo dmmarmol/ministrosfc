@@ -28,7 +28,7 @@ const gameCreateSchema = z.object({
     .max(2000, "Notes must be 2000 characters or less")
     .optional(),
   opponentTeamId: z.string().uuid("opponentTeamId must be a valid UUID"),
-  tournamentId: z.string().uuid("tournamentId must be a valid UUID").optional(),
+  tournamentId: z.string().min(1).optional(),
   competitionType: z
     .enum(["FRIENDLY", "LEAGUE", "CUP", "PLAYOFF", "SEASON"], {
       message:
@@ -54,7 +54,7 @@ const gameUpdateSchema = z.object({
     .string()
     .uuid("opponentTeamId must be a valid UUID")
     .optional(),
-  tournamentId: z.string().uuid("tournamentId must be a valid UUID").optional(),
+  tournamentId: z.string().min(1).optional(),
   competitionType: z
     .enum(["FRIENDLY", "LEAGUE", "CUP", "PLAYOFF", "SEASON"], {
       message:
@@ -68,7 +68,7 @@ const gameUpdateSchema = z.object({
 
 const gameFilterSchema = paginationSchema.extend({
   status: z.nativeEnum(GameStatus).optional(),
-  tournamentId: z.string().uuid().optional(),
+  tournamentId: z.string().optional(),
   opponentTeamId: z.string().uuid().optional(),
   dateFrom: z.string().optional(),
   dateTo: z.string().optional(),

@@ -136,11 +136,11 @@ async function main(): Promise<void> {
     playerData.map((p) =>
       prisma.player.upsert({
         where: {
-          id: `player-seed-${p.jerseyNumber.toString().padStart(3, "0")}`,
+          id: `20000000-0000-0000-0000-${p.jerseyNumber.toString().padStart(12, "0")}`,
         },
         update: {},
         create: {
-          id: `player-seed-${p.jerseyNumber.toString().padStart(3, "0")}`,
+          id: `20000000-0000-0000-0000-${p.jerseyNumber.toString().padStart(12, "0")}`,
           ...p,
           playerType: PlayerType.REGISTERED,
           status: PlayerStatus.ACTIVE,
@@ -203,10 +203,10 @@ async function main(): Promise<void> {
 
   // ─── Tournament ───────────────────────────────────────────────────────────────
   const tournament = await prisma.tournament.upsert({
-    where: { id: "tournament-seed-001" },
+    where: { id: "10000000-0000-0000-0000-000000000001" },
     update: {},
     create: {
-      id: "tournament-seed-001",
+      id: "10000000-0000-0000-0000-000000000001",
       name: "Liga Barrial Primavera 2026",
       description: "Spring 2026 neighborhood league",
       startDate: new Date("2026-03-01"),
@@ -219,10 +219,10 @@ async function main(): Promise<void> {
 
   // ─── Games ────────────────────────────────────────────────────────────────────
   const game1 = await prisma.game.upsert({
-    where: { id: "game-seed-001" },
+    where: { id: "30000000-0000-0000-0000-000000000001" },
     update: {},
     create: {
-      id: "game-seed-001",
+      id: "30000000-0000-0000-0000-000000000001",
       opponentTeamId: teamRivers.id,
       tournamentId: tournament.id,
       date: new Date("2026-03-15T18:00:00Z"),
@@ -235,10 +235,10 @@ async function main(): Promise<void> {
   });
 
   const game2 = await prisma.game.upsert({
-    where: { id: "game-seed-002" },
+    where: { id: "30000000-0000-0000-0000-000000000002" },
     update: {},
     create: {
-      id: "game-seed-002",
+      id: "30000000-0000-0000-0000-000000000002",
       opponentTeamId: teamBoca.id,
       tournamentId: tournament.id,
       date: new Date("2026-03-22T18:00:00Z"),
@@ -252,10 +252,10 @@ async function main(): Promise<void> {
 
   await Promise.all([
     prisma.game.upsert({
-      where: { id: "game-seed-003" },
+      where: { id: "30000000-0000-0000-0000-000000000003" },
       update: {},
       create: {
-        id: "game-seed-003",
+        id: "30000000-0000-0000-0000-000000000003",
         opponentTeamId: teamIndependiente.id,
         tournamentId: tournament.id,
         date: new Date("2026-04-05T17:00:00Z"),
@@ -265,10 +265,10 @@ async function main(): Promise<void> {
       },
     }),
     prisma.game.upsert({
-      where: { id: "game-seed-004" },
+      where: { id: "30000000-0000-0000-0000-000000000004" },
       update: {},
       create: {
-        id: "game-seed-004",
+        id: "30000000-0000-0000-0000-000000000004",
         opponentTeamId: teamRivers.id,
         date: new Date("2026-04-12T18:00:00Z"),
         location: "Cancha del Barrio Sur",
@@ -277,10 +277,10 @@ async function main(): Promise<void> {
       },
     }),
     prisma.game.upsert({
-      where: { id: "game-seed-005" },
+      where: { id: "30000000-0000-0000-0000-000000000005" },
       update: {},
       create: {
-        id: "game-seed-005",
+        id: "30000000-0000-0000-0000-000000000005",
         opponentTeamId: teamBoca.id,
         tournamentId: tournament.id,
         date: new Date("2026-04-19T18:00:00Z"),
