@@ -1,5 +1,13 @@
 <template>
   <div>
+    <!-- Confirmation modal (admin only) -->
+    <PlayerDeleteModal
+      v-if="playerToDelete"
+      :player="playerToDelete"
+      @confirm="confirmDelete"
+      @cancel="playerToDelete = null"
+    />
+
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-base font-semibold text-gray-700">Jugadores</h2>
       <NuxtLink
@@ -122,6 +130,14 @@
               >
                 {{ p.status === "ACTIVE" ? "Desactivar" : "Activar" }}
               </button>
+              <button
+                v-if="authStore.isAdmin"
+                data-testid="delete-player-btn"
+                class="text-xs text-red-400 hover:text-red-600 transition-colors"
+                @click="playerToDelete = p"
+              >
+                Eliminar
+              </button>
             </td>
           </tr>
           <tr v-if="!filteredPlayers.length">
@@ -136,10 +152,15 @@
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from "~/stores/auth";
+import PlayerDeleteModal from "~/components/player/PlayerDeleteModal.vue";
+
 definePageMeta({ layout: "admin", middleware: "auth" });
 useHead({ title: "Players – Admin" });
 
 const { $api } = useNuxtApp();
+const authStore = useAuthStore();
+const playerToDelete = ref<{ id: string; name: string } | null>(null);
 const search = ref("");
 const statusFilter = ref("ACTIVE");
 const posFilter = ref("");
@@ -173,6 +194,20 @@ async function toggleStatus(player: any) {
     await refresh();
   } catch (e: any) {
     alert(e?.message ?? "Failed to update player status.");
+  }
+}
+
+async function confirmDelete() {
+  if (!playerToDelete.value) return;
+  try {
+    await $api(`/api/v1/players/${playerToDelete.value.id}`, {
+      method: "DELETE",
+    });
+    playerToDelete.value = null;
+    await refresh();
+  } catch (e: any) {
+    playerToDelete.value = null;
+    alert(e?.message ?? "Failed to delete player.");
   }
 }
 </script>

@@ -1,6 +1,6 @@
 ---
 description: Convert existing tasks into actionable, dependency-ordered GitHub issues for the feature based on available design artifacts.
-tools: ['github/github-mcp-server/issue_write']
+tools: ["github/github-mcp-server/issue_write"]
 ---
 
 ## User Input
@@ -28,3 +28,21 @@ git config --get remote.origin.url
 
 > [!CAUTION]
 > UNDER NO CIRCUMSTANCES EVER CREATE ISSUES IN REPOSITORIES THAT DO NOT MATCH THE REMOTE URL
+
+---
+
+## Next Steps
+
+After all issues are created, **MUST** output the following block to the user:
+
+```
+## Next Steps
+
+**Issues created successfully.** Recommended follow-up:
+- Assign issues to a milestone or sprint in your project management tool.
+- Review issue dependencies and set up a task board (e.g., GitHub Projects).
+- Begin implementation via `/speckit.implement` when the sprint starts.
+```
+
+> Tailor the message: if some issues failed to create, list them and suggest retrying or
+> creating them manually before moving to sprint planning.

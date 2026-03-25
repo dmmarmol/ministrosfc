@@ -123,4 +123,66 @@ describe("PlayerService", () => {
       expect(result.data).toHaveLength(1);
     });
   });
+
+  describe("deletePlayer", () => {
+    it("deletes player successfully — returns void and invalidates cache", async () => {
+      const mockPlayer = { id: "p1", name: "Diego", photoUrl: null };
+      (PlayerModel.findById as jest.Mock).mockResolvedValue(mockPlayer);
+      (PlayerModel.deleteById as jest.Mock).mockResolvedValue(undefined);
+
+      await expect(PlayerService.deletePlayer("p1")).resolves.toBeUndefined();
+      expect(PlayerModel.deleteById).toHaveBeenCalledWith("p1");
+    });
+
+    it("throws 404 when player not found", async () => {
+      (PlayerModel.findById as jest.Mock).mockResolvedValue(null);
+
+      await expect(PlayerService.deletePlayer("missing")).rejects.toMatchObject(
+        { statusCode: 404 },
+      );
+      expect(PlayerModel.deleteById).not.toHaveBeenCalled();
+    });
+
+    it("calls deletePlayerPhoto best-effort when photoUrl exists", async () => {
+      const mockPlayer = {
+        id: "p2",
+        name: "Foto Player",
+        photoUrl: "https://cdn/photo.jpg",
+      };
+      (PlayerModel.findById as jest.Mock).mockResolvedValue(mockPlayer);
+      (PlayerModel.deleteById as jest.Mock).mockResolvedValue(undefined);
+      (objectStorage.deletePlayerPhoto as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+
+      await PlayerService.deletePlayer("p2");
+      expect(objectStorage.deletePlayerPhoto).toHaveBeenCalledWith(
+        "https://cdn/photo.jpg",
+      );
+    });
+
+    it("does not reject if deletePlayerPhoto throws (best-effort)", async () => {
+      const mockPlayer = {
+        id: "p3",
+        name: "Photo Error Player",
+        photoUrl: "https://cdn/bad.jpg",
+      };
+      (PlayerModel.findById as jest.Mock).mockResolvedValue(mockPlayer);
+      (PlayerModel.deleteById as jest.Mock).mockResolvedValue(undefined);
+      (objectStorage.deletePlayerPhoto as jest.Mock).mockRejectedValue(
+        new Error("Cloudinary error"),
+      );
+
+      await expect(PlayerService.deletePlayer("p3")).resolves.toBeUndefined();
+    });
+
+    it("does not call deletePlayerPhoto when photoUrl is null", async () => {
+      const mockPlayer = { id: "p4", name: "No Photo", photoUrl: null };
+      (PlayerModel.findById as jest.Mock).mockResolvedValue(mockPlayer);
+      (PlayerModel.deleteById as jest.Mock).mockResolvedValue(undefined);
+
+      await PlayerService.deletePlayer("p4");
+      expect(objectStorage.deletePlayerPhoto).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -1,6 +1,6 @@
 ---
 description: Execute the implementation planning workflow using the plan template to generate design artifacts.
-handoffs: 
+handoffs:
   - label: Create Tasks
     agent: speckit.tasks
     prompt: Break the plan into tasks
@@ -82,9 +82,29 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Add only new technology from current plan
    - Preserve manual additions between markers
 
-**Output**: data-model.md, /contracts/*, quickstart.md, agent-specific file
+**Output**: data-model.md, /contracts/\*, quickstart.md, agent-specific file
 
 ## Key rules
 
 - Use absolute paths
 - ERROR on gate failures or unresolved clarifications
+
+---
+
+## Next Steps
+
+After completing the plan, **MUST** output the following block to the user:
+
+```
+## Next Steps
+
+**Recommended**: `/speckit.tasks` — generate the ordered task list from this plan.
+
+Alternatively, run `/speckit.analyze` first if the design has open questions or the plan
+covers significant new architectural territory that warrants a cross-artifact review.
+
+Skip to `/speckit.tasks` directly if the plan is straightforward and spec is fully resolved.
+```
+
+> Tailor the recommendation to the actual state of the artifacts (e.g., flag any unresolved
+> design decisions or TODOs in the plan that suggest running `/speckit.clarify` instead).

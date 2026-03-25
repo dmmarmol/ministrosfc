@@ -1,35 +1,33 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.0.0 → 1.1.0 (MINOR — new testing constraints added)
+Version change: 1.2.0 → 1.3.0 (MINOR — Speckit workflow continuity mandate added)
 Ratified: 2026-03-17
-Last Amended: 2026-03-18
+Last Amended: 2026-03-25
 
-Amendment: Add Testing Tooling and Conventions
-- Added "Testing Tooling and Conventions" subsection under Quality and Testing Standards
-- Added four new MUST/SHOULD rules covering:
-    * Vitest as test runner in packages/frontend (MUST)
-    * Vitest preferred in packages/cms, Jest acceptable until migrated (SHOULD)
-    * Explicit imports in every Nuxt file despite auto-import (MUST)
-    * Typed mock objects in unit tests (MUST)
-- Updated Technology Standards > Testing line to reflect per-package tooling
+Amendment: Every speckit agent MUST output a "Next Steps" recommendation at the end of its run.
+- Added new section §Speckit Workflow Continuity under Development Workflow
+- Defines the standard Next Steps block format all speckit agents must emit
+- Maps the canonical command sequence and decision points for each agent
 
 Modified sections:
-  ✅ Development Stack and Constraints > Technology Standards (Testing line)
-  ✅ Quality and Testing Standards (new subsection appended)
+  ✅ Development Workflow > Speckit Workflow Continuity (new section added)
 
-Templates reviewed:
-  ✅ plan-template.md       — generic Testing placeholder, no change needed
-  ✅ spec-template.md       — no testing tool references, no change needed
-  ✅ tasks-template.md      — no testing tool references, no change needed
-  ✅ checklist-template.md  — sample items only, no change needed
-
-Deferred TODOs: none
+Templates / agents updated:
+  ✅ .github/agents/speckit.plan.agent.md — Next Steps block appended to output
+  ✅ .github/agents/speckit.tasks.agent.md — Next Steps block appended to Report step
+  ✅ .github/agents/speckit.implement.agent.md — Next Steps block appended to completion step
+  ✅ .github/agents/speckit.checklist.agent.md — Next Steps block appended to Report step
+  ✅ .github/agents/speckit.constitution.agent.md — Next Steps block appended to final summary
+  ✅ .github/agents/speckit.taskstoissues.agent.md — Next Steps block appended
+  ℹ️  speckit.specify — already emits next-phase readiness; updated to use canonical format
+  ℹ️  speckit.analyze — already emits Next Actions; no change required
+  ℹ️  speckit.clarify — already suggests next command; no change required
 -->
 
 # Ministros FC Constitution
 
-**Version**: 1.1.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-03-18
+**Version**: 1.3.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-03-25
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -255,6 +253,42 @@ ministrosfc/
    - Tag release version for production
    - Update CHANGELOG
 
+### Speckit Workflow Continuity
+
+**MUST** output a **Next Steps** recommendation at the end of every speckit agent run.
+
+- Every speckit command MUST conclude with a clearly labelled `## Next Steps` block visible to the user.
+- The block MUST name the recommended next speckit command (e.g., `/speckit.plan`) and explain why it
+  is the appropriate action given the current artifact state.
+- If multiple paths are valid (e.g., run `/speckit.clarify` to tighten scope vs. proceed
+  directly to `/speckit.plan`), the agent MUST indicate which is recommended and why.
+- If no further speckit step is needed (e.g., after `/speckit.implement` on a completed feature),
+  the agent MUST state that explicitly and suggest a non-speckit follow-up (e.g., open a PR,
+  run E2E tests, tag a release).
+- The recommendation MUST be based on the actual state of the feature artifacts, not be generic.
+
+**Canonical command sequence and typical next-step mapping:**
+
+| Current command         | Typical next command                            | When to deviate                                    |
+| ----------------------- | ----------------------------------------------- | -------------------------------------------------- |
+| `speckit.specify`       | `speckit.clarify` or `speckit.plan`             | Skip clarify only if spec is unambiguous           |
+| `speckit.clarify`       | `speckit.plan`                                  | Re-run clarify if outstanding gaps remain          |
+| `speckit.plan`          | `speckit.tasks`                                 | Run `speckit.analyze` first if design is uncertain |
+| `speckit.tasks`         | `speckit.analyze` then `speckit.implement`      | Skip analyze only for trivial task sets            |
+| `speckit.analyze`       | `speckit.implement` (if clean) or fix artifacts | Fix HIGH findings before implementing              |
+| `speckit.implement`     | PR / merge / tag release                        | Re-run `speckit.analyze` if new issues arise       |
+| `speckit.checklist`     | Whichever command surfaces the gap              | Context-dependent                                  |
+| `speckit.constitution`  | Update affected templates / commit              | Cascade spec/plan/tasks if principles changed      |
+| `speckit.taskstoissues` | Project management / sprint planning            | N/A                                                |
+
+**Context:** Without explicit guidance the caller must infer the next step from sparse output, which
+creates friction and invites workflow mistakes. A mandatory recommendation eliminates that ambiguity.
+
+**Enforcement:** Agent file review during constitution amendments; treat missing Next Steps block as
+a constitution violation in PR reviews.
+
+---
+
 ### Git and Commit Conventions
 
 **Branch naming:**
@@ -351,6 +385,11 @@ feature/
 - **MUST** annotate unit test mock objects with explicit TypeScript types. `vi.fn()` / `jest.fn()`
   wrappers MUST carry the correct function signature; stub objects MUST satisfy the matching
   interface or type alias (no `as any` escape hatches in test setup code).
+- **MUST** use the `useRuntime()` composable (`src/composables/useRuntime.ts`) instead of
+  `import.meta.client` or `import.meta.server` anywhere in `packages/frontend` source code
+  (stores, components, composables, plugins). Direct access to these Vite meta fields is only
+  permitted inside the `useRuntime` composable itself. This ensures test suites can mock the
+  runtime environment via `vi.mock('~/composables/useRuntime')` without patching import.meta.
 
 ---
 

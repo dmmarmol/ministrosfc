@@ -7,6 +7,14 @@
     >
     <h2 class="text-lg font-bold text-gray-900 mb-6">Editar Jugador</h2>
 
+    <!-- Delete confirmation modal (admin only) -->
+    <PlayerDeleteModal
+      v-if="showDeleteModal && player"
+      :player="{ id: player.id, name: player.name }"
+      @confirm="confirmDelete"
+      @cancel="showDeleteModal = false"
+    />
+
     <div v-if="pending" class="space-y-4">
       <div
         v-for="i in 5"
@@ -146,15 +154,30 @@
         >
           {{ player.status === "ACTIVE" ? "Desactivar" : "Activar" }}
         </button>
+        <button
+          v-if="authStore.isAdmin"
+          data-testid="delete-player-btn"
+          type="button"
+          :disabled="loading"
+          class="text-sm px-5 py-2.5 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+          @click="showDeleteModal = true"
+        >
+          Eliminar Jugador
+        </button>
       </div>
     </form>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from "~/stores/auth";
+import PlayerDeleteModal from "~/components/player/PlayerDeleteModal.vue";
+
 definePageMeta({ layout: "admin", middleware: "auth" });
 
 const { $api } = useNuxtApp();
+const authStore = useAuthStore();
+const showDeleteModal = ref(false);
 const router = useRouter();
 const route = useRoute();
 const id = route.params.id as string;
@@ -235,6 +258,20 @@ async function toggleStatus() {
     await refresh();
   } catch (e: any) {
     error.value = e?.message ?? "Failed to update status.";
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function confirmDelete() {
+  if (!player.value) return;
+  loading.value = true;
+  try {
+    await $api(`/api/v1/players/${id}`, { method: "DELETE" });
+    await navigateTo("/admin/players");
+  } catch (e: any) {
+    showDeleteModal.value = false;
+    error.value = e?.message ?? "Failed to delete player.";
   } finally {
     loading.value = false;
   }

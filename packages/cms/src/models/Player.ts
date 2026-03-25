@@ -116,4 +116,8 @@ export const PlayerModel = {
     });
     return existing !== null;
   },
+
+  async deleteById(id: string): Promise<void> {
+    await prisma.player.delete({ where: { id } });
+  },
 };

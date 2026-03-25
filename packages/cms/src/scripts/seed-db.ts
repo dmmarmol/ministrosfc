@@ -16,22 +16,30 @@ const prisma = new PrismaClient();
 async function main(): Promise<void> {
   console.log("🌱 Seeding database...");
 
+  // ─── Wipe existing data (reverse dependency order) ───────────────────────────
+  await prisma.gameParticipant.deleteMany();
+  await prisma.statistics.deleteMany();
+  await prisma.game.deleteMany();
+  await prisma.tournament.deleteMany();
+  await prisma.contact.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.player.deleteMany();
+  await prisma.opponentTeam.deleteMany();
+  await prisma.teamInfo.deleteMany();
+  console.log("  ✓ Cleared existing data");
+
   // ─── Users ───────────────────────────────────────────────────────────────────
   const [adminUser, editorUser] = await Promise.all([
-    prisma.user.upsert({
-      where: { email: "admin@ministrosfc.com" },
-      update: {},
-      create: {
+    prisma.user.create({
+      data: {
         email: "admin@ministrosfc.com",
         passwordHash: await bcrypt.hash("Admin1234!", 12),
         name: "Admin User",
         role: Role.ADMIN,
       },
     }),
-    prisma.user.upsert({
-      where: { email: "editor@ministrosfc.com" },
-      update: {},
-      create: {
+    prisma.user.create({
+      data: {
         email: "editor@ministrosfc.com",
         passwordHash: await bcrypt.hash("Editor1234!", 12),
         name: "Editor User",
@@ -43,11 +51,8 @@ async function main(): Promise<void> {
   console.log(`  ✓ Users: ${adminUser.email}, ${editorUser.email}`);
 
   // ─── Team Info ────────────────────────────────────────────────────────────────
-  await prisma.teamInfo.upsert({
-    where: { id: "00000000-0000-0000-0000-000000000001" },
-    update: {},
-    create: {
-      id: "00000000-0000-0000-0000-000000000001",
+  await prisma.teamInfo.create({
+    data: {
       name: "Ministros F.C.",
       description: "Our football club.",
       foundedYear: 2010,
@@ -55,24 +60,23 @@ async function main(): Promise<void> {
       location: "Buenos Aires, Argentina",
     },
   });
-
   console.log("  ✓ Team info seeded");
 
   // ─── Registered Players ───────────────────────────────────────────────────────
   const playerData = [
     {
-      name: "Diego Martín",
-      nickname: "Diegui",
-      position: Position.CMF,
-      jerseyNumber: 10,
+      name: "Juan Ramírez",
+      nickname: "Juampi",
+      position: Position.GK,
+      jerseyNumber: 1,
       dominantFoot: Foot.RIGHT,
     },
     {
-      name: "Carlos López",
-      nickname: "Carlitos",
-      position: Position.CF,
-      jerseyNumber: 9,
-      dominantFoot: Foot.LEFT,
+      name: "Federico Romero",
+      nickname: "Fede",
+      position: Position.CB,
+      jerseyNumber: 3,
+      dominantFoot: Foot.RIGHT,
     },
     {
       name: "Martín García",
@@ -82,38 +86,10 @@ async function main(): Promise<void> {
       dominantFoot: Foot.RIGHT,
     },
     {
-      name: "Juan Ramírez",
-      nickname: "Juampi",
-      position: Position.GK,
-      jerseyNumber: 1,
-      dominantFoot: Foot.RIGHT,
-    },
-    {
       name: "Pablo Torres",
       nickname: "Pablito",
       position: Position.CB,
       jerseyNumber: 5,
-      dominantFoot: Foot.RIGHT,
-    },
-    {
-      name: "Héctor Muñoz",
-      nickname: "Hectorcito",
-      position: Position.CMF,
-      jerseyNumber: 8,
-      dominantFoot: Foot.LEFT,
-    },
-    {
-      name: "Andrés Vega",
-      nickname: "Andresito",
-      position: Position.CF,
-      jerseyNumber: 11,
-      dominantFoot: Foot.RIGHT,
-    },
-    {
-      name: "Federico Romero",
-      nickname: "Fede",
-      position: Position.CB,
-      jerseyNumber: 3,
       dominantFoot: Foot.RIGHT,
     },
     {
@@ -130,17 +106,40 @@ async function main(): Promise<void> {
       jerseyNumber: 7,
       dominantFoot: Foot.AMBIDEXTROUS,
     },
+    {
+      name: "Héctor Muñoz",
+      nickname: "Hectorcito",
+      position: Position.CMF,
+      jerseyNumber: 8,
+      dominantFoot: Foot.LEFT,
+    },
+    {
+      name: "Carlos López",
+      nickname: "Carlitos",
+      position: Position.CF,
+      jerseyNumber: 9,
+      dominantFoot: Foot.LEFT,
+    },
+    {
+      name: "Diego Martín",
+      nickname: "Diegui",
+      position: Position.CMF,
+      jerseyNumber: 10,
+      dominantFoot: Foot.RIGHT,
+    },
+    {
+      name: "Andrés Vega",
+      nickname: "Andresito",
+      position: Position.CF,
+      jerseyNumber: 11,
+      dominantFoot: Foot.RIGHT,
+    },
   ];
 
   const players = await Promise.all(
     playerData.map((p) =>
-      prisma.player.upsert({
-        where: {
-          id: `player-seed-${p.jerseyNumber.toString().padStart(3, "0")}`,
-        },
-        update: {},
-        create: {
-          id: `player-seed-${p.jerseyNumber.toString().padStart(3, "0")}`,
+      prisma.player.create({
+        data: {
           ...p,
           playerType: PlayerType.REGISTERED,
           status: PlayerStatus.ACTIVE,
@@ -149,64 +148,50 @@ async function main(): Promise<void> {
     ),
   );
 
-  // Link first player to a player user account
-  const firstPlayer = players[0];
-  if (!firstPlayer) throw new Error("No players seeded");
-  const playerUser = await prisma.user.upsert({
-    where: { email: "player@ministrosfc.com" },
-    update: {},
-    create: {
+  // Link #10 (Diego Martín) to the player user account
+  const playerUser10 = players.find((p) => p.jerseyNumber === 10);
+  if (!playerUser10) throw new Error("Player #10 not found");
+  await prisma.user.create({
+    data: {
       email: "player@ministrosfc.com",
       passwordHash: await bcrypt.hash("Player1234!", 12),
-      name: firstPlayer.name,
+      name: playerUser10.name,
       role: Role.PLAYER,
-      playerId: firstPlayer.id,
+      playerId: playerUser10.id,
     },
   });
 
-  console.log(
-    `  ✓ Players: ${players.length} registered, user: ${playerUser.email}`,
-  );
+  console.log(`  ✓ Players: ${players.length} registered`);
 
   // ─── Opponent Teams ───────────────────────────────────────────────────────────
   const [teamRivers, teamBoca, teamIndependiente] = await Promise.all([
-    prisma.opponentTeam.upsert({
-      where: { name: "Deportivo Riveros" },
-      update: {},
-      create: {
+    prisma.opponentTeam.create({
+      data: {
         name: "Deportivo Riveros",
         colors: "Red and White",
         city: "Buenos Aires",
       },
     }),
-    prisma.opponentTeam.upsert({
-      where: { name: "Club Atlético Norte" },
-      update: {},
-      create: {
+    prisma.opponentTeam.create({
+      data: {
         name: "Club Atlético Norte",
         colors: "Blue and Yellow",
         city: "Buenos Aires",
       },
     }),
-    prisma.opponentTeam.upsert({
-      where: { name: "Los Halcones FC" },
-      update: {},
-      create: {
+    prisma.opponentTeam.create({
+      data: {
         name: "Los Halcones FC",
         colors: "Green and White",
         city: "Córdoba",
       },
     }),
   ]);
-
   console.log("  ✓ Opponent teams seeded");
 
   // ─── Tournament ───────────────────────────────────────────────────────────────
-  const tournament = await prisma.tournament.upsert({
-    where: { id: "tournament-seed-001" },
-    update: {},
-    create: {
-      id: "tournament-seed-001",
+  const tournament = await prisma.tournament.create({
+    data: {
       name: "Liga Barrial Primavera 2026",
       description: "Spring 2026 neighborhood league",
       startDate: new Date("2026-03-01"),
@@ -214,15 +199,11 @@ async function main(): Promise<void> {
       competitionType: CompetitionType.LEAGUE,
     },
   });
-
   console.log(`  ✓ Tournament: ${tournament.name}`);
 
   // ─── Games ────────────────────────────────────────────────────────────────────
-  const game1 = await prisma.game.upsert({
-    where: { id: "game-seed-001" },
-    update: {},
-    create: {
-      id: "game-seed-001",
+  const game1 = await prisma.game.create({
+    data: {
       opponentTeamId: teamRivers.id,
       tournamentId: tournament.id,
       date: new Date("2026-03-15T18:00:00Z"),
@@ -234,11 +215,8 @@ async function main(): Promise<void> {
     },
   });
 
-  const game2 = await prisma.game.upsert({
-    where: { id: "game-seed-002" },
-    update: {},
-    create: {
-      id: "game-seed-002",
+  const game2 = await prisma.game.create({
+    data: {
       opponentTeamId: teamBoca.id,
       tournamentId: tournament.id,
       date: new Date("2026-03-22T18:00:00Z"),
@@ -251,11 +229,8 @@ async function main(): Promise<void> {
   });
 
   await Promise.all([
-    prisma.game.upsert({
-      where: { id: "game-seed-003" },
-      update: {},
-      create: {
-        id: "game-seed-003",
+    prisma.game.create({
+      data: {
         opponentTeamId: teamIndependiente.id,
         tournamentId: tournament.id,
         date: new Date("2026-04-05T17:00:00Z"),
@@ -264,11 +239,8 @@ async function main(): Promise<void> {
         status: GameStatus.SCHEDULED,
       },
     }),
-    prisma.game.upsert({
-      where: { id: "game-seed-004" },
-      update: {},
-      create: {
-        id: "game-seed-004",
+    prisma.game.create({
+      data: {
         opponentTeamId: teamRivers.id,
         date: new Date("2026-04-12T18:00:00Z"),
         location: "Cancha del Barrio Sur",
@@ -276,11 +248,8 @@ async function main(): Promise<void> {
         status: GameStatus.SCHEDULED,
       },
     }),
-    prisma.game.upsert({
-      where: { id: "game-seed-005" },
-      update: {},
-      create: {
-        id: "game-seed-005",
+    prisma.game.create({
+      data: {
         opponentTeamId: teamBoca.id,
         tournamentId: tournament.id,
         date: new Date("2026-04-19T18:00:00Z"),
@@ -290,16 +259,14 @@ async function main(): Promise<void> {
       },
     }),
   ]);
-
   console.log("  ✓ Games seeded (2 completed, 3 scheduled)");
 
   // ─── Game Participants (for completed games) ──────────────────────────────────
+  const squad = players.slice(0, 7);
   await Promise.all(
-    players.slice(0, 7).map((p) =>
-      prisma.gameParticipant.upsert({
-        where: { gameId_playerId: { gameId: game1.id, playerId: p.id } },
-        update: {},
-        create: {
+    squad.map((p) =>
+      prisma.gameParticipant.create({
+        data: {
           gameId: game1.id,
           playerId: p.id,
           confirmationStatus: ConfirmationStatus.CONFIRMED,
@@ -311,13 +278,10 @@ async function main(): Promise<void> {
       }),
     ),
   );
-
   await Promise.all(
-    players.slice(0, 7).map((p) =>
-      prisma.gameParticipant.upsert({
-        where: { gameId_playerId: { gameId: game2.id, playerId: p.id } },
-        update: {},
-        create: {
+    squad.map((p) =>
+      prisma.gameParticipant.create({
+        data: {
           gameId: game2.id,
           playerId: p.id,
           confirmationStatus: ConfirmationStatus.CONFIRMED,
@@ -329,8 +293,8 @@ async function main(): Promise<void> {
       }),
     ),
   );
-
   console.log("  ✓ Game participants seeded");
+
   console.log("\n✅ Database seeded successfully!");
   console.log("\nSeed credentials:");
   console.log("  Admin:  admin@ministrosfc.com  / Admin1234!");

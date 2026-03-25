@@ -18,21 +18,59 @@ import { GameStatus } from "@prisma/client";
 const router = Router();
 
 const gameCreateSchema = z.object({
-  date: z.string().datetime({ offset: true }),
-  location: z.string().max(500).optional(),
-  notes: z.string().max(2000).optional(),
-  opponentTeamId: z.string().uuid(),
-  tournamentId: z.string().uuid().optional(),
-  competitionType: z.enum(["FRIENDLY", "LEAGUE", "CUP", "PLAYOFF"]).optional(),
+  date: z
+    .string()
+    .datetime({
+      offset: true,
+      message:
+        'date must be a valid ISO 8601 datetime with timezone offset, e.g. "2026-03-28T14:00:00-03:00"',
+    }),
+  location: z
+    .string()
+    .max(500, "Location must be 500 characters or less")
+    .optional(),
+  notes: z
+    .string()
+    .max(2000, "Notes must be 2000 characters or less")
+    .optional(),
+  opponentTeamId: z.string().uuid("opponentTeamId must be a valid UUID"),
+  tournamentId: z.string().min(1).optional(),
+  competitionType: z
+    .enum(["FRIENDLY", "LEAGUE", "CUP", "PLAYOFF", "SEASON"], {
+      message:
+        "competitionType must be one of: FRIENDLY, LEAGUE, CUP, PLAYOFF, SEASON",
+    })
+    .optional(),
 });
 
 const gameUpdateSchema = z.object({
-  date: z.string().datetime({ offset: true }).optional(),
-  location: z.string().max(500).optional(),
-  notes: z.string().max(2000).optional(),
-  opponentTeamId: z.string().uuid().optional(),
-  tournamentId: z.string().uuid().optional(),
-  competitionType: z.enum(["FRIENDLY", "LEAGUE", "CUP", "PLAYOFF"]).optional(),
+  date: z
+    .string()
+    .datetime({
+      offset: true,
+      message:
+        'date must be a valid ISO 8601 datetime with timezone offset, e.g. "2026-03-28T14:00:00-03:00"',
+    })
+    .optional(),
+  location: z
+    .string()
+    .max(500, "Location must be 500 characters or less")
+    .optional(),
+  notes: z
+    .string()
+    .max(2000, "Notes must be 2000 characters or less")
+    .optional(),
+  opponentTeamId: z
+    .string()
+    .uuid("opponentTeamId must be a valid UUID")
+    .optional(),
+  tournamentId: z.string().min(1).optional(),
+  competitionType: z
+    .enum(["FRIENDLY", "LEAGUE", "CUP", "PLAYOFF", "SEASON"], {
+      message:
+        "competitionType must be one of: FRIENDLY, LEAGUE, CUP, PLAYOFF, SEASON",
+    })
+    .optional(),
   status: z.nativeEnum(GameStatus).optional(),
   homeTeamScore: z.coerce.number().int().min(0).optional(),
   awayTeamScore: z.coerce.number().int().min(0).optional(),
@@ -40,7 +78,7 @@ const gameUpdateSchema = z.object({
 
 const gameFilterSchema = paginationSchema.extend({
   status: z.nativeEnum(GameStatus).optional(),
-  tournamentId: z.string().uuid().optional(),
+  tournamentId: z.string().optional(),
   opponentTeamId: z.string().uuid().optional(),
   dateFrom: z.string().optional(),
   dateTo: z.string().optional(),

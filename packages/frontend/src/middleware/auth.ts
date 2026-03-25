@@ -1,3 +1,7 @@
+import { navigateTo } from "nuxt/app";
+import { useAuthStore } from "../stores/auth";
+import { useRuntime } from "~/composables/useRuntime";
+
 /**
  * Nuxt route middleware — protects authenticated and role-restricted routes.
  *
@@ -10,6 +14,11 @@
  *   /login     → redirects authenticated users to /admin/dashboard
  */
 export default defineNuxtRouteMiddleware((to) => {
+  // Skip all access checks during SSR — auth state lives in localStorage which
+  // is unavailable server-side. The auth-init.client.ts plugin restores it before
+  // this middleware re-runs client-side after hydration.
+  if (useRuntime().isServer) return;
+
   const authStore = useAuthStore();
 
   // If navigating to /login while already authenticated, redirect away
