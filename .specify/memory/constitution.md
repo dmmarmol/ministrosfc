@@ -1,22 +1,33 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.1.0 → 1.2.0 (MINOR — useRuntime composable mandate added)
+Version change: 1.2.0 → 1.3.0 (MINOR — Speckit workflow continuity mandate added)
 Ratified: 2026-03-17
-Last Amended: 2026-03-24
+Last Amended: 2026-03-25
 
-Amendment: Mandate useRuntime composable over import.meta.client / import.meta.server
-- Added MUST rule requiring useRuntime() composable in packages/frontend
-- Prohibits direct use of import.meta.client and import.meta.server outside the composable itself
-- Rationale: enables Vitest mocking of client/server environment without monkeypatching import.meta
+Amendment: Every speckit agent MUST output a "Next Steps" recommendation at the end of its run.
+- Added new section §Speckit Workflow Continuity under Development Workflow
+- Defines the standard Next Steps block format all speckit agents must emit
+- Maps the canonical command sequence and decision points for each agent
 
 Modified sections:
-  ✅ Quality and Testing Standards > Testing Tooling and Conventions (new rule appended)
+  ✅ Development Workflow > Speckit Workflow Continuity (new section added)
+
+Templates / agents updated:
+  ✅ .github/agents/speckit.plan.agent.md — Next Steps block appended to output
+  ✅ .github/agents/speckit.tasks.agent.md — Next Steps block appended to Report step
+  ✅ .github/agents/speckit.implement.agent.md — Next Steps block appended to completion step
+  ✅ .github/agents/speckit.checklist.agent.md — Next Steps block appended to Report step
+  ✅ .github/agents/speckit.constitution.agent.md — Next Steps block appended to final summary
+  ✅ .github/agents/speckit.taskstoissues.agent.md — Next Steps block appended
+  ℹ️  speckit.specify — already emits next-phase readiness; updated to use canonical format
+  ℹ️  speckit.analyze — already emits Next Actions; no change required
+  ℹ️  speckit.clarify — already suggests next command; no change required
 -->
 
 # Ministros FC Constitution
 
-**Version**: 1.2.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-03-24
+**Version**: 1.3.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-03-25
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -241,6 +252,42 @@ ministrosfc/
    - Verify deployment in staging
    - Tag release version for production
    - Update CHANGELOG
+
+### Speckit Workflow Continuity
+
+**MUST** output a **Next Steps** recommendation at the end of every speckit agent run.
+
+- Every speckit command MUST conclude with a clearly labelled `## Next Steps` block visible to the user.
+- The block MUST name the recommended next speckit command (e.g., `/speckit.plan`) and explain why it
+  is the appropriate action given the current artifact state.
+- If multiple paths are valid (e.g., run `/speckit.clarify` to tighten scope vs. proceed
+  directly to `/speckit.plan`), the agent MUST indicate which is recommended and why.
+- If no further speckit step is needed (e.g., after `/speckit.implement` on a completed feature),
+  the agent MUST state that explicitly and suggest a non-speckit follow-up (e.g., open a PR,
+  run E2E tests, tag a release).
+- The recommendation MUST be based on the actual state of the feature artifacts, not be generic.
+
+**Canonical command sequence and typical next-step mapping:**
+
+| Current command         | Typical next command                            | When to deviate                                    |
+| ----------------------- | ----------------------------------------------- | -------------------------------------------------- |
+| `speckit.specify`       | `speckit.clarify` or `speckit.plan`             | Skip clarify only if spec is unambiguous           |
+| `speckit.clarify`       | `speckit.plan`                                  | Re-run clarify if outstanding gaps remain          |
+| `speckit.plan`          | `speckit.tasks`                                 | Run `speckit.analyze` first if design is uncertain |
+| `speckit.tasks`         | `speckit.analyze` then `speckit.implement`      | Skip analyze only for trivial task sets            |
+| `speckit.analyze`       | `speckit.implement` (if clean) or fix artifacts | Fix HIGH findings before implementing              |
+| `speckit.implement`     | PR / merge / tag release                        | Re-run `speckit.analyze` if new issues arise       |
+| `speckit.checklist`     | Whichever command surfaces the gap              | Context-dependent                                  |
+| `speckit.constitution`  | Update affected templates / commit              | Cascade spec/plan/tasks if principles changed      |
+| `speckit.taskstoissues` | Project management / sprint planning            | N/A                                                |
+
+**Context:** Without explicit guidance the caller must infer the next step from sparse output, which
+creates friction and invites workflow mistakes. A mandatory recommendation eliminates that ambiguity.
+
+**Enforcement:** Agent file review during constitution amendments; treat missing Next Steps block as
+a constitution violation in PR reviews.
+
+---
 
 ### Git and Commit Conventions
 

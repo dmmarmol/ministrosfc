@@ -211,6 +211,21 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Depth level
    - Actor/timing
    - Any explicit user-specified must-have items incorporated
+   - **Next Steps block** (REQUIRED — see constitution §Speckit Workflow Continuity):
+
+     ```
+     ## Next Steps
+
+     Review each checklist item and resolve any gaps in the spec or plan before proceeding.
+
+     **Recommended next command** depends on what the checklist surfaces:
+     - Gaps in requirements → `/speckit.clarify` to resolve ambiguities in the spec.
+     - Design gaps → `/speckit.plan` to update the implementation plan.
+     - Ready to implement → `/speckit.implement` if tasks.md is already generated,
+       otherwise `/speckit.tasks` first.
+     ```
+
+     Name the specific next command that is most appropriate given the checklist's findings.
 
 **Important**: Each `/speckit.checklist` command invocation uses a short, descriptive checklist filename and either creates a new file or appends to an existing one. This allows:
 
