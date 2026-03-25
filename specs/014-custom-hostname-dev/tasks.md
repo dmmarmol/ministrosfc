@@ -91,7 +91,36 @@ description: "Tasks for feature 014-custom-hostname-dev: Custom Hostname Dev Acc
 
 ---
 
-## Phase 7: Polish & Cross-Cutting Concerns
+## Phase 7: Purge Legacy Port 3000/3001 References
+
+**Purpose**: The project's canonical port assignments are PostgreSQL 5100, Redis 5101, CMS API 5102, Frontend 5103. Several files still reference the legacy 3000 (frontend) and 3001 (backend) ports. These stale references confuse new developers and cause deployment mismatches.
+
+**Scope**: Replace every occurrence of port 3000 → 5103 (frontend) and 3001 → 5102 (backend) in documentation, Dockerfiles, Fly.io config, and spec quickstarts. Exclude auto-generated files (tsconfig.tsbuildinfo).
+
+### Infrastructure Files
+
+- [ ] T009 [P] Update `packages/frontend/Dockerfile`: change `ARG API_URL=http://backend:3001/api` → `http://backend:5102/api`, `ARG API_URL_PUBLIC=http://localhost:3001/api` → `http://localhost:5102/api`, health check default `3000` → `5103`, `EXPOSE 3000` → `EXPOSE 5103`, comment "Nuxt runs on 3000" → "Nuxt runs on 5103"
+- [ ] T010 [P] Update `packages/frontend/fly.toml`: change `internal_port = 3000` → `5103`, `APP_PORT = "3000"` → `"5103"`
+
+### Documentation — README.md
+
+- [ ] T011 [P] Update `README.md` architecture diagram: change `Port: 3000` → `Port: 5103`, `Port: 3001` → `Port: 5102`
+- [ ] T012 [P] Update `README.md` dev commands section: change `Backend API on :3001` → `:5102`, `Frontend on :3000` → `:5103`
+
+### Documentation — docs/guides/
+
+- [ ] T013 Update `docs/guides/TECH_STACK.md`: replace all `port 3000` → `port 5103`, `port 3001` → `port 5102`, `localhost:3000` → `localhost:5103`, `localhost:3001` → `localhost:5102`
+- [ ] T014 Update `docs/guides/PODMAN_SETUP.md`: replace all `localhost:3000` → `localhost:5103`, `localhost:3001` → `localhost:5102`, port mappings `3000:3000` → `5103:5103`, `3001:3001` → `5102:5102`, `CORS_ORIGIN` references to use `CORS_ORIGINS` with port 5103, `lsof -i :3000` → `:5103`, `lsof -i :3001` → `:5102`
+
+### Spec Legacy References
+
+- [ ] T015 [P] Update `specs/013-admin-player-delete/quickstart.md`: change `localhost:3000` → `localhost:5102` (API) and `localhost:3001` → `localhost:5103` (frontend) based on context of each reference
+
+**Checkpoint**: `grep -rn "3000\|3001" --include="*.md" --include="*.toml" --include="Dockerfile" .` returns zero matches (excluding node_modules and auto-generated files).
+
+---
+
+## Phase 8: Polish & Cross-Cutting Concerns
 
 **Purpose**: Surface the custom hostname setup in the developer-facing project documentation so new contributors can discover the feature without reading the specs.
 
@@ -107,7 +136,8 @@ description: "Tasks for feature 014-custom-hostname-dev: Custom Hostname Dev Acc
 - **Foundational (Phase 2)**: No dependencies — can start immediately; **BLOCKS all user stories**
 - **User Story phases (3, 4, 5)**: All depend on Phase 2 completion; may proceed in parallel after Phase 2
 - **Vite Allowed Hosts (Phase 6)**: Depends on Phase 3 (devServer block must exist); **BLOCKS browser access via custom hostname**
-- **Polish (Phase 7)**: Depends on all user story phases and Phase 6 completing
+- **Purge Legacy Ports (Phase 7)**: Independent of user stories — can run in parallel; all T009-T015 are parallelizable (different files)
+- **Polish (Phase 8)**: Depends on all previous phases completing
 
 ### User Story Dependencies
 
