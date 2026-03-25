@@ -100,8 +100,8 @@ REFRESH_TOKEN_EXPIRY=2592000
 
 # Server
 NODE_ENV=development
-PORT=3001
-CORS_ORIGIN="http://localhost:3000"
+PORT=5102
+CORS_ORIGINS="http://localhost:5103"
 
 # Redis
 REDIS_URL="redis://localhost:6379"
@@ -117,7 +117,7 @@ cp .env.example .env
 Edit `packages/frontend/.env` and set:
 
 ```env
-NUXT_PUBLIC_API_BASE_URL="http://localhost:3001/api/v1"
+NUXT_PUBLIC_API_BASE_URL="http://localhost:5102/api/v1"
 NODE_ENV=development
 ```
 
@@ -171,17 +171,17 @@ npm run dev
 Expected output:
 
 ```
-[cms] Server running on http://localhost:3001
-[cms] API available at http://localhost:3001/api/v1
+[cms] Server running on http://localhost:5102
+[cms] API available at http://localhost:5102/api/v1
 
-[frontend] Listening on http://localhost:3000
-[frontend] ➜  local:   http://localhost:3000
+[frontend] Listening on http://localhost:5103
+[frontend] ➜  local:   http://localhost:5103
 ```
 
 Both servers are now running:
 
-- **CMS API**: http://localhost:3001
-- **Frontend**: http://localhost:3000
+- **CMS API**: http://localhost:5102
+- **Frontend**: http://localhost:5103
 
 ---
 
@@ -189,19 +189,19 @@ Both servers are now running:
 
 ### Frontend
 
-Open http://localhost:3000 in your browser.
+Open http://localhost:5103 in your browser.
 
 **Public pages** (no login required):
 
-- Homepage: http://localhost:3000/
-- Roster: http://localhost:3000/roster
-- Schedule: http://localhost:3000/games
-- Statistics: http://localhost:3000/statistics
+- Homepage: http://localhost:5103/
+- Roster: http://localhost:5103/roster
+- Schedule: http://localhost:5103/games
+- Statistics: http://localhost:5103/statistics
 
 **Authenticated pages** (requires login):
 
-- My Games: http://localhost:3000/my-games (player only)
-- Login: http://localhost:3000/login
+- My Games: http://localhost:5103/my-games (player only)
+- Login: http://localhost:5103/login
 
 ### CMS API
 
@@ -210,7 +210,7 @@ Test API endpoints via curl or Postman:
 **Login** (get access token):
 
 ```bash
-curl -X POST http://localhost:3001/api/v1/auth/login \
+curl -X POST http://localhost:5102/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@ministrosfc.com",
@@ -240,13 +240,13 @@ Response:
 **List Players**:
 
 ```bash
-curl http://localhost:3001/api/v1/players
+curl http://localhost:5102/api/v1/players
 ```
 
 **Create Player** (Admin only):
 
 ```bash
-curl -X POST http://localhost:3001/api/v1/players \
+curl -X POST http://localhost:5102/api/v1/players \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <accessToken>" \
   -d '{
@@ -260,7 +260,7 @@ curl -X POST http://localhost:3001/api/v1/players \
 **List Games**:
 
 ```bash
-curl http://localhost:3001/api/v1/games
+curl http://localhost:5102/api/v1/games
 ```
 
 See [API Contracts](contracts/) directory for complete endpoint documentation.
@@ -365,11 +365,11 @@ No build step needed; TypeScript resolves via tsconfig paths.
 
 ### Port Already in Use
 
-If port 3000 or 3001 is already in use:
+If port 5103 or 5102 is already in use:
 
 ```bash
-# Find process on port 3000
-lsof -i :3000
+# Find process on port 5103
+lsof -i :5103
 
 # Kill process (macOS/Linux)
 kill -9 <PID>
@@ -410,9 +410,9 @@ docker exec ministrosfc-redis redis-cli ping
 
 If frontend shows "Failed to connect to API":
 
-1. Verify CMS is running: http://localhost:3001/api/v1/health
+1. Verify CMS is running: http://localhost:5102/api/v1/health
 2. Check `NUXT_PUBLIC_API_BASE_URL` in `packages/frontend/.env`
-3. Verify CORS is enabled in CMS (should allow localhost:3000)
+3. Verify CORS is enabled in CMS (should allow localhost:5103)
 
 ### Migration Fails
 
@@ -456,7 +456,7 @@ For detailed API endpoint specifications, see:
 
 ## Next Steps
 
-1. **Explore Frontend**: Visit http://localhost:3000, login with credentials from seed data
+1. **Explore Frontend**: Visit http://localhost:5103, login with credentials from seed data
 2. **Test API**: Use Postman or curl to test endpoints (see examples above)
 3. **Review Code**: Check `packages/cms/src` for backend structure, `packages/frontend/src` for frontend
 4. **Modify Data**: Create new players, games, tournaments via API
@@ -518,8 +518,8 @@ docker ps
 ## Ready to Code!
 
 You now have:
-✅ CMS API running on http://localhost:3001  
-✅ Frontend running on http://localhost:3000  
+✅ CMS API running on http://localhost:5102  
+✅ Frontend running on http://localhost:5103  
 ✅ PostgreSQL database seeded with sample data  
 ✅ Redis cache running  
 ✅ Hot-reload development environment

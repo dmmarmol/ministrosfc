@@ -295,8 +295,8 @@ CORS_ORIGIN=http://localhost:5103,http://domain.com
 
 ```
 Local Machine (PODMAN)
-├── Frontend (port 3000)
-├── Backend (port 3001)
+├── Frontend (port 5103)
+├── Backend (port 5102)
 ├── PostgreSQL (port 5432, local only)
 └── Redis (port 6379, local only)
 ```
@@ -306,8 +306,8 @@ Local Machine (PODMAN)
 ```
 Cloud/VPS (PODMAN)
 ├── Reverse Proxy (Nginx/Caddy) ← HTTPS
-│   ├── → Frontend (3000)
-│   └── → Backend (3001)
+│   ├── → Frontend (5103)
+│   └── → Backend (5102)
 ├── Frontend Container (Nuxt SSR)
 ├── Backend Container (Nest.js)
 ├── PostgreSQL (external service or container)
@@ -394,8 +394,8 @@ podman logs -f ministrosfc-frontend
 
 ```bash
 # All services expose health endpoints
-curl http://localhost:3001/api/health
-curl http://localhost:3000/
+curl http://localhost:5102/api/health
+curl http://localhost:5103/
 ```
 
 ### Metrics (Optional Future)

@@ -51,7 +51,7 @@ Complete platform for managing an amateur soccer team's roster, games, tournamen
 │  │   frontend       │  │                              │  │
 │  │  Nuxt 4          │  │  Nest.js + Express           │  │
 │  │  Vue 3 + TS      │  │  TypeScript                  │  │
-│  │  Port: 3000      │  │  Port: 3001                  │  │
+│  │  Port: 5103      │  │  Port: 5102                  │  │
 │  │  Public + Admin  │  │  REST API Only               │  │
 │  └──────────────────┘  └──────────────────────────────┘  │
 │         │                       │                        │
@@ -137,16 +137,16 @@ npm run seed
 npm run dev:all
 
 # Or start individually:
-cd packages/cms && npm run dev      # Backend API on :3001
-cd packages/frontend && npm run dev  # Frontend on :3000
+cd packages/cms && npm run dev      # Backend API on :5102
+cd packages/frontend && npm run dev  # Frontend on :5103
 ```
 
 ### 6. Access Applications
 
-| Service                       | URL                              |
-| ----------------------------- | -------------------------------- |
-| **Frontend** (Public Website) | http://localhost:5103            |
-| **Backend API**               | http://localhost:5102/api        |
+| Service                       | URL                                 |
+| ----------------------------- | ----------------------------------- |
+| **Frontend** (Public Website) | http://localhost:5103               |
+| **Backend API**               | http://localhost:5102/api           |
 | **API Health Check**          | http://localhost:5102/api/v1/health |
 
 #### Custom hostname (optional)
@@ -618,7 +618,7 @@ podman exec ministrosfc-backend npx prisma migrate reset
 podman logs -f ministrosfc-backend
 
 # Test API health
-curl http://localhost:3001/api/health
+curl http://localhost:5102/api/health
 
 # Restart backend
 podman-compose restart backend

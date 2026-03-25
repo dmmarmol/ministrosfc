@@ -304,8 +304,8 @@
   - Frontend can `import { PlayerType } from '@ministrosfc/shared'` without separate linking.
   - Changes to @ministrosfc/shared instantly available to dependent packages.
 
-- **Monitoring Development**: `npm run dev` starts both CMS (port 3001) and Frontend (port 3000) concurrently.
-  - Each outputs to console with namespace (e.g., `[cms] Server running on 3001`, `[frontend] Listening on 3000`).
+- **Monitoring Development**: `npm run dev` starts both CMS (port 5102) and Frontend (port 5103) concurrently.
+  - Each outputs to console with namespace (e.g., `[cms] Server running on 5102`, `[frontend] Listening on 5103`).
 
 ### Alternatives Considered
 
@@ -367,13 +367,13 @@
 - **Problem**: Frontend (Nuxt SSR on separate Fly.io VM or domain) calls Backend API (different origin). CORS headers required or browser blocks API calls.
 - **Configuration**:
   - **Production**: Allow only production frontend domain (e.g., `https://ministrosfc.fly.dev`)
-  - **Development**: Allow localhost origins (`http://localhost:3000`, `http://127.0.0.1:3000`)
+  - **Development**: Allow localhost origins (`http://localhost:5103`, `http://127.0.0.1:5103`)
   - **Credentials**: Enable `Access-Control-Allow-Credentials: true` for JWT cookie/header auth
 - **Implementation**: Express CORS middleware with origin whitelist from environment variable.
 
 ```typescript
 const allowedOrigins = process.env.CORS_ORIGINS?.split(",") || [
-  "http://localhost:3000",
+  "http://localhost:5103",
 ];
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 ```

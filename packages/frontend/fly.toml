@@ -5,14 +5,14 @@ primary_region = "gru"
 [build]
 
 [http_service]
-  internal_port = 3000
+  internal_port = 5103
   force_https = true
   auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 0
 
 [env]
-  APP_PORT = "3000"
+  APP_PORT = "5103"
   NODE_ENV = "production"
 
 [[vm]]

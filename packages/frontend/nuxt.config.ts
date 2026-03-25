@@ -32,6 +32,14 @@ export default defineNuxtConfig({
     port: parseInt(process.env.NUXT_PORT ?? "5103", 10),
   },
 
+  // Vite 6+ blocks requests from non-localhost hostnames by default.
+  // Whitelist the custom dev hostname so the browser can connect.
+  vite: {
+    server: {
+      allowedHosts: ["localhost.ministrosfc.com"],
+    },
+  },
+
   // Auto-import Pinia stores from stores/ directory
   imports: {
     dirs: ["stores"],

@@ -48,7 +48,7 @@ npm run dev:cms
 cd packages/cms && npm run dev
 ```
 
-API available at `http://localhost:3000`.
+API available at `http://localhost:5102`.
 
 ---
 
@@ -62,7 +62,7 @@ npm run dev:frontend
 cd packages/frontend && npm run dev
 ```
 
-Frontend available at `http://localhost:3001`.
+Frontend available at `http://localhost:5103`.
 
 ---
 
@@ -75,7 +75,7 @@ Frontend available at `http://localhost:3001`.
 5. Log in as an Editor → **Eliminar** button is not visible
 6. As Editor, call the API directly:
    ```bash
-   curl -X DELETE http://localhost:3000/api/v1/players/<uuid> \
+   curl -X DELETE http://localhost:5102/api/v1/players/<uuid> \
      -H "Authorization: Bearer <editor_token>"
    # Expected: 403 Forbidden
    ```
