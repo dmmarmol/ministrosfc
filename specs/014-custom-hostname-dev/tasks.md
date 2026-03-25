@@ -1,5 +1,4 @@
 ---
-
 description: "Tasks for feature 014-custom-hostname-dev: Custom Hostname Dev Access"
 ---
 
@@ -141,11 +140,11 @@ description: "Tasks for feature 014-custom-hostname-dev: Custom Hostname Dev Acc
 
 ### User Story Dependencies
 
-| Story | Depends On | Can Start |
-|-------|-----------|-----------|
-| US1 (P1) — Frontend hostname | Phase 2 | After T001, T002 |
-| US2 (P1) — CORS origin | Phase 2 | After T001; T003 not required |
-| US3 (P2) — Backend binding | Phase 2 | After T001, T002 (independent) |
+| Story                        | Depends On | Can Start                      |
+| ---------------------------- | ---------- | ------------------------------ |
+| US1 (P1) — Frontend hostname | Phase 2    | After T001, T002               |
+| US2 (P1) — CORS origin       | Phase 2    | After T001; T003 not required  |
+| US3 (P2) — Backend binding   | Phase 2    | After T001, T002 (independent) |
 
 - **US1 and US2** are independent of each other — both depend only on Foundational
 - **US3** has no implementation tasks; it is a verification step only

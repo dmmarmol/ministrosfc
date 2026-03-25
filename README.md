@@ -143,10 +143,10 @@ cd packages/frontend && npm run dev  # Frontend on :5103
 
 ### 6. Access Applications
 
-| Service                       | URL                              |
-| ----------------------------- | -------------------------------- |
-| **Frontend** (Public Website) | http://localhost:5103            |
-| **Backend API**               | http://localhost:5102/api        |
+| Service                       | URL                                 |
+| ----------------------------- | ----------------------------------- |
+| **Frontend** (Public Website) | http://localhost:5103               |
+| **Backend API**               | http://localhost:5102/api           |
 | **API Health Check**          | http://localhost:5102/api/v1/health |
 
 #### Custom hostname (optional)
