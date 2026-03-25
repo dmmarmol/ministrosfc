@@ -19,7 +19,9 @@ export function createApp(): Application {
   // Trust proxy for rate limiting behind reverse proxy
   app.set("trust proxy", 1);
 
-  // Parse CORS origins from env (comma-separated)
+  // Parse CORS origins from env (comma-separated list).
+  // Supports multiple origins — add extra dev hostnames in .env.local, e.g.:
+  //   CORS_ORIGINS=http://localhost:5103,http://localhost.ministrosfc.com:5103
   const corsOrigins = (process.env.CORS_ORIGINS ?? "http://localhost:5103")
     .split(",")
     .map((o) => o.trim())

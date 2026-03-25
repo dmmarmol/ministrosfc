@@ -145,9 +145,25 @@ cd packages/frontend && npm run dev  # Frontend on :3000
 
 | Service                       | URL                              |
 | ----------------------------- | -------------------------------- |
-| **Frontend** (Public Website) | http://localhost:3000            |
-| **Backend API**               | http://localhost:3001/api        |
-| **API Health Check**          | http://localhost:3001/api/health |
+| **Frontend** (Public Website) | http://localhost:5103            |
+| **Backend API**               | http://localhost:5102/api        |
+| **API Health Check**          | http://localhost:5102/api/v1/health |
+
+#### Custom hostname (optional)
+
+You can also access both servers via `localhost.ministrosfc.com` for a more
+production-like dev experience:
+
+1. Add to `/etc/hosts` (one-time):
+   ```
+   127.0.0.1 localhost.ministrosfc.com
+   ```
+2. Create `packages/frontend/.env.local` with `NUXT_HOST=0.0.0.0`
+3. Create `packages/cms/.env.local` with `CORS_ORIGINS=http://localhost:5103,http://localhost.ministrosfc.com:5103`
+
+Then `npm run dev:all` as usual. Both `http://localhost:5103` and
+`http://localhost.ministrosfc.com:5103` will work simultaneously.
+See [`specs/014-custom-hostname-dev/quickstart.md`](specs/014-custom-hostname-dev/quickstart.md) for full details.
 
 ---
 
