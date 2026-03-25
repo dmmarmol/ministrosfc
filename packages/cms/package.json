@@ -19,6 +19,9 @@
         "seed": "ts-node src/scripts/seed-db.ts",
         "seed:import": "ts-node --project tsconfig.json -r dotenv/config src/scripts/seed-import.ts"
     },
+    "prisma": {
+        "seed": "ts-node src/scripts/seed-db.ts"
+    },
     "dependencies": {
         "@ministrosfc/shared": "^0.0.1",
         "@nestjs/common": "^10.3.0",
