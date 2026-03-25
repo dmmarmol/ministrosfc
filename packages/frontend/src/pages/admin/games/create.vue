@@ -140,16 +140,33 @@ const form = reactive({
 const loading = ref(false);
 const error = ref("");
 
+/**
+ * Merges a date picker value (YYYY-MM-DD) and a time picker value (HH:mm)
+ * into a full ISO 8601 datetime string with the browser's local UTC offset
+ * (e.g. "2026-03-28T14:00:00-03:00"). This format is required by the API's
+ * z.string().datetime({ offset: true }) validation. If no time is provided,
+ * midnight (00:00) is used as the default.
+ */
+function buildIsoDateTime(date: string, time: string): string {
+  const timeStr = time || "00:00";
+  const local = new Date(`${date}T${timeStr}:00`);
+  const offsetMin = -local.getTimezoneOffset();
+  const sign = offsetMin >= 0 ? "+" : "-";
+  const absMin = Math.abs(offsetMin);
+  const hh = String(Math.floor(absMin / 60)).padStart(2, "0");
+  const mm = String(absMin % 60).padStart(2, "0");
+  return `${date}T${timeStr}:00${sign}${hh}:${mm}`;
+}
+
 async function submit() {
   error.value = "";
   loading.value = true;
   try {
     const body: Record<string, any> = {
       opponentTeamId: form.opponentTeamId,
-      date: form.date,
+      date: buildIsoDateTime(form.date, form.time),
       competitionType: form.competitionType,
     };
-    if (form.time) body.time = form.time;
     if (form.location) body.location = form.location;
     if (form.tournamentId) body.tournamentId = form.tournamentId;
     await $api("/api/v1/games", { method: "POST", body });
