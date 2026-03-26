@@ -2,7 +2,11 @@ import express, { type Application } from "express";
 import cors from "cors";
 import { pinoHttp } from "pino-http";
 import { logger } from "../utils/logger";
-import { authLimiter, apiLimiter } from "../middleware/rate-limiter";
+import {
+  authLimiter,
+  registerLimiter,
+  apiLimiter,
+} from "../middleware/rate-limiter";
 import { globalErrorHandler } from "../middleware/error-handler";
 import { healthRouter } from "../routes/health";
 import { playerRouter } from "../routes/players";
@@ -45,6 +49,7 @@ export function createApp(): Application {
 
   // Rate limiting
   app.use("/api/v1/auth/login", authLimiter);
+  app.use("/api/v1/auth/register", registerLimiter);
   app.use("/api", apiLimiter);
 
   // Routes

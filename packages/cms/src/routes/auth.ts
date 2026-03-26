@@ -8,6 +8,7 @@ import { authenticate } from "../middleware/auth";
 import { validate } from "../middleware/validation";
 import { AuthService } from "../services/AuthService";
 import { z } from "zod";
+import { passwordSchema } from "@ministrosfc/shared";
 
 const router = Router();
 
@@ -16,11 +17,18 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
-const registerSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8).max(128),
-  name: z.string().min(1).max(255),
-});
+const registerSchema = z
+  .object({
+    email: z.string().email("Email inválido").max(255),
+    password: passwordSchema,
+    passwordConfirmation: z.string(),
+    firstName: z.string().min(1, "Requerido").max(255).trim(),
+    lastName: z.string().min(1, "Requerido").max(255).trim(),
+  })
+  .refine((d) => d.password === d.passwordConfirmation, {
+    message: "Las contraseñas no coinciden",
+    path: ["passwordConfirmation"],
+  });
 
 const refreshSchema = z.object({
   refreshToken: z.string().min(1),

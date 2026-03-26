@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { UserModel } from "../models/User";
 import { authConfig } from "../config/auth";
+import { prisma } from "../config/database";
 import { getRedisClient } from "../config/redis";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
@@ -61,19 +62,51 @@ const AuthService = {
       refreshToken,
       user: {
         id: user.id,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         role: user.role,
       },
     };
   },
 
-  async register(dto: { email: string; password: string; name: string }) {
+  async register(dto: {
+    email: string;
+    password: string;
+    passwordConfirmation: string;
+    firstName: string;
+    lastName: string;
+  }) {
     const existing = await UserModel.findByEmail(dto.email);
     if (existing)
-      throw createError("Email already in use", 409, ErrorCode.CONFLICT);
+      throw createError(
+        "Este correo ya está registrado",
+        409,
+        ErrorCode.CONFLICT,
+      );
 
-    const user = await UserModel.create({ ...dto, role: "PLAYER" });
+    const user = await UserModel.create({
+      email: dto.email,
+      password: dto.password,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      role: "PLAYER",
+    });
+
+    // Auto-create Player record linked to User
+    const player = await prisma.player.create({
+      data: {
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        playerType: "REGISTERED",
+        status: "ACTIVE",
+        contactInfo: { create: {} },
+      },
+    });
+
+    // Link User → Player
+    await UserModel.update(user.id, { playerId: player.id });
+
     const { accessToken, refreshToken } = AuthService.generateTokens({
       userId: user.id,
       role: user.role,
@@ -86,12 +119,21 @@ const AuthService = {
       user.id,
     );
 
+    // Invalidate player search cache
+    try {
+      const keys = await redis.keys("players:search:*");
+      if (keys.length > 0) await redis.del(...keys);
+    } catch {
+      // Non-critical
+    }
+
     return {
       accessToken,
       refreshToken,
       user: {
         id: user.id,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         role: user.role,
       },
