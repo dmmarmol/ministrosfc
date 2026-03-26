@@ -1,33 +1,32 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.2.0 → 1.3.0 (MINOR — Speckit workflow continuity mandate added)
+Version change: 1.3.0 → 1.4.0 (MINOR — Package version bump prompt added)
 Ratified: 2026-03-17
-Last Amended: 2026-03-25
+Last Amended: 2026-03-26
 
-Amendment: Every speckit agent MUST output a "Next Steps" recommendation at the end of its run.
-- Added new section §Speckit Workflow Continuity under Development Workflow
-- Defines the standard Next Steps block format all speckit agents must emit
-- Maps the canonical command sequence and decision points for each agent
+Amendment: speckit.specify MUST prompt the user to choose a minor or patch
+version bump of the root package.json after a spec is completed.
+- Added new section §Package Version Management under Development Workflow
+- Defines when and how the version bump prompt is presented
+- Bump is applied to the root package.json `version` field only
 
 Modified sections:
-  ✅ Development Workflow > Speckit Workflow Continuity (new section added)
+  ✅ Development Workflow > Package Version Management (new section added)
 
 Templates / agents updated:
-  ✅ .github/agents/speckit.plan.agent.md — Next Steps block appended to output
-  ✅ .github/agents/speckit.tasks.agent.md — Next Steps block appended to Report step
-  ✅ .github/agents/speckit.implement.agent.md — Next Steps block appended to completion step
-  ✅ .github/agents/speckit.checklist.agent.md — Next Steps block appended to Report step
-  ✅ .github/agents/speckit.constitution.agent.md — Next Steps block appended to final summary
-  ✅ .github/agents/speckit.taskstoissues.agent.md — Next Steps block appended
-  ℹ️  speckit.specify — already emits next-phase readiness; updated to use canonical format
-  ℹ️  speckit.analyze — already emits Next Actions; no change required
-  ℹ️  speckit.clarify — already suggests next command; no change required
+  ✅ .github/agents/speckit.specify.agent.md — version bump prompt added after
+     spec completion, before Next Steps block
+
+Prior amendments (preserved):
+  ✅ v1.3.0 — Speckit Workflow Continuity mandate
+
+Follow-up TODOs: none
 -->
 
 # Ministros FC Constitution
 
-**Version**: 1.3.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-03-25
+**Version**: 1.4.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-03-26
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -286,6 +285,32 @@ creates friction and invites workflow mistakes. A mandatory recommendation elimi
 
 **Enforcement:** Agent file review during constitution amendments; treat missing Next Steps block as
 a constitution violation in PR reviews.
+
+---
+
+### Package Version Management
+
+**MUST** prompt the user to bump the root `package.json` version when a feature specification is completed.
+
+- After `/speckit.specify` finishes writing and validating `spec.md`, the agent MUST ask the user:
+  > "Feature spec complete. Choose a version bump for `package.json` (current: X.Y.Z):
+  > **A) Minor** (X.Y+1.0) — new feature or capability
+  > **B) Patch** (X.Y.Z+1) — improvement, fix, or refinement
+  > **C) Skip** — do not bump version now"
+- If the user chooses A or B, the agent MUST update the `version` field in the **root** `package.json`
+  and commit the change together with the spec (or as a follow-up commit on the same branch).
+- If the user chooses C (skip), no version change is made. The user may bump manually later.
+- The bump applies only to the root `package.json`. Workspace package versions
+  (`packages/cms/package.json`, `packages/frontend/package.json`, etc.) are NOT modified
+  automatically—they follow their own release cadence.
+- MAJOR version bumps are excluded from this prompt; they require a constitution-level
+  amendment discussion per §Governance.
+
+**Context:** Tying version increments to spec creation ensures every feature is traceable to a
+version number. Without a prompt, versions stagnate and lose meaning.
+
+**Enforcement:** `speckit.specify` agent file includes the prompt; constitution review checks
+for compliance.
 
 ---
 

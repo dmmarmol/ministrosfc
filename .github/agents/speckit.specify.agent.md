@@ -168,7 +168,19 @@ Given that feature description, do this:
 
    d. **Update Checklist**: After each validation iteration, update the checklist file with current pass/fail status
 
-7. Report completion with branch name, spec file path, and checklist results. Then output the following block (REQUIRED — see constitution §Speckit Workflow Continuity):
+7. **Package version bump** (REQUIRED — see constitution §Package Version Management):
+   After the spec is written and validated, read the root `package.json` to get the current
+   `version` value. Then ask the user:
+
+   > Feature spec complete. Choose a version bump for `package.json` (current: **X.Y.Z**):
+   > **A) Minor** (X.Y+1.0) — new feature or capability
+   > **B) Patch** (X.Y.Z+1) — improvement, fix, or refinement
+   > **C) Skip** — do not bump version now
+
+   Wait for the user's response. If A or B, update the `version` field in the root
+   `package.json` accordingly and confirm the change. If C, acknowledge and move on.
+
+8. Report completion with branch name, spec file path, and checklist results. Then output the following block (REQUIRED — see constitution §Speckit Workflow Continuity):
 
    ```
    ## Next Steps
