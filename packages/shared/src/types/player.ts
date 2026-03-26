@@ -48,8 +48,10 @@ export interface Contact {
 
 export interface Player {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   nickname?: string | null;
+  address?: string | null;
   playerType: PlayerType;
   status: PlayerStatus;
   invitedById?: string | null;
@@ -67,7 +69,8 @@ export interface Player {
 export interface PlayerPublic extends Pick<
   Player,
   | "id"
-  | "name"
+  | "firstName"
+  | "lastName"
   | "nickname"
   | "position"
   | "jerseyNumber"
@@ -77,8 +80,10 @@ export interface PlayerPublic extends Pick<
 > {}
 
 export interface PlayerCreateDTO {
-  name: string;
+  firstName: string;
+  lastName: string;
   nickname?: string;
+  address?: string;
   playerType?: PlayerType;
   position?: Position;
   jerseyNumber?: number;

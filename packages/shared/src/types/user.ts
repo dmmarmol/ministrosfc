@@ -1,14 +1,16 @@
-export enum Role {
+export enum UserRole {
   ADMIN = "ADMIN",
   EDITOR = "EDITOR",
+  DT = "DT",
   PLAYER = "PLAYER",
 }
 
 export interface User {
   id: string;
   email: string;
-  name: string;
-  role: Role;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
   playerId?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -18,8 +20,9 @@ export interface User {
 export interface UserCreateDTO {
   email: string;
   password: string;
-  name: string;
-  role?: Role;
+  firstName: string;
+  lastName: string;
+  role?: UserRole;
   playerId?: string;
 }
 
