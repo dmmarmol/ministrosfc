@@ -17,6 +17,7 @@ datasource db {
 enum Role {
   ADMIN
   EDITOR
+  DT
   PLAYER
 }
 
@@ -80,13 +81,15 @@ enum ConfirmationStatus {
 // ─────────────────────────────────────────
 
 model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  passwordHash String
-  name         String
-  role         Role      @default(PLAYER)
-  player       Player?   @relation(fields: [playerId], references: [id], onDelete: SetNull)
-  playerId     String?   @unique
+  id              String    @id @default(uuid())
+  email           String    @unique
+  passwordHash    String?
+  firstName       String    @db.VarChar(255)
+  lastName        String    @db.VarChar(255)
+  googleSubjectId String?   @unique
+  role            Role      @default(PLAYER)
+  player          Player?   @relation(fields: [playerId], references: [id], onDelete: SetNull)
+  playerId        String?   @unique
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -94,6 +97,7 @@ model User {
 
   @@index([email])
   @@index([role])
+  @@index([googleSubjectId])
 }
 
 // ─────────────────────────────────────────
@@ -102,8 +106,10 @@ model User {
 
 model Player {
   id         String       @id @default(uuid())
-  name       String       @db.VarChar(255)
+  firstName  String       @db.VarChar(255)
+  lastName   String       @db.VarChar(255)
   nickname   String?      @db.VarChar(100)
+  address    String?      @db.VarChar(500)
   playerType PlayerType   @default(REGISTERED)
   status     PlayerStatus @default(ACTIVE)
 

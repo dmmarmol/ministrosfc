@@ -53,7 +53,8 @@ export const PlayerModel = {
       ...(search
         ? {
             OR: [
-              { name: { contains: search, mode: "insensitive" } },
+              { firstName: { contains: search, mode: "insensitive" } },
+              { lastName: { contains: search, mode: "insensitive" } },
               { nickname: { contains: search, mode: "insensitive" } },
             ],
           }
@@ -64,7 +65,7 @@ export const PlayerModel = {
       prisma.player.findMany({
         where,
         include: { contactInfo: true },
-        orderBy: [{ jerseyNumber: "asc" }, { name: "asc" }],
+        orderBy: [{ jerseyNumber: "asc" }, { firstName: "asc" }],
         skip: (page - 1) * limit,
         take: limit,
       }),

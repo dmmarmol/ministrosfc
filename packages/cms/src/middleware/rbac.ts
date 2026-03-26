@@ -1,15 +1,15 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { ErrorCode } from "../utils/error-codes";
+import { UserRole } from "@ministrosfc/shared";
 
-type Role = "ADMIN" | "EDITOR" | "PLAYER";
-
-const ROLE_HIERARCHY: Record<Role, number> = {
-  ADMIN: 3,
-  EDITOR: 2,
+const ROLE_HIERARCHY: Record<UserRole, number> = {
+  ADMIN: 4,
+  EDITOR: 3,
+  DT: 2,
   PLAYER: 1,
 };
 
-export function requireRole(minimumRole: Role) {
+export function requireRole(minimumRole: UserRole) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({

@@ -2,10 +2,11 @@ import { type Request, type Response, type NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { authConfig } from "../config/auth";
 import { ErrorCode } from "../utils/error-codes";
+import { type UserRole } from "@ministrosfc/shared";
 
 export interface JwtPayload {
   userId: string;
-  role: "ADMIN" | "EDITOR" | "PLAYER";
+  role: UserRole;
   iat?: number;
   exp?: number;
 }

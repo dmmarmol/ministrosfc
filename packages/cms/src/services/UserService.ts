@@ -6,7 +6,8 @@ import type { Role } from "@prisma/client";
 interface CreateUserDTO {
   email: string;
   password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   role: Role;
 }
 
@@ -16,7 +17,6 @@ const UserService = {
     if (existing)
       throw createError("Email already in use", 409, ErrorCode.CONFLICT);
     const user = await UserModel.create(dto);
-    // Don't return passwordHash
     const { passwordHash: _, ...safeUser } = user as any;
     return safeUser;
   },
@@ -37,9 +37,9 @@ const UserService = {
   async updateUser(id: string, dto: Partial<CreateUserDTO>) {
     await UserService.getUserById(id);
     const data: any = {};
-    if (dto.name) data.name = dto.name;
+    if (dto.firstName) data.firstName = dto.firstName;
+    if (dto.lastName) data.lastName = dto.lastName;
     if (dto.role) data.role = dto.role;
-    // Password change handled separately (requires bcrypt)
     const user = await UserModel.update(id, data);
     const { passwordHash: _, ...safeUser } = user as any;
     return safeUser;

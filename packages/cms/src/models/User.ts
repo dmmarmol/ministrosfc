@@ -2,8 +2,9 @@
  * User — an authenticated account that can access the CMS.
  *
  * Roles:
- *  - ADMIN   (level 3): full access — manages players, games, tournaments, users.
- *  - EDITOR  (level 2): can manage games and tournaments, read-only on players.
+ *  - ADMIN   (level 4): full access — manages players, games, tournaments, users.
+ *  - EDITOR  (level 3): can manage games and tournaments, read-only on players.
+ *  - DT      (level 2): Director Técnico — can set tactics and manage guest players.
  *  - PLAYER  (level 1): can confirm own participation; views own data.
  *
  * A User may be linked to a Player via `playerId` (FK on User) — this connects
@@ -11,6 +12,7 @@
  * (e.g. staff/editors without a jersey).
  *
  * Passwords are hashed with bcrypt (cost 12) and never returned in API responses.
+ * Google-only users have passwordHash = null.
  */
 import { prisma } from "../config/database";
 import bcrypt from "bcrypt";
@@ -19,17 +21,23 @@ import type { User, Prisma, Role } from "@prisma/client";
 const UserModel = {
   async create(data: {
     email: string;
-    password: string;
-    name: string;
+    password?: string;
+    firstName: string;
+    lastName: string;
     role?: Role;
+    googleSubjectId?: string;
   }): Promise<User> {
-    const passwordHash = await bcrypt.hash(data.password, 12);
+    const passwordHash = data.password
+      ? await bcrypt.hash(data.password, 12)
+      : null;
     return prisma.user.create({
       data: {
         email: data.email,
         passwordHash,
-        name: data.name,
+        firstName: data.firstName,
+        lastName: data.lastName,
         role: data.role ?? "PLAYER",
+        googleSubjectId: data.googleSubjectId ?? null,
       },
     });
   },
@@ -46,8 +54,16 @@ const UserModel = {
     return prisma.user.update({ where: { id }, data });
   },
 
-  async verifyPassword(password: string, hash: string): Promise<boolean> {
+  async verifyPassword(
+    password: string,
+    hash: string | null,
+  ): Promise<boolean> {
+    if (!hash) return false;
     return bcrypt.compare(password, hash);
+  },
+
+  async findByGoogleSubjectId(googleSubjectId: string): Promise<User | null> {
+    return prisma.user.findUnique({ where: { googleSubjectId } });
   },
 
   async findMany(options: { page?: number; limit?: number; role?: Role } = {}) {
@@ -66,7 +82,8 @@ const UserModel = {
         select: {
           id: true,
           email: true,
-          name: true,
+          firstName: true,
+          lastName: true,
           role: true,
           createdAt: true,
           lastLoginAt: true,
