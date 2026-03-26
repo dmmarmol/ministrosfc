@@ -1,11 +1,13 @@
 import { defineStore } from "pinia";
 import { useRuntime } from "~/composables/useRuntime";
+import { type UserRole } from "@ministrosfc/shared";
 
 interface UserInfo {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  role: "ADMIN" | "EDITOR" | "PLAYER";
+  role: UserRole;
 }
 
 interface AuthState {
@@ -26,6 +28,12 @@ export const useAuthStore = defineStore("auth", {
     isAdmin: (state) => state.user?.role === "ADMIN",
     isEditor: (state) =>
       state.user?.role === "ADMIN" || state.user?.role === "EDITOR",
+    isDT: (state) =>
+      state.user?.role === "ADMIN" ||
+      state.user?.role === "EDITOR" ||
+      state.user?.role === "DT",
+    fullName: (state) =>
+      state.user ? `${state.user.firstName} ${state.user.lastName}` : "",
   },
 
   actions: {
@@ -36,6 +44,29 @@ export const useAuthStore = defineStore("auth", {
       }>(`${config.public.apiBaseUrl}/api/v1/auth/login`, {
         method: "POST",
         body: { email, password },
+      });
+      this.accessToken = data.data.accessToken;
+      this.refreshToken = data.data.refreshToken;
+      this.user = data.data.user;
+      if (useRuntime().isClient) {
+        localStorage.setItem("refreshToken", data.data.refreshToken);
+        localStorage.setItem("user", JSON.stringify(data.data.user));
+      }
+    },
+
+    async register(dto: {
+      email: string;
+      password: string;
+      passwordConfirmation: string;
+      firstName: string;
+      lastName: string;
+    }) {
+      const config = useRuntimeConfig();
+      const data = await $fetch<{
+        data: { accessToken: string; refreshToken: string; user: UserInfo };
+      }>(`${config.public.apiBaseUrl}/api/v1/auth/register`, {
+        method: "POST",
+        body: dto,
       });
       this.accessToken = data.data.accessToken;
       this.refreshToken = data.data.refreshToken;
