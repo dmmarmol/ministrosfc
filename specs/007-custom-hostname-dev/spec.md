@@ -1,6 +1,6 @@
 # Feature Specification: Custom Hostname Dev Access
 
-**Feature Branch**: `feature/custom-hostname-dev`  
+**Feature Branch**: `feat/007-custom-hostname-dev`  
 **Created**: 2026-03-25  
 **Status**: Draft  
 **Input**: User description: "Allow the dev server to be accessible via both `localhost:{PORT}` and `localhost.ministrosfc.com:{PORT}`."

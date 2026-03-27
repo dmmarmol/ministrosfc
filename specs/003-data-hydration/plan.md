@@ -1,6 +1,6 @@
 # Implementation Plan: Data Hydration from Google Sheets
 
-**Branch**: `feature/data-hydration` | **Date**: March 23, 2026 | **Spec**: [spec.md](spec.md)
+**Branch**: `feat/003-data-hydration` | **Date**: March 23, 2026 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `/specs/003-data-hydration/spec.md`
 
 ---

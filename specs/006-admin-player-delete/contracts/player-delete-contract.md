@@ -2,7 +2,7 @@
 
 **Version**: 1.0  
 **Date**: 2026-03-25  
-**Feature Branch**: `feature/admin-player-delete`  
+**Feature Branch**: `feat/006-admin-player-delete`  
 **Base Path**: `/api/v1/players`
 
 This contract documents the **new** `DELETE /api/v1/players/:id` endpoint and the **corrected** access control for `PATCH /api/v1/players/:id/status`.

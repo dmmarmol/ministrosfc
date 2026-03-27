@@ -1,6 +1,6 @@
 # Feature Specification: Ministros FC Monorepo Structure
 
-**Feature Branch**: `feature/ministrosfc-monorepo`  
+**Feature Branch**: `feat/001-ministrosfc-monorepo`  
 **Created**: March 17, 2026  
 **Status**: Draft
 

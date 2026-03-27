@@ -1,6 +1,6 @@
 # Research: Custom Hostname Dev Access
 
-**Feature**: `feature/custom-hostname-dev`  
+**Feature**: `feat/007-custom-hostname-dev`  
 **Phase**: 0 — Research  
 **Date**: 2026-03-25
 

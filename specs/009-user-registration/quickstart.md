@@ -1,6 +1,6 @@
 # Quickstart: 009 — User Registration & Sign-In
 
-**Branch**: `feature/user-registration`
+**Branch**: `feat/009-user-registration`
 
 ---
 

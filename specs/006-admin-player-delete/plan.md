@@ -1,6 +1,6 @@
 # Implementation Plan: Admin Player Delete with Role-Based Controls
 
-**Branch**: `feature/admin-player-delete` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)  
+**Branch**: `feat/006-admin-player-delete` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)  
 **Input**: Feature specification from `/specs/006-admin-player-delete/spec.md`
 
 ## Summary

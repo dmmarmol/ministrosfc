@@ -1,6 +1,6 @@
 # Feature Specification: Playground Entity (Game Locations)
 
-**Feature Branch**: `feature/playground-entity`
+**Feature Branch**: `feat/010-playground-entity`
 **Created**: 2026-03-25
 **Status**: Draft
 **Input**: User description: "Create a new entity such as Playground that will contain data from the places where Ministros FC can or had played. This list must also appear in the Create game > Location field as a dropdown"

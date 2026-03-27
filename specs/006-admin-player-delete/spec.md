@@ -1,6 +1,6 @@
 # Feature Specification: Admin Player Delete with Role-Based Controls
 
-**Feature Branch**: `feature/admin-player-delete`
+**Feature Branch**: `feat/006-admin-player-delete`
 **Created**: 2026-03-25
 **Status**: Draft
 

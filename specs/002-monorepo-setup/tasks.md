@@ -17,7 +17,7 @@
 
 **Purpose**: Confirm feature branch and working tree are ready for verification
 
-- [x] T001 Confirm git branch is `chore/monorepo-setup` and working tree is clean (`git status`)
+- [x] T001 Confirm git branch is `chore/002-monorepo-setup` and working tree is clean (`git status`)
 
 ---
 
@@ -116,4 +116,4 @@ ls packages/cms/src/ packages/frontend/src/ packages/shared/src/
 
 **MVP scope**: T001–T013 (Phase 1–3). US2 verification (T014–T017) can follow immediately after since it requires no containers.
 
-**If any task fails**: The failure indicates a regression since the initial `feature/ministrosfc-monorepo` delivery. Document the specific check that failed in a commit message and fix the discrepancy before proceeding to Phase 3 (003-cms-backend-foundation).
+**If any task fails**: The failure indicates a regression since the initial `feat/001-ministrosfc-monorepo` delivery. Document the specific check that failed in a commit message and fix the discrepancy before proceeding to Phase 3 (003-cms-backend-foundation).

@@ -1,6 +1,6 @@
 # Implementation Plan: Custom Hostname Dev Access
 
-**Branch**: `feature/custom-hostname-dev` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)  
+**Branch**: `feat/007-custom-hostname-dev` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)  
 **Input**: Feature specification from `/specs/007-custom-hostname-dev/spec.md`
 
 ## Summary

@@ -1,6 +1,6 @@
 # Feature Specification: Fix Auth Middleware SSR Redirect on Page Refresh
 
-**Feature Branch**: `fix/auth-ssr-redirect`
+**Feature Branch**: `fix/005-auth-ssr-redirect`
 **Created**: 2026-03-25
 **Status**: Draft
 **Type**: Bug Fix

@@ -1,6 +1,6 @@
 # Implementation Plan: User Registration & Sign-In
 
-**Branch**: `feature/user-registration` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)
+**Branch**: `feat/009-user-registration` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `/specs/009-user-registration/spec.md`
 
 ## Summary

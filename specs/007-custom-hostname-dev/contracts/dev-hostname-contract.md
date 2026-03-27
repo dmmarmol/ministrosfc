@@ -1,6 +1,6 @@
 # Dev Hostname Contract
 
-**Feature**: `feature/custom-hostname-dev`  
+**Feature**: `feat/007-custom-hostname-dev`  
 **Scope**: Development environment only — not applicable to staging or production
 
 ---

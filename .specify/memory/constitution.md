@@ -1,24 +1,24 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.3.0 → 1.4.0 (MINOR — Package version bump prompt added)
+Version change: 1.4.0 → 1.5.0 (MINOR — Branch naming convention updated)
 Ratified: 2026-03-17
-Last Amended: 2026-03-26
+Last Amended: 2026-03-27
 
-Amendment: speckit.specify MUST prompt the user to choose a minor or patch
-version bump of the root package.json after a spec is completed.
-- Added new section §Package Version Management under Development Workflow
-- Defines when and how the version bump prompt is presented
-- Bump is applied to the root package.json `version` field only
+Amendment: Branch naming convention changed from `{type}/short-description`
+to `{type}/{spec_number}-{spec_name}`. Allowed types narrowed to feat/, fix/,
+chore/, release/. `docs/` and `refactor/` removed as standalone types
+(use chore/ instead). All existing branches renamed to match.
 
 Modified sections:
-  ✅ Development Workflow > Package Version Management (new section added)
+  ✅ Git and Commit Conventions > Branch naming (rewritten)
 
 Templates / agents updated:
-  ✅ .github/agents/speckit.specify.agent.md — version bump prompt added after
-     spec completion, before Next Steps block
+  ⚠ spec-template.md, plan-template.md — verify Feature Branch examples
+  ✅ 008-rename-specs-branches/spec.md — branch mapping table is historical
 
 Prior amendments (preserved):
+  ✅ v1.4.0 — Package version bump prompt
   ✅ v1.3.0 — Speckit Workflow Continuity mandate
 
 Follow-up TODOs: none
@@ -26,7 +26,7 @@ Follow-up TODOs: none
 
 # Ministros FC Constitution
 
-**Version**: 1.4.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-03-26
+**Version**: 1.5.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-03-27
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -319,12 +319,35 @@ for compliance.
 **Branch naming:**
 
 ```
-feature/short-description          # New features
-fix/short-description              # Bug fixes
-docs/short-description             # Documentation
-refactor/short-description         # Code refactoring
-chore/short-description            # Build, deps, tooling
+{type}/{spec_number}-{spec_name}
 ```
+
+Where `{spec_number}` is the zero-padded spec directory number (e.g., `009`) and
+`{spec_name}` is the kebab-case spec directory suffix (e.g., `user-registration`).
+
+Allowed types:
+
+| Prefix      | Purpose                          |
+| ----------- | -------------------------------- |
+| `feat/`     | New features                     |
+| `fix/`      | Bug fixes                        |
+| `chore/`    | Build, deps, tooling, housekeeping |
+| `release/`  | Release preparation branches     |
+
+Examples:
+
+```
+feat/009-user-registration
+fix/005-auth-ssr-redirect
+chore/008-rename-specs-branches
+release/1.0.0
+```
+
+> `release/` branches use a semver tag instead of a spec number because they
+> span multiple specs.
+
+**MUST NOT** create branches that omit the spec number prefix (except `main`
+and `release/*` branches).
 
 **Commit messages (conventional commits):**
 

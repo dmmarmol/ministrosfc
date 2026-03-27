@@ -1,6 +1,6 @@
 # Implementation Plan: Fix Auth Middleware SSR Redirect
 
-**Branch**: `fix/auth-ssr-redirect` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)
+**Branch**: `fix/005-auth-ssr-redirect` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `specs/005-fix-auth-ssr-redirect/spec.md`
 
 ## Summary
