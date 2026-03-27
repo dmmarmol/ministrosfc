@@ -163,7 +163,7 @@ production-like dev experience:
 
 Then `npm run dev:all` as usual. Both `http://localhost:5103` and
 `http://localhost.ministrosfc.com:5103` will work simultaneously.
-See [`specs/014-custom-hostname-dev/quickstart.md`](specs/014-custom-hostname-dev/quickstart.md) for full details.
+See [`specs/007-custom-hostname-dev/quickstart.md`](specs/007-custom-hostname-dev/quickstart.md) for full details.
 
 ---
 

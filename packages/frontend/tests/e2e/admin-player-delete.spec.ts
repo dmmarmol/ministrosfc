@@ -1,5 +1,5 @@
 /**
- * E2E: Admin Player Delete flow (Feature 013)
+ * E2E: Admin Player Delete flow (Feature 006)
  * Tests T007 (Admin delete), T015 (Editor guard), T019 (Editor status toggle)
  */
 import { test, expect } from "@playwright/test";

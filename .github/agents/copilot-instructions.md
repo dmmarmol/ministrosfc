@@ -3,12 +3,12 @@
 Auto-generated from all feature plans. Last updated: 2026-03-26
 
 ## Active Technologies
-- TypeScript 5 (strict mode, both packages) + Express 4, Prisma 5, Zod, Nuxt 3, Vue 3, Pinia, Tailwind CSS (013-admin-player-delete)
-- PostgreSQL (Prisma ORM) + Redis (cache invalidation) (013-admin-player-delete)
-- TypeScript 5.3, Node ≥ 23 + Nuxt 3 / Vite (frontend dev server), Express 4 (backend) (014-custom-hostname-dev)
-- N/A — no database changes (014-custom-hostname-dev)
-- TypeScript 5 (strict mode, both packages) + Express 4, Prisma 5, Zod v4, Nuxt 3.21, Vue 3.5, Pinia, Tailwind CSS, `google-auth-library` (new — Google OAuth) (015-user-registration)
-- PostgreSQL (Prisma ORM) + Redis (JWT refresh tokens, search cache) + Cloudinary (S3-compatible photo storage) (015-user-registration)
+- TypeScript 5 (strict mode, both packages) + Express 4, Prisma 5, Zod, Nuxt 3, Vue 3, Pinia, Tailwind CSS (006-admin-player-delete)
+- PostgreSQL (Prisma ORM) + Redis (cache invalidation) (006-admin-player-delete)
+- TypeScript 5.3, Node ≥ 23 + Nuxt 3 / Vite (frontend dev server), Express 4 (backend) (007-custom-hostname-dev)
+- N/A — no database changes (007-custom-hostname-dev)
+- TypeScript 5 (strict mode, both packages) + Express 4, Prisma 5, Zod v4, Nuxt 3.21, Vue 3.5, Pinia, Tailwind CSS, `google-auth-library` (new — Google OAuth) (008-user-registration)
+- PostgreSQL (Prisma ORM) + Redis (JWT refresh tokens, search cache) + Cloudinary (S3-compatible photo storage) (008-user-registration)
 
 - TypeScript 5.3.3 / Node.js 23+ + npm workspaces (no added libs — this phase is config only) (002-monorepo-setup)
 - PostgreSQL 15 (dev, port 5100), Redis 7 (dev, port 5101) — docker-compose.yml (002-monorepo-setup)
@@ -104,10 +104,11 @@ npx prisma studio                  # Open Prisma Studio GUI
 - **Guest Players**: playerType=GUEST, linked to inviting player via invitedById
 
 ## Recent Changes
-- 015-user-registration: Added TypeScript 5 (strict mode, both packages) + Express 4, Prisma 5, Zod v4, Nuxt 3.21, Vue 3.5, Pinia, Tailwind CSS, `google-auth-library` (new — Google OAuth)
-- 014-custom-hostname-dev: Added TypeScript 5.3, Node ≥ 23 + Nuxt 3 / Vite (frontend dev server), Express 4 (backend)
-- 013-admin-player-delete: Added TypeScript 5 (strict mode, both packages) + Express 4, Prisma 5, Zod, Nuxt 3, Vue 3, Pinia, Tailwind CSS
+- 008-user-registration: Added TypeScript 5 (strict mode, both packages) + Express 4, Prisma 5, Zod v4, Nuxt 3.21, Vue 3.5, Pinia, Tailwind CSS, `google-auth-library` (new — Google OAuth)
+- 007-custom-hostname-dev: Added TypeScript 5.3, Node ≥ 23 + Nuxt 3 / Vite (frontend dev server), Express 4 (backend)
+- 006-admin-player-delete: Added TypeScript 5 (strict mode, both packages) + Express 4, Prisma 5, Zod, Nuxt 3, Vue 3, Pinia, Tailwind CSS
 
+- 005-fix-auth-ssr-redirect: No new packages — fix uses existing `useRuntime()` composable (`src/composables/useRuntime.ts`); adds `tests/middleware/auth.test.ts` using Vitest + `vi.mock`; removes `src/middleware/**` from vitest coverage exclusions
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
