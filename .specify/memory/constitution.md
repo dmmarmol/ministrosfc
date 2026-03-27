@@ -327,12 +327,12 @@ Where `{spec_number}` is the zero-padded spec directory number (e.g., `009`) and
 
 Allowed types:
 
-| Prefix      | Purpose                          |
-| ----------- | -------------------------------- |
-| `feat/`     | New features                     |
-| `fix/`      | Bug fixes                        |
-| `chore/`    | Build, deps, tooling, housekeeping |
-| `release/`  | Release preparation branches     |
+| Prefix     | Purpose                            |
+| ---------- | ---------------------------------- |
+| `feat/`    | New features                       |
+| `fix/`     | Bug fixes                          |
+| `chore/`   | Build, deps, tooling, housekeeping |
+| `release/` | Release preparation branches       |
 
 Examples:
 
