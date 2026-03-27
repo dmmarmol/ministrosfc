@@ -1,7 +1,7 @@
 # Quickstart: Admin Player Delete with Role-Based Controls
 
-**Feature**: `013-admin-player-delete`  
-**Branch**: `013-admin-player-delete`
+**Feature**: `feature/admin-player-delete`  
+**Branch**: `feature/admin-player-delete`
 
 ---
 

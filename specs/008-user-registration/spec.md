@@ -1,6 +1,6 @@
 # Feature Specification: User Registration & Sign-In
 
-**Feature Branch**: `015-user-registration`
+**Feature Branch**: `feature/user-registration`
 **Created**: 2026-03-25
 **Status**: Draft
 **Input**: User description: "Allow user registration through the /login screen. Add a Sign In button and allow sign in by registering an email or by using Google"

@@ -7,7 +7,7 @@
 
 ## Verification Summary
 
-All 10 functional requirements from `spec.md` are satisfied by the existing codebase. The feature was implemented as part of the initial `001-ministrosfc-monorepo` delivery. No new code or configuration is needed.
+All 10 functional requirements from `spec.md` are satisfied by the existing codebase. The feature was implemented as part of the initial `feature/ministrosfc-monorepo` delivery. No new code or configuration is needed.
 
 ---
 

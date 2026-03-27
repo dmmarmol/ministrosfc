@@ -1,6 +1,6 @@
 # Feature Specification: Dropdown with Inline Add-More
 
-**Feature Branch**: `017-dropdown-add-more`
+**Feature Branch**: `feature/dropdown-add-more`
 **Created**: 2026-03-25
 **Status**: Draft
 **Input**: User description: "Create a UI component for the frontend to be a dropdown with the capacity of inserting a new entry. This dropdown should be able to fetch a list of values and also to trigger the addition by clicking 'Add more' as the fixed last option. Deletion is not allowed through the dropdown"

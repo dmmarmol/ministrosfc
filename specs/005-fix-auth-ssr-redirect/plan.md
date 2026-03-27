@@ -1,7 +1,7 @@
 # Implementation Plan: Fix Auth Middleware SSR Redirect
 
-**Branch**: `012-fix-auth-ssr-redirect` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `specs/012-fix-auth-ssr-redirect/spec.md`
+**Branch**: `fix/auth-ssr-redirect` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)
+**Input**: Feature specification from `specs/005-fix-auth-ssr-redirect/spec.md`
 
 ## Summary
 
@@ -42,7 +42,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 ### Documentation (this feature)
 
 ```text
-specs/012-fix-auth-ssr-redirect/
+specs/005-fix-auth-ssr-redirect/
 ├── plan.md            ← this file
 ├── spec.md
 ├── research.md

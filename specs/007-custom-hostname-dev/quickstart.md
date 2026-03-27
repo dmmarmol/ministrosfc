@@ -1,6 +1,6 @@
 # Quickstart: Custom Hostname Dev Access
 
-**Feature**: `014-custom-hostname-dev`
+**Feature**: `feature/custom-hostname-dev`
 
 This guide documents how to enable `localhost.ministrosfc.com` access for the dev servers.
 

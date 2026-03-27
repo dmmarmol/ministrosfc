@@ -1,7 +1,7 @@
 # Implementation Plan: Admin Player Delete with Role-Based Controls
 
-**Branch**: `013-admin-player-delete` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)  
-**Input**: Feature specification from `/specs/013-admin-player-delete/spec.md`
+**Branch**: `feature/admin-player-delete` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)  
+**Input**: Feature specification from `/specs/006-admin-player-delete/spec.md`
 
 ## Summary
 
@@ -42,7 +42,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 ### Documentation (this feature)
 
 ```text
-specs/013-admin-player-delete/
+specs/006-admin-player-delete/
 ├── plan.md              # This file
 ├── research.md          # Phase 0 output ✅
 ├── data-model.md        # Phase 1 output ✅

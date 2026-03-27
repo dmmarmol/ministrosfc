@@ -1,6 +1,6 @@
 # Data Model: Fix Auth Middleware SSR Redirect
 
-**Feature**: 012-fix-auth-ssr-redirect
+**Feature**: 005-fix-auth-ssr-redirect
 **Date**: 2026-03-25
 
 ## Scope

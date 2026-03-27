@@ -1,10 +1,10 @@
 ---
-description: "Tasks for feature 014-custom-hostname-dev: Custom Hostname Dev Access"
+description: "Tasks for feature 007-custom-hostname-dev: Custom Hostname Dev Access"
 ---
 
 # Tasks: Custom Hostname Dev Access
 
-**Input**: Design documents from `/specs/014-custom-hostname-dev/`
+**Input**: Design documents from `/specs/007-custom-hostname-dev/`
 **Prerequisites**: plan.md ✅, spec.md ✅, research.md ✅, data-model.md ✅, contracts/ ✅, quickstart.md ✅
 **Tests**: None — config-only change, no new business logic. Acceptance verified manually per spec and quickstart.md.
 **Organization**: Tasks grouped by user story to enable independent verification of each story.
@@ -113,7 +113,7 @@ description: "Tasks for feature 014-custom-hostname-dev: Custom Hostname Dev Acc
 
 ### Spec Legacy References
 
-- [x] T015 [P] Update `specs/013-admin-player-delete/quickstart.md`: change `localhost:3000` → `localhost:5102` (API) and `localhost:3001` → `localhost:5103` (frontend) based on context of each reference
+- [x] T015 [P] Update `specs/006-admin-player-delete/quickstart.md`: change `localhost:3000` → `localhost:5102` (API) and `localhost:3001` → `localhost:5103` (frontend) based on context of each reference
 
 **Checkpoint**: `grep -rn "3000\|3001" --include="*.md" --include="*.toml" --include="Dockerfile" .` returns zero matches (excluding node_modules and auto-generated files).
 
@@ -123,7 +123,7 @@ description: "Tasks for feature 014-custom-hostname-dev: Custom Hostname Dev Acc
 
 **Purpose**: Surface the custom hostname setup in the developer-facing project documentation so new contributors can discover the feature without reading the specs.
 
-- [x] T00 [P] Add a **Custom Hostname Dev Access** subsection to the root `README.md` developer setup section, referencing `specs/014-custom-hostname-dev/quickstart.md` for full instructions and documenting the minimum steps: add `/etc/hosts` entry, create `.env.local` files per quickstart.md, run `npm run dev:all`
+- [x] T00 [P] Add a **Custom Hostname Dev Access** subsection to the root `README.md` developer setup section, referencing `specs/007-custom-hostname-dev/quickstart.md` for full instructions and documenting the minimum steps: add `/etc/hosts` entry, create `.env.local` files per quickstart.md, run `npm run dev:all`
 
 ---
 
@@ -190,6 +190,6 @@ T007
 
 **Full delivery**: Add US2 (T004, T005) for in-browser API calls to work. US3 (T006) is a passive verification with no code changes — it costs one read operation.
 
-**No TDD**: This is a config-only feature. No new code paths, no new business logic. Existing test suites (Vitest + Jest) continue to pass unchanged. Acceptance verified manually per `specs/014-custom-hostname-dev/quickstart.md`.
+**No TDD**: This is a config-only feature. No new code paths, no new business logic. Existing test suites (Vitest + Jest) continue to pass unchanged. Acceptance verified manually per `specs/007-custom-hostname-dev/quickstart.md`.
 
 **Risk**: Zero — all changes are either `.env.example` documentation, one `nuxt.config.ts` config block, or read-only verifications. The only production-relevant file touched is `nuxt.config.ts`, and the change defaults to the current behavior (`'localhost'`) when `NUXT_HOST` is unset.

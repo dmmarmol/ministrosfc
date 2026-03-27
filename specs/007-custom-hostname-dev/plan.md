@@ -1,7 +1,7 @@
 # Implementation Plan: Custom Hostname Dev Access
 
-**Branch**: `014-custom-hostname-dev` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)  
-**Input**: Feature specification from `/specs/014-custom-hostname-dev/spec.md`
+**Branch**: `feature/custom-hostname-dev` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)  
+**Input**: Feature specification from `/specs/007-custom-hostname-dev/spec.md`
 
 ## Summary
 
@@ -40,7 +40,7 @@ Allow the dev servers to be accessed via both `localhost:{PORT}` and `localhost.
 ### Documentation (this feature)
 
 ```text
-specs/014-custom-hostname-dev/
+specs/007-custom-hostname-dev/
 ├── plan.md                          # This file
 ├── research.md                      # Phase 0 — all unknowns resolved
 ├── data-model.md                    # Phase 1 — no data model changes

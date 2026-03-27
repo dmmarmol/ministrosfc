@@ -1,8 +1,8 @@
-# API Contract: Player Delete & Status Toggle (Feature 013)
+# API Contract: Player Delete & Status Toggle (Feature 006)
 
 **Version**: 1.0  
 **Date**: 2026-03-25  
-**Feature Branch**: `013-admin-player-delete`  
+**Feature Branch**: `feature/admin-player-delete`  
 **Base Path**: `/api/v1/players`
 
 This contract documents the **new** `DELETE /api/v1/players/:id` endpoint and the **corrected** access control for `PATCH /api/v1/players/:id/status`.

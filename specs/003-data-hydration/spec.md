@@ -1,6 +1,6 @@
 # Feature Specification: Data Hydration from Google Sheets
 
-**Feature Branch**: `003-data-hydration`
+**Feature Branch**: `feature/data-hydration`
 **Created**: March 23, 2026
 **Status**: Approved for Planning — all clarifications resolved
 

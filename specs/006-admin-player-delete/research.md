@@ -1,7 +1,7 @@
 # Research: Admin Player Delete with Role-Based Controls
 
 **Phase**: 0 — Research  
-**Feature**: `013-admin-player-delete`  
+**Feature**: `feature/admin-player-delete`  
 **Date**: 2026-03-25
 
 ---

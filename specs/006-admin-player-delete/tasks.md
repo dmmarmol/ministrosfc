@@ -1,6 +1,6 @@
 # Tasks: Admin Player Delete with Role-Based Controls
 
-**Feature**: `013-admin-player-delete`  
+**Feature**: `feature/admin-player-delete`  
 **Date**: 2026-03-25  
 **Spec**: [spec.md](spec.md) | **Plan**: [plan.md](plan.md) | **Contract**: [contracts/player-delete-contract.md](contracts/player-delete-contract.md)  
 **Packages**: `packages/cms` (Express + Prisma) · `packages/frontend` (Nuxt 3 + Vue 3)

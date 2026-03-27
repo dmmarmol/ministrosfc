@@ -1,7 +1,7 @@
 # Data Model: Admin Player Delete with Role-Based Controls
 
 **Phase**: 1 — Design  
-**Feature**: `013-admin-player-delete`  
+**Feature**: `feature/admin-player-delete`  
 **Date**: 2026-03-25
 
 ---

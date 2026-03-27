@@ -1,6 +1,6 @@
 # Data Model: Custom Hostname Dev Access
 
-**Feature**: `014-custom-hostname-dev`  
+**Feature**: `feature/custom-hostname-dev`  
 **Phase**: 1 — Design
 
 ---
