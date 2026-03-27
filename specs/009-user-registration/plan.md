@@ -1,7 +1,7 @@
 # Implementation Plan: User Registration & Sign-In
 
-**Branch**: `008-user-registration` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `/specs/008-user-registration/spec.md`
+**Branch**: `feature/user-registration` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)
+**Input**: Feature specification from `/specs/009-user-registration/spec.md`
 
 ## Summary
 
@@ -41,7 +41,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 ### Documentation (this feature)
 
 ```text
-specs/008-user-registration/
+specs/009-user-registration/
 ├── plan.md              # This file
 ├── research.md          # Phase 0 output ✅
 ├── data-model.md        # Phase 1 output ✅

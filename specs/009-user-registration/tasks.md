@@ -1,6 +1,6 @@
 # Tasks: User Registration & Sign-In
 
-**Input**: Design documents from `/specs/008-user-registration/`
+**Input**: Design documents from `/specs/009-user-registration/`
 **Prerequisites**: plan.md ✅, spec.md ✅, research.md ✅, data-model.md ✅, quickstart.md ✅, contracts/ ✅
 
 **Tests**: Included — plan.md mandates TDD with 80% coverage on new code.

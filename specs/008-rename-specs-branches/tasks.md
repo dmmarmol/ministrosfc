@@ -1,6 +1,6 @@
 # Tasks: Rename Specs & Branches
 
-**Input**: Design documents from `/specs/009-rename-specs-branches/`
+**Input**: Design documents from `/specs/008-rename-specs-branches/`
 **Prerequisites**: spec.md ✅
 
 ---
@@ -11,8 +11,8 @@
 - [x] T002 Rename `012-fix-auth-ssr-redirect` → `005-fix-auth-ssr-redirect`
 - [x] T003 Rename `013-admin-player-delete` → `006-admin-player-delete`
 - [x] T004 Rename `014-custom-hostname-dev` → `007-custom-hostname-dev`
-- [x] T005 Rename `015-user-registration` → `008-user-registration`
-- [x] T006 Create `009-rename-specs-branches` (this spec)
+- [x] T005 Create `008-rename-specs-branches` (this spec)
+- [x] T006 Rename `015-user-registration` → `009-user-registration`
 - [x] T007 Rename `016-playground-entity` → `010-playground-entity`
 - [x] T008 Rename `017-dropdown-add-more` → `011-dropdown-add-more`
 

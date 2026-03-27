@@ -1,6 +1,6 @@
-# Quickstart: 015 — User Registration & Sign-In
+# Quickstart: 009 — User Registration & Sign-In
 
-**Branch**: `008-user-registration`
+**Branch**: `feature/user-registration`
 
 ---
 

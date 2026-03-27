@@ -39,8 +39,8 @@ A developer browsing specs sees directories numbered sequentially (001-011) matc
 | 012-fix-auth-ssr-redirect | 005-fix-auth-ssr-redirect | Auth SSR fix |
 | 013-admin-player-delete | 006-admin-player-delete | Admin player delete |
 | 014-custom-hostname-dev | 007-custom-hostname-dev | Custom hostname |
-| 015-user-registration | 008-user-registration | User registration |
-| *(new)* | 009-rename-specs-branches | This spec |
+| *(new)* | 008-rename-specs-branches | This spec |
+| 015-user-registration | 009-user-registration | User registration |
 | 016-playground-entity | 010-playground-entity | Playground entity |
 | 017-dropdown-add-more | 011-dropdown-add-more | Dropdown add-more |
 
