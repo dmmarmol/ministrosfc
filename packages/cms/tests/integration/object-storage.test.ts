@@ -8,10 +8,9 @@ import { prisma } from "../../src/config/database";
 
 jest.mock("../../src/middleware/rate-limiter", () => ({
   authLimiter: (_req: any, _res: any, next: any) => next(),
+  registerLimiter: (_req: any, _res: any, next: any) => next(),
   apiLimiter: (_req: any, _res: any, next: any) => next(),
 }));
-
-// Mock Cloudinary to avoid actual network calls
 jest.mock("../../src/utils/object-storage", () => ({
   validatePhotoFile: jest.fn(),
   uploadPlayerPhoto: jest
@@ -32,13 +31,12 @@ describe("Object storage (integration)", () => {
   const adminEmail = `admin-storage-${Date.now()}@ministrosfc.test`;
 
   beforeAll(async () => {
-    await request(app)
-      .post("/api/v1/auth/register")
-      .send({
-        email: adminEmail,
-        password: "Admin!Stor99",
-        name: "Admin Storage Test",
-      });
+    await request(app).post("/api/v1/auth/register").send({
+      email: adminEmail,
+      password: "Admin!Stor99",
+      firstName: "Admin",
+      lastName: "Storage Test",
+    });
     await prisma.user.update({
       where: { email: adminEmail },
       data: { role: "ADMIN" },
@@ -129,7 +127,8 @@ describe("Object storage (integration)", () => {
     const res = await request(app)
       .post("/api/v1/players")
       .set("Authorization", `Bearer ${adminToken}`)
-      .field("name", "Photo Player")
+      .field("firstName", "Photo")
+      .field("lastName", "Player")
       .field("playerType", "REGISTERED")
       .attach("photo", pngBuffer, {
         filename: "test.png",
@@ -151,7 +150,8 @@ describe("Object storage (integration)", () => {
     const res = await request(app)
       .post("/api/v1/players")
       .set("Authorization", `Bearer ${adminToken}`)
-      .field("name", "No Photo Player")
+      .field("firstName", "No Photo")
+      .field("lastName", "Player")
       .field("jerseyNumber", "33")
       .field("playerType", "REGISTERED");
 

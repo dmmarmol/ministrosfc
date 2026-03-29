@@ -1,3 +1,75 @@
+<script setup lang="ts">
+definePageMeta({ layout: "admin", middleware: "auth" });
+useHead({ title: "Tournaments – Admin" });
+
+const { $api } = useNuxtApp();
+const showCreate = ref(false);
+const newT = reactive({
+  name: "",
+  format: "SEASON",
+  startDate: "",
+  endDate: "",
+});
+const createLoading = ref(false);
+const createError = ref("");
+
+const { data, pending, refresh } = await useAsyncData("admin-tournaments", () =>
+  $api<{ data: any[] }>("/api/v1/tournaments"),
+);
+const tournaments = computed(() => data.value?.data ?? []);
+
+function formatDateRange(start: string, end: string | null): string {
+  const s = new Date(start).toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric",
+  });
+  if (!end) return `Since ${s}`;
+  return `${s} – ${new Date(end).toLocaleDateString("en-US", { month: "short", year: "numeric" })}`;
+}
+
+async function createTournament() {
+  if (!newT.name || !newT.startDate) {
+    createError.value = "Name and start date are required.";
+    return;
+  }
+  createError.value = "";
+  createLoading.value = true;
+  try {
+    await $api("/api/v1/tournaments", {
+      method: "POST",
+      body: {
+        name: newT.name,
+        format: newT.format,
+        startDate: newT.startDate,
+        endDate: newT.endDate || undefined,
+      },
+    });
+    showCreate.value = false;
+    Object.assign(newT, {
+      name: "",
+      format: "SEASON",
+      startDate: "",
+      endDate: "",
+    });
+    await refresh();
+  } catch (e: any) {
+    createError.value = e?.message ?? "Failed to create tournament.";
+  } finally {
+    createLoading.value = false;
+  }
+}
+
+async function deleteTournament(t: any) {
+  if (!confirm(`Delete "${t.name}"?`)) return;
+  try {
+    await $api(`/api/v1/tournaments/${t.id}`, { method: "DELETE" });
+    await refresh();
+  } catch (e: any) {
+    alert(e?.message ?? "Cannot delete: tournament may have associated games.");
+  }
+}
+</script>
+
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
@@ -154,75 +226,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-definePageMeta({ layout: "admin", middleware: "auth" });
-useHead({ title: "Tournaments – Admin" });
-
-const { $api } = useNuxtApp();
-const showCreate = ref(false);
-const newT = reactive({
-  name: "",
-  format: "SEASON",
-  startDate: "",
-  endDate: "",
-});
-const createLoading = ref(false);
-const createError = ref("");
-
-const { data, pending, refresh } = await useAsyncData("admin-tournaments", () =>
-  $api<{ data: any[] }>("/api/v1/tournaments"),
-);
-const tournaments = computed(() => data.value?.data ?? []);
-
-function formatDateRange(start: string, end: string | null): string {
-  const s = new Date(start).toLocaleDateString("en-US", {
-    month: "short",
-    year: "numeric",
-  });
-  if (!end) return `Since ${s}`;
-  return `${s} – ${new Date(end).toLocaleDateString("en-US", { month: "short", year: "numeric" })}`;
-}
-
-async function createTournament() {
-  if (!newT.name || !newT.startDate) {
-    createError.value = "Name and start date are required.";
-    return;
-  }
-  createError.value = "";
-  createLoading.value = true;
-  try {
-    await $api("/api/v1/tournaments", {
-      method: "POST",
-      body: {
-        name: newT.name,
-        format: newT.format,
-        startDate: newT.startDate,
-        endDate: newT.endDate || undefined,
-      },
-    });
-    showCreate.value = false;
-    Object.assign(newT, {
-      name: "",
-      format: "SEASON",
-      startDate: "",
-      endDate: "",
-    });
-    await refresh();
-  } catch (e: any) {
-    createError.value = e?.message ?? "Failed to create tournament.";
-  } finally {
-    createLoading.value = false;
-  }
-}
-
-async function deleteTournament(t: any) {
-  if (!confirm(`Delete "${t.name}"?`)) return;
-  try {
-    await $api(`/api/v1/tournaments/${t.id}`, { method: "DELETE" });
-    await refresh();
-  } catch (e: any) {
-    alert(e?.message ?? "Cannot delete: tournament may have associated games.");
-  }
-}
-</script>

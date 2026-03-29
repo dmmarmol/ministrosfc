@@ -1,3 +1,43 @@
+<script setup lang="ts">
+definePageMeta({ layout: "admin", middleware: "auth" });
+useHead({ title: "Dashboard – Admin" });
+
+const { $api } = useNuxtApp();
+
+const [{ data: playersData }, { data: gamesData }, { data: recentData }] =
+  await Promise.all([
+    useAsyncData("dash-players", () =>
+      $api<{ pagination: any }>("/api/v1/players", {
+        query: { status: "ACTIVE", limit: 1 },
+      }),
+    ),
+    useAsyncData("dash-upcoming", () =>
+      $api<{ data: any[] }>("/api/v1/games", {
+        query: { status: "SCHEDULED", limit: 1 },
+      }),
+    ),
+    useAsyncData("dash-recent", () =>
+      $api<{ data: any[] }>("/api/v1/games", {
+        query: { status: "COMPLETED", limit: 5 },
+      }),
+    ),
+  ]);
+
+const stats = computed(() => ({
+  activePlayers: playersData.value?.pagination?.total ?? 0,
+  upcomingGames: gamesData.value?.pagination?.total ?? 0,
+  completedThisMonth: recentData.value?.data?.length ?? 0,
+}));
+const recentGames = computed(() => recentData.value?.data ?? []);
+
+function formatDate(d: string): string {
+  return new Date(d).toLocaleDateString("es-AR", {
+    month: "short",
+    day: "numeric",
+  });
+}
+</script>
+
 <template>
   <div class="space-y-6">
     <!-- Quick stats -->
@@ -74,43 +114,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-definePageMeta({ layout: "admin", middleware: "auth" });
-useHead({ title: "Dashboard – Admin" });
-
-const { $api } = useNuxtApp();
-
-const [{ data: playersData }, { data: gamesData }, { data: recentData }] =
-  await Promise.all([
-    useAsyncData("dash-players", () =>
-      $api<{ pagination: any }>("/api/v1/players", {
-        query: { status: "ACTIVE", limit: 1 },
-      }),
-    ),
-    useAsyncData("dash-upcoming", () =>
-      $api<{ data: any[] }>("/api/v1/games", {
-        query: { status: "SCHEDULED", limit: 1 },
-      }),
-    ),
-    useAsyncData("dash-recent", () =>
-      $api<{ data: any[] }>("/api/v1/games", {
-        query: { status: "COMPLETED", limit: 5 },
-      }),
-    ),
-  ]);
-
-const stats = computed(() => ({
-  activePlayers: playersData.value?.pagination?.total ?? 0,
-  upcomingGames: gamesData.value?.pagination?.total ?? 0,
-  completedThisMonth: recentData.value?.data?.length ?? 0,
-}));
-const recentGames = computed(() => recentData.value?.data ?? []);
-
-function formatDate(d: string): string {
-  return new Date(d).toLocaleDateString("es-AR", {
-    month: "short",
-    day: "numeric",
-  });
-}
-</script>

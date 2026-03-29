@@ -1,3 +1,86 @@
+<script setup lang="ts">
+import { ref, reactive, computed, onMounted } from "vue";
+import { useAuthStore } from "~/stores/auth";
+import LoginForm from "~/components/auth/LoginForm.vue";
+import RegisterForm from "~/components/auth/RegisterForm.vue";
+import GoogleSignInButton from "~/components/auth/GoogleSignInButton.vue";
+
+definePageMeta({ layout: false });
+
+const authStore = useAuthStore();
+const router = useRouter();
+const route = useRoute();
+
+const isRegisterMode = ref(false);
+const loading = ref(false);
+const error = ref("");
+
+const GOOGLE_ERROR_MESSAGES: Record<string, string> = {
+  google_cancelled: "Inicio de sesión con Google cancelado.",
+  google_failed: "Error al iniciar sesión con Google. Intentá de nuevo.",
+  csrf_mismatch: "Error de seguridad. Intentá de nuevo.",
+};
+
+const googleError = computed(() => {
+  const err = route.query.error as string | undefined;
+  return err ? (GOOGLE_ERROR_MESSAGES[err] ?? "Error desconocido.") : "";
+});
+
+function toggleMode() {
+  isRegisterMode.value = !isRegisterMode.value;
+  error.value = "";
+}
+
+async function navigateAfterAuth() {
+  const redirect = route.query.redirect as string | undefined;
+  if (redirect) {
+    await router.push(redirect);
+  } else if (authStore.isEditor) {
+    await router.push("/admin/dashboard");
+  } else {
+    await router.push("/player/games");
+  }
+}
+
+async function handleLogin(payload: { email: string; password: string }) {
+  error.value = "";
+  loading.value = true;
+  try {
+    await authStore.login(payload.email, payload.password);
+    await navigateAfterAuth();
+  } catch (e: any) {
+    error.value = e?.message ?? "Email o contraseña incorrectos.";
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function handleRegister(payload: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  passwordConfirmation: string;
+}) {
+  error.value = "";
+  loading.value = true;
+  try {
+    await authStore.register(payload);
+    await navigateAfterAuth();
+  } catch (e: any) {
+    error.value = e?.message ?? "Error al registrarse. Intentá de nuevo.";
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(() => {
+  if (route.query.mode === "register") {
+    isRegisterMode.value = true;
+  }
+});
+</script>
+
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
     <div class="w-full max-w-sm">
@@ -8,93 +91,59 @@
           M
         </div>
         <h1 class="text-2xl font-bold text-gray-900">Ministros FC</h1>
-        <p class="text-gray-500 text-sm mt-1">Iniciá sesión en tu cuenta</p>
+        <p class="text-gray-500 text-sm mt-1">
+          {{ isRegisterMode ? "Creá tu cuenta" : "Iniciá sesión en tu cuenta" }}
+        </p>
       </div>
 
-      <form
+      <div
         class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4"
-        @submit.prevent="handleLogin"
       >
-        <div>
-          <label
-            class="block text-sm font-medium text-gray-700 mb-1"
-            for="email"
-            >Correo electrónico</label
-          >
-          <input
-            id="email"
-            v-model="form.email"
-            type="email"
-            autocomplete="email"
-            required
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-            placeholder="tu@ejemplo.com"
-          />
-        </div>
-        <div>
-          <label
-            class="block text-sm font-medium text-gray-700 mb-1"
-            for="password"
-            >Contraseña</label
-          >
-          <input
-            id="password"
-            v-model="form.password"
-            type="password"
-            autocomplete="current-password"
-            required
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-            placeholder="••••••••"
-          />
-        </div>
         <p
-          v-if="error"
+          v-if="googleError"
           class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2"
         >
-          {{ error }}
+          {{ googleError }}
         </p>
-        <button
-          type="submit"
-          :disabled="loading"
-          class="w-full bg-brand text-gray-900 font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-60"
-        >
-          {{ loading ? "Iniciando sesión…" : "Iniciar sesión" }}
-        </button>
-      </form>
+
+        <LoginForm
+          v-if="!isRegisterMode"
+          :loading="loading"
+          :error="error"
+          @submit="handleLogin"
+        />
+        <RegisterForm
+          v-else
+          :loading="loading"
+          :error="error"
+          @submit="handleRegister"
+        />
+
+        <div class="relative my-2">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-200" />
+          </div>
+          <div class="relative flex justify-center text-xs">
+            <span class="bg-white px-2 text-gray-400">o</span>
+          </div>
+        </div>
+
+        <GoogleSignInButton />
+
+        <p class="text-center text-sm text-gray-500 mt-4">
+          <button
+            type="button"
+            class="text-brand font-medium hover:underline"
+            @click="toggleMode"
+          >
+            {{
+              isRegisterMode
+                ? "¿Ya tenés cuenta? Iniciá sesión"
+                : "¿No tenés cuenta? Registrate"
+            }}
+          </button>
+        </p>
+      </div>
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useAuthStore } from "~/stores/auth";
-
-definePageMeta({ layout: false });
-
-const authStore = useAuthStore();
-const router = useRouter();
-const route = useRoute();
-
-const form = reactive({ email: "", password: "" });
-const loading = ref(false);
-const error = ref("");
-
-async function handleLogin() {
-  error.value = "";
-  loading.value = true;
-  try {
-    await authStore.login(form.email, form.password);
-    const redirect = route.query.redirect as string | undefined;
-    if (redirect) {
-      await router.push(redirect);
-    } else if (authStore.isEditor) {
-      await router.push("/admin/dashboard");
-    } else {
-      await router.push("/player/games");
-    }
-  } catch (e: any) {
-    error.value = e?.message ?? "Invalid email or password.";
-  } finally {
-    loading.value = false;
-  }
-}
-</script>

@@ -1,3 +1,5 @@
+<script setup lang="ts"></script>
+
 <template>
   <header class="bg-brand text-white shadow-md">
     <div class="container mx-auto px-4 py-5 max-w-7xl flex items-center gap-4">

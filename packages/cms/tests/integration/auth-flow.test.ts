@@ -8,12 +8,11 @@ import { createApp } from "../../src/config/server";
 // Ensure rate limiter doesn't interfere in tests
 jest.mock("../../src/middleware/rate-limiter", () => ({
   authLimiter: (_req: any, _res: any, next: any) => next(),
+  registerLimiter: (_req: any, _res: any, next: any) => next(),
   apiLimiter: (_req: any, _res: any, next: any) => next(),
 }));
 
-const app = createApp();
-
-describe("Auth flow (integration)", () => {
+const app = createApp(); () => {
   const email = `test-${Date.now()}@ministrosfc.test`;
   const password = "SecurePass!123";
   let accessToken: string;
@@ -22,7 +21,13 @@ describe("Auth flow (integration)", () => {
   it("POST /api/v1/auth/register → 201 with tokens", async () => {
     const res = await request(app)
       .post("/api/v1/auth/register")
-      .send({ email, password, name: "Test User" });
+      .send({
+        email,
+        password,
+        passwordConfirmation: password,
+        firstName: "Test",
+        lastName: "User",
+      });
 
     expect(res.status).toBe(201);
     expect(res.body.data.accessToken).toBeTruthy();

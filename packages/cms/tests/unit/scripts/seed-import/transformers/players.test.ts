@@ -5,7 +5,8 @@ import type { ParsedJugadorRow } from "../../../../../src/scripts/seed-import/pa
 
 function makeRow(overrides: Partial<ParsedJugadorRow> = {}): ParsedJugadorRow {
   return {
-    name: "Diego Marmol",
+    firstName: "Diego",
+    lastName: "Marmol",
     Apodo: "Dieguito",
     Nacimiento: "01/01/1990",
     Edad: "34",
@@ -30,22 +31,33 @@ describe("buildPlayers", () => {
       "amigo del vecino",
       "El Amigo del barrio",
     ];
-    guestNames.forEach((name) => {
-      it(`marks "${name}" as GUEST (name match)`, () => {
-        const row = makeRow({ name, Apodo: null });
+    guestNames.forEach((fullName) => {
+      it(`marks "${fullName}" as GUEST (name match)`, () => {
+        const spaceIdx = fullName.indexOf(" ");
+        const first = spaceIdx > 0 ? fullName.slice(0, spaceIdx) : fullName;
+        const last = spaceIdx > 0 ? fullName.slice(spaceIdx + 1) : "";
+        const row = makeRow({ firstName: first, lastName: last, Apodo: null });
         const { players } = buildPlayers([row]);
         expect(players[0]!.playerType).toBe("GUEST");
       });
     });
 
     it("marks GUEST when nickname contains 'amigo de'", () => {
-      const row = makeRow({ name: "Desconocido 1", Apodo: "Amigo de Carlos" });
+      const row = makeRow({
+        firstName: "Desconocido",
+        lastName: "1",
+        Apodo: "Amigo de Carlos",
+      });
       const { players } = buildPlayers([row]);
       expect(players[0]!.playerType).toBe("GUEST");
     });
 
     it("marks REGISTERED for normal players", () => {
-      const row = makeRow({ name: "Juan Perez", Apodo: "Juancito" });
+      const row = makeRow({
+        firstName: "Juan",
+        lastName: "Perez",
+        Apodo: "Juancito",
+      });
       const { players } = buildPlayers([row]);
       expect(players[0]!.playerType).toBe("REGISTERED");
     });
@@ -121,21 +133,29 @@ describe("buildPlayers", () => {
     });
 
     it("Contact.playerId matches the Player UUID", () => {
-      const row = makeRow({ name: "Ana Lopez", Telefono: "999" });
+      const row = makeRow({
+        firstName: "Ana",
+        lastName: "Lopez",
+        Telefono: "999",
+      });
       const { players, contacts } = buildPlayers([row]);
       expect(contacts[0]!.playerId).toBe(players[0]!.id);
     });
   });
 
   describe("lookup maps", () => {
-    it("playerMapByName is keyed by lowercased trimmed name", () => {
-      const row = makeRow({ name: "  Diego Marmol  " });
+    it("playerMapByName is keyed by lowercased trimmed full name", () => {
+      const row = makeRow({ firstName: "  Diego  ", lastName: "  Marmol  " });
       const { playerMapByName } = buildPlayers([row]);
       expect(playerMapByName["diego marmol"]).toBeDefined();
     });
 
     it("playerMapByNickname is keyed by lowercased trimmed nickname", () => {
-      const row = makeRow({ name: "Diego Marmol", Apodo: "  Dieguito  " });
+      const row = makeRow({
+        firstName: "Diego",
+        lastName: "Marmol",
+        Apodo: "  Dieguito  ",
+      });
       const { playerMapByNickname } = buildPlayers([row]);
       expect(playerMapByNickname["dieguito"]).toBeDefined();
     });

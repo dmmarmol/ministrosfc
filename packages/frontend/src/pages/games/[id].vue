@@ -1,3 +1,62 @@
+<script setup lang="ts">
+const { $api } = useNuxtApp();
+const route = useRoute();
+const id = route.params.id as string;
+
+const [{ data: gameData, pending }, { data: partData }] = await Promise.all([
+  useAsyncData(`game-${id}`, () => $api<{ data: any }>(`/api/v1/games/${id}`)),
+  useAsyncData(`game-participants-${id}`, () =>
+    $api<{ data: any[] }>(`/api/v1/games/${id}/participants`),
+  ),
+]);
+
+const game = computed(() => gameData.value?.data ?? null);
+const participants = computed(() => partData.value?.data ?? []);
+
+useHead(() => ({
+  title: game.value
+    ? `vs ${game.value.opponentTeam?.name} – Ministros FC`
+    : "Game",
+}));
+
+function formatDate(d: string): string {
+  return new Date(d).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function initials(name?: string | null): string {
+  if (!name) return "?";
+  return name
+    .split(" ")
+    .map((w: string) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+const statusLabel = computed(() => {
+  const map: Record<string, string> = {
+    SCHEDULED: "Upcoming",
+    IN_PROGRESS: "Live",
+    COMPLETED: "Completed",
+    CANCELLED: "Cancelled",
+  };
+  return map[game.value?.status] ?? game.value?.status ?? "";
+});
+const statusClass = computed(() => {
+  const map: Record<string, string> = {
+    SCHEDULED: "bg-blue-500/20 text-blue-300",
+    IN_PROGRESS: "bg-green-500/20 text-green-300",
+    COMPLETED: "bg-gray-500/20 text-gray-300",
+    CANCELLED: "bg-red-500/20 text-red-300",
+  };
+  return map[game.value?.status] ?? "";
+});
+</script>
+
 <template>
   <div>
     <div v-if="pending" class="space-y-4">
@@ -69,7 +128,7 @@
             {{ p.player?.playerType === "GUEST" ? "Guest" : "Registered" }}
           </span>
           <span class="flex-1 text-sm font-medium text-gray-800">{{
-            p.player?.name
+            p.player ? `${p.player.firstName} ${p.player.lastName}` : ''
           }}</span>
           <span class="text-xs text-gray-500 capitalize">{{
             p.confirmationStatus?.toLowerCase().replace(/_/g, " ")
@@ -81,62 +140,3 @@
     <div v-else class="text-center py-16 text-gray-500">Game not found.</div>
   </div>
 </template>
-
-<script setup lang="ts">
-const { $api } = useNuxtApp();
-const route = useRoute();
-const id = route.params.id as string;
-
-const [{ data: gameData, pending }, { data: partData }] = await Promise.all([
-  useAsyncData(`game-${id}`, () => $api<{ data: any }>(`/api/v1/games/${id}`)),
-  useAsyncData(`game-participants-${id}`, () =>
-    $api<{ data: any[] }>(`/api/v1/games/${id}/participants`),
-  ),
-]);
-
-const game = computed(() => gameData.value?.data ?? null);
-const participants = computed(() => partData.value?.data ?? []);
-
-useHead(() => ({
-  title: game.value
-    ? `vs ${game.value.opponentTeam?.name} – Ministros FC`
-    : "Game",
-}));
-
-function formatDate(d: string): string {
-  return new Date(d).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function initials(name?: string | null): string {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((w: string) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
-
-const statusLabel = computed(() => {
-  const map: Record<string, string> = {
-    SCHEDULED: "Upcoming",
-    IN_PROGRESS: "Live",
-    COMPLETED: "Completed",
-    CANCELLED: "Cancelled",
-  };
-  return map[game.value?.status] ?? game.value?.status ?? "";
-});
-const statusClass = computed(() => {
-  const map: Record<string, string> = {
-    SCHEDULED: "bg-blue-500/20 text-blue-300",
-    IN_PROGRESS: "bg-green-500/20 text-green-300",
-    COMPLETED: "bg-gray-500/20 text-gray-300",
-    CANCELLED: "bg-red-500/20 text-red-300",
-  };
-  return map[game.value?.status] ?? "";
-});
-</script>

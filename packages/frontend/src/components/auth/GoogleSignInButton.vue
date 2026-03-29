@@ -1,3 +1,8 @@
+<script setup lang="ts">
+const config = useRuntimeConfig();
+const googleAuthUrl = `${config.public.apiBaseUrl}/api/v1/auth/google`;
+</script>
+
 <template>
   <a
     :href="googleAuthUrl"
@@ -24,8 +29,3 @@
     <span>Iniciar sesión con Google</span>
   </a>
 </template>
-
-<script setup lang="ts">
-const config = useRuntimeConfig();
-const googleAuthUrl = `${config.public.apiBaseUrl}/api/v1/auth/google`;
-</script>

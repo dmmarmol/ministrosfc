@@ -66,6 +66,7 @@ const AuthService = {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
+        playerId: user.playerId,
       },
     };
   },
@@ -105,7 +106,7 @@ const AuthService = {
     });
 
     // Link User → Player
-    await UserModel.update(user.id, { playerId: player.id });
+    await UserModel.update(user.id, { player: { connect: { id: player.id } } });
 
     const { accessToken, refreshToken } = AuthService.generateTokens({
       userId: user.id,
@@ -136,6 +137,7 @@ const AuthService = {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
+        playerId: player.id,
       },
     };
   },
@@ -170,6 +172,130 @@ const AuthService = {
   async logout(refreshToken: string) {
     const redis = getRedisClient();
     await redis.del(`${REFRESH_TOKEN_PREFIX}${refreshToken}`);
+  },
+
+  async googleAuth(payload: {
+    sub: string;
+    email: string;
+    given_name: string;
+    family_name: string;
+  }) {
+    const redis = getRedisClient();
+
+    // (a) Find by googleSubjectId → sign in
+    let user = await UserModel.findByGoogleSubjectId(payload.sub);
+    if (user) {
+      await UserModel.update(user.id, { lastLoginAt: new Date() });
+
+      const { accessToken, refreshToken } = AuthService.generateTokens({
+        userId: user.id,
+        role: user.role,
+      });
+      await redis.setex(
+        `${REFRESH_TOKEN_PREFIX}${refreshToken}`,
+        2592000,
+        user.id,
+      );
+
+      return {
+        accessToken,
+        refreshToken,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          playerId: user.playerId,
+        },
+      };
+    }
+
+    // (b) Find by email → link googleSubjectId + sign in
+    user = await UserModel.findByEmail(payload.email);
+    if (user) {
+      await UserModel.update(user.id, {
+        googleSubjectId: payload.sub,
+        lastLoginAt: new Date(),
+      });
+
+      const { accessToken, refreshToken } = AuthService.generateTokens({
+        userId: user.id,
+        role: user.role,
+      });
+      await redis.setex(
+        `${REFRESH_TOKEN_PREFIX}${refreshToken}`,
+        2592000,
+        user.id,
+      );
+
+      return {
+        accessToken,
+        refreshToken,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          playerId: user.playerId,
+        },
+      };
+    }
+
+    // (c) New user → create User + Player + Contact
+    const newUser = await UserModel.create({
+      email: payload.email,
+      firstName: payload.given_name,
+      lastName: payload.family_name,
+      googleSubjectId: payload.sub,
+      role: "PLAYER",
+    });
+
+    const player = await prisma.player.create({
+      data: {
+        firstName: payload.given_name,
+        lastName: payload.family_name,
+        playerType: "REGISTERED",
+        status: "ACTIVE",
+        contactInfo: { create: {} },
+      },
+    });
+
+    await UserModel.update(newUser.id, {
+      player: { connect: { id: player.id } },
+    });
+
+    const { accessToken, refreshToken } = AuthService.generateTokens({
+      userId: newUser.id,
+      role: newUser.role,
+    });
+    await redis.setex(
+      `${REFRESH_TOKEN_PREFIX}${refreshToken}`,
+      2592000,
+      newUser.id,
+    );
+
+    // Invalidate player search cache
+    try {
+      const keys = await redis.keys("players:search:*");
+      if (keys.length > 0) await redis.del(...keys);
+    } catch {
+      // Non-critical
+    }
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: newUser.id,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        email: newUser.email,
+        role: newUser.role,
+        playerId: player.id,
+      },
+    };
   },
 };
 

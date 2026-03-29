@@ -71,7 +71,8 @@ const StatisticsModel = {
       where: { id: { in: playerIds } },
       select: {
         id: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         nickname: true,
         jerseyNumber: true,
         position: true,
@@ -109,7 +110,8 @@ const StatisticsModel = {
       where: { id: { in: playerIds } },
       select: {
         id: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         nickname: true,
         jerseyNumber: true,
         position: true,

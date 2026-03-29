@@ -76,7 +76,8 @@ describe("parseJugadores", () => {
     it("maps all fields to JugadorRow equivalents", () => {
       const csv = makeCsv([{}]);
       const row = parseJugadores(csv)[0]!;
-      expect(row.name).toBe("Diego Marmol");
+      expect(row.firstName).toBe("Diego");
+      expect(row.lastName).toBe("Marmol");
       expect(row.Apodo).toBe("Dieguito");
       expect(row.Nacimiento).toBe("01/01/1990");
       expect(row.Altura).toBe("175");
@@ -107,7 +108,8 @@ describe("parseJugadores", () => {
       const csv = makeCsv([{ nameCol: "" }, { nameCol: "Juan Perez" }]);
       const rows = parseJugadores(csv);
       expect(rows).toHaveLength(1);
-      expect(rows[0]!.name).toBe("Juan Perez");
+      expect(rows[0]!.firstName).toBe("Juan");
+      expect(rows[0]!.lastName).toBe("Perez");
     });
   });
 
@@ -117,7 +119,8 @@ describe("parseJugadores", () => {
         { headerName: "Jugador (61)", nameCol: "Ana Lopez" },
       ]);
       const row = parseJugadores(csv)[0]!;
-      expect(row.name).toBe("Ana Lopez");
+      expect(row.firstName).toBe("Ana");
+      expect(row.lastName).toBe("Lopez");
     });
 
     it('detects name column when header is "Jugador (40)" (count changed)', () => {
@@ -125,7 +128,8 @@ describe("parseJugadores", () => {
         { headerName: "Jugador (40)", nameCol: "Carlos Ruiz" },
       ]);
       const row = parseJugadores(csv)[0]!;
-      expect(row.name).toBe("Carlos Ruiz");
+      expect(row.firstName).toBe("Carlos");
+      expect(row.lastName).toBe("Ruiz");
     });
   });
 });

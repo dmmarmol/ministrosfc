@@ -18,13 +18,11 @@ import { GameStatus } from "@prisma/client";
 const router = Router();
 
 const gameCreateSchema = z.object({
-  date: z
-    .string()
-    .datetime({
-      offset: true,
-      message:
-        'date must be a valid ISO 8601 datetime with timezone offset, e.g. "2026-03-28T14:00:00-03:00"',
-    }),
+  date: z.string().datetime({
+    offset: true,
+    message:
+      'date must be a valid ISO 8601 datetime with timezone offset, e.g. "2026-03-28T14:00:00-03:00"',
+  }),
   location: z
     .string()
     .max(500, "Location must be 500 characters or less")
@@ -134,11 +132,11 @@ router.post(
   },
 );
 
-// PATCH /api/v1/games/:id - Admin or Editor (with field restrictions for Editor)
+// PATCH /api/v1/games/:id - Admin, Editor, or DT (with field restrictions for non-admin roles)
 router.patch(
   "/:id",
   authenticate,
-  requireRole("EDITOR"),
+  requireRole("DT"),
   validate(uuidSchema, "params"),
   validate(gameUpdateSchema),
   async (req: Request, res: Response, next: NextFunction) => {

@@ -8,6 +8,7 @@ import { prisma } from "../../src/config/database";
 
 jest.mock("../../src/middleware/rate-limiter", () => ({
   authLimiter: (_req: any, _res: any, next: any) => next(),
+  registerLimiter: (_req: any, _res: any, next: any) => next(),
   apiLimiter: (_req: any, _res: any, next: any) => next(),
 }));
 
@@ -25,13 +26,12 @@ describe("Participation flow (integration)", () => {
 
   beforeAll(async () => {
     // Create admin
-    await request(app)
-      .post("/api/v1/auth/register")
-      .send({
-        email: adminEmail,
-        password: "Admin!Part99",
-        name: "Admin Part Test",
-      });
+    await request(app).post("/api/v1/auth/register").send({
+      email: adminEmail,
+      password: "Admin!Part99",
+      firstName: "Admin",
+      lastName: "Part Test",
+    });
     await prisma.user.update({
       where: { email: adminEmail },
       data: { role: "ADMIN" },
@@ -42,13 +42,12 @@ describe("Participation flow (integration)", () => {
     adminToken = loginAdmin.body.data.accessToken;
 
     // Create player user
-    const regPlayer = await request(app)
-      .post("/api/v1/auth/register")
-      .send({
-        email: playerEmail,
-        password: "Player!Part99",
-        name: "Player Part Test",
-      });
+    const regPlayer = await request(app).post("/api/v1/auth/register").send({
+      email: playerEmail,
+      password: "Player!Part99",
+      firstName: "Player",
+      lastName: "Part Test",
+    });
     playerToken = regPlayer.body.data.accessToken;
 
     // Create a player record linked to this user
@@ -76,7 +75,8 @@ describe("Participation flow (integration)", () => {
     // Create player record and link it to the user
     const playerRes = await prisma.player.create({
       data: {
-        name: "Player Part Test",
+        firstName: "Player",
+        lastName: "Part Test",
         playerType: "REGISTERED",
         status: "ACTIVE",
       },

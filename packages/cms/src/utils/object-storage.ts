@@ -42,15 +42,16 @@ export function validatePhotoFile(file: UploadedFile): void {
   }
 }
 
-export async function uploadPlayerPhoto(
+export async function uploadPhoto(
   file: UploadedFile,
-  playerId: string,
+  folder: string,
+  entityId: string,
 ): Promise<string> {
   validatePhotoFile(file);
 
   const ext =
     path.extname(file.originalname).toLowerCase().replace(".", "") || "jpg";
-  const publicId = `players/${playerId}/photo`;
+  const publicId = `${folder}/${entityId}/photo`;
 
   const cld = getCloudinary();
   const result = await new Promise<{ secure_url: string }>(
@@ -74,6 +75,20 @@ export async function uploadPlayerPhoto(
   );
 
   return result.secure_url;
+}
+
+export async function uploadPlayerPhoto(
+  file: UploadedFile,
+  playerId: string,
+): Promise<string> {
+  return uploadPhoto(file, "players", playerId);
+}
+
+export async function uploadUserPhoto(
+  file: UploadedFile,
+  userId: string,
+): Promise<string> {
+  return uploadPhoto(file, "users", userId);
 }
 
 export async function deletePlayerPhoto(photoUrl: string): Promise<void> {

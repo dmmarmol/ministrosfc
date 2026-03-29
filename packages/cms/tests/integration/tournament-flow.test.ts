@@ -8,6 +8,7 @@ import { prisma } from "../../src/config/database";
 
 jest.mock("../../src/middleware/rate-limiter", () => ({
   authLimiter: (_req: any, _res: any, next: any) => next(),
+  registerLimiter: (_req: any, _res: any, next: any) => next(),
   apiLimiter: (_req: any, _res: any, next: any) => next(),
 }));
 
@@ -21,13 +22,12 @@ describe("Tournament flow (integration)", () => {
   const adminEmail = `admin-tourn-${Date.now()}@ministrosfc.test`;
 
   beforeAll(async () => {
-    await request(app)
-      .post("/api/v1/auth/register")
-      .send({
-        email: adminEmail,
-        password: "Admin!Tourn99",
-        name: "Admin Tourn Test",
-      });
+    await request(app).post("/api/v1/auth/register").send({
+      email: adminEmail,
+      password: "Admin!Tourn99",
+      firstName: "Admin",
+      lastName: "Tourn Test",
+    });
     await prisma.user.update({
       where: { email: adminEmail },
       data: { role: "ADMIN" },

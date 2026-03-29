@@ -4,8 +4,8 @@ import { ErrorCode } from "../utils/error-codes";
 import { getRedisClient } from "../config/redis";
 import type { GameStatus, Role } from "@prisma/client";
 
-// Fields that EDITOR role can update
-const EDITOR_ALLOWED_FIELDS = new Set([
+// Non-admin game editors are limited to metadata/tactical notes.
+const NON_ADMIN_ALLOWED_FIELDS = new Set([
   "date",
   "location",
   "notes",
@@ -94,14 +94,14 @@ const GameService = {
   async updateGame(id: string, dto: GameUpdateDTO, requestingRole: Role) {
     await GameService.getGameById(id);
 
-    // EDITOR role: restrict fields
-    if (requestingRole === "EDITOR") {
+    // DT and EDITOR roles share the non-admin restrictions.
+    if (requestingRole === "EDITOR" || requestingRole === "DT") {
       const disallowedFields = Object.keys(dto).filter(
-        (k) => !EDITOR_ALLOWED_FIELDS.has(k),
+        (k) => !NON_ADMIN_ALLOWED_FIELDS.has(k),
       );
       if (disallowedFields.length > 0) {
         throw createError(
-          `Editors cannot update fields: ${disallowedFields.join(", ")}`,
+          `Non-admin game editors cannot update fields: ${disallowedFields.join(", ")}`,
           403,
           ErrorCode.FORBIDDEN,
         );

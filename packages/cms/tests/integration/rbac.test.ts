@@ -8,10 +8,9 @@ import { prisma } from "../../src/config/database";
 
 jest.mock("../../src/middleware/rate-limiter", () => ({
   authLimiter: (_req: any, _res: any, next: any) => next(),
+  registerLimiter: (_req: any, _res: any, next: any) => next(),
   apiLimiter: (_req: any, _res: any, next: any) => next(),
-}));
-
-jest.mock("../../src/utils/object-storage", () => ({
+}));, () => ({
   validatePhotoFile: jest.fn(),
   uploadPlayerPhoto: jest
     .fn()
@@ -24,11 +23,13 @@ const app = createApp();
 describe("RBAC (integration)", () => {
   let adminToken: string;
   let editorToken: string;
+  let dtToken: string;
   let playerToken: string;
   let opponentTeamId: string;
 
   const adminEmail = `admin-rbac-${Date.now()}@ministrosfc.test`;
   const editorEmail = `editor-rbac-${Date.now()}@ministrosfc.test`;
+  const dtEmail = `dt-rbac-${Date.now()}@ministrosfc.test`;
   const playerEmail = `player-rbac-${Date.now()}@ministrosfc.test`;
 
   beforeAll(async () => {
@@ -36,7 +37,8 @@ describe("RBAC (integration)", () => {
     await request(app).post("/api/v1/auth/register").send({
       email: adminEmail,
       password: "Admin!Rbac99",
-      name: "Admin RBAC",
+      firstName: "Admin",
+      lastName: "RBAC",
     });
     await prisma.user.update({
       where: { email: adminEmail },
@@ -51,7 +53,8 @@ describe("RBAC (integration)", () => {
     await request(app).post("/api/v1/auth/register").send({
       email: editorEmail,
       password: "Editor!Rbac99",
-      name: "Editor RBAC",
+      firstName: "Editor",
+      lastName: "RBAC",
     });
     await prisma.user.update({
       where: { email: editorEmail },
@@ -62,11 +65,28 @@ describe("RBAC (integration)", () => {
       .send({ email: editorEmail, password: "Editor!Rbac99" });
     editorToken = le.body.data.accessToken;
 
+    // DT
+    await request(app).post("/api/v1/auth/register").send({
+      email: dtEmail,
+      password: "Dt!Rbac99",
+      firstName: "DT",
+      lastName: "RBAC",
+    });
+    await prisma.user.update({
+      where: { email: dtEmail },
+      data: { role: "DT" },
+    });
+    const ldt = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: dtEmail, password: "Dt!Rbac99" });
+    dtToken = ldt.body.data.accessToken;
+
     // Player
     const lp = await request(app).post("/api/v1/auth/register").send({
       email: playerEmail,
       password: "Player!Rbac99",
-      name: "Player RBAC",
+      firstName: "Player",
+      lastName: "RBAC",
     });
     playerToken = lp.body.data.accessToken;
 
@@ -92,7 +112,8 @@ describe("RBAC (integration)", () => {
     it("POST /api/v1/players → 401 (auth required)", async () => {
       const res = await request(app)
         .post("/api/v1/players")
-        .field("name", "Unauth Player")
+        .field("firstName", "Unauth")
+        .field("lastName", "Player")
         .field("playerType", "REGISTERED");
       expect(res.status).toBe(401);
     });
@@ -117,7 +138,8 @@ describe("RBAC (integration)", () => {
       const res = await request(app)
         .post("/api/v1/players")
         .set("Authorization", `Bearer ${playerToken}`)
-        .field("name", "Sneaky Player")
+        .field("firstName", "Sneaky")
+        .field("lastName", "Player")
         .field("playerType", "REGISTERED");
       expect(res.status).toBe(403);
     });
@@ -147,7 +169,8 @@ describe("RBAC (integration)", () => {
       const res = await request(app)
         .post("/api/v1/players")
         .set("Authorization", `Bearer ${editorToken}`)
-        .field("name", "Editor Created Player")
+        .field("firstName", "Editor Created")
+        .field("lastName", "Player")
         .field("playerType", "REGISTERED");
       expect(res.status).toBe(403);
     });
@@ -187,6 +210,57 @@ describe("RBAC (integration)", () => {
     });
   });
 
+  describe("DT role access", () => {
+    it("PATCH /api/v1/games/:id → 200 (dt can edit tactical fields exposed by game edit)", async () => {
+      const futureDate = new Date(
+        Date.now() + 10 * 24 * 60 * 60 * 1000,
+      ).toISOString();
+      const createRes = await request(app)
+        .post("/api/v1/games")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          date: futureDate,
+          opponentTeamId,
+          competitionType: "FRIENDLY",
+          location: "Original pitch",
+          notes: "Original notes",
+        });
+
+      const res = await request(app)
+        .patch(`/api/v1/games/${createRes.body.data.id}`)
+        .set("Authorization", `Bearer ${dtToken}`)
+        .send({
+          location: "DT updated pitch",
+          notes: "Bench and lineup prep",
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.location).toBe("DT updated pitch");
+      expect(res.body.data.notes).toBe("Bench and lineup prep");
+    });
+
+    it("PATCH /api/v1/games/:id → 403 (dt cannot change result fields)", async () => {
+      const futureDate = new Date(
+        Date.now() + 12 * 24 * 60 * 60 * 1000,
+      ).toISOString();
+      const createRes = await request(app)
+        .post("/api/v1/games")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          date: futureDate,
+          opponentTeamId,
+          competitionType: "FRIENDLY",
+        });
+
+      const res = await request(app)
+        .patch(`/api/v1/games/${createRes.body.data.id}`)
+        .set("Authorization", `Bearer ${dtToken}`)
+        .send({ homeTeamScore: 2, awayTeamScore: 1, status: "COMPLETED" });
+
+      expect(res.status).toBe(403);
+    });
+  });
+
   describe("ADMIN role access", () => {
     it("POST /api/v1/tournaments → 201 (admin can create)", async () => {
       const res = await request(app)
@@ -222,7 +296,8 @@ describe("RBAC (integration)", () => {
       const res = await request(app)
         .post("/api/v1/players")
         .set("Authorization", `Bearer ${adminToken}`)
-        .field("name", "RBAC Delete Target")
+        .field("firstName", "RBAC Delete")
+        .field("lastName", "Target")
         .field("playerType", "REGISTERED");
       testPlayerId = res.body.data.id;
     });
@@ -267,7 +342,8 @@ describe("RBAC (integration)", () => {
       const res = await request(app)
         .post("/api/v1/players")
         .set("Authorization", `Bearer ${adminToken}`)
-        .field("name", "RBAC Status Toggle Player")
+        .field("firstName", "RBAC Status Toggle")
+        .field("lastName", "Player")
         .field("playerType", "REGISTERED");
       statusPlayerId = res.body.data.id;
     });

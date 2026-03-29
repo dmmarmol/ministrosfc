@@ -8,10 +8,9 @@ import { prisma } from "../../src/config/database";
 
 jest.mock("../../src/middleware/rate-limiter", () => ({
   authLimiter: (_req: any, _res: any, next: any) => next(),
+  registerLimiter: (_req: any, _res: any, next: any) => next(),
   apiLimiter: (_req: any, _res: any, next: any) => next(),
 }));
-
-// Photo upload route uses multer/cloudinary — stub object storage
 jest.mock("../../src/utils/object-storage", () => ({
   validatePhotoFile: jest.fn(),
   uploadPlayerPhoto: jest
@@ -35,7 +34,8 @@ describe("Player CRUD (integration)", () => {
     const reg = await request(app).post("/api/v1/auth/register").send({
       email: adminEmail,
       password: "Admin!Secret99",
-      name: "Admin Player Test",
+      firstName: "Admin",
+      lastName: "Player Test",
     });
     expect(reg.status).toBe(201);
 
@@ -53,7 +53,8 @@ describe("Player CRUD (integration)", () => {
     const regEditor = await request(app).post("/api/v1/auth/register").send({
       email: editorEmail,
       password: "Editor!Secret99",
-      name: "Editor Player Test",
+      firstName: "Editor",
+      lastName: "Player Test",
     });
     expect(regEditor.status).toBe(201);
 
@@ -72,13 +73,15 @@ describe("Player CRUD (integration)", () => {
     const res = await request(app)
       .post("/api/v1/players")
       .set("Authorization", `Bearer ${adminToken}`)
-      .field("name", "Integration Test Player")
+      .field("firstName", "Integration Test")
+      .field("lastName", "Player")
       .field("jerseyNumber", "77")
       .field("position", "CF")
       .field("playerType", "REGISTERED");
 
     expect(res.status).toBe(201);
-    expect(res.body.data.name).toBe("Integration Test Player");
+    expect(res.body.data.firstName).toBe("Integration Test");
+    expect(res.body.data.lastName).toBe("Player");
     expect(res.body.data.jerseyNumber).toBe(77);
     playerId = res.body.data.id;
   });
@@ -96,7 +99,7 @@ describe("Player CRUD (integration)", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.data.id).toBe(playerId);
-    expect(res.body.data.name).toBe("Integration Test Player");
+    expect(res.body.data.firstName).toBe("Integration Test");
   });
 
   it("PATCH /api/v1/players/:id → 200 updates player (admin)", async () => {
@@ -122,7 +125,8 @@ describe("Player CRUD (integration)", () => {
     const res = await request(app)
       .post("/api/v1/players")
       .set("Authorization", `Bearer ${adminToken}`)
-      .field("name", "Duplicate Jersey")
+      .field("firstName", "Duplicate")
+      .field("lastName", "Jersey")
       .field("jerseyNumber", "77")
       .field("playerType", "REGISTERED");
 
@@ -167,7 +171,8 @@ describe("Player CRUD (integration)", () => {
     const createRes = await request(app)
       .post("/api/v1/players")
       .set("Authorization", `Bearer ${adminToken}`)
-      .field("name", "Player To Delete")
+      .field("firstName", "Player To")
+      .field("lastName", "Delete")
       .field("playerType", "REGISTERED");
     expect(createRes.status).toBe(201);
     const deleteId = createRes.body.data.id;
@@ -184,7 +189,8 @@ describe("Player CRUD (integration)", () => {
     const createRes = await request(app)
       .post("/api/v1/players")
       .set("Authorization", `Bearer ${adminToken}`)
-      .field("name", "To Be Deleted")
+      .field("firstName", "To Be")
+      .field("lastName", "Deleted")
       .field("playerType", "REGISTERED");
     const deleteId = createRes.body.data.id;
 

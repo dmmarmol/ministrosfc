@@ -1,3 +1,22 @@
+<script setup lang="ts">
+import { reactive } from "vue";
+
+const props = defineProps<{
+  loading: boolean;
+  error: string;
+}>();
+
+const emit = defineEmits<{
+  submit: [payload: { email: string; password: string }];
+}>();
+
+const form = reactive({ email: "", password: "" });
+
+function handleSubmit() {
+  emit("submit", { email: form.email, password: form.password });
+}
+</script>
+
 <template>
   <form class="space-y-4" @submit.prevent="handleSubmit">
     <div>
@@ -40,22 +59,3 @@
     </button>
   </form>
 </template>
-
-<script setup lang="ts">
-import { reactive } from "vue";
-
-const props = defineProps<{
-  loading: boolean;
-  error: string;
-}>();
-
-const emit = defineEmits<{
-  submit: [payload: { email: string; password: string }];
-}>();
-
-const form = reactive({ email: "", password: "" });
-
-function handleSubmit() {
-  emit("submit", { email: form.email, password: form.password });
-}
-</script>

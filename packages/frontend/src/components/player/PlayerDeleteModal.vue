@@ -1,9 +1,20 @@
+<script setup lang="ts">
+defineProps<{
+  player: { id: string; firstName: string; lastName: string };
+}>();
+
+defineEmits<{
+  confirm: [];
+  cancel: [];
+}>();
+</script>
+
 <template>
   <div
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
     role="dialog"
     aria-modal="true"
-    :aria-label="`Delete player ${player.name}`"
+    :aria-label="`Delete player ${player.firstName} ${player.lastName}`"
     data-testid="player-delete-modal"
     @keydown.escape="$emit('cancel')"
     @click.self="$emit('cancel')"
@@ -12,7 +23,8 @@
       <h3 class="text-lg font-bold text-gray-900 mb-2">Eliminar Jugador</h3>
       <p class="text-sm text-gray-600 mb-1">
         ¿Estás seguro que deseas eliminar a
-        <span class="font-semibold text-gray-900">{{ player.name }}</span
+        <span class="font-semibold text-gray-900"
+          >{{ player.firstName }} {{ player.lastName }}</span
         >?
       </p>
       <p class="text-sm text-red-600 mb-6">
@@ -40,14 +52,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-defineProps<{
-  player: { id: string; name: string };
-}>();
-
-defineEmits<{
-  confirm: [];
-  cancel: [];
-}>();
-</script>

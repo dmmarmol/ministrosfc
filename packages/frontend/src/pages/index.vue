@@ -1,3 +1,37 @@
+<script setup lang="ts">
+const { $api } = useNuxtApp();
+
+// Upcoming games (next 3, scheduled)
+const { data: upcomingData, pending: upcomingLoading } = await useAsyncData(
+  "home-upcoming",
+  () =>
+    $api<{ data: any[] }>("/api/v1/games", {
+      query: { status: "SCHEDULED", limit: 3 },
+    }),
+);
+const upcomingGames = computed(() => upcomingData.value?.data ?? []);
+
+// Recent results (last 3 completed)
+const { data: recentData, pending: recentLoading } = await useAsyncData(
+  "home-recent",
+  () =>
+    $api<{ data: any[] }>("/api/v1/games", {
+      query: { status: "COMPLETED", limit: 3 },
+    }),
+);
+const recentGames = computed(() => recentData.value?.data ?? []);
+
+// Top scorers
+const { data: scorersData, pending: scorersLoading } = await useAsyncData(
+  "home-scorers",
+  () =>
+    $api<{ data: any[] }>("/api/v1/statistics/top-scorers", {
+      query: { limit: 5 },
+    }),
+);
+const topScorers = computed(() => scorersData.value?.data ?? []);
+</script>
+
 <template>
   <div>
     <!-- Hero -->
@@ -108,37 +142,3 @@
     </section>
   </div>
 </template>
-
-<script setup lang="ts">
-const { $api } = useNuxtApp();
-
-// Upcoming games (next 3, scheduled)
-const { data: upcomingData, pending: upcomingLoading } = await useAsyncData(
-  "home-upcoming",
-  () =>
-    $api<{ data: any[] }>("/api/v1/games", {
-      query: { status: "SCHEDULED", limit: 3 },
-    }),
-);
-const upcomingGames = computed(() => upcomingData.value?.data ?? []);
-
-// Recent results (last 3 completed)
-const { data: recentData, pending: recentLoading } = await useAsyncData(
-  "home-recent",
-  () =>
-    $api<{ data: any[] }>("/api/v1/games", {
-      query: { status: "COMPLETED", limit: 3 },
-    }),
-);
-const recentGames = computed(() => recentData.value?.data ?? []);
-
-// Top scorers
-const { data: scorersData, pending: scorersLoading } = await useAsyncData(
-  "home-scorers",
-  () =>
-    $api<{ data: any[] }>("/api/v1/statistics/top-scorers", {
-      query: { limit: 5 },
-    }),
-);
-const topScorers = computed(() => scorersData.value?.data ?? []);
-</script>

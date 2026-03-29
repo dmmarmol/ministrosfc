@@ -15,7 +15,8 @@ const CACHE_TTL_SECONDS = 600; // 10 minutes
 export const PlayerService = {
   async createPlayer(
     dto: {
-      name: string;
+      firstName: string;
+      lastName: string;
       nickname?: string;
       playerType?: PlayerType;
       position?: string;
@@ -55,7 +56,8 @@ export const PlayerService = {
     }
 
     const player = await PlayerModel.create({
-      name: dto.name,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
       nickname: dto.nickname,
       playerType,
       status: PlayerStatus.ACTIVE,
@@ -98,7 +100,8 @@ export const PlayerService = {
   async updatePlayer(
     id: string,
     dto: {
-      name?: string;
+      firstName?: string;
+      lastName?: string;
       nickname?: string;
       position?: string;
       jerseyNumber?: number;
@@ -152,7 +155,8 @@ export const PlayerService = {
     }
 
     const updated = await PlayerModel.update(id, {
-      ...(dto.name ? { name: dto.name } : {}),
+      ...(dto.firstName ? { firstName: dto.firstName } : {}),
+      ...(dto.lastName ? { lastName: dto.lastName } : {}),
       ...(dto.nickname !== undefined ? { nickname: dto.nickname } : {}),
       ...(dto.position ? { position: dto.position as never } : {}),
       ...(dto.jerseyNumber !== undefined

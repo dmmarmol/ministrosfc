@@ -1,3 +1,37 @@
+<script setup lang="ts">
+useHead({ title: "Statistics – Ministros FC" });
+
+const { $api } = useNuxtApp();
+const playerSearch = ref("");
+const tournamentFilter = ref("");
+
+const { data: tourData } = await useAsyncData("stats-tournaments", () =>
+  $api<{ data: any[] }>("/api/v1/tournaments"),
+);
+const tournaments = computed(() => tourData.value?.data ?? []);
+
+const { data, pending, refresh } = await useAsyncData("top-scorers", () =>
+  $api<{ data: any[] }>("/api/v1/statistics/top-scorers", {
+    query: {
+      limit: 50,
+      ...(tournamentFilter.value
+        ? { tournamentId: tournamentFilter.value }
+        : {}),
+    },
+  }),
+);
+watch(tournamentFilter, () => refresh());
+
+const allScorers = computed(() => data.value?.data ?? []);
+const filteredScorers = computed(() => {
+  if (!playerSearch.value.trim()) return allScorers.value;
+  const q = playerSearch.value.trim().toLowerCase();
+  return allScorers.value.filter((e: any) =>
+    e.playerName?.toLowerCase().includes(q),
+  );
+});
+</script>
+
 <template>
   <div>
     <useHead><title>Statistics – Ministros FC</title></useHead>
@@ -74,37 +108,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-useHead({ title: "Statistics – Ministros FC" });
-
-const { $api } = useNuxtApp();
-const playerSearch = ref("");
-const tournamentFilter = ref("");
-
-const { data: tourData } = await useAsyncData("stats-tournaments", () =>
-  $api<{ data: any[] }>("/api/v1/tournaments"),
-);
-const tournaments = computed(() => tourData.value?.data ?? []);
-
-const { data, pending, refresh } = await useAsyncData("top-scorers", () =>
-  $api<{ data: any[] }>("/api/v1/statistics/top-scorers", {
-    query: {
-      limit: 50,
-      ...(tournamentFilter.value
-        ? { tournamentId: tournamentFilter.value }
-        : {}),
-    },
-  }),
-);
-watch(tournamentFilter, () => refresh());
-
-const allScorers = computed(() => data.value?.data ?? []);
-const filteredScorers = computed(() => {
-  if (!playerSearch.value.trim()) return allScorers.value;
-  const q = playerSearch.value.trim().toLowerCase();
-  return allScorers.value.filter((e: any) =>
-    e.playerName?.toLowerCase().includes(q),
-  );
-});
-</script>

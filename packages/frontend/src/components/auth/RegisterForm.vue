@@ -1,3 +1,55 @@
+<script setup lang="ts">
+import { reactive, ref, computed } from "vue";
+import { PASSWORD_RULES } from "@ministrosfc/shared";
+
+const props = defineProps<{
+  loading: boolean;
+  error: string;
+}>();
+
+const emit = defineEmits<{
+  submit: [payload: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    passwordConfirmation: string;
+  }];
+}>();
+
+const form = reactive({
+  firstName: "",
+  lastName: "",
+  email: "",
+  password: "",
+  passwordConfirmation: "",
+});
+
+const mismatchError = ref(false);
+
+const passwordRuleStatus = computed(() =>
+  PASSWORD_RULES.map((rule) => ({
+    message: rule.message,
+    met: rule.regex.test(form.password),
+  })),
+);
+
+function handleSubmit() {
+  mismatchError.value = false;
+  if (form.password !== form.passwordConfirmation) {
+    mismatchError.value = true;
+    return;
+  }
+  emit("submit", {
+    firstName: form.firstName.trim(),
+    lastName: form.lastName.trim(),
+    email: form.email,
+    password: form.password,
+    passwordConfirmation: form.passwordConfirmation,
+  });
+}
+</script>
+
 <template>
   <form class="space-y-4" @submit.prevent="handleSubmit">
     <div class="grid grid-cols-2 gap-3">
@@ -102,55 +154,3 @@
     </button>
   </form>
 </template>
-
-<script setup lang="ts">
-import { reactive, ref, computed } from "vue";
-import { PASSWORD_RULES } from "@ministrosfc/shared";
-
-const props = defineProps<{
-  loading: boolean;
-  error: string;
-}>();
-
-const emit = defineEmits<{
-  submit: [payload: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    passwordConfirmation: string;
-  }];
-}>();
-
-const form = reactive({
-  firstName: "",
-  lastName: "",
-  email: "",
-  password: "",
-  passwordConfirmation: "",
-});
-
-const mismatchError = ref(false);
-
-const passwordRuleStatus = computed(() =>
-  PASSWORD_RULES.map((rule) => ({
-    message: rule.message,
-    met: rule.regex.test(form.password),
-  })),
-);
-
-function handleSubmit() {
-  mismatchError.value = false;
-  if (form.password !== form.passwordConfirmation) {
-    mismatchError.value = true;
-    return;
-  }
-  emit("submit", {
-    firstName: form.firstName.trim(),
-    lastName: form.lastName.trim(),
-    email: form.email,
-    password: form.password,
-    passwordConfirmation: form.passwordConfirmation,
-  });
-}
-</script>

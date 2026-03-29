@@ -186,9 +186,9 @@
 
 **Purpose**: Update all existing references to `name` field, DT permissions, and final validation
 
-- [ ] T048 [P] Update all existing player-related code to use `firstName`/`lastName` instead of `name` — search and replace in `packages/cms/src/` (routes, services, scripts, utils) and `packages/frontend/src/` (components, pages, stores). Update any display logic (e.g., `fullName = firstName + ' ' + lastName`)
-- [ ] T049 [P] Update DT role permissions in existing game routes in `packages/cms/src/routes/` — allow DT role to access game-edit endpoints for setting player positions and starting/bench status (FR-024); allow DT to add guest players from game edit screen (FR-025). Update RBAC checks on relevant game endpoints
-- [ ] T050 [P] Update existing CMS tests that reference `User.name` or `Player.name` to use `firstName`/`lastName` in `packages/cms/tests/`
+- [x] T048 [P] Update all existing player-related code to use `firstName`/`lastName` instead of `name` — search and replace in `packages/cms/src/` (routes, services, scripts, utils) and `packages/frontend/src/` (components, pages, stores). Update any display logic (e.g., `fullName = firstName + ' ' + lastName`)
+- [x] T049 [P] Update DT role permissions in existing game routes in `packages/cms/src/routes/` — allow DT role to access game-edit endpoints for setting player positions and starting/bench status (FR-024); allow DT to add guest players from game edit screen (FR-025). Update RBAC checks on relevant game endpoints
+- [x] T050 [P] Update existing CMS tests that reference `User.name` or `Player.name` to use `firstName`/`lastName` in `packages/cms/tests/`
 - [ ] T051 Run quickstart.md validation — verify all new endpoints respond correctly, migrations apply cleanly, Google OAuth env vars documented, dev servers start without errors
 
 ---

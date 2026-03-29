@@ -1,3 +1,117 @@
+<script setup lang="ts">
+import { useAuthStore } from "~/stores/auth";
+import PlayerDeleteModal from "~/components/player/PlayerDeleteModal.vue";
+
+definePageMeta({ layout: "admin", middleware: "auth" });
+
+const { $api } = useNuxtApp();
+const authStore = useAuthStore();
+const showDeleteModal = ref(false);
+const router = useRouter();
+const route = useRoute();
+const id = route.params.id as string;
+
+const { data, pending, refresh } = await useAsyncData(`edit-player-${id}`, () =>
+  $api<{ data: any }>(`/api/v1/players/${id}`),
+);
+const player = computed(() => data.value?.data ?? null);
+
+const form = reactive({
+  firstName: "",
+  lastName: "",
+  nickname: "",
+  position: "",
+  jerseyNumber: null as number | null,
+  dateOfBirth: "",
+});
+
+watch(
+  player,
+  (p) => {
+    if (!p) return;
+    form.firstName = p.firstName ?? "";
+    form.lastName = p.lastName ?? "";
+    form.nickname = p.nickname ?? "";
+    form.position = p.position ?? "";
+    form.jerseyNumber = p.jerseyNumber ?? null;
+    form.dateOfBirth = p.dateOfBirth ? p.dateOfBirth.split("T")[0] : "";
+  },
+  { immediate: true },
+);
+
+useHead(() => ({
+  title: player.value
+    ? `Edit ${player.value.firstName} ${player.value.lastName} – Admin`
+    : "Edit Player",
+}));
+
+const photoInput = ref<HTMLInputElement | null>(null);
+const photoFile = ref<File | null>(null);
+const photoPreview = ref<string | null>(null);
+const loading = ref(false);
+const error = ref("");
+
+function onFileChange(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (file) {
+    photoFile.value = file;
+    photoPreview.value = URL.createObjectURL(file);
+  }
+}
+
+async function submit() {
+  error.value = "";
+  loading.value = true;
+  try {
+    const fd = new FormData();
+    fd.append("firstName", form.firstName);
+    fd.append("lastName", form.lastName);
+    if (form.nickname !== undefined) fd.append("nickname", form.nickname);
+    if (form.position) fd.append("position", form.position);
+    if (form.jerseyNumber) fd.append("jerseyNumber", String(form.jerseyNumber));
+    if (form.dateOfBirth) fd.append("dateOfBirth", form.dateOfBirth);
+    if (photoFile.value) fd.append("photo", photoFile.value);
+    await $api(`/api/v1/players/${id}`, { method: "PATCH", body: fd });
+    await router.push("/admin/players");
+  } catch (e: any) {
+    error.value = e?.message ?? "Failed to save player.";
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function toggleStatus() {
+  if (!player.value) return;
+  loading.value = true;
+  try {
+    const newStatus = player.value.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+    await $api(`/api/v1/players/${id}/status`, {
+      method: "PATCH",
+      body: { status: newStatus },
+    });
+    await refresh();
+  } catch (e: any) {
+    error.value = e?.message ?? "Failed to update status.";
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function confirmDelete() {
+  if (!player.value) return;
+  loading.value = true;
+  try {
+    await $api(`/api/v1/players/${id}`, { method: "DELETE" });
+    await navigateTo("/admin/players");
+  } catch (e: any) {
+    showDeleteModal.value = false;
+    error.value = e?.message ?? "Failed to delete player.";
+  } finally {
+    loading.value = false;
+  }
+}
+</script>
+
 <template>
   <div class="max-w-xl">
     <NuxtLink
@@ -10,7 +124,11 @@
     <!-- Delete confirmation modal (admin only) -->
     <PlayerDeleteModal
       v-if="showDeleteModal && player"
-      :player="{ id: player.id, name: player.name }"
+      :player="{
+        id: player.id,
+        firstName: player.firstName,
+        lastName: player.lastName,
+      }"
       @confirm="confirmDelete"
       @cancel="showDeleteModal = false"
     />
@@ -30,10 +148,20 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1"
-            >Nombre Completo *</label
+            >Nombre *</label
           >
           <input
-            v-model="form.name"
+            v-model="form.firstName"
+            required
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1"
+            >Apellido *</label
+          >
+          <input
+            v-model="form.lastName"
             required
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
           />
@@ -106,7 +234,7 @@
           >
             <img
               :src="photoPreview ?? player.photoUrl ?? undefined"
-              :alt="player.name"
+              :alt="`${player.firstName} ${player.lastName}`"
               class="w-full h-full object-cover"
             />
           </div>
@@ -168,112 +296,3 @@
     </form>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useAuthStore } from "~/stores/auth";
-import PlayerDeleteModal from "~/components/player/PlayerDeleteModal.vue";
-
-definePageMeta({ layout: "admin", middleware: "auth" });
-
-const { $api } = useNuxtApp();
-const authStore = useAuthStore();
-const showDeleteModal = ref(false);
-const router = useRouter();
-const route = useRoute();
-const id = route.params.id as string;
-
-const { data, pending, refresh } = await useAsyncData(`edit-player-${id}`, () =>
-  $api<{ data: any }>(`/api/v1/players/${id}`),
-);
-const player = computed(() => data.value?.data ?? null);
-
-const form = reactive({
-  name: "",
-  nickname: "",
-  position: "",
-  jerseyNumber: null as number | null,
-  dateOfBirth: "",
-});
-
-watch(
-  player,
-  (p) => {
-    if (!p) return;
-    form.name = p.name ?? "";
-    form.nickname = p.nickname ?? "";
-    form.position = p.position ?? "";
-    form.jerseyNumber = p.jerseyNumber ?? null;
-    form.dateOfBirth = p.dateOfBirth ? p.dateOfBirth.split("T")[0] : "";
-  },
-  { immediate: true },
-);
-
-useHead(() => ({
-  title: player.value ? `Edit ${player.value.name} – Admin` : "Edit Player",
-}));
-
-const photoInput = ref<HTMLInputElement | null>(null);
-const photoFile = ref<File | null>(null);
-const photoPreview = ref<string | null>(null);
-const loading = ref(false);
-const error = ref("");
-
-function onFileChange(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0];
-  if (file) {
-    photoFile.value = file;
-    photoPreview.value = URL.createObjectURL(file);
-  }
-}
-
-async function submit() {
-  error.value = "";
-  loading.value = true;
-  try {
-    const fd = new FormData();
-    fd.append("name", form.name);
-    if (form.nickname !== undefined) fd.append("nickname", form.nickname);
-    if (form.position) fd.append("position", form.position);
-    if (form.jerseyNumber) fd.append("jerseyNumber", String(form.jerseyNumber));
-    if (form.dateOfBirth) fd.append("dateOfBirth", form.dateOfBirth);
-    if (photoFile.value) fd.append("photo", photoFile.value);
-    await $api(`/api/v1/players/${id}`, { method: "PATCH", body: fd });
-    await router.push("/admin/players");
-  } catch (e: any) {
-    error.value = e?.message ?? "Failed to save player.";
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function toggleStatus() {
-  if (!player.value) return;
-  loading.value = true;
-  try {
-    const newStatus = player.value.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-    await $api(`/api/v1/players/${id}/status`, {
-      method: "PATCH",
-      body: { status: newStatus },
-    });
-    await refresh();
-  } catch (e: any) {
-    error.value = e?.message ?? "Failed to update status.";
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function confirmDelete() {
-  if (!player.value) return;
-  loading.value = true;
-  try {
-    await $api(`/api/v1/players/${id}`, { method: "DELETE" });
-    await navigateTo("/admin/players");
-  } catch (e: any) {
-    showDeleteModal.value = false;
-    error.value = e?.message ?? "Failed to delete player.";
-  } finally {
-    loading.value = false;
-  }
-}
-</script>

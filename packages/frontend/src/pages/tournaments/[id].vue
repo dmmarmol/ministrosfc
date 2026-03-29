@@ -1,3 +1,30 @@
+<script setup lang="ts">
+const { $api } = useNuxtApp();
+const route = useRoute();
+const id = route.params.id as string;
+
+const { data: tData, pending } = await useAsyncData(`tournament-${id}`, () =>
+  $api<{ data: any }>(`/api/v1/tournaments/${id}`),
+);
+const tournament = computed(() => tData.value?.data ?? null);
+
+const { data: statsData } = await useAsyncData(`tournament-stats-${id}`, () =>
+  $api<{ data: any }>(`/api/v1/statistics/tournaments/${id}`),
+);
+const topScorers = computed(() => statsData.value?.data?.topScorers ?? []);
+const games = computed(() => tournament.value?.games ?? []);
+
+useHead(() => ({
+  title: tournament.value
+    ? `${tournament.value.name} – Ministros FC`
+    : "Tournament",
+}));
+
+function formatFormat(fmt: string): string {
+  return fmt?.replace(/_/g, " ").toLowerCase() ?? "";
+}
+</script>
+
 <template>
   <div>
     <div v-if="pending" class="space-y-4">
@@ -93,30 +120,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-const { $api } = useNuxtApp();
-const route = useRoute();
-const id = route.params.id as string;
-
-const { data: tData, pending } = await useAsyncData(`tournament-${id}`, () =>
-  $api<{ data: any }>(`/api/v1/tournaments/${id}`),
-);
-const tournament = computed(() => tData.value?.data ?? null);
-
-const { data: statsData } = await useAsyncData(`tournament-stats-${id}`, () =>
-  $api<{ data: any }>(`/api/v1/statistics/tournaments/${id}`),
-);
-const topScorers = computed(() => statsData.value?.data?.topScorers ?? []);
-const games = computed(() => tournament.value?.games ?? []);
-
-useHead(() => ({
-  title: tournament.value
-    ? `${tournament.value.name} – Ministros FC`
-    : "Tournament",
-}));
-
-function formatFormat(fmt: string): string {
-  return fmt?.replace(/_/g, " ").toLowerCase() ?? "";
-}
-</script>

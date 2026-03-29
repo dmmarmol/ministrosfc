@@ -1,3 +1,61 @@
+<script setup lang="ts">
+definePageMeta({ layout: "admin", middleware: "auth" });
+useHead({ title: "Add Player – Admin" });
+
+const { $api } = useNuxtApp();
+const router = useRouter();
+const photoInput = ref<HTMLInputElement | null>(null);
+const photoFile = ref<File | null>(null);
+const photoPreview = ref<string | null>(null);
+const loading = ref(false);
+const error = ref("");
+
+const form = reactive({
+  firstName: "",
+  lastName: "",
+  nickname: "",
+  position: "",
+  jerseyNumber: null as number | null,
+  dateOfBirth: "",
+});
+
+function onFileChange(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (file) setPhoto(file);
+}
+function onDrop(e: DragEvent) {
+  const file = e.dataTransfer?.files?.[0];
+  if (file && (file.type === "image/jpeg" || file.type === "image/png"))
+    setPhoto(file);
+}
+function setPhoto(file: File) {
+  photoFile.value = file;
+  photoPreview.value = URL.createObjectURL(file);
+}
+
+async function submit() {
+  error.value = "";
+  loading.value = true;
+  try {
+    const fd = new FormData();
+    fd.append("firstName", form.firstName);
+    fd.append("lastName", form.lastName);
+    if (form.nickname) fd.append("nickname", form.nickname);
+    if (form.position) fd.append("position", form.position);
+    if (form.jerseyNumber) fd.append("jerseyNumber", String(form.jerseyNumber));
+    if (form.dateOfBirth) fd.append("dateOfBirth", form.dateOfBirth);
+    if (photoFile.value) fd.append("photo", photoFile.value);
+
+    await $api("/api/v1/players", { method: "POST", body: fd });
+    await router.push("/admin/players");
+  } catch (e: any) {
+    error.value = e?.message ?? "Failed to create player.";
+  } finally {
+    loading.value = false;
+  }
+}
+</script>
+
 <template>
   <div class="max-w-xl">
     <NuxtLink
@@ -12,12 +70,27 @@
     >
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1" for="name"
-            >Nombre Completo *</label
+          <label
+            class="block text-xs font-medium text-gray-700 mb-1"
+            for="firstName"
+            >Nombre *</label
           >
           <input
-            id="name"
-            v-model="form.name"
+            id="firstName"
+            v-model="form.firstName"
+            required
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label
+            class="block text-xs font-medium text-gray-700 mb-1"
+            for="lastName"
+            >Apellido *</label
+          >
+          <input
+            id="lastName"
+            v-model="form.lastName"
             required
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
           />
@@ -143,59 +216,3 @@
     </form>
   </div>
 </template>
-
-<script setup lang="ts">
-definePageMeta({ layout: "admin", middleware: "auth" });
-useHead({ title: "Add Player – Admin" });
-
-const { $api } = useNuxtApp();
-const router = useRouter();
-const photoInput = ref<HTMLInputElement | null>(null);
-const photoFile = ref<File | null>(null);
-const photoPreview = ref<string | null>(null);
-const loading = ref(false);
-const error = ref("");
-
-const form = reactive({
-  name: "",
-  nickname: "",
-  position: "",
-  jerseyNumber: null as number | null,
-  dateOfBirth: "",
-});
-
-function onFileChange(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0];
-  if (file) setPhoto(file);
-}
-function onDrop(e: DragEvent) {
-  const file = e.dataTransfer?.files?.[0];
-  if (file && (file.type === "image/jpeg" || file.type === "image/png"))
-    setPhoto(file);
-}
-function setPhoto(file: File) {
-  photoFile.value = file;
-  photoPreview.value = URL.createObjectURL(file);
-}
-
-async function submit() {
-  error.value = "";
-  loading.value = true;
-  try {
-    const fd = new FormData();
-    fd.append("name", form.name);
-    if (form.nickname) fd.append("nickname", form.nickname);
-    if (form.position) fd.append("position", form.position);
-    if (form.jerseyNumber) fd.append("jerseyNumber", String(form.jerseyNumber));
-    if (form.dateOfBirth) fd.append("dateOfBirth", form.dateOfBirth);
-    if (photoFile.value) fd.append("photo", photoFile.value);
-
-    await $api("/api/v1/players", { method: "POST", body: fd });
-    await router.push("/admin/players");
-  } catch (e: any) {
-    error.value = e?.message ?? "Failed to create player.";
-  } finally {
-    loading.value = false;
-  }
-}
-</script>

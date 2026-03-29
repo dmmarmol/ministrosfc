@@ -9,7 +9,7 @@ const ROLE_HIERARCHY: Record<UserRole, number> = {
   PLAYER: 1,
 };
 
-export function requireRole(minimumRole: UserRole) {
+export function requireRole(minimumRole: UserRole | `${UserRole}`) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({

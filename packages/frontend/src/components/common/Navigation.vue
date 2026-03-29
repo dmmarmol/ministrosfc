@@ -1,3 +1,11 @@
+<script setup lang="ts">
+import { useAuthStore } from "~/stores/auth";
+import AdminProfileMenu from "~/components/common/AdminProfileMenu.vue";
+
+const authStore = useAuthStore();
+const mobileOpen = ref(false);
+</script>
+
 <template>
   <nav class="bg-gray-900 text-white">
     <div
@@ -50,13 +58,9 @@
       <!-- Auth button -->
       <div class="flex items-center gap-3">
         <template v-if="authStore.isAuthenticated">
-          <NuxtLink
-            v-if="authStore.isEditor"
-            to="/admin/dashboard"
-            class="text-xs bg-brand text-gray-900 font-semibold px-3 py-1.5 rounded hover:opacity-90 transition-opacity"
-            >Admin</NuxtLink
-          >
+          <AdminProfileMenu v-if="authStore.isEditor" />
           <button
+            v-else
             class="text-xs text-gray-400 hover:text-white transition-colors"
             @click="authStore.logout()"
           >
@@ -151,10 +155,3 @@
     </div>
   </nav>
 </template>
-
-<script setup lang="ts">
-import { useAuthStore } from "~/stores/auth";
-
-const authStore = useAuthStore();
-const mobileOpen = ref(false);
-</script>
