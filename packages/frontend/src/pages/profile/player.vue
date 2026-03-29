@@ -7,6 +7,7 @@ import JerseySvg from "~/components/profile/JerseySvg.vue";
 import InvitedGuestsList from "~/components/profile/InvitedGuestsList.vue";
 
 definePageMeta({ middleware: "auth" });
+useHead({ title: "Perfil de Jugador – Ministros FC" });
 
 const {
   profile,

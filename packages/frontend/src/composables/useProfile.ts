@@ -51,7 +51,7 @@ export function useProfile() {
     error.value = "";
     try {
       const res = await $fetch<{ data: ProfileData }>(
-        `${config.public.apiBaseUrl}/api/v1/profile`,
+        `${config.public.apiBaseUrl}/api/v1/profile/player`,
         { headers: { Authorization: `Bearer ${authStore.accessToken}` } },
       );
       profile.value = res.data;
@@ -67,7 +67,7 @@ export function useProfile() {
     error.value = "";
     try {
       const res = await $fetch<{ data: ProfileData }>(
-        `${config.public.apiBaseUrl}/api/v1/profile`,
+        `${config.public.apiBaseUrl}/api/v1/profile/player`,
         {
           method: "PATCH",
           headers: { Authorization: `Bearer ${authStore.accessToken}` },
@@ -90,7 +90,7 @@ export function useProfile() {
       const formData = new FormData();
       formData.append("photo", file);
       const res = await $fetch<{ data: { photoUrl: string } }>(
-        `${config.public.apiBaseUrl}/api/v1/profile/photo`,
+        `${config.public.apiBaseUrl}/api/v1/profile/player/photo`,
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${authStore.accessToken}` },
@@ -113,7 +113,7 @@ export function useProfile() {
     try {
       const params = excludePlayerId ? `?exclude=${excludePlayerId}` : "";
       const res = await $fetch<{ data: { taken: number[] } }>(
-        `${config.public.apiBaseUrl}/api/v1/profile/jersey-availability${params}`,
+        `${config.public.apiBaseUrl}/api/v1/profile/player/jersey-availability${params}`,
         { headers: { Authorization: `Bearer ${authStore.accessToken}` } },
       );
       return res.data.taken;

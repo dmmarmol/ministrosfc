@@ -49,6 +49,7 @@ onMounted(() => {
           lastName: string;
           email: string;
           role: string;
+          playerId: string | null;
         };
       };
     }>(`${config.public.apiBaseUrl}/api/v1/profile`, {

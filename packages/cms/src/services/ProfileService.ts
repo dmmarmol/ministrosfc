@@ -10,6 +10,32 @@ import {
 } from "../utils/object-storage";
 
 export const ProfileService = {
+  /** Get user-only profile (no player required) */
+  async getUserProfile(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw createError("User not found", 404, ErrorCode.NOT_FOUND);
+    }
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        hasPassword: user.passwordHash != null,
+        hasGoogle: user.googleSubjectId != null,
+        playerId: user.playerId,
+        createdAt: user.createdAt,
+      },
+    };
+  },
+
+  /** Get full player profile including user data (requires player link) */
   async getProfile(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -21,7 +47,7 @@ export const ProfileService = {
     });
 
     if (!user || !user.player) {
-      throw createError("Profile not found", 404, ErrorCode.NOT_FOUND);
+      throw createError("Player profile not found", 404, ErrorCode.NOT_FOUND);
     }
 
     const invitedGuests = await prisma.player.findMany({

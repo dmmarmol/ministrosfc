@@ -59,19 +59,34 @@ onUnmounted(() => {
       class="absolute right-0 mt-1 w-52 bg-white rounded shadow-lg py-1 z-50 border border-gray-100"
     >
       <NuxtLink
+        v-if="authStore.isEditor"
+        to="/admin/dashboard"
+        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+        @click="open = false"
+      >
+        Panel
+      </NuxtLink>
+      <NuxtLink
+        v-if="authStore.user?.playerId"
+        to="/profile/player"
+        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+        @click="open = false"
+      >
+        Perfil de Jugador
+      </NuxtLink>
+      <div
+        v-else
+        class="flex flex-col gap-y-1 px-4 py-2 text-sm text-gray-400 cursor-not-allowed"
+      >
+        Perfil de Jugador
+        <span class="text-xs">(no vinculado)</span>
+      </div>
+      <NuxtLink
         to="/profile"
         class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
         @click="open = false"
       >
         Perfil de Usuario
-      </NuxtLink>
-      <NuxtLink
-        v-if="authStore.user?.playerId"
-        :to="`/players/${authStore.user.playerId}`"
-        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-        @click="open = false"
-      >
-        Perfil de Jugador
       </NuxtLink>
       <hr class="my-1 border-gray-100" />
       <button
