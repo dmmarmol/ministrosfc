@@ -1,11 +1,11 @@
 # Feature Specification: Playground Entity (Game Locations)
 
-**Feature Branch**: `feat/010-playground-entity`
+**Feature Branch**: `feat/011-playground-entity`
 **Created**: 2026-03-25
 **Status**: Draft
 **Input**: User description: "Create a new entity such as Playground that will contain data from the places where Ministros FC can or had played. This list must also appear in the Create game > Location field as a dropdown"
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Manage Playgrounds (Priority: P1)
 
@@ -83,7 +83,7 @@ Public visitors viewing the schedule or game details see the playground name as 
 - What happens if a playground name is very long? → The dropdown truncates display at a reasonable length with an ellipsis; the full name is visible on hover/tooltip.
 - What happens when the playground list is empty? → The dropdown shows a placeholder "No hay canchas registradas" and the "Agregar nueva…" option is still available.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -106,7 +106,7 @@ Public visitors viewing the schedule or game details see the playground name as 
 - **Playground**: Represents a physical location where games are played. Key attributes: name (required, string), address (optional, string). Relationships: referenced by zero or more Games.
 - **Game** (existing, modified): Gains an optional reference to a Playground. The existing free-text `location` field is preserved for backward compatibility.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
@@ -122,7 +122,7 @@ Public visitors viewing the schedule or game details see the playground name as 
 - The Playground entity is intentionally simple (name + address). Future enhancements like GPS coordinates, photos, or capacity are out of scope.
 - The legacy `location` text field on Game is preserved and not deleted. Existing data remains untouched.
 - RBAC follows the existing pattern: Editors can create/edit, Admins get full CRUD including delete.
-- The inline "Add new" functionality in the dropdown depends on the reusable dropdown component (spec 017). If that component is not yet available, a simpler "navigate to playground creation" link may be used as interim.
+- The inline "Add new" functionality in the dropdown depends on the reusable dropdown component (spec 012). If that component is not yet available, a simpler "navigate to playground creation" link may be used as interim.
 
 ## Out of Scope
 

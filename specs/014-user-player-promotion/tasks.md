@@ -1,6 +1,6 @@
 # Tasks: User-to-Player Promotion & Guest Merge
 
-**Input**: Design documents from `/specs/013-user-player-promotion/`  
+**Input**: Design documents from `/specs/014-user-player-promotion/`  
 **Prerequisites**: plan.md, spec.md, research.md
 
 **Tests**: Included, because the feature spec explicitly defines unit, integration, and E2E test strategy.
@@ -86,10 +86,10 @@
 **Purpose**: Stabilization, documentation, and final quality checks
 
 - [ ] T033 [P] Update API usage documentation for promotion/merge endpoints in `docs/guides/IMPLEMENTATION_CHECKLIST.md`
-- [ ] T034 [P] Document minimal audit rollout decision (Choice A) in `specs/013-user-player-promotion/plan.md`
+- [ ] T034 [P] Document minimal audit rollout decision (Choice A) in `specs/014-user-player-promotion/plan.md`
 - [ ] T035 Run targeted backend tests for promotion/merge changes in `packages/cms/tests/integration/user-player-promotion.test.ts`
 - [ ] T036 Run targeted frontend E2E tests for promotion/merge UI in `packages/frontend/tests/e2e/admin-player-promotion.spec.ts`
-- [ ] T037 Execute quickstart-style manual validation steps and record outcomes in `specs/013-user-player-promotion/research.md`
+- [ ] T037 Execute quickstart-style manual validation steps and record outcomes in `specs/014-user-player-promotion/research.md`
 
 ---
 

@@ -1,6 +1,6 @@
-# Tasks: 014 — Fix Navigation Hydration Mismatch
+# Tasks: 015 — Fix Navigation Hydration Mismatch
 
-**Branch**: `fix/014-navigation-hydration`
+**Branch**: `fix/015-navigation-hydration`
 **Priority**: P1 (visual glitch on every page load for authenticated users)
 
 ---

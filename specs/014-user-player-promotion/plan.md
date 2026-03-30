@@ -1,9 +1,9 @@
 # Implementation Plan: User-to-Player Promotion & Guest Merge
 
-**Branch**: `feat/013-user-player-promotion`  
+**Branch**: `feat/014-user-player-promotion`  
 **Date**: March 28, 2026  
 **Spec**: [spec.md](./spec.md)  
-**Input**: Feature specification from `/specs/013-user-player-promotion/spec.md`
+**Input**: Feature specification from `/specs/014-user-player-promotion/spec.md`
 
 ---
 

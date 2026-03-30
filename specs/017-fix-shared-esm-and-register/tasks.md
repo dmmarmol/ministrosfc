@@ -1,6 +1,6 @@
-# Tasks: 016 — Fix @ministrosfc/shared ESM & Deduplicate isPlayer
+# Tasks: 017 — Fix @ministrosfc/shared ESM & Deduplicate isPlayer
 
-**Branch**: `fix/016-fix-shared-esm-and-register`
+**Branch**: `fix/017-fix-shared-esm-and-register`
 **Priority**: P0 (blocks all frontend pages importing from shared package)
 
 ---

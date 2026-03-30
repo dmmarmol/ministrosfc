@@ -33,5 +33,5 @@
 
 - All items pass. Spec is ready for `/speckit.plan`.
 - Legacy data backward compatibility is thoroughly covered (US3 AS3, US4, FR-009, FR-010, SC-002).
-- Dependency on spec 017 (dropdown component) is noted in Assumptions — the feature can proceed independently with a simpler dropdown if needed.
+- Dependency on spec 012 (dropdown component) is noted in Assumptions — the feature can proceed independently with a simpler dropdown if needed.
 - Delete protection for in-use playgrounds is a critical safety requirement (FR-004, US1 AS5).

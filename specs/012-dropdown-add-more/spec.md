@@ -1,11 +1,11 @@
 # Feature Specification: Dropdown with Inline Add-More
 
-**Feature Branch**: `feat/011-dropdown-add-more`
+**Feature Branch**: `feat/012-dropdown-add-more`
 **Created**: 2026-03-25
 **Status**: Draft
 **Input**: User description: "Create a UI component for the frontend to be a dropdown with the capacity of inserting a new entry. This dropdown should be able to fetch a list of values and also to trigger the addition by clicking 'Add more' as the fixed last option. Deletion is not allowed through the dropdown"
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Select from Existing Options (Priority: P1)
 
@@ -83,7 +83,7 @@ The dropdown gracefully handles scenarios where there are no options or options 
 - What happens when the dropdown is inside a modal or a scrollable container? → The dropdown panel positions itself to remain visible (standard dropdown positioning behavior).
 - Deletion is explicitly not supported through this component — there is no delete action in the dropdown.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -103,7 +103,7 @@ The dropdown gracefully handles scenarios where there are no options or options 
 - **FR-014**: The component MUST be reusable — it does not know about specific entities (playgrounds, teams, etc.) and is configured entirely through its inputs.
 - **FR-015**: All user-facing labels MUST be configurable (placeholder text, "Add new" label, empty state message) with Spanish defaults.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

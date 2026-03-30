@@ -1,6 +1,6 @@
-# Tasks: 017 — Reusable Jersey Number Input Component
+# Tasks: 010 — Reusable Jersey Number Input Component
 
-**Branch**: `feat/017-jersey-number-input`
+**Branch**: `feat/010-jersey-number-input`
 **Priority**: P3 (UX enhancement)
 
 ---
