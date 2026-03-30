@@ -43,10 +43,14 @@ const mockAuthStore: {
   isAuthenticated: boolean;
   isEditor: boolean;
   isAdmin: boolean;
+  needsOnboarding: boolean;
+  loadFromStorage: ReturnType<typeof vi.fn>;
 } = {
   isAuthenticated: false,
   isEditor: false,
   isAdmin: false,
+  needsOnboarding: false,
+  loadFromStorage: vi.fn(),
 };
 vi.mock("../../src/stores/auth", () => ({
   useAuthStore: () => mockAuthStore,
@@ -81,6 +85,7 @@ describe("auth middleware", () => {
     mockAuthStore.isAuthenticated = false;
     mockAuthStore.isEditor = false;
     mockAuthStore.isAdmin = false;
+    mockAuthStore.needsOnboarding = false;
   });
 
   // ── T003: SSR guard ──────────────────────────────────────────────────────────

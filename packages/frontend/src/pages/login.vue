@@ -61,12 +61,13 @@ async function handleRegister(payload: {
   email: string;
   password: string;
   passwordConfirmation: string;
+  isPlayer: boolean;
 }) {
   error.value = "";
   loading.value = true;
   try {
     await authStore.register(payload);
-    await navigateAfterAuth();
+    await router.push("/auth/onboarding");
   } catch (e: any) {
     error.value = e?.message ?? "Error al registrarse. Intentá de nuevo.";
   } finally {

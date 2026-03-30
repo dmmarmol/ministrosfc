@@ -18,6 +18,7 @@ async function registerAndLogin(
   email: string,
   /** @TODO try to use existing types or type values to enforce typing here */
   role: "ADMIN" | "EDITOR" | "DT" | "PLAYER" = "PLAYER",
+  { createPlayer = false }: { createPlayer?: boolean } = {},
 ) {
   const password = "Segura123!";
   await request(app).post("/api/v1/auth/register").send({
@@ -30,10 +31,19 @@ async function registerAndLogin(
   if (role !== "PLAYER") {
     await prisma.user.update({ where: { email }, data: { role } });
   }
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (createPlayer) {
+    await prisma.player.create({
+      data: {
+        firstName: "Test",
+        lastName: role,
+        user: { connect: { id: user!.id } },
+      },
+    });
+  }
   const res = await request(app)
     .post("/api/v1/auth/login")
     .send({ email, password });
-  const user = await prisma.user.findUnique({ where: { email } });
   return { token: res.body.data.accessToken, userId: user!.id };
 }
 
@@ -47,8 +57,12 @@ describe("Admin role management (integration)", () => {
     await cleanDatabase();
     admin = await registerAndLogin("admin@ministrosfc.test", "ADMIN");
     editor = await registerAndLogin("editor@ministrosfc.test", "EDITOR");
-    player = await registerAndLogin("player@ministrosfc.test", "PLAYER");
-    player2 = await registerAndLogin("player2@ministrosfc.test", "PLAYER");
+    player = await registerAndLogin("player@ministrosfc.test", "PLAYER", {
+      createPlayer: true,
+    });
+    player2 = await registerAndLogin("player2@ministrosfc.test", "PLAYER", {
+      createPlayer: true,
+    });
   });
 
   describe("GET /api/v1/admin/users", () => {

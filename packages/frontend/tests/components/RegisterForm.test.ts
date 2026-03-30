@@ -15,6 +15,10 @@ describe("RegisterForm", () => {
     expect(wrapper.find("#email").exists()).toBe(true);
     expect(wrapper.find("#password").exists()).toBe(true);
     expect(wrapper.find("#passwordConfirmation").exists()).toBe(true);
+    expect(wrapper.find("#isPlayer").exists()).toBe(true);
+    expect(
+      (wrapper.find("#isPlayer").element as HTMLInputElement).checked,
+    ).toBe(true);
   });
 
   it("renders submit button with correct label", () => {
@@ -78,6 +82,29 @@ describe("RegisterForm", () => {
         email: "juan@example.com",
         password: "Abcdefgh1!",
         passwordConfirmation: "Abcdefgh1!",
+        isPlayer: true,
+      },
+    ]);
+  });
+
+  it("emits isPlayer=false when checkbox is unchecked", async () => {
+    const wrapper = mountForm();
+    await wrapper.find("#firstName").setValue("Juan");
+    await wrapper.find("#lastName").setValue("Pérez");
+    await wrapper.find("#email").setValue("juan@example.com");
+    await wrapper.find("#password").setValue("Abcdefgh1!");
+    await wrapper.find("#passwordConfirmation").setValue("Abcdefgh1!");
+    await wrapper.find("#isPlayer").setValue(false);
+    await wrapper.find("form").trigger("submit.prevent");
+
+    expect(wrapper.emitted("submit")![0]).toEqual([
+      {
+        firstName: "Juan",
+        lastName: "Pérez",
+        email: "juan@example.com",
+        password: "Abcdefgh1!",
+        passwordConfirmation: "Abcdefgh1!",
+        isPlayer: false,
       },
     ]);
   });

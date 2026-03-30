@@ -15,20 +15,6 @@ jest.mock("../../src/config/redis", () => ({
 
 jest.mock("../../src/models/User");
 
-jest.mock("../../src/config/database", () => ({
-  prisma: {
-    player: {
-      create: jest.fn().mockResolvedValue({
-        id: "player-1",
-        firstName: "New",
-        lastName: "User",
-        status: "ACTIVE",
-        playerType: "REGISTERED",
-      }),
-    },
-  },
-}));
-
 describe("AuthService", () => {
   afterEach(() => jest.clearAllMocks());
 
@@ -88,7 +74,7 @@ describe("AuthService", () => {
   });
 
   describe("register", () => {
-    it("creates a PLAYER role user with firstName/lastName", async () => {
+    it("creates a PLAYER role user with firstName/lastName and returns nextStep", async () => {
       (UserModel.findByEmail as jest.Mock).mockResolvedValue(null);
       const created = {
         id: "u2",
@@ -96,9 +82,9 @@ describe("AuthService", () => {
         firstName: "New",
         lastName: "User",
         role: "PLAYER" as const,
+        onboardingCompletedAt: null,
       };
       (UserModel.create as jest.Mock).mockResolvedValue(created);
-      (UserModel.update as jest.Mock).mockResolvedValue(created);
 
       const res = await AuthService.register({
         email: "new@test.com",
@@ -110,6 +96,32 @@ describe("AuthService", () => {
       expect(res.user.role).toBe("PLAYER");
       expect(res.user.firstName).toBe("New");
       expect(res.user.lastName).toBe("User");
+      expect(res.user.onboardingCompletedAt).toBeNull();
+      expect(res.nextStep).toBe("/auth/onboarding");
+      expect((UserModel.create as jest.Mock).mock.calls[0][0].role).toBe(
+        "PLAYER",
+      );
+    });
+
+    it("assigns PLAYER role by default (explicit assertion)", async () => {
+      (UserModel.findByEmail as jest.Mock).mockResolvedValue(null);
+      (UserModel.create as jest.Mock).mockResolvedValue({
+        id: "u-default",
+        email: "default@test.com",
+        firstName: "Default",
+        lastName: "Role",
+        role: "PLAYER" as const,
+        onboardingCompletedAt: null,
+      });
+
+      const res = await AuthService.register({
+        email: "default@test.com",
+        password: "Segura123!",
+        passwordConfirmation: "Segura123!",
+        firstName: "Default",
+        lastName: "Role",
+      });
+      expect(res.user.role).toBe("PLAYER");
       expect((UserModel.create as jest.Mock).mock.calls[0][0].role).toBe(
         "PLAYER",
       );
@@ -123,8 +135,8 @@ describe("AuthService", () => {
         firstName: "Redis",
         lastName: "Test",
         role: "PLAYER",
+        onboardingCompletedAt: null,
       });
-      (UserModel.update as jest.Mock).mockResolvedValue({});
 
       const res = await AuthService.register({
         email: "redis@test.com",

@@ -1,8 +1,9 @@
 # ministrosfc Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-03-26
+Auto-generated from all feature plans. Last updated: 2026-03-29
 
 ## Active Technologies
+- TypeScript (Node 18+, Nuxt 4/Vue 3) + Express, Prisma, Zod, google-auth-library, Pinia (009-user-registration)
 
 - TypeScript 5 (strict mode, both packages) + Express 4, Prisma 5, Zod, Nuxt 3, Vue 3, Pinia, Tailwind CSS (006-admin-player-delete)
 - PostgreSQL (Prisma ORM) + Redis (cache invalidation) (006-admin-player-delete)
@@ -105,12 +106,11 @@ npx prisma studio                  # Open Prisma Studio GUI
 - **Guest Players**: playerType=GUEST, linked to inviting player via invitedById
 
 ## Recent Changes
+- 009-user-registration: Added TypeScript (Node 18+, Nuxt 4/Vue 3) + Express, Prisma, Zod, google-auth-library, Pinia
 
 - 009-user-registration: Added TypeScript 5 (strict mode, both packages) + Express 4, Prisma 5, Zod v4, Nuxt 3.21, Vue 3.5, Pinia, Tailwind CSS, `google-auth-library` (new — Google OAuth)
 - 007-custom-hostname-dev: Added TypeScript 5.3, Node ≥ 23 + Nuxt 3 / Vite (frontend dev server), Express 4 (backend)
-- 006-admin-player-delete: Added TypeScript 5 (strict mode, both packages) + Express 4, Prisma 5, Zod, Nuxt 3, Vue 3, Pinia, Tailwind CSS
 
-- 005-fix-auth-ssr-redirect: No new packages — fix uses existing `useRuntime()` composable (`src/composables/useRuntime.ts`); adds `tests/middleware/auth.test.ts` using Vitest + `vi.mock`; removes `src/middleware/**` from vitest coverage exclusions
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

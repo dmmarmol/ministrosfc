@@ -8,13 +8,16 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  submit: [payload: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    passwordConfirmation: string;
-  }];
+  submit: [
+    payload: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      password: string;
+      passwordConfirmation: string;
+      isPlayer: boolean;
+    },
+  ];
 }>();
 
 const form = reactive({
@@ -23,6 +26,7 @@ const form = reactive({
   email: "",
   password: "",
   passwordConfirmation: "",
+  isPlayer: true,
 });
 
 const mismatchError = ref(false);
@@ -46,6 +50,7 @@ function handleSubmit() {
     email: form.email,
     password: form.password,
     passwordConfirmation: form.passwordConfirmation,
+    isPlayer: form.isPlayer,
   });
 }
 </script>
@@ -54,7 +59,10 @@ function handleSubmit() {
   <form class="space-y-4" @submit.prevent="handleSubmit">
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1" for="firstName">
+        <label
+          class="block text-sm font-medium text-gray-700 mb-1"
+          for="firstName"
+        >
           Nombre
         </label>
         <input
@@ -68,7 +76,10 @@ function handleSubmit() {
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1" for="lastName">
+        <label
+          class="block text-sm font-medium text-gray-700 mb-1"
+          for="lastName"
+        >
           Apellido
         </label>
         <input
@@ -97,7 +108,10 @@ function handleSubmit() {
       />
     </div>
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1" for="password">
+      <label
+        class="block text-sm font-medium text-gray-700 mb-1"
+        for="password"
+      >
         Contraseña
       </label>
       <input
@@ -126,7 +140,10 @@ function handleSubmit() {
       </ul>
     </div>
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1" for="passwordConfirmation">
+      <label
+        class="block text-sm font-medium text-gray-700 mb-1"
+        for="passwordConfirmation"
+      >
         Confirmar contraseña
       </label>
       <input
@@ -139,7 +156,22 @@ function handleSubmit() {
         placeholder="••••••••"
       />
     </div>
-    <p v-if="mismatchError" class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+    <label
+      for="isPlayer"
+      class="flex items-start gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
+    >
+      <input
+        id="isPlayer"
+        v-model="form.isPlayer"
+        type="checkbox"
+        class="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand/50"
+      />
+      <span class="text-sm text-gray-700">Eres un jugador del equipo?</span>
+    </label>
+    <p
+      v-if="mismatchError"
+      class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2"
+    >
       Las contraseñas no coinciden
     </p>
     <p v-if="error" class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">

@@ -3,10 +3,12 @@ import { onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "~/stores/auth";
 import { useRuntime } from "~/composables/useRuntime";
+import { useOnboarding } from "~/composables/useOnboarding";
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const { fetchStatus } = useOnboarding();
 
 onMounted(() => {
   if (!useRuntime().isClient) return;
@@ -34,12 +36,10 @@ onMounted(() => {
       role: string;
     };
 
-    // We have userId & role from the token, but need full user info.
-    // Store tokens first, then fetch profile for user details.
+    // Store tokens first, then fetch profile for user details
     authStore.accessToken = token;
     authStore.refreshToken = refresh;
 
-    // Fetch user info from the API
     const config = useRuntimeConfig();
     $fetch<{
       data: {
@@ -50,12 +50,13 @@ onMounted(() => {
           email: string;
           role: string;
           playerId: string | null;
+          onboardingCompletedAt: string | null;
         };
       };
     }>(`${config.public.apiBaseUrl}/api/v1/profile`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((res) => {
+      .then(async (res) => {
         const u = res.data.user;
         authStore.setTokens(token, refresh, {
           id: u.id,
@@ -63,11 +64,13 @@ onMounted(() => {
           lastName: u.lastName,
           email: u.email,
           role: u.role as any,
+          playerId: u.playerId,
+          onboardingCompletedAt: u.onboardingCompletedAt,
         });
-        navigateTo("/");
+        await navigateAfterAuth();
       })
-      .catch(() => {
-        // If profile doesn't exist yet, use JWT payload
+      .catch(async () => {
+        // If profile fetch fails, use JWT payload and check onboarding
         authStore.setTokens(token, refresh, {
           id: payload.userId,
           firstName: "",
@@ -75,12 +78,30 @@ onMounted(() => {
           email: "",
           role: payload.role as any,
         });
-        navigateTo("/");
+        await navigateAfterAuth();
       });
   } catch {
     navigateTo("/login?error=google_failed");
   }
 });
+
+async function navigateAfterAuth() {
+  try {
+    const status = await fetchStatus();
+    if (status.needsOnboarding) {
+      navigateTo("/auth/onboarding");
+      return;
+    }
+  } catch {
+    // If onboarding check fails, use store getter
+    if (authStore.needsOnboarding) {
+      navigateTo("/auth/onboarding");
+      return;
+    }
+  }
+
+  navigateTo(authStore.isEditor ? "/admin/dashboard" : "/player/games");
+}
 </script>
 
 <template>

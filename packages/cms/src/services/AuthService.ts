@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
 import { UserModel } from "../models/User";
 import { authConfig } from "../config/auth";
-import { prisma } from "../config/database";
 import { getRedisClient } from "../config/redis";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
@@ -67,6 +66,8 @@ const AuthService = {
         email: user.email,
         role: user.role,
         playerId: user.playerId,
+        onboardingCompletedAt:
+          user.onboardingCompletedAt?.toISOString() ?? null,
       },
     };
   },
@@ -77,6 +78,7 @@ const AuthService = {
     passwordConfirmation: string;
     firstName: string;
     lastName: string;
+    isPlayer?: boolean;
   }) {
     const existing = await UserModel.findByEmail(dto.email);
     if (existing)
@@ -94,20 +96,6 @@ const AuthService = {
       role: "PLAYER",
     });
 
-    // Auto-create Player record linked to User
-    const player = await prisma.player.create({
-      data: {
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        playerType: "REGISTERED",
-        status: "ACTIVE",
-        contactInfo: { create: {} },
-      },
-    });
-
-    // Link User → Player
-    await UserModel.update(user.id, { player: { connect: { id: player.id } } });
-
     const { accessToken, refreshToken } = AuthService.generateTokens({
       userId: user.id,
       role: user.role,
@@ -120,14 +108,6 @@ const AuthService = {
       user.id,
     );
 
-    // Invalidate player search cache
-    try {
-      const keys = await redis.keys("players:search:*");
-      if (keys.length > 0) await redis.del(...keys);
-    } catch {
-      // Non-critical
-    }
-
     return {
       accessToken,
       refreshToken,
@@ -137,8 +117,9 @@ const AuthService = {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
-        playerId: player.id,
+        onboardingCompletedAt: user.onboardingCompletedAt ?? null,
       },
+      nextStep: "/auth/onboarding",
     };
   },
 
@@ -197,9 +178,16 @@ const AuthService = {
         user.id,
       );
 
+      const nextStep = user.onboardingCompletedAt
+        ? user.role === "ADMIN" || user.role === "EDITOR"
+          ? "/admin/dashboard"
+          : "/player/games"
+        : "/auth/onboarding";
+
       return {
         accessToken,
         refreshToken,
+        nextStep,
         user: {
           id: user.id,
           firstName: user.firstName,
@@ -207,6 +195,8 @@ const AuthService = {
           email: user.email,
           role: user.role,
           playerId: user.playerId,
+          onboardingCompletedAt:
+            user.onboardingCompletedAt?.toISOString() ?? null,
         },
       };
     }
@@ -229,9 +219,16 @@ const AuthService = {
         user.id,
       );
 
+      const nextStep = user.onboardingCompletedAt
+        ? user.role === "ADMIN" || user.role === "EDITOR"
+          ? "/admin/dashboard"
+          : "/player/games"
+        : "/auth/onboarding";
+
       return {
         accessToken,
         refreshToken,
+        nextStep,
         user: {
           id: user.id,
           firstName: user.firstName,
@@ -239,31 +236,19 @@ const AuthService = {
           email: user.email,
           role: user.role,
           playerId: user.playerId,
+          onboardingCompletedAt:
+            user.onboardingCompletedAt?.toISOString() ?? null,
         },
       };
     }
 
-    // (c) New user → create User + Player + Contact
+    // (c) New user → create User (no Player — onboarding handles that)
     const newUser = await UserModel.create({
       email: payload.email,
       firstName: payload.given_name,
       lastName: payload.family_name,
       googleSubjectId: payload.sub,
       role: "PLAYER",
-    });
-
-    const player = await prisma.player.create({
-      data: {
-        firstName: payload.given_name,
-        lastName: payload.family_name,
-        playerType: "REGISTERED",
-        status: "ACTIVE",
-        contactInfo: { create: {} },
-      },
-    });
-
-    await UserModel.update(newUser.id, {
-      player: { connect: { id: player.id } },
     });
 
     const { accessToken, refreshToken } = AuthService.generateTokens({
@@ -276,24 +261,18 @@ const AuthService = {
       newUser.id,
     );
 
-    // Invalidate player search cache
-    try {
-      const keys = await redis.keys("players:search:*");
-      if (keys.length > 0) await redis.del(...keys);
-    } catch {
-      // Non-critical
-    }
-
     return {
       accessToken,
       refreshToken,
+      nextStep: "/auth/onboarding",
       user: {
         id: newUser.id,
         firstName: newUser.firstName,
         lastName: newUser.lastName,
         email: newUser.email,
         role: newUser.role,
-        playerId: player.id,
+        playerId: null,
+        onboardingCompletedAt: null,
       },
     };
   },

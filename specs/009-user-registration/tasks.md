@@ -1,315 +1,301 @@
-# Tasks: User Registration & Sign-In
+# Tasks: User Registration & Sign-In (Full Scope)
 
-**Input**: Design documents from `/specs/009-user-registration/`
-**Prerequisites**: plan.md ✅, spec.md ✅, research.md ✅, data-model.md ✅, quickstart.md ✅, contracts/ ✅
+**Input**: Design documents from `/specs/009-user-registration/`  
+**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/, quickstart.md
 
-**Tests**: Included — plan.md mandates TDD with 80% coverage on new code.
-
-**Organization**: Tasks grouped by user story. US1–US3 from spec.md; US4 (Profile) and US5 (Admin Role Mgmt) derived from FR groups FR-026–FR-030 and FR-018–FR-023 respectively.
+**Tests**: Included. TDD is required for all testable behavior.  
+**Organization**: Tasks are grouped by user story so each increment is independently testable.
 
 ## Format: `[ID] [P?] [Story] Description`
 
-- **[P]**: Can run in parallel (different files, no dependencies)
-- **[Story]**: Which user story this task belongs to (US1–US5)
-- Exact file paths included in every task
-
-## Path Conventions
-
-- **CMS**: `packages/cms/` (Express API)
-- **Frontend**: `packages/frontend/` (Nuxt 3 SPA)
-- **Shared**: `packages/shared/` (shared validation schemas)
+- **[P]**: Parallelizable task (different files, no unfinished dependency).
+- **[Story]**: User story label (`[US1]` ... `[US6]`) for story phases only.
 
 ---
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-**Purpose**: Install new dependency, configure environment, create shared schemas
+**Purpose**: Prepare dependencies and shared validation/config modules.
 
-- [ ] T001 Install `google-auth-library` dependency in CMS workspace (`npm install google-auth-library --workspace=@ministrosfc/cms`)
-- [ ] T002 [P] Add Google OAuth environment variables (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`) to `packages/cms/src/config/auth.ts` and document in `.env.example`
-- [ ] T003 [P] Create shared password validation schema with per-rule `superRefine` in `packages/shared/src/validation/password.ts` — export `passwordSchema` and `PASSWORD_RULES` (min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char)
-
----
-
-## Phase 2: Foundational (DB Migrations & Core Changes)
-
-**Purpose**: Schema migrations, model updates, and RBAC changes that MUST be complete before ANY user story
-
-**⚠️ CRITICAL**: No user story work can begin until this phase is complete
-
-- [ ] T004 Create custom Prisma migration `split_user_name_fields` in `packages/cms/prisma/migrations/` — split `User.name` → `firstName` + `lastName`, split `Player.name` → `firstName` + `lastName`, add `Player.address` (VARCHAR 500 nullable). Use custom SQL: add nullable columns → backfill from `name` (split on first space) → set NOT NULL → drop `name`. See research.md Topic 2
-- [ ] T005 Create Prisma migration `add_dt_role_google_auth` in `packages/cms/prisma/migrations/` — add `DT` to Role enum, add `User.googleSubjectId` (String? @unique), make `User.passwordHash` nullable. Update `packages/cms/prisma/schema.prisma` accordingly
-- [ ] T006 [P] Update User model types/helpers in `packages/cms/src/models/User.ts` — replace `name` with `firstName`/`lastName`, add `googleSubjectId` field, make `passwordHash` optional
-- [ ] T007 [P] Update Player model types/helpers in `packages/cms/src/models/Player.ts` — replace `name` with `firstName`/`lastName`, add `address` field
-- [ ] T008 [P] Update RBAC middleware in `packages/cms/src/middleware/rbac.ts` — add `DT` to `ROLE_HIERARCHY` (ADMIN:4, EDITOR:3, DT:2, PLAYER:1), update any role-check logic
-- [ ] T009 [P] Update auth middleware in `packages/cms/src/middleware/auth.ts` — add `DT` to `JwtPayload` role type union
-- [ ] T010 Update login endpoint and AuthService.login in `packages/cms/src/routes/auth.ts` and `packages/cms/src/services/AuthService.ts` — return `firstName`/`lastName` instead of `name` in login response (FR-012, FR-017)
-- [ ] T011 [P] Update auth store in `packages/frontend/src/stores/auth.ts` — replace `name` with `firstName`/`lastName` in user state, add `DT` to role type, update any display name computed properties
-
-**Checkpoint**: Foundation ready — schema migrated, models updated, RBAC hierarchy includes DT, login still works with firstName/lastName
+- [x] T001 Install `google-auth-library` in `packages/cms/package.json`
+- [x] T002 [P] Add Google OAuth env entries in `packages/cms/.env.example`
+- [x] T003 [P] Wire Google OAuth config in `packages/cms/src/config/auth.ts`
+- [x] T004 [P] Add shared password schema rules in `packages/shared/src/validation/password.ts`
+- [x] T005 [P] Export password schema from `packages/shared/src/index.ts`
 
 ---
 
-## Phase 3: User Story 3 — Updated Login Page Layout (Priority: P1) 🎯 MVP
+## Phase 2: Foundational (Blocking Prerequisites)
 
-**Goal**: Redesign `/login` page with sign-in/sign-up toggle and Google button (FR-001, FR-008, FR-013)
+**Purpose**: Complete schema, migrations, role hierarchy, and auth typing before any story work.
 
-**Independent Test**: Load `/login`, verify sign-in form renders by default, toggle to sign-up mode shows registration fields, Google button visible in both modes, existing login still works
+**CRITICAL**: No story implementation starts before this phase is complete.
 
-### Tests for US3
+- [x] T006 Add `User.onboardingCompletedAt` in `packages/cms/prisma/schema.prisma`
+- [x] T007 Add `User.googleSubjectId`, nullable `passwordHash`, and `Role.DT` in `packages/cms/prisma/schema.prisma`
+- [x] T008 Add `firstName`/`lastName` fields for `User` and `Player` plus `Player.address` in `packages/cms/prisma/schema.prisma`
+- [x] T009 Create migration SQL for `name` split + backfill in `packages/cms/prisma/migrations/`
+- [x] T010 Create migration for Google auth + DT + onboarding fields in `packages/cms/prisma/migrations/`
+- [x] T011 [P] Update user model typings in `packages/cms/src/models/User.ts`
+- [x] T012 [P] Update player model typings in `packages/cms/src/models/Player.ts`
+- [x] T013 [P] Update role hierarchy map in `packages/cms/src/middleware/rbac.ts`
+- [x] T014 [P] Update JWT/auth payload typing in `packages/cms/src/middleware/auth.ts`
+- [x] T015 [P] Update frontend auth state types in `packages/frontend/src/stores/auth.ts`
 
-> **TDD: Write tests FIRST, ensure they FAIL before implementation**
-
-- [ ] T012 [P] [US3] Write unit test for LoginForm component in `packages/frontend/tests/unit/LoginForm.test.ts` — test: renders email/password fields, emits submit with credentials, shows validation errors
-- [ ] T013 [P] [US3] Write unit test for RegisterForm component in `packages/frontend/tests/unit/RegisterForm.test.ts` — test: renders firstName/lastName/email/password/confirmation fields, per-rule password feedback, password mismatch validation, emits submit
-
-### Implementation for US3
-
-- [ ] T014 [P] [US3] Create LoginForm.vue in `packages/frontend/src/components/auth/LoginForm.vue` — extract existing sign-in form into standalone component with email/password fields, submit handler, validation errors display (Spanish labels)
-- [ ] T015 [P] [US3] Create RegisterForm.vue in `packages/frontend/src/components/auth/RegisterForm.vue` — registration form with firstName, lastName, email, password, passwordConfirmation fields; import `PASSWORD_RULES` from shared for real-time per-rule feedback; client-side validation (FR-002, FR-003, FR-004, FR-014)
-- [ ] T016 [P] [US3] Create GoogleSignInButton.vue in `packages/frontend/src/components/auth/GoogleSignInButton.vue` — "Iniciar sesión con Google" button that navigates to `GET /api/v1/auth/google`; disabled state for errors (FR-008)
-- [ ] T017 [US3] Redesign `packages/frontend/src/pages/login.vue` — toggle between sign-in (LoginForm) and sign-up (RegisterForm) modes via "¿No tenés cuenta? Registrate" / "¿Ya tenés cuenta? Iniciá sesión" links; GoogleSignInButton visible in both modes; display Google OAuth error messages from query params (FR-011, FR-013)
-
-**Checkpoint**: Login page shows both modes and Google button. Sign-in still works. Registration form renders but doesn't submit yet (backend not wired).
+**Checkpoint**: Database and auth foundations are ready.
 
 ---
 
-## Phase 4: User Story 1 — Email Registration (Priority: P1) 🎯 MVP
+## Phase 3: User Story 3 - Updated Login Page Layout (Priority: P1)
 
-**Goal**: New users can register via email + password; system creates User + Player, signs them in (FR-002–FR-007, FR-014, FR-015)
+**Goal**: `/login` supports sign-in/sign-up toggle with persistent Google access and Spanish UX copy.
 
-**Independent Test**: Navigate to `/login`, toggle to registration mode, fill firstName/lastName/email/password, submit. User lands on authenticated area. Log out, log back in with same credentials.
+**Independent Test**: Open `/login`, switch between modes, verify Google button appears in both modes, and verify legacy sign-in still succeeds.
 
-### Tests for US1
+### Tests (write first)
 
-> **TDD: Write tests FIRST, ensure they FAIL before implementation**
+- [x] T016 [P] [US3] Add mode toggle UI tests in `packages/frontend/tests/unit/login-page.test.ts`
+- [x] T017 [P] [US3] Add registration form field rendering tests in `packages/frontend/tests/unit/register-form.test.ts`
+- [x] T018 [P] [US3] Add login regression tests for existing email/password path in `packages/frontend/tests/unit/login-regression.test.ts`
 
-- [ ] T018 [P] [US1] Write integration test for register endpoint in `packages/cms/tests/integration/auth-register.test.ts` — test: successful registration returns 201 + tokens + user with PLAYER role; duplicate email returns 409; weak password returns 400; mismatched passwords returns 400; auto-creates Player + Contact; rate limiting (5 req/15min)
-- [ ] T019 [P] [US1] Write unit test for AuthService.register in `packages/cms/tests/unit/AuthService.test.ts` — test: creates User with bcrypt hash + PLAYER role, creates Player with ACTIVE status + REGISTERED type + firstName/lastName, creates empty Contact, generates JWT pair, stores refresh in Redis
+### Implementation
 
-### Implementation for US1
+- [x] T019 [US3] Implement sign-in/sign-up mode toggle in `packages/frontend/src/pages/login.vue`
+- [x] T020 [US3] Add registration fields and default `isPlayer=true` checkbox in `packages/frontend/src/pages/login.vue`
+- [x] T021 [US3] Keep Google button visible in both auth modes in `packages/frontend/src/pages/login.vue`
+- [x] T022 [US3] Apply Spanish labels and validation/error copy in `packages/frontend/src/pages/login.vue`
 
-- [ ] T020 [US1] Implement registration Zod schema in `packages/cms/src/routes/auth.ts` — import `passwordSchema` from `@ministrosfc/shared`, validate email/password/passwordConfirmation/firstName/lastName, add `POST /api/v1/auth/register` route with rate limit (5 req/15 min per IP)
-- [ ] T021 [US1] Implement AuthService.register in `packages/cms/src/services/AuthService.ts` — check email uniqueness (409 on conflict), hash password (bcrypt cost 12), create User (role=PLAYER) + Player (status=ACTIVE, playerType=REGISTERED, firstName/lastName) + Contact (empty) in transaction, link User.playerId, generate tokens, store refresh in Redis, invalidate player search cache
-- [ ] T022 [US1] Wire RegisterForm.vue submit to `POST /api/v1/auth/register` in `packages/frontend/src/components/auth/RegisterForm.vue` and add `register` action to auth store in `packages/frontend/src/stores/auth.ts` — on success: store tokens, redirect to role-appropriate landing page; on error: display server validation messages (FR-005: "Este correo ya está registrado")
-
-**Checkpoint**: Full email registration flow works end-to-end. New user can register, gets signed in, can log out and back in. Player record created automatically.
-
----
-
-## Phase 5: User Story 2 — Google Sign-In (Priority: P2)
-
-**Goal**: Users can sign in or register via Google OAuth; accounts link by email when possible (FR-008–FR-011)
-
-**Independent Test**: Click "Iniciar sesión con Google" on `/login`, complete Google consent, verify user lands on authenticated area with Google profile name. Test account linking by registering via email first, then signing in via Google with same email.
-
-### Tests for US2
-
-> **TDD: Write tests FIRST, ensure they FAIL before implementation**
-
-- [ ] T023 [P] [US2] Write integration test for Google OAuth flow in `packages/cms/tests/integration/google-oauth.test.ts` — test: GET /auth/google returns 302 to Google consent URL with state cookie; GET /auth/google/callback with valid code creates new user + player (first-time); callback with existing googleSubjectId signs in; callback with matching email links account; cancelled consent redirects to `/login?error=google_cancelled`; CSRF state mismatch returns error
-- [ ] T024 [P] [US2] Write unit test for AuthService.googleAuth in `packages/cms/tests/unit/AuthService.test.ts` — test: exchanges code for tokens, verifies ID token, creates user when new, links googleSubjectId when email matches, signs in when googleSubjectId found
-
-### Implementation for US2
-
-- [ ] T025 [US2] Implement GET `/api/v1/auth/google` route in `packages/cms/src/routes/auth.ts` — create `OAuth2Client` instance, generate consent URL with `state` CSRF token, set state in httpOnly cookie (5min TTL, sameSite=lax), redirect 302 to Google
-- [ ] T026 [US2] Implement GET `/api/v1/auth/google/callback` route in `packages/cms/src/routes/auth.ts` — validate state cookie, exchange code for tokens via `OAuth2Client.getToken`, verify ID token, extract sub/email/given_name/family_name. On error → redirect `/login?error=google_failed`; on cancel → redirect `/login?error=google_cancelled`
-- [ ] T027 [US2] Implement AuthService.googleAuth account resolution in `packages/cms/src/services/AuthService.ts` — (a) find by googleSubjectId → sign in, (b) find by email → link googleSubjectId + sign in, (c) not found → create User (passwordHash=null, googleSubjectId=sub, role=PLAYER) + Player + Contact → sign in. Generate tokens, store refresh in Redis. Redirect to frontend `/auth/google/callback?token=...&refresh=...`
-- [ ] T028 [US2] Create Google OAuth callback page in `packages/frontend/src/pages/auth/google/callback.vue` — read `token`/`refresh`/`error` from query params; on error → redirect to `/login` with toast; on success → store tokens in auth store, decode user info, clear URL, navigate to landing page
-- [ ] T029 [US2] Wire GoogleSignInButton.vue to CMS OAuth endpoint and display error messages in `packages/frontend/src/components/auth/GoogleSignInButton.vue` and `packages/frontend/src/pages/login.vue` — button navigates to `/api/v1/auth/google`; login page reads `error` query param and shows Spanish error messages (google_cancelled / google_failed / csrf_mismatch)
-
-**Checkpoint**: Full Google sign-in flow works. New Google users get account + player created. Existing email users get Google linked. Cancel/error handled gracefully.
+**Checkpoint**: Login/register entry UI is complete and regression-safe.
 
 ---
 
-## Phase 6: User Profile Page (FRs 016, 026–030)
+## Phase 4: User Story 1 - Email Registration (Priority: P1)
 
-**Goal**: Authenticated users can view and edit their profile — photo, personal info, jersey number with SVG, invited guests list
+**Goal**: Register by email/password, create onboarding-pending user, issue tokens, and redirect to onboarding.
 
-**Independent Test**: Log in, navigate to `/profile`, verify user info renders. Edit firstName, change jersey number (validate availability tooltip), upload photo. Verify jersey SVG updates. Verify invited guests section shows guest players.
+**Independent Test**: Register new user; duplicate email/invalid password/mismatch fail with expected errors; successful registration returns onboarding next step.
 
-### Tests for Profile
+### Tests (write first)
 
-> **TDD: Write tests FIRST, ensure they FAIL before implementation**
+- [x] T023 [P] [US1] Add registration integration tests in `packages/cms/tests/integration/auth-register.test.ts`
+- [x] T024 [P] [US1] Add `AuthService.register` unit tests in `packages/cms/tests/unit/AuthService.test.ts`
+- [x] T025 [P] [US1] Add explicit default-role assertion test (`PLAYER`) in `packages/cms/tests/unit/AuthService.test.ts`
+- [x] T026 [P] [US1] Add frontend registration submit tests in `packages/frontend/tests/unit/register-submit.test.ts`
 
-- [ ] T030 [P] [US4] Write unit test for ProfileService in `packages/cms/tests/unit/ProfileService.test.ts` — test: getProfile returns User+Player+Contact+invitedGuests; updateProfile updates User and Player fields in transaction; updateProfile validates jersey uniqueness (409 on conflict); updatePhoto uploads to Cloudinary and updates Player.photoUrl
-- [ ] T031 [P] [US4] Write integration test for profile endpoints in `packages/cms/tests/integration/profile.test.ts` — test: GET /profile returns full profile; PATCH /profile updates fields; PUT /profile/photo accepts multipart upload; GET /profile/jersey-availability returns taken numbers; 401 on unauthenticated; 409 on duplicate jersey
-- [ ] T032 [P] [US4] Write unit tests for ProfileEditForm and JerseySvg in `packages/frontend/tests/unit/ProfileEditForm.test.ts` and `packages/frontend/tests/unit/JerseySvg.test.ts` — ProfileEditForm: renders fields, validates jersey, emits save; JerseySvg: renders SVG with jersey number and lastName, accepts color props
+### Implementation
 
-### Implementation for Profile — Backend
+- [x] T027 [US1] Implement register request schema (`firstName/lastName/isPlayer`) in `packages/cms/src/routes/auth.ts`
+- [x] T028 [US1] Implement onboarding-pending user creation and token issuance in `packages/cms/src/services/AuthService.ts`
+- [x] T029 [US1] Return `nextStep=/auth/onboarding` and updated user payload in `packages/cms/src/routes/auth.ts`
+- [x] T030 [US1] Redirect to onboarding after successful registration in `packages/frontend/src/pages/login.vue`
 
-- [ ] T033 [P] [US4] Generalize upload function in `packages/cms/src/utils/object-storage.ts` — extract `uploadPhoto(file, folder, entityId)` from existing `uploadPlayerPhoto`, add `uploadUserPhoto` wrapper, keep backward-compatible `uploadPlayerPhoto` wrapper
-- [ ] T034 [US4] Create ProfileService in `packages/cms/src/services/ProfileService.ts` — `getProfile(userId)`: query User + Player + Contact + invitedGuests (Player where invitedById=playerId AND playerType=GUEST); `updateProfile(userId, data)`: update User.firstName/lastName + Player fields + Contact fields in transaction, validate jersey uniqueness among ACTIVE REGISTERED (excluding self); `updatePhoto(userId, file)`: upload via `uploadUserPhoto`, update Player.photoUrl, delete old asset
-- [ ] T035 [US4] Create profile routes in `packages/cms/src/routes/profile.ts` — `GET /api/v1/profile` (auth required), `PATCH /api/v1/profile` (auth required, Zod validation for all optional fields per contract), `PUT /api/v1/profile/photo` (auth required, multipart, max 5MB, image/\*), `GET /api/v1/profile/jersey-availability` (auth required, returns taken numbers). Register routes in main app
-
-### Implementation for Profile — Frontend
-
-- [ ] T036 [P] [US4] Create useProfile composable in `packages/frontend/src/composables/useProfile.ts` — fetch profile data (`GET /api/v1/profile`), update profile (`PATCH /api/v1/profile`), upload photo (`PUT /api/v1/profile/photo`), fetch jersey availability (`GET /api/v1/profile/jersey-availability`)
-- [ ] T037 [P] [US4] Create ProfileHeader.vue in `packages/frontend/src/components/profile/ProfileHeader.vue` — display photo (with upload button), full name, role badge, member since date, active/inactive status badge
-- [ ] T038 [P] [US4] Create ProfileEditForm.vue in `packages/frontend/src/components/profile/ProfileEditForm.vue` — editable fields: firstName, lastName, nickname, position (dropdown), jerseyNumber (with taken-numbers tooltip per FR-029), dateOfBirth, address, phone, whatsapp, emergencyContact. Zod validation, save button
-- [ ] T039 [P] [US4] Create JerseySvg.vue in `packages/frontend/src/components/profile/JerseySvg.vue` — black football jersey SVG showing jerseyNumber centered and lastName above it; colors configurable via Tailwind classes (FR-030)
-- [ ] T040 [P] [US4] Create InvitedGuestsList.vue in `packages/frontend/src/components/profile/InvitedGuestsList.vue` — "Invitados" section listing GUEST players this user invited, showing guest name, game opponent, date, link to game (FR-026)
-- [ ] T041 [US4] Create profile page in `packages/frontend/src/pages/profile.vue` — compose ProfileHeader, JerseySvg (right side), ProfileEditForm, InvitedGuestsList. Use useProfile composable for data. Auth guard (redirect to /login if unauthenticated)
-
-**Checkpoint**: Profile page fully functional. Users can view/edit all fields, upload photo, see jersey SVG, view invited guests. Deactivated players can still access and edit their profile (FR-016).
+**Checkpoint**: Email registration flow is complete end-to-end.
 
 ---
 
-## Phase 7: User Story 5 — Admin Role Management (FRs 018–023)
+## Phase 5: User Story 4 - Unified Post-Signup Onboarding Wizard (Priority: P1)
 
-**Goal**: Admin users can list users, promote/demote roles (PLAYER↔DT↔EDITOR→ADMIN), activate/deactivate players, hard-delete players
+**Goal**: Single onboarding source of truth for player intent and conditional player linkage.
 
-**Independent Test**: Log in as ADMIN, navigate to `/admin/users`, verify user list renders with roles. Promote a PLAYER to DT — verify role updates. Deactivate a player — verify status changes. Verify cannot demote another ADMIN.
+**Independent Test**: First-time authenticated users complete onboarding once; `isPlayer=true` creates/updates Player, `isPlayer=false` leaves `playerId=null`.
 
-### Tests for Admin Role Management
+### Tests (write first)
 
-> **TDD: Write tests FIRST, ensure they FAIL before implementation**
+- [x] T031 [P] [US4] Add onboarding status/complete integration tests in `packages/cms/tests/integration/onboarding.test.ts`
+- [x] T032 [P] [US4] Add onboarding service branch/idempotency tests in `packages/cms/tests/unit/OnboardingService.test.ts`
+- [x] T033 [P] [US4] Add conditional onboarding form tests in `packages/frontend/tests/unit/onboarding-page.test.ts`
 
-- [ ] T042 [P] [US5] Write integration test for admin user endpoints in `packages/cms/tests/integration/role-management.test.ts` — test: GET /admin/users returns paginated list (ADMIN only, 403 for others); PATCH role promotes/demotes correctly (PLAYER→DT, DT→EDITOR, etc.); PATCH role rejects demoting ADMIN (403); PATCH role rejects changing own role; PATCH player-status toggles ACTIVE/INACTIVE (EDITOR+); DELETE player hard-deletes (ADMIN only, 403 for EDITOR)
-- [ ] T043 [P] [US5] Write unit test for UserService role management in `packages/cms/tests/unit/UserService.test.ts` — test: changeRole validates hierarchy rules, updatePlayerStatus changes Player.status, deletePlayer cascades correctly
+### Implementation
 
-### Implementation for Admin Role Management — Backend
+- [x] T034 [US4] Implement onboarding domain logic in `packages/cms/src/services/OnboardingService.ts`
+- [x] T035 [US4] Implement onboarding routes in `packages/cms/src/routes/onboarding.ts`
+- [x] T036 [US4] Register onboarding routes in `packages/cms/src/config/server.ts`
+- [x] T037 [P] [US4] Implement onboarding composable in `packages/frontend/src/composables/useOnboarding.ts`
+- [x] T038 [P] [US4] Implement onboarding page UI/validation in `packages/frontend/src/pages/auth/onboarding.vue`
+- [x] T039 [US4] Implement middleware guard for incomplete onboarding in `packages/frontend/src/middleware/auth.ts`
+- [x] T040 [US4] Implement post-onboarding role-based navigation in `packages/frontend/src/pages/auth/onboarding.vue`
 
-- [ ] T044 [US5] Update UserService with role management logic in `packages/cms/src/services/UserService.ts` — `changeRole(adminId, targetId, newRole)`: validate not self, validate target not ADMIN, update User.role; `updatePlayerStatus(targetId, status)`: update Player.status, invalidate cache; `deletePlayer(targetId)`: hard-delete Player, set User.playerId=null, invalidate cache
-- [ ] T045 [US5] Create admin user routes in `packages/cms/src/routes/users.ts` — `GET /api/v1/admin/users` (ADMIN, paginated, filterable by role/search), `PATCH /api/v1/admin/users/:id/role` (ADMIN), `PATCH /api/v1/admin/users/:id/player-status` (EDITOR+), `DELETE /api/v1/admin/users/:id/player` (ADMIN). Register routes in main app with `/api/v1/admin` prefix
-
-### Implementation for Admin Role Management — Frontend
-
-- [ ] T046 [P] [US5] Create UserRoleManager.vue in `packages/frontend/src/components/admin/UserRoleManager.vue` — table/list of users with role badge, player status badge, search input, role filter dropdown. Actions per row: role change dropdown (allowed values based on current role rules), activate/deactivate toggle, delete button with confirmation modal. Spanish labels
-- [ ] T047 [US5] Create admin users page in `packages/frontend/src/pages/admin/users/index.vue` — compose UserRoleManager, use admin layout, ADMIN-only auth guard. Paginated list with server-side filtering
-
-**Checkpoint**: Admin users can manage all user roles and player statuses from `/admin/users`. Role hierarchy enforced. Cannot demote other ADMINs.
+**Checkpoint**: Unified onboarding gate and completion flow are complete.
 
 ---
 
-## Phase 8: Polish & Cross-Cutting Concerns
+## Phase 6: User Story 2 - Google Sign-In (Priority: P2)
 
-**Purpose**: Update all existing references to `name` field, DT permissions, and final validation
+**Goal**: Google OAuth sign-in/linking converges to the same onboarding and validation flow as email registration.
 
-- [x] T048 [P] Update all existing player-related code to use `firstName`/`lastName` instead of `name` — search and replace in `packages/cms/src/` (routes, services, scripts, utils) and `packages/frontend/src/` (components, pages, stores). Update any display logic (e.g., `fullName = firstName + ' ' + lastName`)
-- [x] T049 [P] Update DT role permissions in existing game routes in `packages/cms/src/routes/` — allow DT role to access game-edit endpoints for setting player positions and starting/bench status (FR-024); allow DT to add guest players from game edit screen (FR-025). Update RBAC checks on relevant game endpoints
-- [x] T050 [P] Update existing CMS tests that reference `User.name` or `Player.name` to use `firstName`/`lastName` in `packages/cms/tests/`
-- [ ] T051 Run quickstart.md validation — verify all new endpoints respond correctly, migrations apply cleanly, Google OAuth env vars documented, dev servers start without errors
+**Independent Test**: First-time Google login creates/signs in user then routes through onboarding; existing email account links Google subject and reuses account.
+
+### Tests (write first)
+
+- [x] T041 [P] [US2] Add Google OAuth integration tests in `packages/cms/tests/integration/google-oauth.test.ts`
+- [x] T042 [P] [US2] Add explicit account-linking test (email match) in `packages/cms/tests/integration/google-oauth.test.ts`
+- [x] T043 [P] [US2] Add frontend Google callback routing tests in `packages/frontend/tests/unit/google-callback.test.ts`
+
+### Implementation
+
+- [x] T044 [US2] Implement Google start/callback handlers in `packages/cms/src/routes/auth.ts`
+- [x] T045 [US2] Implement Google subject resolution/linking in `packages/cms/src/services/AuthService.ts`
+- [x] T046 [US2] Implement frontend callback token handling in `packages/frontend/src/pages/auth/google/callback.vue`
+- [x] T047 [US2] Reuse onboarding status gate after Google callback in `packages/frontend/src/pages/auth/google/callback.vue`
+
+**Checkpoint**: Google auth path is aligned with onboarding source-of-truth behavior.
+
+---
+
+## Phase 7: User Story 5 - Profile & Player Features (FR-016, FR-026 to FR-030)
+
+**Goal**: Deliver profile editing, photo upload, jersey availability/preview, and invited guests list.
+
+**Independent Test**: Authenticated user can edit profile and photo, see jersey preview and taken-number tooltip, and inactive players can still log in/edit while blocked from participation features.
+
+### Tests (write first)
+
+- [x] T048 [P] [US5] Add profile service unit tests in `packages/cms/tests/unit/ProfileService.test.ts`
+- [x] T049 [P] [US5] Add profile endpoint integration tests in `packages/cms/tests/integration/profile.test.ts`
+- [x] T050 [P] [US5] Add profile UI component tests (guests/jersey/tooltip) in `packages/frontend/tests/unit/profile-components.test.ts`
+- [x] T051 [P] [US5] Add inactive-player participation restriction tests in `packages/cms/tests/integration/participation-restrictions.test.ts`
+
+### Implementation
+
+- [x] T052 [US5] Implement profile aggregation/update logic in `packages/cms/src/services/ProfileService.ts`
+- [x] T053 [US5] Implement profile endpoints (`GET/PATCH/PUT/jersey-availability`) in `packages/cms/src/routes/profile.ts`
+- [x] T054 [US5] Implement photo storage adapter updates in `packages/cms/src/utils/object-storage.ts`
+- [x] T055 [US5] Implement inactive-player participation guards in `packages/cms/src/services/ParticipationService.ts`
+- [x] T056 [P] [US5] Implement profile composable in `packages/frontend/src/composables/useProfile.ts`
+- [x] T057 [P] [US5] Implement profile components in `packages/frontend/src/components/profile/`
+- [x] T058 [US5] Implement profile page composition in `packages/frontend/src/pages/profile.vue`
+
+**Checkpoint**: Profile and player-status behavior are complete.
+
+---
+
+## Phase 8: User Story 6 - Admin Role Management + DT Features (FR-018 to FR-025)
+
+**Goal**: Complete admin role transitions, player status management, hard delete, and DT game-route permissions.
+
+**Independent Test**: Admin can manage role/status/delete with constraints; DT has expected game editing/guest-add permissions.
+
+### Tests (write first)
+
+- [x] T059 [P] [US6] Add role-management integration tests in `packages/cms/tests/integration/role-management.test.ts`
+- [x] T060 [P] [US6] Add role transition matrix unit tests in `packages/cms/tests/unit/UserService.test.ts`
+- [x] T061 [P] [US6] Add admin users UI tests in `packages/frontend/tests/unit/admin-users.test.ts`
+- [x] T062 [P] [US6] Add DT route-permission tests for game tactics/guest flows in `packages/cms/tests/integration/game-dt-permissions.test.ts`
+
+### Implementation
+
+- [x] T063 [US6] Implement role transition rules in `packages/cms/src/services/UserService.ts`
+- [x] T064 [US6] Implement admin users role/status/delete endpoints in `packages/cms/src/routes/users.ts`
+- [x] T065 [US6] Implement DT permission checks for game tactics and guest add in `packages/cms/src/routes/games.ts`
+- [x] T066 [US6] Implement admin user role manager UI in `packages/frontend/src/components/admin/UserRoleManager.vue`
+- [x] T067 [US6] Implement admin users management page in `packages/frontend/src/pages/admin/users/index.vue`
+
+**Checkpoint**: Admin and DT scope is complete.
+
+---
+
+## Phase 9: Polish & Cross-Cutting Concerns
+
+**Purpose**: Final consistency, regression, and quality gates.
+
+- [x] T068 [P] Sync final auth/onboarding/profile/admin contracts in `specs/009-user-registration/contracts/`
+- [x] T069 [P] Sync quickstart endpoints and scenarios in `specs/009-user-registration/quickstart.md`
+- [x] T070 Add CMS auth regression test coverage for legacy login behavior in `packages/cms/tests/integration/auth-flow.test.ts`
+- [x] T071 Run focused CMS suites for auth/onboarding/profile/roles in `packages/cms/tests/`
+- [x] T072 Run focused frontend suites for login/onboarding/profile/admin in `packages/frontend/tests/`
+- [x] T073 Verify new-code coverage gate (>=80%) in `packages/cms/tests/` and `packages/frontend/tests/`
+- [x] T074 Execute quickstart manual validation and record outcomes in `specs/009-user-registration/research.md`
 
 ---
 
 ## Dependencies & Execution Order
 
-### Phase Dependencies
+### Story completion order
 
-- **Setup (Phase 1)**: No dependencies — start immediately
-- **Foundational (Phase 2)**: Depends on Phase 1 completion — **BLOCKS all user stories**
-- **US3 (Phase 3)**: Depends on Phase 2 (auth store updated with firstName/lastName)
-- **US1 (Phase 4)**: Depends on Phase 2 + Phase 3 (RegisterForm component exists)
-- **US2 (Phase 5)**: Depends on Phase 2 + Phase 3 (GoogleSignInButton exists) + Phase 4 (AuthService.register pattern established)
-- **US4 Profile (Phase 6)**: Depends on Phase 2 (models updated). Can start in parallel with Phase 5
-- **US5 Admin (Phase 7)**: Depends on Phase 2 (RBAC updated, DT role exists). Can start in parallel with Phases 5–6
-- **Polish (Phase 8)**: Depends on all previous phases being complete
+1. US3 (login entry layout) + US1 (email registration) + US4 (onboarding) form the MVP track.
+2. US2 (Google sign-in) depends on auth + onboarding foundation.
+3. US5 (profile/player features) depends on foundational schema and onboarding states.
+4. US6 (admin roles + DT permissions) depends on role hierarchy migration and admin route base.
 
-### User Story Dependencies
+### Phase dependencies
 
-```
-Phase 1 (Setup)
-    │
-    ▼
-Phase 2 (Foundational) ─── BLOCKS ALL ───┐
-    │                                      │
-    ▼                                      │
-Phase 3 (US3: Login Layout)               │
-    │                                      │
-    ├──────────────┐                       │
-    ▼              ▼                       ▼
-Phase 4 (US1)  Phase 6 (US4: Profile) ──┐
-    │                                     │
-    ▼                                     │
-Phase 5 (US2)  Phase 7 (US5: Admin) ────┘
-    │              │
-    ▼              ▼
-Phase 8 (Polish)
-```
+1. Phase 1 -> Phase 2 -> Phases 3 to 6 -> Phases 7 and 8 -> Phase 9
+2. Phase 2 blocks all user story implementation.
+3. Phase 9 starts after targeted stories are implemented.
 
-- **US3 (P1)**: First UI story — provides the LoginForm/RegisterForm/GoogleButton components
-- **US1 (P1)**: After US3 — backend registration + wiring the RegisterForm
-- **US2 (P2)**: After US1 — Google OAuth flow reuses auth patterns from registration
-- **US4 (Profile)**: After Phase 2 — independent of US1/US2, can run in parallel
-- **US5 (Admin)**: After Phase 2 — independent of US4, can run in parallel
+### Within each user story
 
-### Within Each User Story
+1. Tests first (must fail before implementation).
+2. Backend domain/services before routes.
+3. Frontend integration after backend contracts are stable.
+4. Story checkpoint validation before moving on.
 
-1. Tests written **FIRST** and verified to FAIL (TDD)
-2. Backend implementation (models → services → routes)
-3. Frontend implementation (composables → components → pages)
-4. Story checkpoint validation
+---
 
-### Parallel Opportunities
+## Parallel Execution Examples
 
-**Phase 2 parallel batch (after migrations T004–T005):**
+### US3
 
-```
-T006 (User model) | T007 (Player model) | T008 (RBAC) | T009 (Auth middleware) | T011 (Auth store)
-```
+- T016 in `packages/frontend/tests/unit/login-page.test.ts`
+- T017 in `packages/frontend/tests/unit/register-form.test.ts`
+- T018 in `packages/frontend/tests/unit/login-regression.test.ts`
 
-**Phase 3 parallel batch:**
+### US1
 
-```
-T012 (LoginForm test) | T013 (RegisterForm test)
-T014 (LoginForm) | T015 (RegisterForm) | T016 (GoogleButton)
-```
+- T023 in `packages/cms/tests/integration/auth-register.test.ts`
+- T024 in `packages/cms/tests/unit/AuthService.test.ts`
+- T026 in `packages/frontend/tests/unit/register-submit.test.ts`
 
-**Phase 6 parallel batch (after T034 ProfileService + T035 routes):**
+### US4
 
-```
-T036 (useProfile) | T037 (ProfileHeader) | T038 (ProfileEditForm) | T039 (JerseySvg) | T040 (GuestsList)
-```
+- T031 in `packages/cms/tests/integration/onboarding.test.ts`
+- T032 in `packages/cms/tests/unit/OnboardingService.test.ts`
+- T033 in `packages/frontend/tests/unit/onboarding-page.test.ts`
 
-**Cross-story parallelism (after Phase 3):**
+### US2
 
-```
-Developer A: Phase 4 (US1) → Phase 5 (US2)
-Developer B: Phase 6 (US4 Profile) → Phase 7 (US5 Admin)
-```
+- T041 in `packages/cms/tests/integration/google-oauth.test.ts`
+- T043 in `packages/frontend/tests/unit/google-callback.test.ts`
+
+### US5
+
+- T048 in `packages/cms/tests/unit/ProfileService.test.ts`
+- T049 in `packages/cms/tests/integration/profile.test.ts`
+- T050 in `packages/frontend/tests/unit/profile-components.test.ts`
+
+### US6
+
+- T059 in `packages/cms/tests/integration/role-management.test.ts`
+- T060 in `packages/cms/tests/unit/UserService.test.ts`
+- T062 in `packages/cms/tests/integration/game-dt-permissions.test.ts`
 
 ---
 
 ## Implementation Strategy
 
-### MVP First (US3 + US1)
+### MVP first (US3 + US1 + US4)
 
-1. Complete Phase 1: Setup
-2. Complete Phase 2: Foundational (CRITICAL — blocks all stories)
-3. Complete Phase 3: US3 — Login page redesign
-4. Complete Phase 4: US1 — Email registration
-5. **STOP and VALIDATE**: New users can register via email, sign in, reach authenticated area
-6. Deploy/demo MVP
+1. Complete Phase 1 and Phase 2.
+2. Deliver US3 (entry UI), US1 (email registration), and US4 (onboarding).
+3. Validate independent acceptance criteria before extending scope.
 
-### Incremental Delivery
+### Incremental delivery
 
-1. Setup + Foundational → Foundation ready (migrations applied, login works with firstName/lastName)
-2. US3 + US1 → Email registration MVP → Deploy/Demo
-3. US2 → Google sign-in → Deploy/Demo
-4. US4 → Profile page → Deploy/Demo
-5. US5 → Admin role management → Deploy/Demo
-6. Polish → Cross-cutting cleanup → Final release
+1. Add US2 (Google sign-in) after MVP stabilization.
+2. Add US5 (profile/player features) once onboarding state is stable.
+3. Add US6 (admin role management + DT permissions).
+4. Finish with Phase 9 consistency/regression/coverage gates.
 
-### Parallel Team Strategy
+### Team parallelization
 
-With two developers:
-
-1. Both developers complete Phase 1 + Phase 2 together
-2. Once Foundational is done:
-   - **Developer A**: Phase 3 (US3) → Phase 4 (US1) → Phase 5 (US2) → Phase 8
-   - **Developer B**: Phase 6 (US4 Profile) → Phase 7 (US5 Admin) → Phase 8
-3. Stories complete and integrate independently
+1. After Phase 2, split teams across US2, US5, and US6 while MVP track is stabilized.
+2. Keep contract sync tasks (T068, T069) as final convergence work.
 
 ---
 
 ## Notes
 
-- [P] tasks = different files, no dependencies on incomplete tasks
-- [USn] label maps task to specific user story for traceability
-- TDD mandate: write tests first, verify they fail, then implement
-- All UI labels in Spanish (Argentine dialect) per existing convention
-- `useRuntime()` composable required for client/server branching in Nuxt files
-- Explicit imports required in all Nuxt files (no auto-imports)
-- Commit after each task or logical group
-- Stop at any checkpoint to validate story independently
+- Keep all labels, messages, and UX copy in Spanish.
+- Preserve session-storage token behavior.
+- Onboarding completion endpoint remains single source of truth for player linkage.
+- This task set intentionally covers FR-001 through FR-037.

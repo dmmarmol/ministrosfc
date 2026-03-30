@@ -25,7 +25,7 @@ describe("Auth register (integration)", () => {
     lastName: "Pérez",
   };
 
-  it("POST /api/v1/auth/register → 201 with tokens and PLAYER role", async () => {
+  it("POST /api/v1/auth/register → 201 with tokens, PLAYER role, and nextStep", async () => {
     const res = await request(app)
       .post("/api/v1/auth/register")
       .send(validPayload);
@@ -37,9 +37,11 @@ describe("Auth register (integration)", () => {
     expect(res.body.data.user.firstName).toBe("Juan");
     expect(res.body.data.user.lastName).toBe("Pérez");
     expect(res.body.data.user.email).toBe("nuevo@ministrosfc.test");
+    expect(res.body.data.user.onboardingCompletedAt).toBeNull();
+    expect(res.body.data.nextStep).toBe("/auth/onboarding");
   });
 
-  it("auto-creates Player record with ACTIVE status and REGISTERED type", async () => {
+  it("does NOT auto-create Player record (deferred to onboarding)", async () => {
     const res = await request(app)
       .post("/api/v1/auth/register")
       .send(validPayload);
@@ -52,23 +54,18 @@ describe("Auth register (integration)", () => {
     });
 
     expect(user).not.toBeNull();
-    expect(user!.player).not.toBeNull();
-    expect(user!.player!.status).toBe("ACTIVE");
-    expect(user!.player!.playerType).toBe("REGISTERED");
-    expect(user!.player!.firstName).toBe("Juan");
-    expect(user!.player!.lastName).toBe("Pérez");
+    expect(user!.playerId).toBeNull();
+    expect(user!.player).toBeNull();
+    expect(user!.onboardingCompletedAt).toBeNull();
   });
 
-  it("auto-creates Contact record linked to Player", async () => {
-    await request(app).post("/api/v1/auth/register").send(validPayload);
+  it("accepts optional isPlayer field in request body", async () => {
+    const res = await request(app)
+      .post("/api/v1/auth/register")
+      .send({ ...validPayload, isPlayer: false });
 
-    const player = await prisma.player.findFirst({
-      where: { firstName: "Juan", lastName: "Pérez" },
-      include: { contactInfo: true },
-    });
-
-    expect(player).not.toBeNull();
-    expect(player!.contactInfo).not.toBeNull();
+    expect(res.status).toBe(201);
+    expect(res.body.data.user.role).toBe("PLAYER");
   });
 
   it("returns 409 for duplicate email", async () => {

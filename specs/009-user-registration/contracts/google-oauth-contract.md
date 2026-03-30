@@ -1,6 +1,6 @@
 # Contract: Google OAuth
 
-**Spec**: [spec.md](../spec.md) | **FRs**: FR-008 to FR-011
+**Spec**: [spec.md](../spec.md) | **FRs**: FR-008 to FR-011, FR-032 to FR-037
 **Research**: [research.md](../research.md#topic-1)
 
 ---
@@ -51,9 +51,10 @@ Location: https://accounts.google.com/o/oauth2/v2/auth?
 4. Account resolution:
    a. Find User by `googleSubjectId` = `sub` → sign in existing account
    b. Find User by `email` → link `googleSubjectId`, sign in
-   c. No match → create User (`passwordHash=null`, `googleSubjectId=sub`, `role=PLAYER`) + create Player → sign in
+   c. No match → create User (`passwordHash=null`, `googleSubjectId=sub`, `role=PLAYER`, `onboardingCompletedAt=null`) → sign in
 5. Generate JWT access token + refresh token (same as login/register)
 6. Store refresh token in Redis (30d TTL)
+7. Redirect to frontend callback where onboarding gate decides next route
 
 ### Response — 302 Found
 
@@ -87,7 +88,8 @@ Note: Errors redirect to frontend login page with error query param (not JSON), 
 3. Store tokens in auth store (same as login flow)
 4. Decode access token to get user info (or fetch /api/v1/auth/me)
 5. Clear query params from URL
-6. Navigate to role-appropriate landing page
+6. Call onboarding status endpoint
+7. Navigate to `/auth/onboarding` when incomplete, else role-appropriate landing page
 ```
 
 ### Error display (on /login)

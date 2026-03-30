@@ -9,6 +9,7 @@ interface UserInfo {
   email: string;
   role: UserRole;
   playerId?: string | null;
+  onboardingCompletedAt?: string | null;
 }
 
 interface AuthState {
@@ -37,6 +38,8 @@ export const useAuthStore = defineStore("auth", {
       state.user?.role === "DT",
     fullName: (state) =>
       state.user ? `${state.user.firstName} ${state.user.lastName}` : "",
+    needsOnboarding: (state) =>
+      state.user != null && !state.user.onboardingCompletedAt,
   },
 
   actions: {
@@ -65,6 +68,7 @@ export const useAuthStore = defineStore("auth", {
       passwordConfirmation: string;
       firstName: string;
       lastName: string;
+      isPlayer: boolean;
     }) {
       const config = useRuntimeConfig();
       const data = await $fetch<{

@@ -13,17 +13,18 @@ jest.mock("../../src/middleware/rate-limiter", () => ({
 }));
 
 // Mock google-auth-library
-const mockGetToken = jest.fn();
-const mockVerifyIdToken = jest.fn();
+const mockFns = {
+  getToken: jest.fn(),
+  verifyIdToken: jest.fn(),
+};
 jest.mock("google-auth-library", () => ({
   OAuth2Client: jest.fn().mockImplementation(() => ({
-    generateAuthUrl: jest
-      .fn()
-      .mockReturnValue(
-        "https://accounts.google.com/o/oauth2/v2/auth?mock=true",
-      ),
-    getToken: mockGetToken,
-    verifyIdToken: mockVerifyIdToken,
+    generateAuthUrl: jest.fn().mockImplementation((opts: any) => {
+      const state = opts?.state ?? "";
+      return `https://accounts.google.com/o/oauth2/v2/auth?mock=true&state=${state}`;
+    }),
+    getToken: (...args: any[]) => mockFns.getToken(...args),
+    verifyIdToken: (...args: any[]) => mockFns.verifyIdToken(...args),
   })),
 }));
 
@@ -62,15 +63,15 @@ describe("Google OAuth (integration)", () => {
     };
 
     function setupMockGoogleResponse() {
-      mockGetToken.mockResolvedValue({
+      mockFns.getToken.mockResolvedValue({
         tokens: { id_token: "mock-id-token", access_token: "mock-access" },
       });
-      mockVerifyIdToken.mockResolvedValue({
+      mockFns.verifyIdToken.mockResolvedValue({
         getPayload: () => mockGooglePayload,
       });
     }
 
-    it("creates new user + player on first-time Google sign-in", async () => {
+    it("creates new user without player on first-time Google sign-in (onboarding pending)", async () => {
       setupMockGoogleResponse();
 
       // First get the state cookie
@@ -102,7 +103,9 @@ describe("Google OAuth (integration)", () => {
       expect(user!.lastName).toBe("Gómez");
       expect(user!.role).toBe("PLAYER");
       expect(user!.passwordHash).toBeNull();
-      expect(user!.player).not.toBeNull();
+      // No Player created — onboarding handles that
+      expect(user!.player).toBeNull();
+      expect(user!.onboardingCompletedAt).toBeNull();
     });
 
     it("signs in existing user when googleSubjectId matches", async () => {
@@ -205,8 +208,8 @@ describe("Google OAuth (integration)", () => {
     });
 
     it("redirects to login with error when token exchange fails", async () => {
-      mockGetToken.mockRejectedValue(new Error("Token exchange failed"));
-      mockVerifyIdToken.mockResolvedValue({ getPayload: () => null });
+      mockFns.getToken.mockRejectedValue(new Error("Token exchange failed"));
+      mockFns.verifyIdToken.mockResolvedValue({ getPayload: () => null });
 
       const initRes = await request(app).get("/api/v1/auth/google");
       const cookies = initRes.headers["set-cookie"];

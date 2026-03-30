@@ -19,6 +19,7 @@ import { authRouter } from "../routes/auth";
 import { participantRouter } from "../routes/participants";
 import { profileRouter } from "../routes/profile";
 import { usersRouter } from "../routes/users";
+import { onboardingRouter } from "../routes/onboarding";
 
 export function createApp(): Application {
   const app = express();
@@ -67,6 +68,7 @@ export function createApp(): Application {
   app.use("/api/v1/statistics", statisticsRouter);
   app.use("/api/v1/profile", profileRouter);
   app.use("/api/v1/admin/users", usersRouter);
+  app.use("/api/v1/onboarding", onboardingRouter);
 
   // Global error handler (must be last)
   app.use(globalErrorHandler);

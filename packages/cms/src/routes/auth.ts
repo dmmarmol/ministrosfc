@@ -33,6 +33,7 @@ const registerSchema = z
     passwordConfirmation: z.string(),
     firstName: z.string().min(1, "Requerido").max(255).trim(),
     lastName: z.string().min(1, "Requerido").max(255).trim(),
+    isPlayer: z.boolean().optional().default(true),
   })
   .refine((d) => d.password === d.passwordConfirmation, {
     message: "Las contraseñas no coinciden",

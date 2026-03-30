@@ -1,12 +1,12 @@
 # Contract: Auth Registration
 
-**Spec**: [spec.md](../spec.md) | **FRs**: FR-001 to FR-007, FR-012 to FR-015, FR-017
+**Spec**: [spec.md](../spec.md) | **FRs**: FR-001 to FR-007, FR-012 to FR-017, FR-031 to FR-037
 
 ---
 
 ## POST /api/v1/auth/register
 
-**Purpose**: Create a new user account via email + password, auto-create linked Player record.
+**Purpose**: Create a new user account via email + password and start unified onboarding flow.
 
 **Auth**: None (public)
 **Rate limit**: 5 requests per 15 minutes per IP
@@ -19,7 +19,8 @@
   "password": "MiClave123!",
   "passwordConfirmation": "MiClave123!",
   "firstName": "Juan",
-  "lastName": "Pérez"
+  "lastName": "Pérez",
+  "isPlayer": true
 }
 ```
 
@@ -30,6 +31,7 @@
 - `passwordConfirmation`: must match `password`
 - `firstName`: 1–255 chars, trimmed
 - `lastName`: 1–255 chars, trimmed
+- `isPlayer`: optional boolean, defaults to `true`
 
 ### Response — 201 Created
 
@@ -41,10 +43,12 @@
       "email": "jugador@ejemplo.com",
       "firstName": "Juan",
       "lastName": "Pérez",
-      "role": "PLAYER"
+      "role": "PLAYER",
+      "onboardingCompletedAt": null
     },
     "accessToken": "eyJ...",
-    "refreshToken": "eyJ..."
+    "refreshToken": "eyJ...",
+    "nextStep": "/auth/onboarding"
   }
 }
 ```
@@ -60,11 +64,11 @@
 ### Side Effects
 
 1. Creates `User` record with `role=PLAYER`, `passwordHash` (bcrypt, cost 12)
-2. Creates `Player` record with `status=ACTIVE`, `playerType=REGISTERED`, `firstName`/`lastName` copied from User
-3. Links User → Player via `User.playerId`
-4. Creates `Contact` record (empty) linked to Player
-5. Stores refresh token in Redis with 30d TTL (`session:refresh:{token}`)
-6. Invalidates player search cache in Redis
+2. Sets `onboardingCompletedAt = null`
+3. Stores initial `isPlayer` preference for onboarding prefill (optional implementation detail)
+4. Stores refresh token in Redis with 30d TTL (`session:refresh:{token}`)
+5. Returns `nextStep` pointing to `/auth/onboarding`
+6. `Player` record creation is deferred to onboarding completion endpoint
 
 ---
 
@@ -82,7 +86,9 @@
       "email": "jugador@ejemplo.com",
       "firstName": "Juan",
       "lastName": "Pérez",
-      "role": "PLAYER"
+      "role": "PLAYER",
+      "playerId": "uuid-or-null",
+      "onboardingCompletedAt": "2026-03-25T14:00:00.000Z"
     },
     "accessToken": "eyJ...",
     "refreshToken": "eyJ..."

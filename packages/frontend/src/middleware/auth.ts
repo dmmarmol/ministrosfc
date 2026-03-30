@@ -22,6 +22,23 @@ export default defineNuxtRouteMiddleware((to) => {
   const authStore = useAuthStore();
   authStore.loadFromStorage();
 
+  // Allow access to onboarding page without redirect loops
+  if (to.path === "/auth/onboarding") {
+    if (!authStore.isAuthenticated) {
+      return navigateTo("/login");
+    }
+    return;
+  }
+
+  // Redirect authenticated users with incomplete onboarding
+  if (
+    authStore.isAuthenticated &&
+    authStore.needsOnboarding &&
+    to.path !== "/login"
+  ) {
+    return navigateTo("/auth/onboarding");
+  }
+
   // If navigating to /login while already authenticated, redirect away
   if (to.path === "/login" && authStore.isAuthenticated) {
     return navigateTo(
