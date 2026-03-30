@@ -68,7 +68,6 @@ export const useAuthStore = defineStore("auth", {
       passwordConfirmation: string;
       firstName: string;
       lastName: string;
-      isPlayer: boolean;
     }) {
       const config = useRuntimeConfig();
       const data = await $fetch<{

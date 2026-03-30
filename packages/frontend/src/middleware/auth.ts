@@ -42,7 +42,7 @@ export default defineNuxtRouteMiddleware((to) => {
   // If navigating to /login while already authenticated, redirect away
   if (to.path === "/login" && authStore.isAuthenticated) {
     return navigateTo(
-      authStore.isEditor ? "/admin/dashboard" : "/player/games",
+      authStore.isEditor ? "/admin/dashboard" : "/",
     );
   }
 

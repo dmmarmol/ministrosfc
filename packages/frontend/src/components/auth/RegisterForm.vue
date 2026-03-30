@@ -15,7 +15,6 @@ const emit = defineEmits<{
       email: string;
       password: string;
       passwordConfirmation: string;
-      isPlayer: boolean;
     },
   ];
 }>();
@@ -26,7 +25,6 @@ const form = reactive({
   email: "",
   password: "",
   passwordConfirmation: "",
-  isPlayer: true,
 });
 
 const mismatchError = ref(false);
@@ -50,7 +48,6 @@ function handleSubmit() {
     email: form.email,
     password: form.password,
     passwordConfirmation: form.passwordConfirmation,
-    isPlayer: form.isPlayer,
   });
 }
 </script>
@@ -156,18 +153,7 @@ function handleSubmit() {
         placeholder="••••••••"
       />
     </div>
-    <label
-      for="isPlayer"
-      class="flex items-start gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
-    >
-      <input
-        id="isPlayer"
-        v-model="form.isPlayer"
-        type="checkbox"
-        class="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand/50"
-      />
-      <span class="text-sm text-gray-700">Eres un jugador del equipo?</span>
-    </label>
+
     <p
       v-if="mismatchError"
       class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2"

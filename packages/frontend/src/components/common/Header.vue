@@ -14,7 +14,7 @@
         </div>
         <div>
           <h1 class="text-2xl font-bold leading-tight">Ministros FC</h1>
-          <p class="text-xs text-yellow-100 opacity-80">Est. 2024</p>
+          <p class="text-xs text-yellow-100 opacity-80">Desde 2023</p>
         </div>
       </NuxtLink>
     </div>

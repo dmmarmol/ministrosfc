@@ -55,25 +55,34 @@ const mobileOpen = ref(false);
           >
         </li>
       </ul>
-      <!-- Auth button -->
+      <!-- Auth button (client-only to avoid hydration mismatch from storage-based auth state) -->
       <div class="flex items-center gap-3">
-        <template v-if="authStore.isAuthenticated">
-          <AdminProfileMenu v-if="authStore.isEditor" />
-          <button
-            v-else
-            class="text-xs text-gray-400 hover:text-white transition-colors"
-            @click="authStore.logout()"
-          >
-            Cerrar sesión
-          </button>
-        </template>
-        <template v-else>
-          <NuxtLink
-            to="/login"
-            class="text-xs bg-brand text-gray-900 font-semibold px-3 py-1.5 rounded hover:opacity-90 transition-opacity"
-            >Iniciar sesión</NuxtLink
-          >
-        </template>
+        <ClientOnly>
+          <template v-if="authStore.isAuthenticated">
+            <AdminProfileMenu v-if="authStore.isEditor" />
+            <button
+              v-else
+              class="text-xs text-gray-400 hover:text-white transition-colors"
+              @click="authStore.logout()"
+            >
+              Cerrar sesión
+            </button>
+          </template>
+          <template v-else>
+            <NuxtLink
+              to="/login"
+              class="text-xs bg-brand text-gray-900 font-semibold px-3 py-1.5 rounded hover:opacity-90 transition-opacity"
+              >Iniciar sesión</NuxtLink
+            >
+          </template>
+          <template #fallback>
+            <NuxtLink
+              to="/login"
+              class="text-xs bg-brand text-gray-900 font-semibold px-3 py-1.5 rounded hover:opacity-90 transition-opacity"
+              >Iniciar sesión</NuxtLink
+            >
+          </template>
+        </ClientOnly>
       </div>
       <!-- Mobile hamburger -->
       <button

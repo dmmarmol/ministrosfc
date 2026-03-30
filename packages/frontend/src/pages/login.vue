@@ -33,12 +33,14 @@ function toggleMode() {
 
 async function navigateAfterAuth() {
   const redirect = route.query.redirect as string | undefined;
-  if (redirect) {
+  if (authStore.needsOnboarding) {
+    await router.push("/auth/onboarding");
+  } else if (redirect) {
     await router.push(redirect);
   } else if (authStore.isEditor) {
     await router.push("/admin/dashboard");
   } else {
-    await router.push("/player/games");
+    await router.push("/");
   }
 }
 
@@ -61,7 +63,6 @@ async function handleRegister(payload: {
   email: string;
   password: string;
   passwordConfirmation: string;
-  isPlayer: boolean;
 }) {
   error.value = "";
   loading.value = true;

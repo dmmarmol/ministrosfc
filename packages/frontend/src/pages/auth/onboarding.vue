@@ -59,7 +59,7 @@ async function navigateAfterOnboarding() {
   if (authStore.isEditor) {
     await router.push("/admin/dashboard");
   } else {
-    await router.push("/player/games");
+    await router.push("/");
   }
 }
 
