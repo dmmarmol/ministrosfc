@@ -48,6 +48,10 @@ onMounted(async () => {
 
 async function handleSave(data: Record<string, unknown>) {
   await updateProfile(data);
+  if (profile.value) {
+    previewJerseyNumber.value = profile.value.player.jerseyNumber;
+    previewLastName.value = profile.value.player.lastName;
+  }
 }
 
 async function handlePhotoUpload(file: File) {

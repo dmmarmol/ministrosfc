@@ -102,3 +102,12 @@ The existing `fetchJerseyAvailability` lives inside `useProfile()` which require
 
 - [x] T017 Create reusable `IsPlayerCheckbox.vue` in `packages/frontend/src/components/ui/IsPlayerCheckbox.vue` with `modelValue: boolean` prop, optional `label` and `description` props, and use it in `packages/frontend/src/components/auth/RegisterForm.vue` and `packages/frontend/src/pages/auth/onboarding.vue`
 - [x] T018 Replace hand-rolled `JerseySvg.vue` with `soccer-jersey` npm package in `packages/frontend/src/components/profile/JerseySvg.vue`
+
+---
+
+## Phase 8: Bug Fixes — Profile Update Stale Response
+
+**Root cause**: `ProfileService.updateProfile` called `ProfileService.getProfile(userId)` inside a `prisma.$transaction()` callback using the outer `prisma` client (not `tx`). With READ COMMITTED isolation, this reads pre-transaction data, returning the old values in the 200 OK response. The frontend `watch` then resets the form to those stale values.
+
+- [x] T019 Fix stale PATCH response in `packages/cms/src/services/ProfileService.ts`: change `return prisma.$transaction(async (tx) => { ... return ProfileService.getProfile(userId) })` to `await prisma.$transaction(...)` and call `return ProfileService.getProfile(userId)` after the transaction closes, so the read sees committed data
+- [x] T020 Sync jersey preview after save in `packages/frontend/src/pages/profile/player.vue`: after `await updateProfile(data)` completes, update `previewJerseyNumber` and `previewLastName` from the confirmed `profile.value` so the jersey SVG reflects the saved values

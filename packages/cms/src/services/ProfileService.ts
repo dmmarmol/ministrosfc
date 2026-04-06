@@ -130,7 +130,7 @@ export const ProfileService = {
       status?: "ACTIVE" | "INACTIVE";
     },
   ) {
-    return prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({
         where: { id: userId },
         include: { player: true },
@@ -215,8 +215,9 @@ export const ProfileService = {
         // Non-critical
       }
 
-      return ProfileService.getProfile(userId);
     });
+
+    return ProfileService.getProfile(userId);
   },
 
   async updatePhoto(userId: string, file: UploadedFile) {
