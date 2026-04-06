@@ -2,48 +2,17 @@ import { ref } from "vue";
 import { useAuthStore } from "~/stores/auth";
 import { useRuntimeConfig } from "nuxt/app";
 import { useJerseyAvailability } from "~/composables/useJerseyAvailability";
+import {
+  type PlayerProfileResponse,
+  type UpdatePlayerProfilePayload,
+} from "@ministrosfc/shared";
 
-export interface ProfileData {
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-    hasPassword: boolean;
-    hasGoogle: boolean;
-    createdAt: string;
-  };
-  player: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    nickname: string | null;
-    position: string | null;
-    jerseyNumber: number | null;
-    dateOfBirth: string | null;
-    address: string | null;
-    photoUrl: string | null;
-    status: string;
-    playerType: string;
-  };
-  contact: {
-    phone: string | null;
-    whatsapp: string | null;
-    emergencyContact: string | null;
-  };
-  invitedGuests: Array<{
-    id: string;
-    firstName: string;
-    lastName: string;
-    game: { id: string; date: string; opponent: string | null } | null;
-  }>;
-}
+export type { PlayerProfileResponse };
 
 export function useProfile() {
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
-  const profile = ref<ProfileData | null>(null);
+  const profile = ref<PlayerProfileResponse | null>(null);
   const loading = ref(false);
   const error = ref("");
 
@@ -51,7 +20,7 @@ export function useProfile() {
     loading.value = true;
     error.value = "";
     try {
-      const res = await $fetch<{ data: ProfileData }>(
+      const res = await $fetch<{ data: PlayerProfileResponse }>(
         `${config.public.apiBaseUrl}/api/v1/profile/player`,
         { headers: { Authorization: `Bearer ${authStore.accessToken}` } },
       );
@@ -63,11 +32,11 @@ export function useProfile() {
     }
   }
 
-  async function updateProfile(data: Record<string, unknown>) {
+  async function updateProfile(data: UpdatePlayerProfilePayload) {
     loading.value = true;
     error.value = "";
     try {
-      const res = await $fetch<{ data: ProfileData }>(
+      const res = await $fetch<{ data: PlayerProfileResponse }>(
         `${config.public.apiBaseUrl}/api/v1/profile/player`,
         {
           method: "PATCH",

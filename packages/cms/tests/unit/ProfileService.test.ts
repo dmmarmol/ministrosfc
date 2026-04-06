@@ -98,6 +98,31 @@ describe("ProfileService", () => {
   });
 
   describe("updateProfile", () => {
+    const fullMockUser = {
+      id: "u1",
+      email: "test@test.com",
+      firstName: "Carlos",
+      lastName: "Pérez",
+      role: "PLAYER",
+      passwordHash: null,
+      googleSubjectId: null,
+      createdAt: new Date(),
+      player: {
+        id: "p1",
+        firstName: "Carlos",
+        lastName: "Pérez",
+        nickname: null,
+        position: null,
+        jerseyNumber: null,
+        dateOfBirth: null,
+        address: null,
+        photoUrl: null,
+        status: "ACTIVE",
+        playerType: "REGISTERED",
+        contactInfo: null,
+      },
+    };
+
     it("updates user and player fields in transaction", async () => {
       mockPrisma.user.update.mockResolvedValue({
         id: "u1",
@@ -110,12 +135,13 @@ describe("ProfileService", () => {
         lastName: "Pérez",
       });
       mockPrisma.contact.upsert.mockResolvedValue({});
-      mockPrisma.user.findUnique.mockResolvedValue({
-        id: "u1",
-        playerId: "p1",
-        player: { id: "p1" },
-      });
+      // First call: inside transaction (needs id+playerId+player)
+      // Second call: inside getProfile after transaction (needs full user)
+      mockPrisma.user.findUnique
+        .mockResolvedValueOnce({ id: "u1", playerId: "p1", player: { id: "p1" } })
+        .mockResolvedValueOnce(fullMockUser);
       mockPrisma.player.findFirst.mockResolvedValue(null); // no jersey conflict
+      mockPrisma.player.findMany.mockResolvedValue([]); // no invited guests
 
       mockPrisma.$transaction.mockImplementation(async (cb: any) =>
         cb(mockPrisma),

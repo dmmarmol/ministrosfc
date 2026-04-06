@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { UserRole, PlayerStatus } from "@ministrosfc/shared";
 
-/** @TODO try to use existing types or type values to enforce typing here */
 const props = defineProps<{
   firstName: string;
   lastName: string;
-  role: string;
-  status: string;
+  role: UserRole;
+  status: PlayerStatus;
   photoUrl: string | null;
   createdAt: string;
 }>();
@@ -25,18 +25,17 @@ const memberSince = computed(() => {
 });
 
 const roleBadgeClass = computed(() => {
-  /** @TODO try to use existing types to enforce typing here instead of Record<string, string> */
-  const classes: Record<string, string> = {
-    ADMIN: "bg-red-100 text-red-800",
-    EDITOR: "bg-purple-100 text-purple-800",
-    DT: "bg-blue-100 text-blue-800",
-    PLAYER: "bg-green-100 text-green-800",
+  const classes: Record<UserRole, string> = {
+    [UserRole.ADMIN]: "bg-red-100 text-red-800",
+    [UserRole.EDITOR]: "bg-purple-100 text-purple-800",
+    [UserRole.DT]: "bg-blue-100 text-blue-800",
+    [UserRole.PLAYER]: "bg-green-100 text-green-800",
   };
   return classes[props.role] ?? "bg-gray-100 text-gray-800";
 });
 
 const statusBadgeClass = computed(() =>
-  props.status === "ACTIVE"
+  props.status === PlayerStatus.ACTIVE
     ? "bg-emerald-100 text-emerald-800"
     : "bg-gray-100 text-gray-500",
 );

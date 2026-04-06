@@ -2,38 +2,26 @@
 import { reactive, watch, computed } from "vue";
 import JerseyNumberInput from "~/components/ui/JerseyNumberInput.vue";
 import IsPlayerCheckbox from "~/components/ui/IsPlayerCheckbox.vue";
+import {
+  PlayerStatus,
+  Position,
+  type UpdatePlayerProfilePayload,
+} from "@ministrosfc/shared";
 
-/** @TODO try to use existing types or type values to enforce typing here */
-const positions = [
-  "GK",
-  "CB",
-  "RB",
-  "LB",
-  "RWB",
-  "LWB",
-  "DMF",
-  "CMF",
-  "AMF",
-  "RMF",
-  "LMF",
-  "SS",
-  "CF",
-  "RWF",
-  "LWF",
-];
+const positions = Object.values(Position);
 
 interface ProfileFields {
   firstName: string;
   lastName: string;
   nickname: string;
-  position: string;
+  position: Position | "";
   jerseyNumber: number | null;
   dateOfBirth: string;
   address: string;
   phone: string;
   whatsapp: string;
   emergencyContact: string;
-  status: string;
+  status: PlayerStatus;
 }
 
 const props = defineProps<{
@@ -44,7 +32,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  save: [data: Partial<ProfileFields>];
+  save: [data: UpdatePlayerProfilePayload];
   jerseyChange: [value: number | null];
   lastNameChange: [value: string];
 }>();
@@ -60,7 +48,7 @@ const form = reactive<ProfileFields>({
   phone: props.profile.phone ?? "",
   whatsapp: props.profile.whatsapp ?? "",
   emergencyContact: props.profile.emergencyContact ?? "",
-  status: props.profile.status ?? "ACTIVE",
+  status: props.profile.status ?? PlayerStatus.ACTIVE,
 });
 
 watch(
@@ -76,13 +64,13 @@ watch(
     form.phone = p.phone ?? "";
     form.whatsapp = p.whatsapp ?? "";
     form.emergencyContact = p.emergencyContact ?? "";
-    form.status = p.status ?? "ACTIVE";
+    form.status = p.status ?? PlayerStatus.ACTIVE;
   },
   { deep: true },
 );
 
 function handleSubmit() {
-  emit("save", { ...form });
+  emit("save", { ...form, position: form.position || null });
 }
 
 const jerseyIsTaken = computed(
@@ -92,9 +80,9 @@ const jerseyIsTaken = computed(
 );
 
 const isActive = computed({
-  get: () => form.status === "ACTIVE",
+  get: () => form.status === PlayerStatus.ACTIVE,
   set: (val: boolean) => {
-    form.status = val ? "ACTIVE" : "INACTIVE";
+    form.status = val ? PlayerStatus.ACTIVE : PlayerStatus.INACTIVE;
   },
 });
 </script>

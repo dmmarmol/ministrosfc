@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { formatDate } from "~/utils/formatDate";
+
 interface GuestGame {
   id: string;
   date: string;
@@ -15,15 +17,6 @@ interface Guest {
 defineProps<{
   guests: Guest[];
 }>();
-
-/** @TODO consider moving this generic date formatting function to a utility file */
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("es-AR", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
 </script>
 
 <template>

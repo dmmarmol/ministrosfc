@@ -8,7 +8,7 @@ import multer from "multer";
 import { authenticate } from "../middleware/auth";
 import { ProfileService } from "../services/ProfileService";
 import { z } from "zod";
-import { Position } from "@prisma/client";
+import { Position, PlayerStatus } from "@ministrosfc/shared";
 import { prisma } from "../config/database";
 
 const router = Router();
@@ -28,7 +28,7 @@ const updateProfileSchema = z.object({
   phone: z.string().max(255).optional().nullable(),
   whatsapp: z.string().max(255).optional().nullable(),
   emergencyContact: z.string().max(255).optional().nullable(),
-  status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
+  status: z.nativeEnum(PlayerStatus).optional(),
 });
 
 // GET /api/v1/profile — user-only profile (no player required)
