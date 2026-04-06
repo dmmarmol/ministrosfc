@@ -23,8 +23,10 @@ const jerseyDataUri = computed(() =>
     shirtColor: props.bgColor,
     sleeveColor: props.bgColor,
     shirtStyle: "plain",
+    shirtStyleDirection: "vertical",
     textColor: props.textColor,
-    isBack: false,
+    textOutlineColor: props.textColor,
+    isBack: true,
   }),
 );
 </script>
@@ -33,15 +35,14 @@ const jerseyDataUri = computed(() =>
   <div class="relative w-full">
     <img :src="jerseyDataUri" class="w-full h-auto" alt="Camiseta" />
     <div
-      class="absolute inset-x-0 top-[38%] flex flex-col items-center leading-none pointer-events-none"
+      class="absolute inset-x-0 w-1/2 top-[60%] left-[50%] transform -translate-x-1/2 flex flex-col items-center leading-none pointer-events-none"
     >
-      <span
-        class="text-[0.6rem] font-bold tracking-widest"
+      <p
+        class="text-[1rem] font-bold tracking-widest text-center"
         :style="{ color: textColor }"
-        >{{ displayName }}</span
       >
+        {{ displayName }}
+      </p>
     </div>
   </div>
-</template>
-
 </template>

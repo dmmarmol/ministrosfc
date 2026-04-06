@@ -20,6 +20,7 @@
         "@pinia/nuxt": "^0.5.1",
         "nuxt": "^3.9.3",
         "pinia": "^2.1.7",
+        "soccer-jersey": "^1.0.14",
         "vue": "^3.4.15"
     },
     "devDependencies": {

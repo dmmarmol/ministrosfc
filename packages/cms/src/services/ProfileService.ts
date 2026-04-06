@@ -36,6 +36,7 @@ export const ProfileService = {
   },
 
   /** Get full player profile including user data (requires player link) */
+  /** @TODO enforce return type in this method */
   async getProfile(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -214,7 +215,6 @@ export const ProfileService = {
       } catch {
         // Non-critical
       }
-
     });
 
     return ProfileService.getProfile(userId);
