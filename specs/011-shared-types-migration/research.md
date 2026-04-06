@@ -7,6 +7,7 @@
 **Rationale**: `api.ts` already holds API-contract shapes (`ApiResponse<T>`, `ErrorResponse`, etc.). `PlayerProfileResponse` is a pure API contract — it is the serialized form that crosses the network boundary between CMS and frontend. It does not belong in `player.ts` (which holds the DB/domain model `Player`) or `user.ts` (which holds `User`). Keeping API contract types together in `api.ts` maintains the existing separation of concerns.
 
 **Alternatives considered**:
+
 - New file `profile.ts` in shared/types — unnecessary for two types; `api.ts` is the right layer for response shapes.
 - Inline in `player.ts` — would conflate the DB entity model with the HTTP response projection; violates SRP.
 
@@ -19,6 +20,7 @@
 **Rationale**: Input types (request bodies) are also API contracts. They represent what the client sends in a PATCH request. Placing both the request input and response output for the same endpoint in the same file makes the contract self-contained and easy to locate. Named `Payload` (not `Input`) to signal it is the wire-format body, not a service-internal DTO.
 
 **Alternatives considered**:
+
 - Zod schema in shared — Zod is a CMS-only devDependency and is not listed in `packages/shared/package.json`; the shared package must remain framework-agnostic. The Zod schema in `profile.ts` route file stays in CMS; the TypeScript type in shared is what gets shared.
 
 ---
@@ -30,6 +32,7 @@
 **Rationale**: `packages/shared` has no Zod dependency. Adding Zod to shared just for schema-first type generation would add a cross-cutting runtime dependency to a package that should remain lightweight. The safe approach for this spec is: define `UpdatePlayerProfilePayload` as the canonical TS type in shared, annotate `ProfileService.updateProfile` to use it, and ensure the Zod schema's inferred type is compatible (verifiable at compile time via `satisfies` or explicit type annotation). Full Zod-in-shared integration is a future enhancement.
 
 **Alternatives considered**:
+
 - `z.infer<typeof updateProfileSchema>` exported from shared — requires Zod in shared package; out of scope.
 
 ---
@@ -39,19 +42,20 @@
 **Decision**: Match `ProfileService.getProfile` return exactly — no added/removed fields for this spec.
 
 Current fields:
+
 ```ts
 player: {
   id: string;
   firstName: string;
   lastName: string;
   nickname: string | null;
-  position: string | null;      // Note: Prisma returns raw string, not Position enum
+  position: string | null; // Note: Prisma returns raw string, not Position enum
   jerseyNumber: number | null;
-  dateOfBirth: Date | null;     // Note: Prisma Date — serialized as string over HTTP
+  dateOfBirth: Date | null; // Note: Prisma Date — serialized as string over HTTP
   address: string | null;
   photoUrl: string | null;
-  status: string;               // Note: Prisma returns raw string, not PlayerStatus enum
-  playerType: string;           // Note: Prisma returns raw string, not PlayerType enum
+  status: string; // Note: Prisma returns raw string, not PlayerStatus enum
+  playerType: string; // Note: Prisma returns raw string, not PlayerType enum
 }
 ```
 

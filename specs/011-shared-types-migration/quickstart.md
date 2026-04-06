@@ -45,12 +45,14 @@ npm test                              # All existing tests must pass
 ### Step 3 — Update frontend useProfile.ts and player.vue
 
 **useProfile.ts**:
+
 1. Add import: `import { type PlayerProfileResponse, type UpdatePlayerProfilePayload } from "@ministrosfc/shared";`
 2. Delete the `ProfileData` interface declaration (lines 6-40)
 3. Replace all 4 `ProfileData` references with `PlayerProfileResponse`
 4. Change `updateProfile(data: Record<string, unknown>)` param to `updateProfile(data: UpdatePlayerProfilePayload)`
 
 **player.vue** (orchestrating page — must update alongside useProfile.ts):
+
 1. Add import: `import { PlayerStatus, type UpdatePlayerProfilePayload } from "@ministrosfc/shared";`
 2. Change `async function handleSave(data: Record<string, unknown>)` → `handleSave(data: UpdatePlayerProfilePayload)`
 3. Change `status: profile.value?.player.status ?? "ACTIVE"` → `?? PlayerStatus.ACTIVE` in `editableProfile` computed
@@ -63,6 +65,7 @@ npm test                                    # All existing tests must pass
 ### Step 4 — Update frontend profile components
 
 **ProfileEditForm.vue**:
+
 1. Add import: `import { PlayerStatus, Position } from "@ministrosfc/shared";`
 2. Replace `defineProps<{...}>()` with `type Props = { profile: ProfileFields; takenJerseys: number[]; loading: boolean; error: string }` then `const props = defineProps<Props>()`
 3. Update `ProfileFields`: `position: Position | ""`, `status: PlayerStatus`
@@ -70,6 +73,7 @@ npm test                                    # All existing tests must pass
 5. Remove `@TODO` comment (line 6)
 
 **ProfileHeader.vue**:
+
 1. Add import: `import { UserRole, PlayerStatus } from "@ministrosfc/shared";`
 2. Replace `defineProps<{...}>()` with `type Props = { firstName: string; lastName: string; role: UserRole; status: PlayerStatus; photoUrl: string | null; createdAt: string }` then `const props = defineProps<Props>()`
 3. Update `roleBadgeClass` keys to `UserRole.ADMIN`, `UserRole.EDITOR`, `UserRole.DT`, `UserRole.PLAYER`
@@ -77,6 +81,7 @@ npm test                                    # All existing tests must pass
 5. Remove both `@TODO` comments
 
 **InvitedGuestsList.vue**:
+
 1. Create `packages/frontend/src/utils/formatDate.ts` with `export function formatDate(dateString: string, locale?: string): string`
 2. Import and use it in `InvitedGuestsList.vue`; remove `@TODO` comment
 
@@ -84,6 +89,7 @@ npm test                                    # All existing tests must pass
 cd packages/frontend && npx tsc --noEmit   # Must pass
 npm test                                    # All existing tests must pass
 ```
+
 ```bash
 # SC-001: zero tsc errors across all packages
 for pkg in shared cms frontend; do

@@ -13,7 +13,7 @@
 
 A developer changes a field name in the `ProfileService.getProfile` response on the CMS side. Today, the frontend `ProfileData` interface is a separate declaration in `useProfile.ts` — so TypeScript compiles successfully even though the two shapes are now out of sync, and the mismatch only surfaces at runtime.
 
-After this feature, `ProfileService.getProfile` is annotated with the return type `PlayerProfileResponse` from `@ministrosfc/shared`, and `useProfile.ts` imports the same type. The same field rename now produces a compile error in *both* packages immediately.
+After this feature, `ProfileService.getProfile` is annotated with the return type `PlayerProfileResponse` from `@ministrosfc/shared`, and `useProfile.ts` imports the same type. The same field rename now produces a compile error in _both_ packages immediately.
 
 **Why this priority**: Silent type drift between service response and frontend consumer is the root cause of the stale-data bug fixed in spec 010. Preventing recurrence requires the contract to be shared, not duplicated.
 

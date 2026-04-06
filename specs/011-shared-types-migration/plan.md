@@ -76,6 +76,7 @@ packages/frontend/src/
 **All NEEDS CLARIFICATION resolved** — no external research needed. Full findings in [research.md](research.md).
 
 Key decisions:
+
 1. New types go in `packages/shared/src/types/api.ts` (existing API contract file)
 2. No Zod dependency in shared — `UpdatePlayerProfilePayload` stays as pure TS; Zod schema stays in CMS route
 3. `dateOfBirth` and `createdAt` typed as `string` in shared (over-the-wire serialized form)
@@ -90,12 +91,14 @@ Key decisions:
 ### `PlayerProfileResponse` (add to `packages/shared/src/types/api.ts`)
 
 Requires adding imports within `api.ts`:
+
 ```ts
 import { PlayerStatus, PlayerType, Position } from "./player";
 import { UserRole } from "./user";
 ```
 
 New type:
+
 ```ts
 export interface PlayerProfileResponse {
   user: {
@@ -183,7 +186,10 @@ async updateProfile(userId: string, data: UpdatePlayerProfilePayload)
 
 ```ts
 // Add imports
-import { type PlayerProfileResponse, type UpdatePlayerProfilePayload } from "@ministrosfc/shared";
+import {
+  type PlayerProfileResponse,
+  type UpdatePlayerProfilePayload,
+} from "@ministrosfc/shared";
 
 // Delete: entire `export interface ProfileData { ... }` block
 // Replace: ProfileData → PlayerProfileResponse (all 4 occurrences: interface decl + ref + 2× $fetch)
@@ -207,8 +213,8 @@ const props = defineProps<Props>();
 // 2. Update ProfileFields to use shared enum types:
 interface ProfileFields {
   // ...
-  position: Position | "";     // was: string
-  status: PlayerStatus;         // was: string
+  position: Position | ""; // was: string
+  status: PlayerStatus; // was: string
   // ...
 }
 
@@ -283,12 +289,12 @@ All gates confirmed passing. No violations introduced.
 
 ## Risks and Mitigations
 
-| Risk | Likelihood | Mitigation |
-|---|---|---|
-| Prisma `Date` for `dateOfBirth` vs shared `string` causes tsc error | Medium | Cast: `user.player.dateOfBirth?.toISOString() ?? null` in getProfile return. Verify during Step 2. |
-| Prisma `$Enums.PlayerStatus` not assignable to shared `PlayerStatus` | Low | Same string values; structurally compatible. tsc will confirm. |
-| Frontend tests importing `ProfileData` by name | Low | `grep` scan before committing Step 3 (see quickstart.md). |
-| `ProfileEditForm.vue` uses `position: Position \| ""` — Zod route schema expects optional string | Low | Zod validates enum values at runtime; the form sends `""` → should be coerced to `undefined`/`null` at submit boundary. |
+| Risk                                                                                             | Likelihood | Mitigation                                                                                                              |
+| ------------------------------------------------------------------------------------------------ | ---------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Prisma `Date` for `dateOfBirth` vs shared `string` causes tsc error                              | Medium     | Cast: `user.player.dateOfBirth?.toISOString() ?? null` in getProfile return. Verify during Step 2.                      |
+| Prisma `$Enums.PlayerStatus` not assignable to shared `PlayerStatus`                             | Low        | Same string values; structurally compatible. tsc will confirm.                                                          |
+| Frontend tests importing `ProfileData` by name                                                   | Low        | `grep` scan before committing Step 3 (see quickstart.md).                                                               |
+| `ProfileEditForm.vue` uses `position: Position \| ""` — Zod route schema expects optional string | Low        | Zod validates enum values at runtime; the form sends `""` → should be coerced to `undefined`/`null` at submit boundary. |
 
 ---
 
