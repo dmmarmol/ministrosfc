@@ -33,6 +33,8 @@
 
 [Gates determined based on constitution file]
 
+- [ ] **Shared types gate (Principle VII)**: Are any new types used by more than one package? If yes, they MUST be added to `packages/shared/src/types/` and exported from `@ministrosfc/shared` _before_ implementation tasks begin.
+
 ## Project Structure
 
 ### Documentation (this feature)
