@@ -24,8 +24,10 @@
 
 **Independent Test**: Rename `jerseyNumber` → `jersey` in the `player` block of `PlayerProfileResponse` in `packages/shared/src/types/api.ts`. Run `tsc --noEmit` in `packages/cms` AND `packages/frontend` — both must fail.
 
-- [ ] T003 [P] [US1] Update `packages/cms/src/services/ProfileService.ts`: add import of `PlayerStatus`, `PlayerType`, `PlayerProfileResponse`, `UpdatePlayerProfilePayload` from `@ministrosfc/shared`; annotate `getProfile` return type as `Promise<PlayerProfileResponse>`; replace `data` param type in `updateProfile` with `UpdatePlayerProfilePayload`; replace all 6 raw string literals with enum values (`"GUEST"` → `PlayerType.GUEST`, `"ACTIVE"` → `PlayerStatus.ACTIVE` ×2, `"INACTIVE"` → `PlayerStatus.INACTIVE`, `"REGISTERED"` → `PlayerType.REGISTERED` ×2); remove both `@TODO` comments (covers FR-003, FR-004, FR-006, FR-007, FR-012)
+- [ ] T003 [P] [US1][US2] Update `packages/cms/src/services/ProfileService.ts`: add import of `PlayerStatus`, `PlayerType`, `PlayerProfileResponse`, `UpdatePlayerProfilePayload` from `@ministrosfc/shared`; annotate `getProfile` return type as `Promise<PlayerProfileResponse>`; replace `data` param type in `updateProfile` with `UpdatePlayerProfilePayload`; replace all 6 raw string literals with enum values (`"GUEST"` → `PlayerType.GUEST`, `"ACTIVE"` → `PlayerStatus.ACTIVE` ×2, `"INACTIVE"` → `PlayerStatus.INACTIVE`, `"REGISTERED"` → `PlayerType.REGISTERED` ×2); remove both `@TODO` comments (covers FR-003, FR-004, FR-006, FR-007, FR-012)
 - [ ] T004 [P] [US1] Update `packages/frontend/src/composables/useProfile.ts`: add import of `PlayerProfileResponse` and `UpdatePlayerProfilePayload` from `@ministrosfc/shared`; delete the `export interface ProfileData { ... }` block (lines 6–40); replace all 4 `ProfileData` references with `PlayerProfileResponse` (`ref<>`, two `$fetch<>` generics); change `updateProfile(data: Record<string, unknown>)` param to `updateProfile(data: UpdatePlayerProfilePayload)` (covers FR-005, FR-013)
+
+- [ ] T010 [P] [US1] Update `packages/frontend/src/pages/profile/player.vue`: add `import { PlayerStatus } from "@ministrosfc/shared"`; change `handleSave(data: Record<string, unknown>)` → `handleSave(data: UpdatePlayerProfilePayload)` with import of `UpdatePlayerProfilePayload`; replace the string fallback `?? "ACTIVE"` in the `editableProfile` computed (line 37) with `?? PlayerStatus.ACTIVE` (prevents tsc error after `PlayerProfileResponse.player.status` becomes `PlayerStatus`) (covers FR-010, SC-001)
 
 **Checkpoint**: US1 independently testable — compile-time drift detection works ✓
 
@@ -61,7 +63,7 @@
 
 **Purpose**: Cross-cutting final validation; confirm all success criteria from quickstart.md pass.
 
-- [ ] T009 [P] Run full verification suite from `quickstart.md`: `tsc --noEmit` across all three packages (SC-001); `grep` check for zero raw literals in `ProfileService.ts` (SC-002); `grep` check that `ProfileData` no longer declared in `useProfile.ts` (SC-003); `grep` check that `@TODO` type comments removed from `ProfileService.ts` (SC-004); run `npm test` in `packages/cms` and `packages/frontend` (SC-005); `grep` check for zero `@TODO` in `components/profile/` (SC-006)
+- [ ] T009 Run full verification suite from `quickstart.md`: `tsc --noEmit` across all three packages (SC-001); `grep` check for zero raw literals in `ProfileService.ts` (SC-002); `grep` check that `ProfileData` no longer declared in `useProfile.ts` (SC-003); `grep` check that `@TODO` type comments removed from `ProfileService.ts` (SC-004); run `npm test` in `packages/cms` and `packages/frontend` (SC-005); `grep` check for zero `@TODO` in `components/profile/` (SC-006)
 
 ---
 
@@ -82,7 +84,8 @@ T001 → T002 ──┬── T003 [P]
               ├── T004 [P]
               ├── T005 [P]
               ├── T006 [P]
-              └── T007 → T008
+              ├── T007 → T008
+              └── T010 [P]
                               └── T009
 ```
 
@@ -101,6 +104,7 @@ T004: packages/frontend/src/composables/useProfile.ts
 T005: packages/frontend/src/components/profile/ProfileEditForm.vue
 T006: packages/frontend/src/components/profile/ProfileHeader.vue
 T007: packages/frontend/src/utils/formatDate.ts  (then T008 sequentially)
+T010: packages/frontend/src/pages/profile/player.vue
 ```
 
 ---

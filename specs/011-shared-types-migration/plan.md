@@ -18,7 +18,7 @@ Migrate `PlayerProfileResponse` and `UpdatePlayerProfilePayload` into `@ministro
 **Project Type**: Type-level refactor across monorepo packages
 **Performance Goals**: N/A — compile-time only
 **Constraints**: Must not change any runtime behavior; all existing tests must pass without assertion changes
-**Scale/Scope**: 6 files modified (api.ts in shared, ProfileService.ts in cms, useProfile.ts + ProfileEditForm.vue + ProfileHeader.vue + InvitedGuestsList.vue in frontend)
+**Scale/Scope**: 7 files modified (api.ts in shared, ProfileService.ts in cms, useProfile.ts + ProfileEditForm.vue + ProfileHeader.vue + InvitedGuestsList.vue + player.vue in frontend)
 
 ---
 
@@ -61,6 +61,8 @@ packages/cms/src/
 packages/frontend/src/
 ├── composables/
 │   └── useProfile.ts       ← MODIFY: delete ProfileData, import PlayerProfileResponse, type updateProfile param
+├── pages/profile/
+│   └── player.vue          ← MODIFY: handleSave param → UpdatePlayerProfilePayload, PlayerStatus.ACTIVE fallback
 └── components/profile/
     ├── ProfileEditForm.vue  ← MODIFY: type Props + ProfileFields use PlayerStatus/Position
     ├── ProfileHeader.vue    ← MODIFY: type Props with UserRole/PlayerStatus, enum comparisons
@@ -245,6 +247,24 @@ const props = defineProps<Props>();
 // 4. Remove both @TODO comments.
 ```
 
+### Frontend: `player.vue` changes
+
+```ts
+import { PlayerStatus, type UpdatePlayerProfilePayload } from "@ministrosfc/shared";
+
+// 1. handleSave param type:
+async function handleSave(data: UpdatePlayerProfilePayload) { ... }
+
+// 2. editableProfile computed fallback:
+status: profile.value?.player.status ?? PlayerStatus.ACTIVE  // was ?? "ACTIVE"
+```
+
+**Why needed**: After `useProfile.ts` changes `updateProfile` to accept `UpdatePlayerProfilePayload`, the `player.vue` call site must pass a compatible type. `Record<string, unknown>` is not assignable to `UpdatePlayerProfilePayload` in strict mode. The `?? "ACTIVE"` string literal is also not assignable to `PlayerStatus` once `PlayerProfileResponse.player.status` carries the enum type.
+
+### Note: `type Props` vs `interface Props` (FR-014, FR-015)
+
+Constitution §V states "TypeScript interfaces required" for component props. FR-014 and FR-015 use `type Props = { ... }`. For Vue `defineProps<T>()`, `type` and `interface` are functionally identical — the Vue compiler treats them the same. The `type` keyword is used here intentionally (aligns with Vue 3 Composition API conventions in this codebase). Consider updating §V to say "TypeScript `interface` or `type` (for props)" in a future constitution amendment.
+
 ### Frontend: `InvitedGuestsList.vue` changes
 
 ```ts
@@ -277,7 +297,7 @@ All gates confirmed passing. No violations introduced.
 ```
 Step 1: packages/shared       — add PlayerProfileResponse + UpdatePlayerProfilePayload
 Step 2: packages/cms          — annotate + enum imports           (depends on Step 1)
-Step 3: packages/frontend     — useProfile.ts migration           (depends on Step 1)
+Step 3: packages/frontend     — useProfile.ts + player.vue migration  (depends on Step 1)
 Step 4: packages/frontend     — ProfileEditForm.vue + ProfileHeader.vue + InvitedGuestsList.vue  (depends on Step 1; independent of Step 2/3)
 ```
 
