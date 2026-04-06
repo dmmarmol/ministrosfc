@@ -7,10 +7,9 @@ import { createApp } from "../../src/config/server";
 
 jest.mock("../../src/middleware/rate-limiter", () => ({
   authLimiter: (_req: any, _res: any, next: any) => next(),
+  registerLimiter: (_req: any, _res: any, next: any) => next(),
   apiLimiter: (_req: any, _res: any, next: any) => next(),
-}));
-
-describe("Logging (integration)", () => {
+})); () => {
   const app = createApp();
 
   it("GET /api/v1/health → 200 (logger does not break health check)", async () => {

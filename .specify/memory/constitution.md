@@ -1,32 +1,38 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.4.0 → 1.5.0 (MINOR — Branch naming convention updated)
+Version change: 1.5.0 → 1.6.0 (MINOR — Principle VII: Shared Types added)
 Ratified: 2026-03-17
-Last Amended: 2026-03-27
+Last Amended: 2026-04-06
 
-Amendment: Branch naming convention changed from `{type}/short-description`
-to `{type}/{spec_number}-{spec_name}`. Allowed types narrowed to feat/, fix/,
-chore/, release/. `docs/` and `refactor/` removed as standalone types
-(use chore/ instead). All existing branches renamed to match.
+Amendment: New principle added: "VII. Shared Types and Cross-Package Contracts".
+Formalizes that @ministrosfc/shared is the single source of truth for all types
+used by more than one workspace package. Resolves @TODO debt in ProfileService.ts
+and useProfile.ts.
 
-Modified sections:
-  ✅ Git and Commit Conventions > Branch naming (rewritten)
+Added sections:
+  ✅ Principle VII — Shared Types and Cross-Package Contracts
+  ✅ Code Review Standards — new gate: shared type placement check
 
 Templates / agents updated:
-  ⚠ spec-template.md, plan-template.md — verify Feature Branch examples
-  ✅ 008-rename-specs-branches/spec.md — branch mapping table is historical
+  ✅ plan-template.md — Constitution Check bullet added for shared types gate
+  ✅ tasks-template.md — Phase 1 setup bullet added for shared type definitions
 
 Prior amendments (preserved):
+  ✅ v1.5.0 — Branch naming convention updated
   ✅ v1.4.0 — Package version bump prompt
   ✅ v1.3.0 — Speckit Workflow Continuity mandate
 
-Follow-up TODOs: none
+Follow-up TODOs:
+  - Migrate ProfileData (packages/frontend/src/composables/useProfile.ts)
+    into @ministrosfc/shared as the canonical profile response type
+  - Replace inline data param type in ProfileService.updateProfile with a
+    named type exported from @ministrosfc/shared
 -->
 
 # Ministros FC Constitution
 
-**Version**: 1.5.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-03-27
+**Version**: 1.6.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-06
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -152,6 +158,29 @@ This constitution establishes the architectural principles, development workflow
 - ❌ Bad: Update UI optimistically, hope the API succeeds later, silently fail on errors
 
 **Enforcement:** TypeScript strict types, code review audits, integration test coverage
+
+---
+
+### VII. Shared Types and Cross-Package Contracts
+
+**MUST** define all types shared between workspace packages in `packages/shared/src/types/` and import them via `@ministrosfc/shared`.
+
+- Any interface, enum, or type alias consumed by more than one package (`packages/cms`, `packages/frontend`, etc.) MUST originate in `@ministrosfc/shared`
+- Local package types that grow to be used by another package MUST be migrated to `@ministrosfc/shared` before the feature spec is closed
+- Frontend composables MUST NOT re-declare types already exported from `@ministrosfc/shared`
+- CMS services MUST NOT inline domain enums (e.g., `PlayerStatus`, `PlayerType`, `Position`) — import from `@ministrosfc/shared`
+- API response shapes used by both `packages/cms` route handlers and `packages/frontend` composables MUST have a named type in `@ministrosfc/shared`
+- `@TODO` comments citing type-sync debt are treated as P1 issues and MUST be resolved before the feature spec is closed
+- `Record<string, unknown>` is acceptable only inside a single service method as a transient intermediate; returning or accepting it across module boundaries is forbidden
+
+**Rationale:** Duplicated type definitions create silent drift. The `ProfileData` interface in `useProfile.ts` and the inline `data` parameter of `ProfileService.updateProfile` are currently separate, requiring manual synchronisation on every field change. Centralizing in `@ministrosfc/shared` gives TypeScript end-to-end contract verification across the monorepo at compile time.
+
+**Examples:**
+
+- ✅ Good: `export interface PlayerProfileData { ... }` in `packages/shared/src/types/api.ts`; imported in both the CMS route response and the frontend composable
+- ❌ Bad: `interface ProfileData { ... }` duplicated inside `packages/frontend/src/composables/useProfile.ts` alongside an unnamed inline type in `ProfileService.ts`
+
+**Enforcement:** TypeScript project references (`tsconfig.json`), ESLint `no-restricted-imports` rule (future), code review gate, @TODO resolution required before spec close
 
 ---
 
@@ -379,6 +408,7 @@ chore(deps): upgrade typescript to 5.x
 - [ ] New code has adequate tests
 - [ ] Breaking changes are documented
 - [ ] CHANGELOG updated if user-facing
+- [ ] Types used by more than one package are defined in `@ministrosfc/shared`, not duplicated locally
 
 **Review focus areas:**
 

@@ -1,3 +1,70 @@
+<script setup lang="ts">
+import { useAuthStore } from "~/stores/auth";
+import PlayerDeleteModal from "~/components/player/PlayerDeleteModal.vue";
+
+definePageMeta({ layout: "admin", middleware: "auth" });
+useHead({ title: "Players – Admin" });
+
+const { $api } = useNuxtApp();
+const authStore = useAuthStore();
+const playerToDelete = ref<{
+  id: string;
+  firstName: string;
+  lastName: string;
+} | null>(null);
+const search = ref("");
+const statusFilter = ref("ACTIVE");
+const posFilter = ref("");
+
+const { data, pending, refresh } = await useAsyncData("admin-players", () =>
+  $api<{ data: any[] }>("/api/v1/players", {
+    query: { status: statusFilter.value || undefined, limit: 200 },
+  }),
+);
+watch(statusFilter, () => refresh());
+
+const players = computed(() => data.value?.data ?? []);
+const filteredPlayers = computed(() => {
+  let list = players.value;
+  if (posFilter.value)
+    list = list.filter((p: any) => p.position === posFilter.value);
+  if (search.value.trim()) {
+    const q = search.value.trim().toLowerCase();
+    list = list.filter((p: any) =>
+      `${p.firstName} ${p.lastName}`.toLowerCase().includes(q),
+    );
+  }
+  return list;
+});
+
+async function toggleStatus(player: any) {
+  const newStatus = player.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+  try {
+    await $api(`/api/v1/players/${player.id}/status`, {
+      method: "PATCH",
+      body: { status: newStatus },
+    });
+    await refresh();
+  } catch (e: any) {
+    alert(e?.message ?? "Failed to update player status.");
+  }
+}
+
+async function confirmDelete() {
+  if (!playerToDelete.value) return;
+  try {
+    await $api(`/api/v1/players/${playerToDelete.value.id}`, {
+      method: "DELETE",
+    });
+    playerToDelete.value = null;
+    await refresh();
+  } catch (e: any) {
+    playerToDelete.value = null;
+    alert(e?.message ?? "Failed to delete player.");
+  }
+}
+</script>
+
 <template>
   <div>
     <!-- Confirmation modal (admin only) -->
@@ -91,7 +158,7 @@
                   v-if="p.photoUrl"
                   :src="p.photoUrl"
                   class="w-full h-full object-cover"
-                  :alt="p.name"
+                  :alt="`${p.firstName} ${p.lastName}`"
                 />
                 <span
                   v-else
@@ -99,7 +166,9 @@
                   >👤</span
                 >
               </div>
-              <span class="font-medium text-gray-900">{{ p.name }}</span>
+              <span class="font-medium text-gray-900"
+                >{{ p.firstName }} {{ p.lastName }}</span
+              >
             </td>
             <td class="px-4 py-3 text-gray-600 hidden sm:table-cell">
               {{ p.position ?? "—" }}
@@ -150,64 +219,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useAuthStore } from "~/stores/auth";
-import PlayerDeleteModal from "~/components/player/PlayerDeleteModal.vue";
-
-definePageMeta({ layout: "admin", middleware: "auth" });
-useHead({ title: "Players – Admin" });
-
-const { $api } = useNuxtApp();
-const authStore = useAuthStore();
-const playerToDelete = ref<{ id: string; name: string } | null>(null);
-const search = ref("");
-const statusFilter = ref("ACTIVE");
-const posFilter = ref("");
-
-const { data, pending, refresh } = await useAsyncData("admin-players", () =>
-  $api<{ data: any[] }>("/api/v1/players", {
-    query: { status: statusFilter.value || undefined, limit: 200 },
-  }),
-);
-watch(statusFilter, () => refresh());
-
-const players = computed(() => data.value?.data ?? []);
-const filteredPlayers = computed(() => {
-  let list = players.value;
-  if (posFilter.value)
-    list = list.filter((p: any) => p.position === posFilter.value);
-  if (search.value.trim()) {
-    const q = search.value.trim().toLowerCase();
-    list = list.filter((p: any) => p.name?.toLowerCase().includes(q));
-  }
-  return list;
-});
-
-async function toggleStatus(player: any) {
-  const newStatus = player.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-  try {
-    await $api(`/api/v1/players/${player.id}/status`, {
-      method: "PATCH",
-      body: { status: newStatus },
-    });
-    await refresh();
-  } catch (e: any) {
-    alert(e?.message ?? "Failed to update player status.");
-  }
-}
-
-async function confirmDelete() {
-  if (!playerToDelete.value) return;
-  try {
-    await $api(`/api/v1/players/${playerToDelete.value.id}`, {
-      method: "DELETE",
-    });
-    playerToDelete.value = null;
-    await refresh();
-  } catch (e: any) {
-    playerToDelete.value = null;
-    alert(e?.message ?? "Failed to delete player.");
-  }
-}
-</script>

@@ -34,7 +34,16 @@ export default defineNuxtConfig({
 
   // Vite 6+ blocks requests from non-localhost hostnames by default.
   // Whitelist the custom dev hostname so the browser can connect.
+  // Resolve workspace CJS package to its TS source so Vite serves ESM natively.
   vite: {
+    resolve: {
+      alias: {
+        "@ministrosfc/shared": new URL(
+          "../shared/src/index.ts",
+          import.meta.url,
+        ).pathname,
+      },
+    },
     server: {
       allowedHosts: ["localhost.ministrosfc.com"],
     },
@@ -43,6 +52,11 @@ export default defineNuxtConfig({
   // Auto-import Pinia stores from stores/ directory
   imports: {
     dirs: ["stores"],
+  },
+
+  // Transpile workspace CJS packages so Vite serves them as ESM to the browser.
+  build: {
+    transpile: ["@ministrosfc/shared"],
   },
 
   typescript: {

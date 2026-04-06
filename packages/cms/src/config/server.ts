@@ -1,5 +1,6 @@
 import express, { type Application } from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { pinoHttp } from "pino-http";
 import { logger } from "../utils/logger";
 import {
@@ -16,6 +17,9 @@ import { tournamentRouter } from "../routes/tournaments";
 import { statisticsRouter } from "../routes/statistics";
 import { authRouter } from "../routes/auth";
 import { participantRouter } from "../routes/participants";
+import { profileRouter } from "../routes/profile";
+import { usersRouter } from "../routes/users";
+import { onboardingRouter } from "../routes/onboarding";
 
 export function createApp(): Application {
   const app = express();
@@ -46,6 +50,7 @@ export function createApp(): Application {
   // Body parsing
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: true }));
+  app.use(cookieParser());
 
   // Rate limiting
   app.use("/api/v1/auth/login", authLimiter);
@@ -61,6 +66,9 @@ export function createApp(): Application {
   app.use("/api/v1/games/:gameId/participants", participantRouter);
   app.use("/api/v1/tournaments", tournamentRouter);
   app.use("/api/v1/statistics", statisticsRouter);
+  app.use("/api/v1/profile", profileRouter);
+  app.use("/api/v1/admin/users", usersRouter);
+  app.use("/api/v1/onboarding", onboardingRouter);
 
   // Global error handler (must be last)
   app.use(globalErrorHandler);

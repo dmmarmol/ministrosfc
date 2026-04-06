@@ -1,7 +1,7 @@
-# Specification Quality Checklist: Playground Entity (Game Locations)
+# Specification Quality Checklist: Jersey Number Input & Profile Edit UX
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-03-25
+**Created**: 2026-04-06 (retroactive — spec written after implementation)
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -31,7 +31,6 @@
 
 ## Notes
 
-- All items pass. Spec is ready for `/speckit.plan`.
-- Legacy data backward compatibility is thoroughly covered (US3 AS3, US4, FR-009, FR-010, SC-002).
-- Dependency on spec 017 (dropdown component) is noted in Assumptions — the feature can proceed independently with a simpler dropdown if needed.
-- Delete protection for in-use playgrounds is a critical safety requirement (FR-004, US1 AS5).
+- Spec written retroactively after full implementation. All tasks (T001–T020) are complete and merged on `feat/010-jersey-number-input`.
+- Shared type migration (`PlayerProfileResponse`, `UpdatePlayerProfileInput`) is explicitly deferred to a separate spec. SC-004 tracks this decision.
+- C1/C2 from the analysis report (missing spec.md, plan.md) are now partially resolved. `plan.md` backfill is next.

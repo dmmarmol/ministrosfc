@@ -20,11 +20,7 @@ const ParticipationService = {
     return GameParticipantModel.getParticipants(gameId);
   },
 
-  async confirmParticipation(
-    gameId: string,
-    userId: string,
-    dto: ConfirmDTO,
-  ) {
+  async confirmParticipation(gameId: string, userId: string, dto: ConfirmDTO) {
     const game = await prisma.game.findUnique({
       where: { id: gameId },
       select: { id: true, status: true, date: true },
@@ -79,10 +75,14 @@ const ParticipationService = {
     }
 
     // Create guest players for each friend
-    const guestParticipants: { name: string; id: string }[] = [];
+    const guestParticipants: {
+      firstName: string;
+      lastName: string;
+      id: string;
+    }[] = [];
     if (dto.friends && dto.friends.length > 0) {
       for (const _friend of dto.friends) {
-        const guestName = `Amigo de ${player.name}`;
+        const guestName = `Amigo de ${player.firstName} ${player.lastName}`;
         const guestPlayer = await GameParticipantModel.createGuestPlayer(
           guestName,
           playerId,
@@ -94,7 +94,11 @@ const ParticipationService = {
           confirmedById: playerId,
           confirmedAt: new Date(),
         });
-        guestParticipants.push({ name: guestPlayer.name, id: guestPlayer.id });
+        guestParticipants.push({
+          firstName: guestPlayer.firstName,
+          lastName: guestPlayer.lastName,
+          id: guestPlayer.id,
+        });
       }
     }
 

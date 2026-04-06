@@ -30,7 +30,8 @@ const MockPlayerModel = PlayerModel as jest.Mocked<typeof PlayerModel>;
 
 const mockPlayer = {
   id: "player-1",
-  name: "Test Player",
+  firstName: "Test",
+  lastName: "Player",
   nickname: null,
   jerseyNumber: 10,
   position: "STRIKER" as const,
@@ -153,7 +154,8 @@ describe("StatisticsService", () => {
         {
           player: {
             id: "p1",
-            name: "Top Scorer",
+            firstName: "Top",
+            lastName: "Scorer",
             nickname: null,
             jerseyNumber: 9,
             position: "STRIKER",
@@ -166,7 +168,8 @@ describe("StatisticsService", () => {
         {
           player: {
             id: "p2",
-            name: "Second Scorer",
+            firstName: "Second",
+            lastName: "Scorer",
             nickname: null,
             jerseyNumber: 10,
             position: "CMF",
@@ -214,7 +217,8 @@ describe("StatisticsService", () => {
         {
           player: {
             id: "p1",
-            name: "Test Player",
+            firstName: "Test",
+            lastName: "Player",
             nickname: null,
             jerseyNumber: 10,
             position: "STRIKER",

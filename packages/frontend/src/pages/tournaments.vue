@@ -1,3 +1,28 @@
+<script setup lang="ts">
+useHead({ title: "Tournaments – Ministros FC" });
+
+const { $api } = useNuxtApp();
+
+const formats = [
+  { value: "", label: "Todos" },
+  { value: "LEAGUE", label: "Liga" },
+  { value: "CUP", label: "Copa" },
+  { value: "PLAYOFF", label: "Playoff" },
+  { value: "SEASON", label: "Temporada" },
+  { value: "FRIENDLY", label: "Amistoso" },
+];
+const formatFilter = ref("");
+
+const { data, pending, refresh } = await useAsyncData("tournaments", () =>
+  $api<{ data: any[] }>("/api/v1/tournaments", {
+    query: formatFilter.value ? { competitionType: formatFilter.value } : {},
+  }),
+);
+
+watch(formatFilter, () => refresh());
+const tournaments = computed(() => data.value?.data ?? []);
+</script>
+
 <template>
   <div>
     <!-- Format filter -->
@@ -33,28 +58,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-useHead({ title: "Tournaments – Ministros FC" });
-
-const { $api } = useNuxtApp();
-
-const formats = [
-  { value: "", label: "Todos" },
-  { value: "LEAGUE", label: "Liga" },
-  { value: "CUP", label: "Copa" },
-  { value: "PLAYOFF", label: "Playoff" },
-  { value: "SEASON", label: "Temporada" },
-  { value: "FRIENDLY", label: "Amistoso" },
-];
-const formatFilter = ref("");
-
-const { data, pending, refresh } = await useAsyncData("tournaments", () =>
-  $api<{ data: any[] }>("/api/v1/tournaments", {
-    query: formatFilter.value ? { competitionType: formatFilter.value } : {},
-  }),
-);
-
-watch(formatFilter, () => refresh());
-const tournaments = computed(() => data.value?.data ?? []);
-</script>

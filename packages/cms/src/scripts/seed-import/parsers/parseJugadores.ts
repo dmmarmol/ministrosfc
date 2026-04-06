@@ -1,10 +1,14 @@
 import { parse } from "csv-parse/sync";
 import type { JugadorRow } from "../types";
 
-// The parsed row normalises the dynamic "Jugador (N)" header to a stable `name` field.
-// Both "name" and "Apodo" are omitted from the base type so they can be redefined.
-export type ParsedJugadorRow = Omit<JugadorRow, "name" | "Apodo"> & {
-  name: string;
+// The parsed row normalises the dynamic "Jugador (N)" header to stable `firstName`/`lastName` fields.
+// Both "firstName"/"lastName" and "Apodo" are omitted from the base type so they can be redefined.
+export type ParsedJugadorRow = Omit<
+  JugadorRow,
+  "firstName" | "lastName" | "Apodo"
+> & {
+  firstName: string;
+  lastName: string;
   Apodo: string | null;
 };
 
@@ -25,17 +29,22 @@ export function parseJugadores(csvContent: string): ParsedJugadorRow[] {
   const results: ParsedJugadorRow[] = [];
 
   for (const row of rawRows) {
-    // Detect the dynamic-header name column
+    // Detect the dynamic-header name column and split into first/last
     const nameKey = Object.keys(row).find((k) => k.startsWith("Jugador"));
-    const name = nameKey ? row[nameKey]?.trim() : "";
+    const fullName = nameKey ? row[nameKey]?.trim() : "";
 
-    if (!name) continue;
+    if (!fullName) continue;
+
+    const spaceIdx = fullName.indexOf(" ");
+    const firstName = spaceIdx > 0 ? fullName.slice(0, spaceIdx) : fullName;
+    const lastName = spaceIdx > 0 ? fullName.slice(spaceIdx + 1) : "";
 
     const rawApodo = row["Apodo"]?.trim() ?? "";
     const apodo = rawApodo === "" || rawApodo === "??" ? null : rawApodo;
 
     results.push({
-      name,
+      firstName,
+      lastName,
       Apodo: apodo,
       Nacimiento: row["Nacimiento"] ?? "",
       Edad: row["Edad"] ?? "",

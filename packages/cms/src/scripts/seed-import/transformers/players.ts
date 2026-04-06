@@ -38,10 +38,14 @@ const FOOT_MAP: Record<string, Foot> = {
 
 const GUEST_PATTERNS = ["amigo de", "amigo del"];
 
-function isGuest(name: string, nickname: string | null): boolean {
-  const lName = name.toLowerCase();
+function isGuest(
+  firstName: string,
+  lastName: string,
+  nickname: string | null,
+): boolean {
+  const fullName = `${firstName} ${lastName}`.toLowerCase();
   const lNick = (nickname ?? "").toLowerCase();
-  return GUEST_PATTERNS.some((p) => lName.includes(p) || lNick.includes(p));
+  return GUEST_PATTERNS.some((p) => fullName.includes(p) || lNick.includes(p));
 }
 
 function resolvePosition(raw: string): Position | null {
@@ -56,7 +60,8 @@ function resolvePosition(raw: string): Position | null {
 
 interface PlayerData {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   nickname: string | null;
   dateOfBirth: string | null;
   height: number | null;
@@ -100,7 +105,8 @@ export function buildPlayers(rows: ParsedJugadorRow[]): BuildPlayersResult {
 
     players.push({
       id,
-      name: row.name.trim(),
+      firstName: row.firstName.trim(),
+      lastName: row.lastName.trim(),
       nickname,
       dateOfBirth: parseDOB(row.Nacimiento),
       height: parseIntOrNull(row.Altura),
@@ -109,13 +115,17 @@ export function buildPlayers(rows: ParsedJugadorRow[]): BuildPlayersResult {
       position: resolvePosition(row["Posición"]),
       nationalId: row.DNI?.trim() || null,
       photoUrl: PLACEHOLDER_PHOTO,
-      playerType: isGuest(row.name, nickname) ? "GUEST" : "REGISTERED",
+      playerType: isGuest(row.firstName, row.lastName, nickname)
+        ? "GUEST"
+        : "REGISTERED",
       status: "ACTIVE",
       invitedById: null,
     });
 
     // Lookup maps use lowercased trimmed keys
-    playerMapByName[row.name.trim().toLowerCase()] = id;
+    playerMapByName[
+      `${row.firstName.trim()} ${row.lastName.trim()}`.toLowerCase()
+    ] = id;
     if (nickname) {
       playerMapByNickname[nickname.trim().toLowerCase()] = id;
     }

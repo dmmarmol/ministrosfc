@@ -8,6 +8,7 @@ import { prisma } from "../../src/config/database";
 
 jest.mock("../../src/middleware/rate-limiter", () => ({
   authLimiter: (_req: any, _res: any, next: any) => next(),
+  registerLimiter: (_req: any, _res: any, next: any) => next(),
   apiLimiter: (_req: any, _res: any, next: any) => next(),
 }));
 
@@ -24,13 +25,12 @@ describe("Game CRUD (integration)", () => {
 
   beforeAll(async () => {
     // Create admin
-    await request(app)
-      .post("/api/v1/auth/register")
-      .send({
-        email: adminEmail,
-        password: "Admin!Game99",
-        name: "Admin Game Test",
-      });
+    await request(app).post("/api/v1/auth/register").send({
+      email: adminEmail,
+      password: "Admin!Game99",
+      firstName: "Admin",
+      lastName: "Game Test",
+    });
     await prisma.user.update({
       where: { email: adminEmail },
       data: { role: "ADMIN" },
@@ -41,13 +41,12 @@ describe("Game CRUD (integration)", () => {
     adminToken = loginAdmin.body.data.accessToken;
 
     // Create editor
-    await request(app)
-      .post("/api/v1/auth/register")
-      .send({
-        email: editorEmail,
-        password: "Editor!Game99",
-        name: "Editor Game Test",
-      });
+    await request(app).post("/api/v1/auth/register").send({
+      email: editorEmail,
+      password: "Editor!Game99",
+      firstName: "Editor",
+      lastName: "Game Test",
+    });
     await prisma.user.update({
       where: { email: editorEmail },
       data: { role: "EDITOR" },

@@ -56,6 +56,7 @@ describe("RegisterForm", () => {
 
   it("shows password mismatch validation", async () => {
     const wrapper = mountForm();
+    await wrapper.find("#email").setValue("juan@example.com");
     await wrapper.find("#password").setValue("Abcdefgh1!");
     await wrapper.find("#passwordConfirmation").setValue("Different1!");
     await wrapper.find("form").trigger("submit.prevent");

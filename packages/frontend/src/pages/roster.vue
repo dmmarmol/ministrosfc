@@ -1,3 +1,36 @@
+<script setup lang="ts">
+useHead({ title: "Roster – Ministros FC" });
+
+const { $api } = useNuxtApp();
+
+const search = ref("");
+const positionFilter = ref("");
+
+const { data, pending } = await useAsyncData("roster", () =>
+  $api<{ data: any[] }>("/api/v1/players", {
+    query: { status: "ACTIVE", limit: 100 },
+  }),
+);
+
+const players = computed(() => data.value?.data ?? []);
+
+const filteredPlayers = computed(() => {
+  let list = players.value;
+  if (positionFilter.value)
+    list = list.filter((p: any) => p.position === positionFilter.value);
+  if (search.value.trim()) {
+    const q = search.value.trim().toLowerCase();
+    list = list.filter(
+      (p: any) =>
+        p.firstName?.toLowerCase().includes(q) ||
+        p.lastName?.toLowerCase().includes(q) ||
+        p.nickname?.toLowerCase().includes(q),
+    );
+  }
+  return list;
+});
+</script>
+
 <template>
   <div>
     <!-- Filters -->
@@ -57,35 +90,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-useHead({ title: "Roster – Ministros FC" });
-
-const { $api } = useNuxtApp();
-
-const search = ref("");
-const positionFilter = ref("");
-
-const { data, pending } = await useAsyncData("roster", () =>
-  $api<{ data: any[] }>("/api/v1/players", {
-    query: { status: "ACTIVE", limit: 100 },
-  }),
-);
-
-const players = computed(() => data.value?.data ?? []);
-
-const filteredPlayers = computed(() => {
-  let list = players.value;
-  if (positionFilter.value)
-    list = list.filter((p: any) => p.position === positionFilter.value);
-  if (search.value.trim()) {
-    const q = search.value.trim().toLowerCase();
-    list = list.filter(
-      (p: any) =>
-        p.name?.toLowerCase().includes(q) ||
-        p.nickname?.toLowerCase().includes(q),
-    );
-  }
-  return list;
-});
-</script>

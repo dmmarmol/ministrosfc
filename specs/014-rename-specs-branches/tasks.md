@@ -1,6 +1,6 @@
 # Tasks: Rename Specs & Branches
 
-**Input**: Design documents from `/specs/012-rename-specs-branches/`
+**Input**: Design documents from `/specs/013-rename-specs-branches/`
 **Prerequisites**: spec.md ✅
 
 ---

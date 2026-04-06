@@ -78,19 +78,22 @@ npm run test:e2e --workspace=@ministrosfc/frontend
 
 ## Key Endpoints (new/modified)
 
-| Method | Path                                    | Auth    | Description                                |
-| ------ | --------------------------------------- | ------- | ------------------------------------------ |
-| POST   | `/api/v1/auth/register`                 | Public  | Email registration (creates User + Player) |
-| GET    | `/api/v1/auth/google`                   | Public  | Initiate Google OAuth flow                 |
-| GET    | `/api/v1/auth/google/callback`          | Public  | Google OAuth callback                      |
-| GET    | `/api/v1/profile`                       | JWT     | Get authenticated user's profile           |
-| PATCH  | `/api/v1/profile`                       | JWT     | Update profile fields                      |
-| PUT    | `/api/v1/profile/photo`                 | JWT     | Upload profile photo                       |
-| GET    | `/api/v1/profile/jersey-availability`   | JWT     | Get taken jersey numbers                   |
-| GET    | `/api/v1/admin/users`                   | ADMIN   | List users with roles                      |
-| PATCH  | `/api/v1/admin/users/:id/role`          | ADMIN   | Promote/demote user role                   |
-| PATCH  | `/api/v1/admin/users/:id/player-status` | EDITOR+ | Activate/deactivate player                 |
-| DELETE | `/api/v1/admin/users/:id/player`        | ADMIN   | Hard-delete player                         |
+| Method | Path                                    | Auth    | Description                                               |
+| ------ | --------------------------------------- | ------- | --------------------------------------------------------- |
+| POST   | `/api/v1/auth/register`                 | Public  | Email registration (creates User with onboarding pending) |
+| POST   | `/api/v1/auth/login`                    | Public  | Login — response now includes `playerId` + `onboardingCompletedAt` |
+| GET    | `/api/v1/auth/google`                   | Public  | Initiate Google OAuth flow                                |
+| GET    | `/api/v1/auth/google/callback`          | Public  | Google OAuth callback                                     |
+| GET    | `/api/v1/onboarding/status`             | JWT     | Check if user must complete onboarding                    |
+| POST   | `/api/v1/onboarding/complete`           | JWT     | Complete onboarding and finalize player link              |
+| GET    | `/api/v1/profile`                       | JWT     | Get authenticated user's profile                          |
+| PATCH  | `/api/v1/profile`                       | JWT     | Update profile fields                                     |
+| PUT    | `/api/v1/profile/photo`                 | JWT     | Upload profile photo                                      |
+| GET    | `/api/v1/profile/jersey-availability`   | JWT     | Get taken jersey numbers                                  |
+| GET    | `/api/v1/admin/users`                   | ADMIN   | List users with roles                                     |
+| PATCH  | `/api/v1/admin/users/:id/role`          | ADMIN   | Promote/demote user role                                  |
+| PATCH  | `/api/v1/admin/users/:id/player-status` | EDITOR+ | Activate/deactivate player                                |
+| DELETE | `/api/v1/admin/users/:id/player`        | ADMIN   | Hard-delete player                                        |
 
 ## Key Frontend Pages (new/modified)
 
@@ -98,6 +101,7 @@ npm run test:e2e --workspace=@ministrosfc/frontend
 | ----------------------- | ------------------------------------------------- |
 | `/login`                | MODIFIED — sign-in/sign-up toggle + Google button |
 | `/auth/google/callback` | NEW — Google OAuth token receiver                 |
+| `/auth/onboarding`      | NEW — single source-of-truth onboarding wizard    |
 | `/profile`              | NEW — user profile with edit + jersey SVG         |
 | `/admin/users`          | NEW — admin user management (role mgmt)           |
 

@@ -1,11 +1,11 @@
 # Feature Specification: Dropdown with Inline Add-More
 
-**Feature Branch**: `feat/011-dropdown-add-more`
+**Feature Branch**: `feat/013-dropdown-add-more`
 **Created**: 2026-03-25
 **Status**: Draft
 **Input**: User description: "Create a UI component for the frontend to be a dropdown with the capacity of inserting a new entry. This dropdown should be able to fetch a list of values and also to trigger the addition by clicking 'Add more' as the fixed last option. Deletion is not allowed through the dropdown"
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Select from Existing Options (Priority: P1)
 
@@ -83,7 +83,7 @@ The dropdown gracefully handles scenarios where there are no options or options 
 - What happens when the dropdown is inside a modal or a scrollable container? → The dropdown panel positions itself to remain visible (standard dropdown positioning behavior).
 - Deletion is explicitly not supported through this component — there is no delete action in the dropdown.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -96,14 +96,14 @@ The dropdown gracefully handles scenarios where there are no options or options 
 - **FR-007**: The component MUST emit a selection event when the user selects an option, providing the selected value.
 - **FR-008**: The component MUST emit a creation event when a new entry is created inline, providing the created entry's data.
 - **FR-009**: The component MUST support an optional search/filter input to narrow the options list.
-- **FR-010**: The component MUST handle empty states (no options) with a user-friendly message while keeping "Agregar nueva…" accessible.
+- **FR-010**: The component MUST handle empty states (no options) by showing the exact default message "Sin opciones disponibles" while keeping "Agregar nueva…" accessible.
 - **FR-011**: The component MUST handle loading states with a visual indicator.
 - **FR-012**: The component MUST support a pre-selected value (for edit forms).
 - **FR-013**: The component MUST close when the user clicks outside of it.
 - **FR-014**: The component MUST be reusable — it does not know about specific entities (playgrounds, teams, etc.) and is configured entirely through its inputs.
 - **FR-015**: All user-facing labels MUST be configurable (placeholder text, "Add new" label, empty state message) with Spanish defaults.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

@@ -74,7 +74,7 @@ describe("seed-import: run() against fixture CSVs", () => {
 
     it("resolves SMF position to CMF", async () => {
       const diego = await prisma.player.findFirst({
-        where: { name: { contains: "Diego" } },
+        where: { firstName: { contains: "Diego" } },
       });
       expect(diego).not.toBeNull();
       expect(diego!.position).toBe("CMF");
@@ -106,7 +106,7 @@ describe("seed-import: run() against fixture CSVs", () => {
 
     it("stores dateOfBirth as YYYY-MM-DD string", async () => {
       const diego = await prisma.player.findFirst({
-        where: { name: { contains: "Diego" } },
+        where: { firstName: { contains: "Diego" } },
       });
       expect(diego!.dateOfBirth).toBe("1990-06-15");
     });

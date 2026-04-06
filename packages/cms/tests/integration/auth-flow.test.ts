@@ -8,21 +8,26 @@ import { createApp } from "../../src/config/server";
 // Ensure rate limiter doesn't interfere in tests
 jest.mock("../../src/middleware/rate-limiter", () => ({
   authLimiter: (_req: any, _res: any, next: any) => next(),
+  registerLimiter: (_req: any, _res: any, next: any) => next(),
   apiLimiter: (_req: any, _res: any, next: any) => next(),
 }));
 
 const app = createApp();
 
-describe("Auth flow (integration)", () => {
+describe("Auth Flow (integration)", () => {
   const email = `test-${Date.now()}@ministrosfc.test`;
   const password = "SecurePass!123";
   let accessToken: string;
   let refreshToken: string;
 
   it("POST /api/v1/auth/register → 201 with tokens", async () => {
-    const res = await request(app)
-      .post("/api/v1/auth/register")
-      .send({ email, password, name: "Test User" });
+    const res = await request(app).post("/api/v1/auth/register").send({
+      email,
+      password,
+      passwordConfirmation: password,
+      firstName: "Test",
+      lastName: "User",
+    });
 
     expect(res.status).toBe(201);
     expect(res.body.data.accessToken).toBeTruthy();
@@ -30,13 +35,21 @@ describe("Auth flow (integration)", () => {
     expect(res.body.data.user.role).toBe("PLAYER");
   });
 
-  it("POST /api/v1/auth/login → 200 with tokens", async () => {
+  it("POST /api/v1/auth/login → 200 with tokens and onboarding fields", async () => {
     const res = await request(app)
       .post("/api/v1/auth/login")
       .send({ email, password });
 
     expect(res.status).toBe(200);
     expect(res.body.data.accessToken).toBeTruthy();
+    expect(res.body.data.user).toMatchObject({
+      email,
+      firstName: "Test",
+      lastName: "User",
+      role: "PLAYER",
+    });
+    // Regression: login response now includes onboarding fields
+    expect(res.body.data.user).toHaveProperty("onboardingCompletedAt");
     accessToken = res.body.data.accessToken;
     refreshToken = res.body.data.refreshToken;
   });

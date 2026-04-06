@@ -6,6 +6,7 @@ import { createApp } from "../../src/config/server";
 
 jest.mock("../../src/middleware/rate-limiter", () => ({
   authLimiter: (_req: any, _res: any, next: any) => next(),
+  registerLimiter: (_req: any, _res: any, next: any) => next(),
   apiLimiter: (_req: any, _res: any, next: any) => next(),
 }));
 

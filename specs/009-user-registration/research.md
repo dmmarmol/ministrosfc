@@ -482,6 +482,40 @@ export async function deletePlayerPhoto(photoUrl: string): Promise<void> {
 
 ---
 
+## Topic 6: Single Source of Truth Post-Signup Onboarding
+
+### Decision
+
+Use one shared onboarding flow for **all first-time sign-up methods** (email + Google): frontend page `/auth/onboarding` + backend endpoint `POST /api/v1/onboarding/complete`.
+
+### Rationale
+
+1. Eliminates divergent logic between email registration and Google callback.
+2. Centralizes player intent (`isPlayer`) and optional player details (`jerseyNumber`, `position`) in one validation path.
+3. Makes future onboarding questions additive without changing auth providers.
+
+### Implementation Notes
+
+1. Add `User.onboardingCompletedAt` (nullable) to persist completion state.
+2. Email registration request can include `isPlayer` (default true in UI), but final truth is onboarding completion endpoint.
+3. Google first-login always routes to onboarding for completion.
+4. Onboarding rules:
+
+- `isPlayer=true`: create/update linked Player (and apply jersey/position if provided)
+- `isPlayer=false`: keep `User.playerId = null`
+
+5. Existing users should be initialized as completed during migration to avoid forced onboarding loops.
+
+### Alternatives Considered
+
+| Alternative                                         | Why rejected                                                           |
+| --------------------------------------------------- | ---------------------------------------------------------------------- |
+| Keep current auto-create Player in each auth method | Duplicates business logic and complicates parity across auth providers |
+| Email-only checkbox with no Google onboarding       | Leaves Google flow inconsistent with requested behavior                |
+| Google-only onboarding branch                       | Leaves email flow inconsistent and adds maintenance burden             |
+
+---
+
 ## Summary of Decisions
 
 | #   | Topic                            | Decision                                                                             |
@@ -491,6 +525,7 @@ export async function deletePlayerPhoto(photoUrl: string): Promise<void> {
 | 3   | Adding `DT` to Role enum         | Auto-handled by Prisma — just add to schema and `migrate dev`                        |
 | 4   | Password strength (Zod v4)       | Shared `passwordSchema` using `superRefine` with per-rule regex checks               |
 | 5   | Profile photo upload             | Generalize `uploadPhoto(file, folder, entityId)` in existing `object-storage.ts`     |
+| 6   | Post-signup onboarding           | Single source of truth page + endpoint shared by email and Google sign-up            |
 
 ## New Dependencies
 

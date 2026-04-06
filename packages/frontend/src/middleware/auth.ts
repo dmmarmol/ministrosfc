@@ -14,17 +14,36 @@ import { useRuntime } from "~/composables/useRuntime";
  *   /login     → redirects authenticated users to /admin/dashboard
  */
 export default defineNuxtRouteMiddleware((to) => {
-  // Skip all access checks during SSR — auth state lives in localStorage which
+  // Skip all access checks during SSR — auth state lives in sessionStorage which
   // is unavailable server-side. The auth-init.client.ts plugin restores it before
   // this middleware re-runs client-side after hydration.
   if (useRuntime().isServer) return;
 
   const authStore = useAuthStore();
+  authStore.loadFromStorage();
+
+  // Allow access to onboarding page without redirect loops
+  if (to.path === "/auth/onboarding") {
+    if (!authStore.isAuthenticated) {
+      return navigateTo("/login");
+    }
+    return;
+  }
+
+  // Redirect authenticated users with incomplete onboarding
+  if (
+    authStore.isAuthenticated &&
+    authStore.needsOnboarding &&
+    to.path !== "/login" &&
+    to.path !== "/profile/player"
+  ) {
+    return navigateTo("/auth/onboarding");
+  }
 
   // If navigating to /login while already authenticated, redirect away
   if (to.path === "/login" && authStore.isAuthenticated) {
     return navigateTo(
-      authStore.isEditor ? "/admin/dashboard" : "/player/games",
+      authStore.isEditor ? "/admin/dashboard" : "/",
     );
   }
 

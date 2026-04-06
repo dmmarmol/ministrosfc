@@ -1,3 +1,17 @@
+<script setup lang="ts">
+import { useAuthStore } from "~/stores/auth";
+
+const authStore = useAuthStore();
+const route = useRoute();
+
+const pageTitle = computed(() => {
+  const segments = route.path.split("/").filter(Boolean);
+  const last = segments[segments.length - 1];
+  if (!last || last === "admin") return "Dashboard";
+  return last.charAt(0).toUpperCase() + last.slice(1);
+});
+</script>
+
 <template>
   <div class="min-h-screen flex bg-gray-100">
     <!-- Sidebar -->
@@ -41,8 +55,15 @@
       <!-- User info + logout -->
       <div class="p-4 border-t border-gray-700">
         <p class="text-xs text-gray-400 truncate mb-2">
-          {{ authStore.user?.name }}
+          {{ authStore.user?.firstName }} {{ authStore.user?.lastName }}
         </p>
+        <NuxtLink
+          to="/"
+          class="inline-block text-xs text-brand hover:opacity-90 transition-opacity mb-2"
+        >
+          Volver al sitio publico
+        </NuxtLink>
+        <br />
         <button
           class="text-xs text-red-400 hover:text-red-300 transition-colors"
           @click="authStore.logout()"
@@ -67,17 +88,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useAuthStore } from "~/stores/auth";
-
-const authStore = useAuthStore();
-const route = useRoute();
-
-const pageTitle = computed(() => {
-  const segments = route.path.split("/").filter(Boolean);
-  const last = segments[segments.length - 1];
-  if (!last || last === "admin") return "Dashboard";
-  return last.charAt(0).toUpperCase() + last.slice(1);
-});
-</script>

@@ -30,14 +30,16 @@ describe("PlayerService", () => {
       (PlayerModel.isJerseyNumberTaken as jest.Mock).mockResolvedValue(false);
       const mockPlayer = {
         id: "p1",
-        name: "Diego",
+        firstName: "Diego",
+        lastName: "Test",
         jerseyNumber: 7,
         photoUrl: null,
       };
       (PlayerModel.create as jest.Mock).mockResolvedValue(mockPlayer);
 
       const result = await PlayerService.createPlayer({
-        name: "Diego",
+        firstName: "Diego",
+        lastName: "Test",
         jerseyNumber: 7,
       });
       expect(result.id).toBe("p1");
@@ -48,7 +50,11 @@ describe("PlayerService", () => {
       (PlayerModel.isJerseyNumberTaken as jest.Mock).mockResolvedValue(true);
 
       await expect(
-        PlayerService.createPlayer({ name: "Diego", jerseyNumber: 7 }),
+        PlayerService.createPlayer({
+          firstName: "Diego",
+          lastName: "Test",
+          jerseyNumber: 7,
+        }),
       ).rejects.toMatchObject({ statusCode: 409 });
       expect(PlayerModel.create).not.toHaveBeenCalled();
     });
@@ -57,7 +63,8 @@ describe("PlayerService", () => {
       (PlayerModel.isJerseyNumberTaken as jest.Mock).mockResolvedValue(false);
       (PlayerModel.create as jest.Mock).mockResolvedValue({
         id: "p2",
-        name: "Foto",
+        firstName: "Foto",
+        lastName: "Player",
         photoUrl: null,
       });
       (PlayerModel.update as jest.Mock).mockResolvedValue({
@@ -78,7 +85,7 @@ describe("PlayerService", () => {
         size: 1000,
       };
       const result = await PlayerService.createPlayer(
-        { name: "Foto" },
+        { firstName: "Foto", lastName: "Player" },
         fakeFile as any,
       );
       expect(objectStorage.uploadPlayerPhoto).toHaveBeenCalledTimes(2);
@@ -126,7 +133,12 @@ describe("PlayerService", () => {
 
   describe("deletePlayer", () => {
     it("deletes player successfully — returns void and invalidates cache", async () => {
-      const mockPlayer = { id: "p1", name: "Diego", photoUrl: null };
+      const mockPlayer = {
+        id: "p1",
+        firstName: "Diego",
+        lastName: "Test",
+        photoUrl: null,
+      };
       (PlayerModel.findById as jest.Mock).mockResolvedValue(mockPlayer);
       (PlayerModel.deleteById as jest.Mock).mockResolvedValue(undefined);
 
@@ -146,7 +158,8 @@ describe("PlayerService", () => {
     it("calls deletePlayerPhoto best-effort when photoUrl exists", async () => {
       const mockPlayer = {
         id: "p2",
-        name: "Foto Player",
+        firstName: "Foto",
+        lastName: "Player",
         photoUrl: "https://cdn/photo.jpg",
       };
       (PlayerModel.findById as jest.Mock).mockResolvedValue(mockPlayer);
@@ -164,7 +177,8 @@ describe("PlayerService", () => {
     it("does not reject if deletePlayerPhoto throws (best-effort)", async () => {
       const mockPlayer = {
         id: "p3",
-        name: "Photo Error Player",
+        firstName: "Photo Error",
+        lastName: "Player",
         photoUrl: "https://cdn/bad.jpg",
       };
       (PlayerModel.findById as jest.Mock).mockResolvedValue(mockPlayer);
@@ -177,7 +191,12 @@ describe("PlayerService", () => {
     });
 
     it("does not call deletePlayerPhoto when photoUrl is null", async () => {
-      const mockPlayer = { id: "p4", name: "No Photo", photoUrl: null };
+      const mockPlayer = {
+        id: "p4",
+        firstName: "No",
+        lastName: "Photo",
+        photoUrl: null,
+      };
       (PlayerModel.findById as jest.Mock).mockResolvedValue(mockPlayer);
       (PlayerModel.deleteById as jest.Mock).mockResolvedValue(undefined);
 

@@ -8,12 +8,15 @@ interface UserInfo {
   lastName: string;
   email: string;
   role: UserRole;
+  playerId?: string | null;
+  onboardingCompletedAt?: string | null;
 }
 
 interface AuthState {
   user: UserInfo | null;
   accessToken: string | null;
   refreshToken: string | null;
+  hydrated: boolean;
 }
 
 export const useAuthStore = defineStore("auth", {
@@ -21,6 +24,7 @@ export const useAuthStore = defineStore("auth", {
     user: null,
     accessToken: null,
     refreshToken: null,
+    hydrated: false,
   }),
 
   getters: {
@@ -34,6 +38,8 @@ export const useAuthStore = defineStore("auth", {
       state.user?.role === "DT",
     fullName: (state) =>
       state.user ? `${state.user.firstName} ${state.user.lastName}` : "",
+    needsOnboarding: (state) =>
+      state.user != null && !state.user.onboardingCompletedAt,
   },
 
   actions: {
@@ -49,9 +55,11 @@ export const useAuthStore = defineStore("auth", {
       this.refreshToken = data.data.refreshToken;
       this.user = data.data.user;
       if (useRuntime().isClient) {
-        localStorage.setItem("refreshToken", data.data.refreshToken);
-        localStorage.setItem("user", JSON.stringify(data.data.user));
+        sessionStorage.setItem("accessToken", data.data.accessToken);
+        sessionStorage.setItem("refreshToken", data.data.refreshToken);
+        sessionStorage.setItem("user", JSON.stringify(data.data.user));
       }
+      this.hydrated = true;
     },
 
     async register(dto: {
@@ -72,9 +80,11 @@ export const useAuthStore = defineStore("auth", {
       this.refreshToken = data.data.refreshToken;
       this.user = data.data.user;
       if (useRuntime().isClient) {
-        localStorage.setItem("refreshToken", data.data.refreshToken);
-        localStorage.setItem("user", JSON.stringify(data.data.user));
+        sessionStorage.setItem("accessToken", data.data.accessToken);
+        sessionStorage.setItem("refreshToken", data.data.refreshToken);
+        sessionStorage.setItem("user", JSON.stringify(data.data.user));
       }
+      this.hydrated = true;
     },
 
     async logout() {
@@ -94,16 +104,18 @@ export const useAuthStore = defineStore("auth", {
       this.accessToken = null;
       this.refreshToken = null;
       if (useRuntime().isClient) {
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
+        sessionStorage.removeItem("accessToken");
+        sessionStorage.removeItem("refreshToken");
+        sessionStorage.removeItem("user");
       }
+      this.hydrated = true;
     },
 
     async refresh() {
       const config = useRuntimeConfig();
       const storedToken =
         this.refreshToken ??
-        (useRuntime().isClient ? localStorage.getItem("refreshToken") : null);
+        (useRuntime().isClient ? sessionStorage.getItem("refreshToken") : null);
       if (!storedToken) throw new Error("No refresh token available");
       const data = await $fetch<{
         data: { accessToken: string; refreshToken: string };
@@ -114,18 +126,48 @@ export const useAuthStore = defineStore("auth", {
       this.accessToken = data.data.accessToken;
       this.refreshToken = data.data.refreshToken;
       if (useRuntime().isClient) {
-        localStorage.setItem("refreshToken", data.data.refreshToken);
+        sessionStorage.setItem("accessToken", data.data.accessToken);
+        sessionStorage.setItem("refreshToken", data.data.refreshToken);
       }
+      this.hydrated = true;
     },
 
     loadFromStorage() {
       if (!useRuntime().isClient) return;
-      const storedUser = localStorage.getItem("user");
-      const storedToken = localStorage.getItem("refreshToken");
-      if (storedUser && storedToken) {
-        this.user = JSON.parse(storedUser) as UserInfo;
-        this.refreshToken = storedToken;
+      if (this.hydrated) return;
+
+      const storedUser = sessionStorage.getItem("user");
+      const storedRefresh = sessionStorage.getItem("refreshToken");
+      const storedAccess = sessionStorage.getItem("accessToken");
+
+      if (storedUser && storedRefresh) {
+        try {
+          this.user = JSON.parse(storedUser) as UserInfo;
+          this.refreshToken = storedRefresh;
+          this.accessToken = storedAccess;
+        } catch {
+          this.user = null;
+          this.accessToken = null;
+          this.refreshToken = null;
+          sessionStorage.removeItem("user");
+          sessionStorage.removeItem("accessToken");
+          sessionStorage.removeItem("refreshToken");
+        }
       }
+
+      this.hydrated = true;
+    },
+
+    setTokens(accessToken: string, refreshToken: string, user: UserInfo) {
+      this.accessToken = accessToken;
+      this.refreshToken = refreshToken;
+      this.user = user;
+      if (useRuntime().isClient) {
+        sessionStorage.setItem("accessToken", accessToken);
+        sessionStorage.setItem("refreshToken", refreshToken);
+        sessionStorage.setItem("user", JSON.stringify(user));
+      }
+      this.hydrated = true;
     },
   },
 });

@@ -41,7 +41,8 @@ const GameModel = {
             player: {
               select: {
                 id: true,
-                name: true,
+                firstName: true,
+                lastName: true,
                 nickname: true,
                 jerseyNumber: true,
                 position: true,

@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
 import { UserModel } from "../models/User";
 import { authConfig } from "../config/auth";
-import { prisma } from "../config/database";
 import { getRedisClient } from "../config/redis";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
@@ -66,6 +65,9 @@ const AuthService = {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
+        playerId: user.playerId,
+        onboardingCompletedAt:
+          user.onboardingCompletedAt?.toISOString() ?? null,
       },
     };
   },
@@ -76,6 +78,7 @@ const AuthService = {
     passwordConfirmation: string;
     firstName: string;
     lastName: string;
+    isPlayer?: boolean;
   }) {
     const existing = await UserModel.findByEmail(dto.email);
     if (existing)
@@ -93,20 +96,6 @@ const AuthService = {
       role: "PLAYER",
     });
 
-    // Auto-create Player record linked to User
-    const player = await prisma.player.create({
-      data: {
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        playerType: "REGISTERED",
-        status: "ACTIVE",
-        contactInfo: { create: {} },
-      },
-    });
-
-    // Link User → Player
-    await UserModel.update(user.id, { playerId: player.id });
-
     const { accessToken, refreshToken } = AuthService.generateTokens({
       userId: user.id,
       role: user.role,
@@ -119,14 +108,6 @@ const AuthService = {
       user.id,
     );
 
-    // Invalidate player search cache
-    try {
-      const keys = await redis.keys("players:search:*");
-      if (keys.length > 0) await redis.del(...keys);
-    } catch {
-      // Non-critical
-    }
-
     return {
       accessToken,
       refreshToken,
@@ -136,7 +117,9 @@ const AuthService = {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
+        onboardingCompletedAt: user.onboardingCompletedAt ?? null,
       },
+      nextStep: "/auth/onboarding",
     };
   },
 
@@ -170,6 +153,128 @@ const AuthService = {
   async logout(refreshToken: string) {
     const redis = getRedisClient();
     await redis.del(`${REFRESH_TOKEN_PREFIX}${refreshToken}`);
+  },
+
+  async googleAuth(payload: {
+    sub: string;
+    email: string;
+    given_name: string;
+    family_name: string;
+  }) {
+    const redis = getRedisClient();
+
+    // (a) Find by googleSubjectId → sign in
+    let user = await UserModel.findByGoogleSubjectId(payload.sub);
+    if (user) {
+      await UserModel.update(user.id, { lastLoginAt: new Date() });
+
+      const { accessToken, refreshToken } = AuthService.generateTokens({
+        userId: user.id,
+        role: user.role,
+      });
+      await redis.setex(
+        `${REFRESH_TOKEN_PREFIX}${refreshToken}`,
+        2592000,
+        user.id,
+      );
+
+      const nextStep = user.onboardingCompletedAt
+        ? user.role === "ADMIN" || user.role === "EDITOR"
+          ? "/admin/dashboard"
+          : "/player/games"
+        : "/auth/onboarding";
+
+      return {
+        accessToken,
+        refreshToken,
+        nextStep,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          playerId: user.playerId,
+          onboardingCompletedAt:
+            user.onboardingCompletedAt?.toISOString() ?? null,
+        },
+      };
+    }
+
+    // (b) Find by email → link googleSubjectId + sign in
+    user = await UserModel.findByEmail(payload.email);
+    if (user) {
+      await UserModel.update(user.id, {
+        googleSubjectId: payload.sub,
+        lastLoginAt: new Date(),
+      });
+
+      const { accessToken, refreshToken } = AuthService.generateTokens({
+        userId: user.id,
+        role: user.role,
+      });
+      await redis.setex(
+        `${REFRESH_TOKEN_PREFIX}${refreshToken}`,
+        2592000,
+        user.id,
+      );
+
+      const nextStep = user.onboardingCompletedAt
+        ? user.role === "ADMIN" || user.role === "EDITOR"
+          ? "/admin/dashboard"
+          : "/player/games"
+        : "/auth/onboarding";
+
+      return {
+        accessToken,
+        refreshToken,
+        nextStep,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          playerId: user.playerId,
+          onboardingCompletedAt:
+            user.onboardingCompletedAt?.toISOString() ?? null,
+        },
+      };
+    }
+
+    // (c) New user → create User (no Player — onboarding handles that)
+    const newUser = await UserModel.create({
+      email: payload.email,
+      firstName: payload.given_name,
+      lastName: payload.family_name,
+      googleSubjectId: payload.sub,
+      role: "PLAYER",
+    });
+
+    const { accessToken, refreshToken } = AuthService.generateTokens({
+      userId: newUser.id,
+      role: newUser.role,
+    });
+    await redis.setex(
+      `${REFRESH_TOKEN_PREFIX}${refreshToken}`,
+      2592000,
+      newUser.id,
+    );
+
+    return {
+      accessToken,
+      refreshToken,
+      nextStep: "/auth/onboarding",
+      user: {
+        id: newUser.id,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        email: newUser.email,
+        role: newUser.role,
+        playerId: null,
+        onboardingCompletedAt: null,
+      },
+    };
   },
 };
 

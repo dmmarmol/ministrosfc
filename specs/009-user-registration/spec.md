@@ -9,16 +9,16 @@
 
 ### User Story 1 — Email Registration (Priority: P1)
 
-A new visitor arrives at the `/login` page and wants to create an account. They see two options: a traditional email/password form and a "Sign in with Google" button. They choose email registration, fill in their email and a password, and submit the form. The system creates their account, signs them in, and redirects them to the appropriate landing page based on their role.
+A new visitor arrives at the `/login` page and wants to create an account. They see two options: a traditional email/password form and a "Sign in with Google" button. They choose email registration, fill in their email and a password, and submit the form. The system creates their account, signs them in, and routes them through onboarding before the role-based landing page.
 
 **Why this priority**: Email registration is the foundational sign-up path — it works for all users regardless of whether they have a Google account, and it reuses the existing authentication infrastructure (JWT tokens, password hashing).
 
-**Independent Test**: Can be fully tested by navigating to `/login`, clicking "Registrarse" (Sign Up), filling in valid email + password, and submitting. The user lands on the authenticated area and can log out and back in.
+**Independent Test**: Can be fully tested by navigating to `/login`, clicking "Registrarse" (Sign Up), filling in valid email + password, and submitting. The user lands on onboarding, completes it, and then reaches the authenticated area; they can log out and back in.
 
 **Acceptance Scenarios**:
 
 1. **Given** a visitor on the `/login` page, **When** they click the "Registrarse" link/button, **Then** a registration form is displayed with firstName, lastName, email, password, and password confirmation fields.
-2. **Given** the registration form is visible, **When** the visitor enters a valid email and matching passwords that meet strength requirements, **Then** a new account is created and the user is automatically signed in and redirected.
+2. **Given** the registration form is visible, **When** the visitor enters a valid email and matching passwords that meet strength requirements, **Then** a new account is created, the user is automatically signed in, and redirected to `/auth/onboarding` before the role-based landing page.
 3. **Given** the registration form is visible, **When** the visitor enters an email already associated with an existing account, **Then** a clear error message is shown: "Este correo ya está registrado" (This email is already registered).
 4. **Given** the registration form is visible, **When** the visitor enters a password that does not meet strength requirements, **Then** the form shows validation feedback indicating the requirement (minimum 8 characters, at least one uppercase letter, one number, and one special character).
 5. **Given** the registration form is visible, **When** the password and confirmation fields do not match, **Then** the form shows a validation error before submission.
@@ -27,16 +27,16 @@ A new visitor arrives at the `/login` page and wants to create an account. They 
 
 ### User Story 2 — Google Sign-In (Priority: P2)
 
-A new or returning visitor on the `/login` page clicks "Iniciar sesión con Google" (Sign in with Google). They are redirected to Google's consent screen, authorize the app, and are redirected back. If they already have an account linked to that Google email, they are signed in. If not, a new account is automatically created and they are signed in.
+A new or returning visitor on the `/login` page clicks "Iniciar sesión con Google" (Sign in with Google). They are redirected to Google's consent screen, authorize the app, and are redirected back. If they already have an account linked to that Google email, they are signed in. If not, a new account is automatically created, signed in, and routed through onboarding before the role-based landing page.
 
 **Why this priority**: Google sign-in reduces friction — no password to remember — but depends on external OAuth configuration and is a secondary path to the core email registration.
 
-**Independent Test**: Can be fully tested by clicking the Google button on `/login`, completing the Google consent flow, and verifying the user lands on the authenticated area with their Google profile name/email visible.
+**Independent Test**: Can be fully tested by clicking the Google button on `/login`, completing the Google consent flow, verifying first-time users land on `/auth/onboarding`, completing onboarding, and then reaching the authenticated area.
 
 **Acceptance Scenarios**:
 
 1. **Given** a visitor on the `/login` page, **When** they click "Iniciar sesión con Google", **Then** they are redirected to Google's OAuth consent screen.
-2. **Given** a visitor completes Google consent, **When** Google redirects back to the application, **Then** the system creates a new account (if none exists for that Google email) and signs the user in.
+2. **Given** a visitor completes Google consent, **When** Google redirects back to the application, **Then** the system creates a new account (if none exists for that Google email), signs the user in, and redirects to `/auth/onboarding` before the role-based landing page.
 3. **Given** a visitor who previously registered via Google, **When** they click "Iniciar sesión con Google" again, **Then** they are signed into their existing account without creating a duplicate.
 4. **Given** a visitor who previously registered via email with the same email address as their Google account, **When** they click "Iniciar sesión con Google", **Then** their existing account is linked to Google and they are signed in (account merging by email).
 5. **Given** a visitor on Google's consent screen, **When** they cancel or deny authorization, **Then** they are returned to the `/login` page with an informational message.
@@ -60,6 +60,27 @@ The existing `/login` page currently shows only an email/password sign-in form. 
 
 ---
 
+### User Story 4 — Unified Post-Signup Onboarding Wizard (Priority: P1)
+
+After successful authentication (email registration or first-time Google sign-in), the user is redirected to a single onboarding page that acts as the source of truth for player intent and initial player details.
+
+**Why this priority**: It removes duplicated branching logic between sign-up methods and keeps player creation decisions in one consistent flow.
+
+**Independent Test**: Register with email and with Google, verify both land on `/auth/onboarding`, answer onboarding questions, and confirm resulting user/player state.
+
+**Acceptance Scenarios**:
+
+1. **Given** a new user completes email registration, **When** auth succeeds, **Then** they are redirected to `/auth/onboarding` before final app landing.
+2. **Given** a new user completes Google sign-in for the first time, **When** auth callback succeeds, **Then** they are redirected to `/auth/onboarding` before final app landing.
+3. **Given** onboarding page is shown, **When** it renders, **Then** question A appears as checkbox/toggle: "Eres un jugador del equipo?" with default `true`.
+4. **Given** question A is `true`, **When** onboarding form is shown, **Then** questions B and C are displayed:
+   - "Cual es tu numero de camiseta?"
+   - "Cual es tu posicion en la cancha?"
+5. **Given** question A is `false`, **When** onboarding form is shown, **Then** questions B and C are hidden and player creation is skipped.
+6. **Given** onboarding is already completed for a user, **When** they log in again, **Then** they are not redirected to onboarding.
+
+---
+
 ### Edge Cases
 
 - What happens when a user registers via Google and later tries to log in via email/password with the same email? → They must set a password first (via a "set password" prompt or password-reset flow) to enable email login.
@@ -76,7 +97,7 @@ The existing `/login` page currently shows only an email/password sign-in form. 
 - **FR-003**: Passwords MUST meet minimum strength requirements: at least 8 characters, one uppercase letter, one number, and one special character.
 - **FR-004**: The system MUST validate that password and confirmation match before submission.
 - **FR-005**: The system MUST reject registration if the email is already associated with an existing account, displaying a user-friendly error message.
-- **FR-006**: Upon successful email registration, the system MUST automatically sign the user in and redirect to their role-appropriate landing page.
+- **FR-006**: Upon successful email registration, the system MUST automatically sign the user in and redirect to `/auth/onboarding`. Navigation from onboarding completion to the role-based landing page is governed by **FR-032**.
 - **FR-007**: New accounts created via email registration MUST be assigned the PLAYER role by default.
 - **FR-008**: The `/login` page MUST display a "Iniciar sesión con Google" button that initiates the Google OAuth flow.
 - **FR-009**: When a user authenticates via Google for the first time, the system MUST create a new account using the Google profile's email and display name.
@@ -85,7 +106,7 @@ The existing `/login` page currently shows only an email/password sign-in form. 
 - **FR-012**: Existing email/password login functionality MUST continue to work without regression.
 - **FR-013**: All registration and sign-in form labels and messages MUST be in Spanish (matching the existing UI language).
 - **FR-014**: The registration form MUST validate email format before submission.
-- **FR-015**: Upon successful registration, the system MUST automatically create a Player record linked to the new User, with status=ACTIVE and firstName/lastName copied from the User.
+- **FR-015**: Upon successful registration, the system MUST create the new User with onboarding pending state; Player linkage and creation are finalized only by the onboarding completion flow (FR-034 and FR-035).
 - **FR-016**: Deactivated players (Player.status=INACTIVE) MUST still be able to log in and edit their own profile data. They MUST be excluded from game participation, roster selection, and active-player features.
 - **FR-017**: The User model MUST replace the single `name` field with `firstName` and `lastName` fields. All existing references to `name` must be migrated.
 - **FR-018**: ADMIN users MUST be able to promote a PLAYER to DT, EDITOR, or ADMIN; promote a DT to EDITOR or ADMIN; and promote an EDITOR to ADMIN.
@@ -101,23 +122,36 @@ The existing `/login` page currently shows only an email/password sign-in form. 
 - **FR-028**: The profile page MUST allow users to edit: profile picture, firstName, lastName, birthdate, address, position, jersey number, and phone number.
 - **FR-029**: When editing jersey number, the system MUST validate availability among ACTIVE REGISTERED players and display a tooltip listing already-assigned numbers.
 - **FR-030**: The right side of the profile page MUST display a black football jersey SVG showing the selected jersey number and the user's lastName above it. Jersey colors MUST be configurable via CSS/Tailwind classes. This is cosmetic only.
+- **FR-031**: The email registration form MUST include a checkbox/toggle `"Eres un jugador del equipo?"` defaulting to `true`.
+- **FR-032**: First-time authenticated users (email or Google) MUST pass through a unified post-signup page `/auth/onboarding` before role-based landing pages.
+- **FR-033**: The onboarding page MUST ask `"Eres un jugador del equipo?"` and, only if true, ask `"Cual es tu numero de camiseta?"` and `"Cual es tu posicion en la cancha?"`.
+- **FR-034**: If onboarding answer indicates player=true, the system MUST create or update a linked `Player` record and persist jersey/position when provided.
+- **FR-035**: If onboarding answer indicates player=false, the system MUST keep `User.playerId = null` and still allow authentication/profile access.
+- **FR-036**: The system MUST persist onboarding completion state so users are not repeatedly redirected to `/auth/onboarding`.
+- **FR-037**: Google sign-up flow MUST use the same onboarding completion endpoint and validation rules as email registration (single source of truth).
 
 ### Key Entities
 
-- **User**: Existing entity. Replace `name` (single string) with `firstName` and `lastName` fields. Gains an optional Google identity link (Google subject ID) and an optional password (users who register via Google may not have a password initially). Key attributes: email (unique), firstName, lastName, role (ADMIN/EDITOR/DT/PLAYER), password hash (nullable), Google subject identifier (nullable).
-- **Player**: Existing entity. A Player record is automatically created and linked to the User upon successful registration. The Player inherits firstName/lastName from the User. Player.status starts as ACTIVE. A deactivated Player (status=INACTIVE) can still log in and edit their profile but is excluded from game participation, roster selection, and other active-player features. The profile page shows a list of GUEST players this user invited ("Friend of" history) with game & date.
+- **User**: Existing entity. Replace `name` (single string) with `firstName` and `lastName` fields. Gains an optional Google identity link (Google subject ID), an optional password (users who register via Google may not have a password initially), and onboarding completion state. Key attributes: email (unique), firstName, lastName, role (ADMIN/EDITOR/DT/PLAYER), password hash (nullable), Google subject identifier (nullable), onboarding completed timestamp (nullable).
+- **Player**: Existing entity. A Player record is conditionally created/linked during onboarding when the user confirms they are a team player (`isPlayer=true`). If `isPlayer=false`, the user remains authenticated with `User.playerId = null`. Player inherits firstName/lastName from User when created. Player.status starts as ACTIVE. A deactivated Player (status=INACTIVE) can still log in and edit their profile but is excluded from game participation, roster selection, and other active-player features. The profile page shows a list of GUEST players this user invited ("Friend of" history) with game & date.
 
 ## Clarifications
 
 ### Session 2026-03-25
 
-- Q: When a guest self-registers and gets the PLAYER role, should a Player record be auto-created? → A: Yes, auto-create Player record on registration (profile fields editable immediately).
+- Q: When a guest self-registers and gets the PLAYER role, should a Player record be auto-created? → A: Superseded by unified onboarding (2026-03-29): registration creates the User and onboarding decides Player creation/linkage.
 - Q: Can deactivated players still log in and edit their profile? → A: Yes. Deactivated (INACTIVE) players can authenticate and edit profile data, but are excluded from game participation and roster features. The role remains PLAYER; deactivation is a Player.status flag, not a role change.
 - Q: Should role management (promote/demote) be in this spec or a separate one? → A: Include in this spec (015). Admin can promote PLAYER→DT→EDITOR→ADMIN, demote EDITOR→DT/PLAYER, DT→PLAYER, but cannot demote other ADMINs.
 - Q: What does the "Friend of" section on the profile show? → A: Guest players that I invited — list of GUEST players this user brought to matches, with guest name, game, and date.
 - Q: Should a DT (Director Técnico / Coach) role be added? → A: Yes. New role in hierarchy: ADMIN > EDITOR > DT > PLAYER. DT can edit upcoming game tactics (positions, starting/bench) and add guest players from the game edit screen. Full tactics editing UI is a future spec.
 - Q: Where should uploaded profile photos be stored? → A: S3-compatible storage, consistent with existing Player.photoUrl pattern.
 - Q: What fields should the registration form collect? → A: Email + password + firstName + lastName (minimum for a usable Player record). Position, jersey number, etc. are set later on the profile page.
+
+### Session 2026-03-29
+
+- Q: Should player intent be asked during registration and also be consistent for Google sign-up? → A: Yes. Registration shows a player checkbox default true, and both email + Google paths must converge on one post-signup onboarding page as source of truth.
+- Q: Which onboarding questions are mandatory? → A: Always ask "Eres un jugador del equipo?"; ask jersey number and position only if answer is true.
+- Q: Should this feature remain full scope or be narrowed to onboarding only? → A: Full scope. This feature includes all registration-related requirements in FR-001 to FR-037, including profile and role-management groups.
 
 ## Success Criteria _(mandatory)_
 

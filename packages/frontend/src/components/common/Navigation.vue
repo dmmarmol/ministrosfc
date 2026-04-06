@@ -1,3 +1,11 @@
+<script setup lang="ts">
+import { useAuthStore } from "~/stores/auth";
+import AdminProfileMenu from "~/components/common/AdminProfileMenu.vue";
+
+const authStore = useAuthStore();
+const mobileOpen = ref(false);
+</script>
+
 <template>
   <nav class="bg-gray-900 text-white">
     <div
@@ -47,29 +55,41 @@
           >
         </li>
       </ul>
-      <!-- Auth button -->
+      <!-- Auth button (client-only to avoid hydration mismatch from storage-based auth state) -->
       <div class="flex items-center gap-3">
-        <template v-if="authStore.isAuthenticated">
-          <NuxtLink
-            v-if="authStore.isEditor"
-            to="/admin/dashboard"
-            class="text-xs bg-brand text-gray-900 font-semibold px-3 py-1.5 rounded hover:opacity-90 transition-opacity"
-            >Admin</NuxtLink
-          >
-          <button
-            class="text-xs text-gray-400 hover:text-white transition-colors"
-            @click="authStore.logout()"
-          >
-            Cerrar sesión
-          </button>
-        </template>
-        <template v-else>
-          <NuxtLink
-            to="/login"
-            class="text-xs bg-brand text-gray-900 font-semibold px-3 py-1.5 rounded hover:opacity-90 transition-opacity"
-            >Iniciar sesión</NuxtLink
-          >
-        </template>
+        <ClientOnly>
+          <template v-if="authStore.isAuthenticated">
+            <AdminProfileMenu v-if="authStore.isEditor" />
+            <template v-else>
+              <NuxtLink
+                to="/profile/player"
+                class="text-xs text-gray-400 hover:text-white transition-colors"
+                active-class="text-brand"
+                >Mi Perfil</NuxtLink
+              >
+              <button
+                class="text-xs text-gray-400 hover:text-white transition-colors"
+                @click="authStore.logout()"
+              >
+                Cerrar sesión
+              </button>
+            </template>
+          </template>
+          <template v-else>
+            <NuxtLink
+              to="/login"
+              class="text-xs bg-brand text-gray-900 font-semibold px-3 py-1.5 rounded hover:opacity-90 transition-opacity"
+              >Iniciar sesión</NuxtLink
+            >
+          </template>
+          <template #fallback>
+            <NuxtLink
+              to="/login"
+              class="text-xs bg-brand text-gray-900 font-semibold px-3 py-1.5 rounded hover:opacity-90 transition-opacity"
+              >Iniciar sesión</NuxtLink
+            >
+          </template>
+        </ClientOnly>
       </div>
       <!-- Mobile hamburger -->
       <button
@@ -142,6 +162,14 @@
         >Estadísticas</NuxtLink
       >
       <NuxtLink
+        v-if="authStore.isAuthenticated && !authStore.isEditor"
+        to="/profile/player"
+        class="block py-1.5 hover:text-brand"
+        active-class="text-brand"
+        @click="mobileOpen = false"
+        >Mi Perfil</NuxtLink
+      >
+      <NuxtLink
         v-if="!authStore.isAuthenticated"
         to="/login"
         class="block py-1.5 text-brand"
@@ -151,10 +179,3 @@
     </div>
   </nav>
 </template>
-
-<script setup lang="ts">
-import { useAuthStore } from "~/stores/auth";
-
-const authStore = useAuthStore();
-const mobileOpen = ref(false);
-</script>

@@ -22,3 +22,6 @@ coverage
 .prettierignore
 .eslintignore
 .editorconfig
+Dockerfile*
+.dockerignore
+.env*

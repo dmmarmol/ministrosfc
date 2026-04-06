@@ -1,3 +1,37 @@
+<script setup lang="ts">
+const { $api } = useNuxtApp();
+const route = useRoute();
+const id = route.params.id as string;
+
+const [{ data: playerData, pending }, { data: statsData }] = await Promise.all([
+  useAsyncData(`player-${id}`, () =>
+    $api<{ data: any }>(`/api/v1/players/${id}`),
+  ),
+  useAsyncData(`player-stats-${id}`, () =>
+    $api<{ data: any }>(`/api/v1/statistics/players/${id}`),
+  ),
+]);
+const player = computed(() => playerData.value?.data ?? null);
+const stats = computed(() => statsData.value?.data ?? null);
+const tournamentStats = computed(() => stats.value?.byTournament ?? []);
+
+const statCards = computed(() => {
+  const s = stats.value ?? {};
+  return [
+    { label: "Goals", value: s.goals ?? 0 },
+    { label: "Assists", value: s.assists ?? 0 },
+    { label: "Appearances", value: s.appearances ?? 0 },
+    { label: "Yellow Cards", value: s.yellowCards ?? 0 },
+  ];
+});
+
+useHead(() => ({
+  title: player.value
+    ? `${player.value.firstName} ${player.value.lastName} – Ministros FC`
+    : "Player",
+}));
+</script>
+
 <template>
   <div>
     <div v-if="pending" class="space-y-4">
@@ -14,7 +48,7 @@
           <img
             v-if="player.photoUrl"
             :src="player.photoUrl"
-            :alt="player.name"
+            :alt="`${player.firstName} ${player.lastName}`"
             class="w-full h-full object-cover"
           />
           <div
@@ -25,7 +59,9 @@
           </div>
         </div>
         <div>
-          <h1 class="text-2xl font-bold">{{ player.name }}</h1>
+          <h1 class="text-2xl font-bold">
+            {{ player.firstName }} {{ player.lastName }}
+          </h1>
           <p v-if="player.nickname" class="text-gray-400 text-sm">
             "{{ player.nickname }}"
           </p>
@@ -97,35 +133,3 @@
     <div v-else class="text-center py-16 text-gray-500">Player not found.</div>
   </div>
 </template>
-
-<script setup lang="ts">
-const { $api } = useNuxtApp();
-const route = useRoute();
-const id = route.params.id as string;
-
-const [{ data: playerData, pending }, { data: statsData }] = await Promise.all([
-  useAsyncData(`player-${id}`, () =>
-    $api<{ data: any }>(`/api/v1/players/${id}`),
-  ),
-  useAsyncData(`player-stats-${id}`, () =>
-    $api<{ data: any }>(`/api/v1/statistics/players/${id}`),
-  ),
-]);
-const player = computed(() => playerData.value?.data ?? null);
-const stats = computed(() => statsData.value?.data ?? null);
-const tournamentStats = computed(() => stats.value?.byTournament ?? []);
-
-const statCards = computed(() => {
-  const s = stats.value ?? {};
-  return [
-    { label: "Goals", value: s.goals ?? 0 },
-    { label: "Assists", value: s.assists ?? 0 },
-    { label: "Appearances", value: s.appearances ?? 0 },
-    { label: "Yellow Cards", value: s.yellowCards ?? 0 },
-  ];
-});
-
-useHead(() => ({
-  title: player.value ? `${player.value.name} – Ministros FC` : "Player",
-}));
-</script>

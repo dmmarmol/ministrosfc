@@ -1,3 +1,78 @@
+<script setup lang="ts">
+import { useAuthStore } from "~/stores/auth";
+
+definePageMeta({ layout: "admin", middleware: "auth" });
+
+const { $api } = useNuxtApp();
+const router = useRouter();
+const route = useRoute();
+const id = route.params.id as string;
+const authStore = useAuthStore();
+
+const { data, pending } = await useAsyncData(`edit-game-${id}`, () =>
+  $api<{ data: any }>(`/api/v1/games/${id}`),
+);
+const game = computed(() => data.value?.data ?? null);
+
+const form = reactive({
+  date: "",
+  time: "",
+  location: "",
+  notes: "",
+  homeTeamScore: null as number | null,
+  awayTeamScore: null as number | null,
+  status: "SCHEDULED",
+});
+
+watch(
+  game,
+  (g) => {
+    if (!g) return;
+    form.date = g.date ? g.date.split("T")[0] : "";
+    form.time = g.time ?? "";
+    form.location = g.location ?? "";
+    form.notes = g.notes ?? "";
+    form.homeTeamScore = g.homeTeamScore ?? null;
+    form.awayTeamScore = g.awayTeamScore ?? null;
+    form.status = g.status ?? "SCHEDULED";
+  },
+  { immediate: true },
+);
+
+useHead(() => ({
+  title: game.value
+    ? `Edit vs ${game.value.opponentTeam?.name} – Admin`
+    : "Edit Game",
+}));
+
+const loading = ref(false);
+const error = ref("");
+
+async function submit() {
+  error.value = "";
+  loading.value = true;
+  try {
+    const body: Record<string, any> = {
+      date: form.date,
+      location: form.location,
+      notes: form.notes,
+    };
+    if (form.time) body.time = form.time;
+    if (authStore.isAdmin) {
+      body.homeTeamScore = form.homeTeamScore;
+      body.awayTeamScore = form.awayTeamScore;
+      body.status = form.status;
+    }
+    await $api(`/api/v1/games/${id}`, { method: "PATCH", body });
+    await router.push("/admin/games");
+  } catch (e: any) {
+    error.value = e?.message ?? "Failed to save game.";
+  } finally {
+    loading.value = false;
+  }
+}
+</script>
+
 <template>
   <div class="max-w-lg">
     <NuxtLink
@@ -146,78 +221,3 @@
     </form>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useAuthStore } from "~/stores/auth";
-
-definePageMeta({ layout: "admin", middleware: "auth" });
-
-const { $api } = useNuxtApp();
-const router = useRouter();
-const route = useRoute();
-const id = route.params.id as string;
-const authStore = useAuthStore();
-
-const { data, pending } = await useAsyncData(`edit-game-${id}`, () =>
-  $api<{ data: any }>(`/api/v1/games/${id}`),
-);
-const game = computed(() => data.value?.data ?? null);
-
-const form = reactive({
-  date: "",
-  time: "",
-  location: "",
-  notes: "",
-  homeTeamScore: null as number | null,
-  awayTeamScore: null as number | null,
-  status: "SCHEDULED",
-});
-
-watch(
-  game,
-  (g) => {
-    if (!g) return;
-    form.date = g.date ? g.date.split("T")[0] : "";
-    form.time = g.time ?? "";
-    form.location = g.location ?? "";
-    form.notes = g.notes ?? "";
-    form.homeTeamScore = g.homeTeamScore ?? null;
-    form.awayTeamScore = g.awayTeamScore ?? null;
-    form.status = g.status ?? "SCHEDULED";
-  },
-  { immediate: true },
-);
-
-useHead(() => ({
-  title: game.value
-    ? `Edit vs ${game.value.opponentTeam?.name} – Admin`
-    : "Edit Game",
-}));
-
-const loading = ref(false);
-const error = ref("");
-
-async function submit() {
-  error.value = "";
-  loading.value = true;
-  try {
-    const body: Record<string, any> = {
-      date: form.date,
-      location: form.location,
-      notes: form.notes,
-    };
-    if (form.time) body.time = form.time;
-    if (authStore.isAdmin) {
-      body.homeTeamScore = form.homeTeamScore;
-      body.awayTeamScore = form.awayTeamScore;
-      body.status = form.status;
-    }
-    await $api(`/api/v1/games/${id}`, { method: "PATCH", body });
-    await router.push("/admin/games");
-  } catch (e: any) {
-    error.value = e?.message ?? "Failed to save game.";
-  } finally {
-    loading.value = false;
-  }
-}
-</script>

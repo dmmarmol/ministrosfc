@@ -1,3 +1,56 @@
+<script setup lang="ts">
+definePageMeta({ layout: "admin", middleware: "auth" });
+useHead({ title: "Games – Admin" });
+
+const { $api } = useNuxtApp();
+const statusFilter = ref("");
+const opponentFilter = ref("");
+
+const { data: teamsData } = await useAsyncData("admin-teams", () =>
+  $api<{ data: any[] }>("/api/v1/teams"),
+);
+const teams = computed(() => teamsData.value?.data ?? []);
+
+const { data, pending, refresh } = await useAsyncData("admin-games", () =>
+  $api<{ data: any[] }>("/api/v1/games", {
+    query: {
+      ...(statusFilter.value ? { status: statusFilter.value } : {}),
+      ...(opponentFilter.value ? { opponentTeamId: opponentFilter.value } : {}),
+      limit: 100,
+    },
+  }),
+);
+watch([statusFilter, opponentFilter], () => refresh());
+const games = computed(() => data.value?.data ?? []);
+
+function formatDate(d: string): string {
+  return new Date(d).toLocaleDateString("es-AR", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+function statusClass(s: string): string {
+  const map: Record<string, string> = {
+    SCHEDULED: "bg-blue-100 text-blue-700",
+    COMPLETED: "bg-green-100 text-green-700",
+    CANCELLED: "bg-gray-100 text-gray-500",
+  };
+  return map[s] ?? "bg-gray-100 text-gray-500";
+}
+
+async function deleteGame(id: string) {
+  if (!confirm("¿Eliminar este partido? Esta acción no se puede deshacer."))
+    return;
+  try {
+    await $api(`/api/v1/games/${id}`, { method: "DELETE" });
+    await refresh();
+  } catch (e: any) {
+    alert(e?.message ?? "Failed to delete game.");
+  }
+}
+</script>
+
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
@@ -109,56 +162,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-definePageMeta({ layout: "admin", middleware: "auth" });
-useHead({ title: "Games – Admin" });
-
-const { $api } = useNuxtApp();
-const statusFilter = ref("");
-const opponentFilter = ref("");
-
-const { data: teamsData } = await useAsyncData("admin-teams", () =>
-  $api<{ data: any[] }>("/api/v1/teams"),
-);
-const teams = computed(() => teamsData.value?.data ?? []);
-
-const { data, pending, refresh } = await useAsyncData("admin-games", () =>
-  $api<{ data: any[] }>("/api/v1/games", {
-    query: {
-      ...(statusFilter.value ? { status: statusFilter.value } : {}),
-      ...(opponentFilter.value ? { opponentTeamId: opponentFilter.value } : {}),
-      limit: 100,
-    },
-  }),
-);
-watch([statusFilter, opponentFilter], () => refresh());
-const games = computed(() => data.value?.data ?? []);
-
-function formatDate(d: string): string {
-  return new Date(d).toLocaleDateString("es-AR", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-function statusClass(s: string): string {
-  const map: Record<string, string> = {
-    SCHEDULED: "bg-blue-100 text-blue-700",
-    COMPLETED: "bg-green-100 text-green-700",
-    CANCELLED: "bg-gray-100 text-gray-500",
-  };
-  return map[s] ?? "bg-gray-100 text-gray-500";
-}
-
-async function deleteGame(id: string) {
-  if (!confirm("¿Eliminar este partido? Esta acción no se puede deshacer."))
-    return;
-  try {
-    await $api(`/api/v1/games/${id}`, { method: "DELETE" });
-    await refresh();
-  } catch (e: any) {
-    alert(e?.message ?? "Failed to delete game.");
-  }
-}
-</script>

@@ -38,7 +38,8 @@ export interface HistorialRow {
 export interface JugadorRow {
   // The player column is keyed dynamically (startsWith "Jugador")
   // After normalisation the loader maps it to the standard field below.
-  name: string; // → Player.name
+  firstName: string; // → Player.firstName
+  lastName: string; // → Player.lastName
   Apodo: string; // → Player.nickname  ("??" → null)
   Nacimiento: string; // DD/MM/YYYY or similar → Player.dateOfBirth
   Edad: string; // numeric string — not stored (derived from dateOfBirth)

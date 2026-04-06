@@ -2,13 +2,15 @@ import { AuthService } from "../../src/services/AuthService";
 import { UserModel } from "../../src/models/User";
 import jwt from "jsonwebtoken";
 
-// Mock Redis to avoid needing a running Redis in unit tests
+const mockRedis = {
+  setex: jest.fn().mockResolvedValue("OK"),
+  get: jest.fn().mockResolvedValue(null),
+  del: jest.fn().mockResolvedValue(1),
+  keys: jest.fn().mockResolvedValue([]),
+};
+
 jest.mock("../../src/config/redis", () => ({
-  getRedisClient: () => ({
-    setex: jest.fn().mockResolvedValue("OK"),
-    get: jest.fn().mockResolvedValue(null),
-    del: jest.fn().mockResolvedValue(1),
-  }),
+  getRedisClient: () => mockRedis,
 }));
 
 jest.mock("../../src/models/User");
@@ -35,7 +37,8 @@ describe("AuthService", () => {
       const mockUser = {
         id: "u1",
         email: "admin@test.com",
-        name: "Admin",
+        firstName: "Admin",
+        lastName: "User",
         role: "ADMIN" as const,
         passwordHash: "hashed",
       };
@@ -46,6 +49,8 @@ describe("AuthService", () => {
       const res = await AuthService.login("admin@test.com", "correct");
       expect(res.accessToken).toBeTruthy();
       expect(res.user.email).toBe("admin@test.com");
+      expect(res.user.firstName).toBe("Admin");
+      expect(res.user.lastName).toBe("User");
       expect(res.user.role).toBe("ADMIN");
     });
 
@@ -69,25 +74,83 @@ describe("AuthService", () => {
   });
 
   describe("register", () => {
-    it("creates a PLAYER role user by default", async () => {
+    it("creates a PLAYER role user with firstName/lastName and returns nextStep", async () => {
       (UserModel.findByEmail as jest.Mock).mockResolvedValue(null);
       const created = {
         id: "u2",
         email: "new@test.com",
-        name: "New",
+        firstName: "New",
+        lastName: "User",
         role: "PLAYER" as const,
+        onboardingCompletedAt: null,
       };
       (UserModel.create as jest.Mock).mockResolvedValue(created);
 
       const res = await AuthService.register({
         email: "new@test.com",
-        password: "pass123",
-        name: "New",
+        password: "Segura123!",
+        passwordConfirmation: "Segura123!",
+        firstName: "New",
+        lastName: "User",
+      });
+      expect(res.user.role).toBe("PLAYER");
+      expect(res.user.firstName).toBe("New");
+      expect(res.user.lastName).toBe("User");
+      expect(res.user.onboardingCompletedAt).toBeNull();
+      expect(res.nextStep).toBe("/auth/onboarding");
+      expect((UserModel.create as jest.Mock).mock.calls[0][0].role).toBe(
+        "PLAYER",
+      );
+    });
+
+    it("assigns PLAYER role by default (explicit assertion)", async () => {
+      (UserModel.findByEmail as jest.Mock).mockResolvedValue(null);
+      (UserModel.create as jest.Mock).mockResolvedValue({
+        id: "u-default",
+        email: "default@test.com",
+        firstName: "Default",
+        lastName: "Role",
+        role: "PLAYER" as const,
+        onboardingCompletedAt: null,
+      });
+
+      const res = await AuthService.register({
+        email: "default@test.com",
+        password: "Segura123!",
+        passwordConfirmation: "Segura123!",
+        firstName: "Default",
+        lastName: "Role",
       });
       expect(res.user.role).toBe("PLAYER");
       expect((UserModel.create as jest.Mock).mock.calls[0][0].role).toBe(
         "PLAYER",
       );
+    });
+
+    it("stores refresh token in Redis", async () => {
+      (UserModel.findByEmail as jest.Mock).mockResolvedValue(null);
+      (UserModel.create as jest.Mock).mockResolvedValue({
+        id: "u3",
+        email: "redis@test.com",
+        firstName: "Redis",
+        lastName: "Test",
+        role: "PLAYER",
+        onboardingCompletedAt: null,
+      });
+
+      const res = await AuthService.register({
+        email: "redis@test.com",
+        password: "Segura123!",
+        passwordConfirmation: "Segura123!",
+        firstName: "Redis",
+        lastName: "Test",
+      });
+      expect(mockRedis.setex).toHaveBeenCalledWith(
+        expect.stringContaining("session:refresh:"),
+        2592000,
+        "u3",
+      );
+      expect(res.refreshToken).toBeTruthy();
     });
 
     it("throws 409 when email already in use", async () => {
@@ -97,10 +160,93 @@ describe("AuthService", () => {
       await expect(
         AuthService.register({
           email: "existing@test.com",
-          password: "pw",
-          name: "X",
+          password: "Segura123!",
+          passwordConfirmation: "Segura123!",
+          firstName: "X",
+          lastName: "Y",
         }),
       ).rejects.toMatchObject({ statusCode: 409 });
+    });
+  });
+
+  describe("googleAuth", () => {
+    const googlePayload = {
+      sub: "google-sub-123",
+      email: "google@test.com",
+      given_name: "Google",
+      family_name: "User",
+    };
+
+    it("signs in existing user found by googleSubjectId", async () => {
+      const existingUser = {
+        id: "u-google",
+        email: "google@test.com",
+        firstName: "Google",
+        lastName: "User",
+        role: "PLAYER" as const,
+        googleSubjectId: "google-sub-123",
+      };
+      (UserModel.findByGoogleSubjectId as jest.Mock).mockResolvedValue(
+        existingUser,
+      );
+      (UserModel.update as jest.Mock).mockResolvedValue(existingUser);
+
+      const res = await AuthService.googleAuth(googlePayload);
+      expect(res.user.email).toBe("google@test.com");
+      expect(res.accessToken).toBeTruthy();
+      expect(UserModel.findByGoogleSubjectId).toHaveBeenCalledWith(
+        "google-sub-123",
+      );
+    });
+
+    it("links googleSubjectId when email matches existing user", async () => {
+      const existingUser = {
+        id: "u-email",
+        email: "google@test.com",
+        firstName: "Existing",
+        lastName: "User",
+        role: "PLAYER" as const,
+        googleSubjectId: null,
+      };
+      (UserModel.findByGoogleSubjectId as jest.Mock).mockResolvedValue(null);
+      (UserModel.findByEmail as jest.Mock).mockResolvedValue(existingUser);
+      (UserModel.update as jest.Mock).mockResolvedValue({
+        ...existingUser,
+        googleSubjectId: "google-sub-123",
+      });
+
+      const res = await AuthService.googleAuth(googlePayload);
+      expect(res.user.email).toBe("google@test.com");
+      expect(UserModel.update).toHaveBeenCalledWith("u-email", {
+        googleSubjectId: "google-sub-123",
+        lastLoginAt: expect.any(Date),
+      });
+    });
+
+    it("creates new user + player when no match found", async () => {
+      (UserModel.findByGoogleSubjectId as jest.Mock).mockResolvedValue(null);
+      (UserModel.findByEmail as jest.Mock).mockResolvedValue(null);
+      const created = {
+        id: "u-new-google",
+        email: "google@test.com",
+        firstName: "Google",
+        lastName: "User",
+        role: "PLAYER" as const,
+        googleSubjectId: "google-sub-123",
+      };
+      (UserModel.create as jest.Mock).mockResolvedValue(created);
+      (UserModel.update as jest.Mock).mockResolvedValue(created);
+
+      const res = await AuthService.googleAuth(googlePayload);
+      expect(res.user.role).toBe("PLAYER");
+      expect(res.accessToken).toBeTruthy();
+      expect(UserModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: "google@test.com",
+          googleSubjectId: "google-sub-123",
+          role: "PLAYER",
+        }),
+      );
     });
   });
 });

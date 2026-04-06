@@ -1,3 +1,52 @@
+<script setup lang="ts">
+definePageMeta({ layout: "admin", middleware: "auth" });
+useHead({ title: "Teams – Admin" });
+
+const { $api } = useNuxtApp();
+const showCreate = ref(false);
+const newTeam = reactive({ name: "", colors: "" });
+const createLoading = ref(false);
+const createError = ref("");
+
+const { data, pending, refresh } = await useAsyncData("admin-teams-page", () =>
+  $api<{ data: any[] }>("/api/v1/teams"),
+);
+const teams = computed(() => data.value?.data ?? []);
+
+async function createTeam() {
+  if (!newTeam.name) return;
+  createError.value = "";
+  createLoading.value = true;
+  try {
+    await $api("/api/v1/teams", {
+      method: "POST",
+      body: { name: newTeam.name, colors: newTeam.colors || undefined },
+    });
+    showCreate.value = false;
+    newTeam.name = "";
+    newTeam.colors = "";
+    await refresh();
+  } catch (e: any) {
+    createError.value = e?.message ?? "Failed to create team.";
+  } finally {
+    createLoading.value = false;
+  }
+}
+
+async function deleteTeam(team: any) {
+  if (!confirm(`Delete "${team.name}"? This will fail if the team has games.`))
+    return;
+  try {
+    await $api(`/api/v1/teams/${team.id}`, { method: "DELETE" });
+    await refresh();
+  } catch (e: any) {
+    alert(
+      e?.message ?? "Failed to delete team. It may be referenced in games.",
+    );
+  }
+}
+</script>
+
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
@@ -108,52 +157,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-definePageMeta({ layout: "admin", middleware: "auth" });
-useHead({ title: "Teams – Admin" });
-
-const { $api } = useNuxtApp();
-const showCreate = ref(false);
-const newTeam = reactive({ name: "", colors: "" });
-const createLoading = ref(false);
-const createError = ref("");
-
-const { data, pending, refresh } = await useAsyncData("admin-teams-page", () =>
-  $api<{ data: any[] }>("/api/v1/teams"),
-);
-const teams = computed(() => data.value?.data ?? []);
-
-async function createTeam() {
-  if (!newTeam.name) return;
-  createError.value = "";
-  createLoading.value = true;
-  try {
-    await $api("/api/v1/teams", {
-      method: "POST",
-      body: { name: newTeam.name, colors: newTeam.colors || undefined },
-    });
-    showCreate.value = false;
-    newTeam.name = "";
-    newTeam.colors = "";
-    await refresh();
-  } catch (e: any) {
-    createError.value = e?.message ?? "Failed to create team.";
-  } finally {
-    createLoading.value = false;
-  }
-}
-
-async function deleteTeam(team: any) {
-  if (!confirm(`Delete "${team.name}"? This will fail if the team has games.`))
-    return;
-  try {
-    await $api(`/api/v1/teams/${team.id}`, { method: "DELETE" });
-    await refresh();
-  } catch (e: any) {
-    alert(
-      e?.message ?? "Failed to delete team. It may be referenced in games.",
-    );
-  }
-}
-</script>

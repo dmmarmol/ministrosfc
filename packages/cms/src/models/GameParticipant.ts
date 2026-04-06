@@ -20,17 +20,20 @@ const GameParticipantModel = {
         player: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             nickname: true,
             jerseyNumber: true,
             position: true,
             photoUrl: true,
             playerType: true,
             invitedById: true,
-            invitedBy: { select: { id: true, name: true } },
+            invitedBy: {
+              select: { id: true, firstName: true, lastName: true },
+            },
           },
         },
-        confirmedBy: { select: { id: true, name: true } },
+        confirmedBy: { select: { id: true, firstName: true, lastName: true } },
       },
       orderBy: { createdAt: "asc" },
     });
@@ -73,9 +76,13 @@ const GameParticipantModel = {
   },
 
   async createGuestPlayer(name: string, invitedById: string) {
+    // Split the display name — guest names are "Amigo de FirstName LastName"
+    const firstName = name;
+    const lastName = "";
     return prisma.player.create({
       data: {
-        name,
+        firstName,
+        lastName,
         playerType: "GUEST",
         status: "ACTIVE",
         invitedById,

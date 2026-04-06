@@ -1,3 +1,35 @@
+<script setup lang="ts">
+useHead({ title: "Schedule – Ministros FC" });
+
+const { $api } = useNuxtApp();
+
+const tabs = [
+  { key: "upcoming", label: "Próximos" },
+  { key: "past", label: "Resultados Anteriores" },
+];
+const activeTab = ref("upcoming");
+const opponentFilter = ref("");
+
+const { data: teamsData } = await useAsyncData("schedule-teams", () =>
+  $api<{ data: any[] }>("/api/v1/teams"),
+);
+const teams = computed(() => teamsData.value?.data ?? []);
+
+const query = computed(() => ({
+  status: activeTab.value === "upcoming" ? "SCHEDULED" : "COMPLETED",
+  ...(opponentFilter.value ? { opponentTeamId: opponentFilter.value } : {}),
+  limit: 50,
+}));
+
+const { data, pending, refresh } = await useAsyncData("schedule", () =>
+  $api<{ data: any[] }>("/api/v1/games", { query: query.value }),
+);
+
+watch([activeTab, opponentFilter], () => refresh());
+
+const games = computed(() => data.value?.data ?? []);
+</script>
+
 <template>
   <div>
     <!-- Tabs -->
@@ -52,35 +84,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-useHead({ title: "Schedule – Ministros FC" });
-
-const { $api } = useNuxtApp();
-
-const tabs = [
-  { key: "upcoming", label: "Próximos" },
-  { key: "past", label: "Resultados Anteriores" },
-];
-const activeTab = ref("upcoming");
-const opponentFilter = ref("");
-
-const { data: teamsData } = await useAsyncData("schedule-teams", () =>
-  $api<{ data: any[] }>("/api/v1/teams"),
-);
-const teams = computed(() => teamsData.value?.data ?? []);
-
-const query = computed(() => ({
-  status: activeTab.value === "upcoming" ? "SCHEDULED" : "COMPLETED",
-  ...(opponentFilter.value ? { opponentTeamId: opponentFilter.value } : {}),
-  limit: 50,
-}));
-
-const { data, pending, refresh } = await useAsyncData("schedule", () =>
-  $api<{ data: any[] }>("/api/v1/games", { query: query.value }),
-);
-
-watch([activeTab, opponentFilter], () => refresh());
-
-const games = computed(() => data.value?.data ?? []);
-</script>

@@ -1,3 +1,21 @@
+<script setup lang="ts">
+const props = defineProps<{
+  player: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    position: string | null;
+    jerseyNumber: number | null;
+    photoUrl: string | null;
+  };
+}>();
+
+function formatPosition(pos: string | null): string {
+  if (!pos) return "—";
+  return pos;
+}
+</script>
+
 <template>
   <NuxtLink
     :to="`/players/${player.id}`"
@@ -8,7 +26,7 @@
       <img
         v-if="player.photoUrl"
         :src="player.photoUrl"
-        :alt="player.name"
+        :alt="`${player.firstName} ${player.lastName}`"
         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
       />
       <div
@@ -32,7 +50,7 @@
     <!-- Info -->
     <div class="p-3">
       <p class="font-semibold text-gray-900 text-sm truncate">
-        {{ player.name }}
+        {{ player.firstName }} {{ player.lastName }}
       </p>
       <p class="text-xs text-gray-500 mt-0.5">
         {{ formatPosition(player.position) }}
@@ -40,20 +58,3 @@
     </div>
   </NuxtLink>
 </template>
-
-<script setup lang="ts">
-const props = defineProps<{
-  player: {
-    id: string;
-    name: string;
-    position: string | null;
-    jerseyNumber: number | null;
-    photoUrl: string | null;
-  };
-}>();
-
-function formatPosition(pos: string | null): string {
-  if (!pos) return "—";
-  return pos;
-}
-</script>

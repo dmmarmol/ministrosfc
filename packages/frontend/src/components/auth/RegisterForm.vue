@@ -1,8 +1,68 @@
+<script setup lang="ts">
+import { reactive, ref, computed } from "vue";
+import { PASSWORD_RULES } from "@ministrosfc/shared";
+import EmailInput from "~/components/ui/EmailInput.vue";
+
+const props = defineProps<{
+  loading: boolean;
+  error: string;
+}>();
+
+const emit = defineEmits<{
+  submit: [
+    payload: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      password: string;
+      passwordConfirmation: string;
+    },
+  ];
+}>();
+
+const form = reactive({
+  firstName: "",
+  lastName: "",
+  email: "",
+  password: "",
+  passwordConfirmation: "",
+});
+
+const mismatchError = ref(false);
+const emailInputRef = ref<InstanceType<typeof EmailInput>>();
+
+const passwordRuleStatus = computed(() =>
+  PASSWORD_RULES.map((rule) => ({
+    message: rule.message,
+    met: rule.regex.test(form.password),
+  })),
+);
+
+function handleSubmit() {
+  mismatchError.value = false;
+  if (!emailInputRef.value?.validate()) return;
+  if (form.password !== form.passwordConfirmation) {
+    mismatchError.value = true;
+    return;
+  }
+  emit("submit", {
+    firstName: form.firstName.trim(),
+    lastName: form.lastName.trim(),
+    email: form.email,
+    password: form.password,
+    passwordConfirmation: form.passwordConfirmation,
+  });
+}
+</script>
+
 <template>
   <form class="space-y-4" @submit.prevent="handleSubmit">
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1" for="firstName">
+        <label
+          class="block text-sm font-medium text-gray-700 mb-1"
+          for="firstName"
+        >
           Nombre
         </label>
         <input
@@ -16,7 +76,10 @@
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1" for="lastName">
+        <label
+          class="block text-sm font-medium text-gray-700 mb-1"
+          for="lastName"
+        >
           Apellido
         </label>
         <input
@@ -34,18 +97,19 @@
       <label class="block text-sm font-medium text-gray-700 mb-1" for="email">
         Correo electrónico
       </label>
-      <input
+      <EmailInput
         id="email"
+        ref="emailInputRef"
         v-model="form.email"
-        type="email"
         autocomplete="email"
-        required
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-        placeholder="tu@ejemplo.com"
+        :required="true"
       />
     </div>
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1" for="password">
+      <label
+        class="block text-sm font-medium text-gray-700 mb-1"
+        for="password"
+      >
         Contraseña
       </label>
       <input
@@ -74,7 +138,10 @@
       </ul>
     </div>
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1" for="passwordConfirmation">
+      <label
+        class="block text-sm font-medium text-gray-700 mb-1"
+        for="passwordConfirmation"
+      >
         Confirmar contraseña
       </label>
       <input
@@ -87,7 +154,11 @@
         placeholder="••••••••"
       />
     </div>
-    <p v-if="mismatchError" class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+
+    <p
+      v-if="mismatchError"
+      class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2"
+    >
       Las contraseñas no coinciden
     </p>
     <p v-if="error" class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
@@ -102,55 +173,3 @@
     </button>
   </form>
 </template>
-
-<script setup lang="ts">
-import { reactive, ref, computed } from "vue";
-import { PASSWORD_RULES } from "@ministrosfc/shared";
-
-const props = defineProps<{
-  loading: boolean;
-  error: string;
-}>();
-
-const emit = defineEmits<{
-  submit: [payload: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    passwordConfirmation: string;
-  }];
-}>();
-
-const form = reactive({
-  firstName: "",
-  lastName: "",
-  email: "",
-  password: "",
-  passwordConfirmation: "",
-});
-
-const mismatchError = ref(false);
-
-const passwordRuleStatus = computed(() =>
-  PASSWORD_RULES.map((rule) => ({
-    message: rule.message,
-    met: rule.regex.test(form.password),
-  })),
-);
-
-function handleSubmit() {
-  mismatchError.value = false;
-  if (form.password !== form.passwordConfirmation) {
-    mismatchError.value = true;
-    return;
-  }
-  emit("submit", {
-    firstName: form.firstName.trim(),
-    lastName: form.lastName.trim(),
-    email: form.email,
-    password: form.password,
-    passwordConfirmation: form.passwordConfirmation,
-  });
-}
-</script>

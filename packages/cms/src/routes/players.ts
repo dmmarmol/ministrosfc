@@ -24,7 +24,8 @@ const upload = multer({
 });
 
 const playerCreateSchema = z.object({
-  name: z.string().min(1).max(255),
+  firstName: z.string().min(1).max(255),
+  lastName: z.string().min(1).max(255),
   nickname: z.string().max(100).optional(),
   playerType: z.nativeEnum(PlayerType).optional(),
   position: z
