@@ -46,14 +46,18 @@ Add the `Playground` type definitions before any consumer package changes.
 export interface Playground {
   id: string;
   name: string;
-  address: string | null;
+  address: string;
+  latitude: number | null;
+  longitude: number | null;
   createdAt: string;
   updatedAt: string;
+  createdById: string;
+  updatedById: string | null;
 }
 
 export interface PlaygroundCreatePayload {
   name: string;
-  address?: string;
+  address: string;
 }
 
 export interface PlaygroundUpdatePayload {
@@ -67,7 +71,7 @@ export interface PlaygroundUpdatePayload {
 ```ts
 // Add to Game interface
 playgroundId?: string | null;
-playground?: Playground | null;
+playground?: { id: string; name: string; address: string; latitude: number | null; longitude: number | null } | null;
 ```
 
 **Edit**: `packages/shared/src/types/index.ts` — add export:
@@ -92,12 +96,21 @@ Add the `Playground` model and foreign key on `Game`.
 
 ```prisma
 model Playground {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String   @db.VarChar(255)
-  address   String?  @db.VarChar(500)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  games     Game[]
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @db.VarChar(255)
+  address     String    @db.VarChar(500)
+  latitude    Float?
+  longitude   Float?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdById String    @db.Uuid
+  updatedById String?   @db.Uuid
+
+  createdBy   User      @relation("PlaygroundCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User?     @relation("PlaygroundUpdatedBy", fields: [updatedById], references: [id])
+
+  games       Game[]
 }
 
 // In existing Game model, add:
@@ -121,6 +134,7 @@ npm run gen:prisma
 Add model, service, route, and mount it.
 
 **New file**: `packages/cms/src/models/PlaygroundModel.ts`
+
 - `findAll()`
 - `findById(id: string)`
 - `create(data: PlaygroundCreatePayload)`
@@ -129,13 +143,15 @@ Add model, service, route, and mount it.
 - `countGames(id: string)` — for deletion protection
 
 **New file**: `packages/cms/src/services/PlaygroundService.ts`
+
 - `list()` → sorted by name ASC
 - `get(id)` → 404 if missing
-- `create(data)` → trim name; validate non-empty
-- `update(id, data)` → 404 if missing
+- `create(data, userId)` → trim name and address; **geocode address via Nominatim**; reject with 422 `ADDRESS_NOT_FOUND` if geocoding fails; set `latitude`, `longitude`, `createdById = userId`
+- `update(id, data, userId)` → 404 if missing; **re-geocode if address changed**; set `updatedById = userId`
 - `remove(id)` → check `countGames(id) > 0` → throw 409 `PLAYGROUND_IN_USE`; otherwise delete
 
 **New file**: `packages/cms/src/routes/playgrounds.ts`
+
 - `GET /` — public
 - `GET /:id` — public
 - `POST /` — `requireRole("EDITOR")`
@@ -166,9 +182,10 @@ npm test --workspace=@ministrosfc/cms
 
 ### Step 4 — Frontend: Admin CRUD + components (`packages/frontend`)
 
-Add the composable, shared component, and pages.
+Add the composable, shared components, and pages.
 
 **New file**: `packages/frontend/src/composables/usePlaygrounds.ts`
+
 - `playgrounds` ref, `loading` ref
 - `fetchPlaygrounds()` — `$api('/api/v1/playgrounds')`
 - `createPlayground(data)` — POST + refresh
@@ -176,17 +193,26 @@ Add the composable, shared component, and pages.
 - `deletePlayground(id)` — DELETE + refresh
 
 **New file**: `packages/frontend/src/components/PlaygroundSelect.vue`
+
 - `<select>` dropdown from `usePlaygrounds`; emits `update:modelValue`
 - Includes "Agregar nueva" option
 - When "Agregar nueva" selected → renders inline mini-form (name + address fields)
 - On inline submit: `createPlayground()` → auto-select new playground's id → hide mini-form
 - Props: `modelValue: string | null`, `disabled?: boolean`
 
+**New file**: `packages/frontend/src/components/PlaygroundMap.vue`
+
+- Leaflet.js map with OpenStreetMap tiles (no Google Maps)
+- Accepts `playgrounds: Playground[]` prop
+- Renders a pin at `(latitude, longitude)` for each playground that has geocoded coords
+- Emits `pin-click(id: string)` when a marker is clicked
+- Exposes `centerOn(id: string)` method to pan the map to a specific pin
+
 **New pages**:
 
 | File | Description |
 |------|-------------|
-| `src/pages/admin/playgrounds/index.vue` | List with create/edit/delete actions |
+| `src/pages/admin/playgrounds/index.vue` | 12-column grid: 4-col table (name as edit link, address, "Eliminar" for Admins; no filters) + 8-col `<PlaygroundMap>`; row click → `centerOn(id)`; `pin-click` event → highlight row with accent color |
 | `src/pages/admin/playgrounds/create.vue` | Create form |
 | `src/pages/admin/playgrounds/[id]/edit.vue` | Edit form (pre-populated) |
 
@@ -228,33 +254,34 @@ npm run typecheck:all  # or equivalent per-package tsc --noEmit
 
 ## Key Endpoints (new/modified)
 
-| Method   | Path                        | Auth    | Description                        |
-| -------- | --------------------------- | ------- | ---------------------------------- |
-| `GET`    | `/api/v1/playgrounds`       | Public  | List all playgrounds (name ASC)    |
-| `GET`    | `/api/v1/playgrounds/:id`   | Public  | Get single playground              |
-| `POST`   | `/api/v1/playgrounds`       | EDITOR+ | Create playground                  |
-| `PATCH`  | `/api/v1/playgrounds/:id`   | EDITOR+ | Update playground                  |
-| `DELETE` | `/api/v1/playgrounds/:id`   | ADMIN   | Delete playground (404/409 guards) |
-| `POST`   | `/api/v1/games`             | EDITOR+ | **Modified**: accepts `playgroundId` |
-| `PATCH`  | `/api/v1/games/:id`         | EDITOR+ | **Modified**: accepts `playgroundId` |
-| `GET`    | `/api/v1/games`             | Public  | **Modified**: includes `playground` expansion |
+| Method   | Path                      | Auth    | Description                                   |
+| -------- | ------------------------- | ------- | --------------------------------------------- |
+| `GET`    | `/api/v1/playgrounds`     | Public  | List all playgrounds (name ASC)               |
+| `GET`    | `/api/v1/playgrounds/:id` | Public  | Get single playground                         |
+| `POST`   | `/api/v1/playgrounds`     | EDITOR+ | Create playground                             |
+| `PATCH`  | `/api/v1/playgrounds/:id` | EDITOR+ | Update playground                             |
+| `DELETE` | `/api/v1/playgrounds/:id` | ADMIN   | Delete playground (404/409 guards)            |
+| `POST`   | `/api/v1/games`           | EDITOR+ | **Modified**: accepts `playgroundId`          |
+| `PATCH`  | `/api/v1/games/:id`       | EDITOR+ | **Modified**: accepts `playgroundId`          |
+| `GET`    | `/api/v1/games`           | Public  | **Modified**: includes `playground` expansion |
 
 ## Key Frontend Pages (new/modified)
 
-| Path                              | Description                                           |
-| --------------------------------- | ----------------------------------------------------- |
-| `/admin/playgrounds`              | Playground list with CRUD actions                     |
-| `/admin/playgrounds/create`       | Create form                                           |
-| `/admin/playgrounds/[id]/edit`    | Edit form                                             |
-| `/admin/games/create`             | **Modified**: `PlaygroundSelect` replaces text input  |
-| `/admin/games/[id]/edit`          | **Modified**: `PlaygroundSelect` replaces text input  |
+| Path                           | Description                                          |
+| ------------------------------ | ---------------------------------------------------- |
+| `/admin/playgrounds`           | Playground list with CRUD actions                    |
+| `/admin/playgrounds/create`    | Create form                                          |
+| `/admin/playgrounds/[id]/edit` | Edit form                                            |
+| `/admin/games/create`          | **Modified**: `PlaygroundSelect` replaces text input |
+| `/admin/games/[id]/edit`       | **Modified**: `PlaygroundSelect` replaces text input |
 
 ## Success Criteria Verification
 
-| SC  | Check |
-| --- | ----- |
-| SC-001 | `curl /api/v1/playgrounds` → returns `{ data: [...] }` (empty array on fresh DB) |
-| SC-002 | Inspect existing `games` rows — `location` text values preserved, `playgroundId` is NULL |
-| SC-003 | Create a game with `playgroundId` → game detail returns `{ playground: { name: "..." } }` |
-| SC-004 | Attempt `DELETE /api/v1/playgrounds/:id` when in use → 409 `PLAYGROUND_IN_USE` |
+| SC     | Check                                                                                                          |
+| ------ | -------------------------------------------------------------------------------------------------------------- |
+| SC-001 | `curl /api/v1/playgrounds` → returns `{ data: [...] }` (empty array on fresh DB)                               |
+| SC-002 | Inspect existing `games` rows — `location` text values preserved, `playgroundId` is NULL                       |
+| SC-003 | Create a game with `playgroundId` → game detail returns `{ playground: { name: "..." } }`                      |
+| SC-004 | Attempt `DELETE /api/v1/playgrounds/:id` when in use → 409 `PLAYGROUND_IN_USE`                                 |
 | SC-005 | In `/admin/games/create`, select "Agregar nueva" → inline form appears → submit → new playground auto-selected |
+| SC-006 | Navigate to `/admin/playgrounds` → map renders with pins within 3 seconds; clicking a row pans the map; clicking a pin highlights the row |

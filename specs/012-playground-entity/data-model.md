@@ -6,19 +6,31 @@
 
 ```prisma
 model Playground {
-  id        String   @id @default(uuid())
-  name      String   @db.VarChar(255)
-  address   String?  @db.VarChar(500)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @db.VarChar(255)
+  address     String    @db.VarChar(500)
+  latitude    Float?
+  longitude   Float?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  games Game[]
+  createdById String    @db.Uuid
+  updatedById String?   @db.Uuid
+
+  createdBy   User      @relation("PlaygroundCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User?     @relation("PlaygroundUpdatedBy", fields: [updatedById], references: [id])
+
+  games       Game[]
 }
 ```
 
 **Validation rules:**
+
 - `name`: required, 1–255 characters, trimmed
-- `address`: optional, max 500 characters, trimmed
+- `address`: required, 1–500 characters, trimmed; geocoded via OpenStreetMap Nominatim on create and on every update that changes the address value
+- `latitude` / `longitude`: derived automatically after successful geocoding; not provided by the client
+- `createdById`: set to the authenticated user's ID on create; never writable by the client
+- `updatedById`: set to the authenticated user's ID on every update; never writable by the client
 
 ---
 
@@ -35,11 +47,13 @@ playground    Playground? @relation(fields: [playgroundId], references: [id], on
 ```
 
 **The existing `location` field is preserved unchanged:**
+
 ```prisma
 location String? @db.VarChar(255)  // kept as-is, legacy free-text
 ```
 
 **Behaviour:**
+
 - `playgroundId` is optional — both new and existing games can have `null`
 - `onDelete: Restrict` — prevents deletion of a playground referenced by any game
 - Display priority: `playground.name` if linked, else `location` text, else nothing
@@ -54,19 +68,23 @@ location String? @db.VarChar(255)  // kept as-is, legacy free-text
 export interface Playground {
   id: string;
   name: string;
-  address: string | null;
+  address: string;
+  latitude: number | null;
+  longitude: number | null;
   createdAt: string;
   updatedAt: string;
+  createdById: string;
+  updatedById: string | null;
 }
 
 export interface PlaygroundCreatePayload {
   name: string;
-  address?: string | null;
+  address: string;
 }
 
 export interface PlaygroundUpdatePayload {
   name?: string;
-  address?: string | null;
+  address?: string;
 }
 ```
 
@@ -77,7 +95,7 @@ Extend the existing `Game` interface with optional playground fields:
 ```typescript
 // Add to existing Game interface:
 playgroundId?: string | null;
-playground?: { id: string; name: string; address: string | null } | null;
+playground?: { id: string; name: string; address: string; latitude: number | null; longitude: number | null } | null;
 ```
 
 ### Update: `packages/shared/src/types/index.ts`
@@ -89,6 +107,7 @@ Add export: `export * from "./playground";`
 ## State Transitions
 
 Playground has no complex state. It is either:
+
 - **Referenced** (by ≥1 game) — cannot be deleted
 - **Unreferenced** (by 0 games) — can be deleted
 
@@ -113,17 +132,21 @@ Playground has no complex state. It is either:
 
 ## Entity Summary Table
 
-| Field        | Type          | Required | Notes                                      |
-|--------------|---------------|----------|--------------------------------------------|
-| `id`         | UUID          | Yes      | Auto-generated                             |
-| `name`       | String(255)   | Yes      | Trimmed, 1–255 chars                       |
-| `address`    | String(500)?  | No       | Optional, trimmed                          |
-| `createdAt`  | DateTime      | Yes      | Auto-set                                   |
-| `updatedAt`  | DateTime      | Yes      | Auto-updated                               |
+| Field         | Type        | Required | Notes                                            |
+| ------------- | ----------- | -------- | ------------------------------------------------ |
+| `id`          | UUID        | Yes      | Auto-generated                                   |
+| `name`        | String(255) | Yes      | Trimmed, 1–255 chars                             |
+| `address`     | String(500) | Yes      | Trimmed; geocoded on create/update               |
+| `latitude`    | Float?      | No       | Set automatically after geocoding                |
+| `longitude`   | Float?      | No       | Set automatically after geocoding                |
+| `createdAt`   | DateTime    | Yes      | Auto-set                                         |
+| `updatedAt`   | DateTime    | Yes      | Auto-updated                                     |
+| `createdById` | UUID (FK)   | Yes      | References User; set on create                   |
+| `updatedById` | UUID? (FK)  | No       | References User; set on update                   |
 
 ### Game.playground relation fields
 
-| Field          | Type       | Required | Notes                                          |
-|----------------|------------|----------|------------------------------------------------|
-| `playgroundId` | UUID?      | No       | FK → Playground.id, ON DELETE RESTRICT         |
-| `playground`   | Playground?| No       | Expanded relation (not always loaded)          |
+| Field          | Type        | Required | Notes                                  |
+| -------------- | ----------- | -------- | -------------------------------------- |
+| `playgroundId` | UUID?       | No       | FK → Playground.id, ON DELETE RESTRICT |
+| `playground`   | Playground? | No       | Expanded relation (not always loaded)  |

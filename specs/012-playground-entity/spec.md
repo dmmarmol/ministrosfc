@@ -17,12 +17,14 @@ An Admin or Editor navigates to a new "Canchas" (Playgrounds) section in the adm
 
 **Acceptance Scenarios**:
 
-1. **Given** an Admin or Editor on the `/admin/playgrounds` page, **When** the page loads, **Then** a list of all existing playgrounds is displayed, showing name and address.
-2. **Given** an Admin or Editor on the playgrounds page, **When** they click "Agregar cancha" (Add playground), fill in the name (required) and address (optional), and submit, **Then** the new playground is saved and appears in the list.
-3. **Given** an Admin or Editor on the playgrounds page, **When** they click edit on an existing playground, **Then** they can modify the name and address and save the changes.
-4. **Given** an Admin on the playgrounds page, **When** they click delete on a playground that is not referenced by any game, **Then** the playground is removed from the list.
-5. **Given** an Admin on the playgrounds page, **When** they click delete on a playground that is referenced by one or more games, **Then** deletion is prevented and a message explains that the playground is in use.
-6. **Given** the playgrounds page, **When** an Editor attempts to delete a playground, **Then** the delete option is not available (delete is Admin-only).
+1. **Given** an Admin or Editor on the `/admin/playgrounds` page, **When** the page loads, **Then** the page renders a 12-column grid: the left 4 columns show a table of existing playgrounds (name and address) and the right 8 columns show an interactive OpenStreetMap with a pin for each playground that has geocoded coordinates. No search or filter controls are displayed.
+2. **Given** an Admin or Editor on the playgrounds page, **When** they click "Agregar cancha" (Add playground), fill in the name (required) and address (required, validated via geocoding), and submit, **Then** the new playground is saved, appears in the table, and a new pin is placed on the map at the geocoded location.
+3. **Given** an Admin or Editor on the playgrounds page, **When** they click the playground name link in the table, **Then** they are navigated to the playground's edit page where they can modify the name and address.
+4. **Given** an Admin on the playgrounds page, **When** they click "Eliminar" on a playground that is not referenced by any game, **Then** the playground is removed from the table and its pin is removed from the map.
+5. **Given** an Admin on the playgrounds page, **When** they click "Eliminar" on a playground that is referenced by one or more games, **Then** deletion is prevented and a message explains that the playground is in use.
+6. **Given** the playgrounds page, **When** an Editor is viewing the table, **Then** no "Eliminar" button is visible on any row (delete is Admin-only).
+7. **Given** an Admin or Editor on the playgrounds page, **When** they click a playground row in the table, **Then** the map centers on the pin for that playground.
+8. **Given** an Admin or Editor on the playgrounds page, **When** they click a playground pin on the map, **Then** the corresponding table row changes to the UI accent color to indicate it is active.
 
 ---
 
@@ -87,7 +89,7 @@ Public visitors viewing the schedule or game details see the playground name as 
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST support a "Playground" entity with a name (required) and address (optional).
+- **FR-001**: The system MUST support a "Playground" entity with a name (required), address (required, geocoded), geocoded latitude and longitude (stored after address validation), and audit fields recording which user created and last updated the record.
 - **FR-002**: Admins and Editors MUST be able to list, create, and edit playgrounds.
 - **FR-003**: Only Admins MUST be able to delete playgrounds.
 - **FR-004**: Deletion of a playground MUST be prevented if it is referenced by any game.
@@ -100,10 +102,20 @@ Public visitors viewing the schedule or game details see the playground name as 
 - **FR-011**: Public pages displaying game locations MUST show the playground name when a playground is linked, falling back to the legacy text field.
 - **FR-012**: The playgrounds list in the dropdown MUST be sorted alphabetically by name.
 - **FR-013**: The playgrounds admin page MUST be accessible via the admin sidebar navigation.
+- **FR-014**: The `/admin/playgrounds` list page MUST render a 12-column responsive grid: 4 columns for the playground table and 8 columns for an interactive map (OpenStreetMap-based, via Leaflet.js).
+- **FR-015**: The map MUST display a pin at the geocoded coordinates for each playground. Playgrounds whose address failed geocoding MUST NOT have a pin.
+- **FR-016**: Clicking a row in the playground table MUST center the map view on the corresponding playground's pin.
+- **FR-017**: Clicking a map pin MUST highlight the corresponding table row by applying the UI accent color to that row.
+- **FR-018**: The playground name in the table MUST be rendered as a clickable link that navigates to the playground's edit page. No separate "Editar" button is shown.
+- **FR-019**: Each table row MUST show only an "Eliminar" button as the sole row action. The button MUST be visible to Admins only and aligned to the right side of the row.
+- **FR-020**: The `/admin/playgrounds` list page MUST NOT include search or filter controls.
+- **FR-021**: The Playground entity MUST record the user who created it (`createdBy`) and the user who last modified it (`updatedBy`).
+- **FR-022**: During playground creation and edit, the address field MUST be geocoded via OpenStreetMap Nominatim. If the address cannot be resolved to valid coordinates, the system MUST return a validation error and reject the submission.
+- **FR-023**: The map implementation MUST use an open-source library with OpenStreetMap tiles. Google Maps MUST NOT be used.
 
 ### Key Entities
 
-- **Playground**: Represents a physical location where games are played. Key attributes: name (required, string), address (optional, string). Relationships: referenced by zero or more Games.
+- **Playground**: Represents a physical location where games are played. Key attributes: name (required), address (required, geocoded via OpenStreetMap Nominatim), latitude and longitude (stored coordinates), createdBy and updatedBy (audit references to the User who created/last modified the record). Relationships: referenced by zero or more Games.
 - **Game** (existing, modified): Gains an optional reference to a Playground. The existing free-text `location` field is preserved for backward compatibility.
 
 ## Success Criteria _(mandatory)_
@@ -115,20 +127,26 @@ Public visitors viewing the schedule or game details see the playground name as 
 - **SC-003**: The game creation form's location dropdown loads all playgrounds within 2 seconds.
 - **SC-004**: Users can create a game with a playground selected in under 3 minutes (same as current game creation time).
 - **SC-005**: The inline "Add new playground" flow from the game creation form completes without navigating away from the page.
+- **SC-006**: All map pins are visible on the `/admin/playgrounds` map within 3 seconds of the page loading.
 
 ## Assumptions
 
 - The UI language is Spanish (Argentine dialect). All new labels and messages follow existing conventions.
-- The Playground entity is intentionally simple (name + address). Future enhancements like GPS coordinates, photos, or capacity are out of scope.
+- Address is required when creating or editing a playground. Geocoding via OpenStreetMap Nominatim is performed on save; if it fails, the submission is rejected with a validation error.
+- Geocoded lat/lng are stored with the playground record to avoid re-geocoding on every map load. Re-geocoding occurs only when the address field changes.
+- The frontend map library is Leaflet.js (open-source, OpenStreetMap tiles). No paid API key is required.
 - The legacy `location` text field on Game is preserved and not deleted. Existing data remains untouched.
 - RBAC follows the existing pattern: Editors can create/edit, Admins get full CRUD including delete.
 - The inline "Add new" functionality in the dropdown depends on the reusable dropdown component (spec 012). If that component is not yet available, a simpler "navigate to playground creation" link may be used as interim.
+- `createdBy` and `updatedBy` reference the authenticated user performing the create or update action.
 
 ## Out of Scope
 
-- Playground GPS coordinates or map integration
 - Playground photos/images
 - Playground capacity or surface type attributes
 - Bulk import of playgrounds
 - Migration script to auto-link legacy free-text locations to matching playground records
-- Public-facing standalone playground listing page
+- Public-facing standalone playground page or map
+- Map integration on public-facing pages (game schedule, game detail) — map is admin-only
+- Real-time map updates (map reflects data at page-load time only)
+- Reverse geocoding (looking up addresses from manually entered coordinates)

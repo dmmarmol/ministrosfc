@@ -12,6 +12,7 @@ List all playgrounds, sorted alphabetically by name.
 **Auth**: None required (public)
 
 **Response 200**:
+
 ```json
 {
   "data": [
@@ -19,8 +20,12 @@ List all playgrounds, sorted alphabetically by name.
       "id": "uuid",
       "name": "Cancha Municipal Norte",
       "address": "Av. Corrientes 1234, Buenos Aires",
+      "latitude": -34.6037,
+      "longitude": -58.3816,
       "createdAt": "2026-04-06T00:00:00.000Z",
-      "updatedAt": "2026-04-06T00:00:00.000Z"
+      "updatedAt": "2026-04-06T00:00:00.000Z",
+      "createdById": "user-uuid",
+      "updatedById": null
     }
   ]
 }
@@ -35,19 +40,25 @@ Get a single playground by ID.
 **Auth**: None required (public)
 
 **Response 200**:
+
 ```json
 {
   "data": {
     "id": "uuid",
     "name": "Cancha Municipal Norte",
     "address": "Av. Corrientes 1234, Buenos Aires",
+    "latitude": -34.6037,
+    "longitude": -58.3816,
     "createdAt": "2026-04-06T00:00:00.000Z",
-    "updatedAt": "2026-04-06T00:00:00.000Z"
+    "updatedAt": "2026-04-06T00:00:00.000Z",
+    "createdById": "user-uuid",
+    "updatedById": null
   }
 }
 ```
 
 **Response 404**:
+
 ```json
 { "code": "NOT_FOUND", "message": "Playground not found", "statusCode": 404 }
 ```
@@ -61,6 +72,7 @@ Create a new playground.
 **Auth**: EDITOR or ADMIN role required
 
 **Request body**:
+
 ```json
 {
   "name": "Cancha Municipal Norte",
@@ -68,27 +80,39 @@ Create a new playground.
 }
 ```
 
-| Field     | Type   | Required | Constraints           |
-|-----------|--------|----------|-----------------------|
-| `name`    | string | Yes      | 1–255 chars, trimmed  |
-| `address` | string | No       | max 500 chars, trimmed|
+| Field     | Type   | Required | Constraints            |
+| --------- | ------ | -------- | ---------------------- |
+| `name`    | string | Yes      | 1–255 chars, trimmed   |
+| `address` | string | Yes      | 1–500 chars, trimmed; geocoded via Nominatim |
 
 **Response 201**:
+
 ```json
 {
   "data": {
     "id": "uuid",
     "name": "Cancha Municipal Norte",
     "address": "Av. Corrientes 1234, Buenos Aires",
+    "latitude": -34.6037,
+    "longitude": -58.3816,
     "createdAt": "2026-04-06T00:00:00.000Z",
-    "updatedAt": "2026-04-06T00:00:00.000Z"
+    "updatedAt": "2026-04-06T00:00:00.000Z",
+    "createdById": "user-uuid",
+    "updatedById": null
   }
 }
 ```
 
-**Response 422** (validation error):
+**Response 422** (validation error — field missing or address failed geocoding):
+
 ```json
 { "code": "VALIDATION_ERROR", "message": "...", "statusCode": 422 }
+```
+
+**Response 422** (address not found by geocoding service):
+
+```json
+{ "code": "ADDRESS_NOT_FOUND", "message": "La dirección no pudo ser validada. Verificá el texto e intentá nuevamente.", "statusCode": 422 }
 ```
 
 ---
@@ -100,6 +124,7 @@ Update a playground (partial update — only provided fields are changed).
 **Auth**: EDITOR or ADMIN role required
 
 **Request body** (all fields optional):
+
 ```json
 {
   "name": "Nuevo nombre",
@@ -110,6 +135,12 @@ Update a playground (partial update — only provided fields are changed).
 **Response 200**: same shape as GET single
 
 **Response 404**: same shape as GET single 404
+
+**Response 422** (address not found by geocoding service):
+
+```json
+{ "code": "ADDRESS_NOT_FOUND", "message": "La dirección no pudo ser validada. Verificá el texto e intentá nuevamente.", "statusCode": 422 }
+```
 
 ---
 
@@ -122,11 +153,13 @@ Delete a playground. Fails if the playground is referenced by any game.
 **Response 204**: No content
 
 **Response 404**:
+
 ```json
 { "code": "NOT_FOUND", "message": "Playground not found", "statusCode": 404 }
 ```
 
 **Response 409** (in use):
+
 ```json
 {
   "code": "PLAYGROUND_IN_USE",
@@ -172,7 +205,9 @@ When a game has a linked playground, the response includes an expanded `playgrou
     "playground": {
       "id": "uuid",
       "name": "Cancha Municipal Norte",
-      "address": "..."
+      "address": "...",
+      "latitude": -34.6037,
+      "longitude": -58.3816
     }
   }
 }
