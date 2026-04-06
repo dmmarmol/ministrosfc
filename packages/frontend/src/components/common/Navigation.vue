@@ -60,13 +60,20 @@ const mobileOpen = ref(false);
         <ClientOnly>
           <template v-if="authStore.isAuthenticated">
             <AdminProfileMenu v-if="authStore.isEditor" />
-            <button
-              v-else
-              class="text-xs text-gray-400 hover:text-white transition-colors"
-              @click="authStore.logout()"
-            >
-              Cerrar sesión
-            </button>
+            <template v-else>
+              <NuxtLink
+                to="/profile/player"
+                class="text-xs text-gray-400 hover:text-white transition-colors"
+                active-class="text-brand"
+                >Mi Perfil</NuxtLink
+              >
+              <button
+                class="text-xs text-gray-400 hover:text-white transition-colors"
+                @click="authStore.logout()"
+              >
+                Cerrar sesión
+              </button>
+            </template>
           </template>
           <template v-else>
             <NuxtLink
@@ -153,6 +160,14 @@ const mobileOpen = ref(false);
         active-class="text-brand"
         @click="mobileOpen = false"
         >Estadísticas</NuxtLink
+      >
+      <NuxtLink
+        v-if="authStore.isAuthenticated && !authStore.isEditor"
+        to="/profile/player"
+        class="block py-1.5 hover:text-brand"
+        active-class="text-brand"
+        @click="mobileOpen = false"
+        >Mi Perfil</NuxtLink
       >
       <NuxtLink
         v-if="!authStore.isAuthenticated"

@@ -101,3 +101,10 @@ The existing `fetchJerseyAvailability` lives inside `useProfile()` which require
 ## Phase 7: Bonus UI Components (discovered during implementation)
 
 - [x] T017 Create reusable `IsPlayerCheckbox.vue` in `packages/frontend/src/components/ui/IsPlayerCheckbox.vue` with `modelValue: boolean` prop, optional `label` and `description` props, and use it in `packages/frontend/src/components/auth/RegisterForm.vue` and `packages/frontend/src/pages/auth/onboarding.vue`
+- [ ] T018 Replace hand-rolled `JerseySvg.vue` with `soccer-jersey` npm package in `packages/frontend/src/components/profile/JerseySvg.vue`:
+  - `npm i soccer-jersey` in `packages/frontend`
+  - Call `SoccerJersey.draw({ shirtText: jerseyNumber?.toString() ?? '', shirtColor: bgColor, sleeveColor: bgColor, shirtStyle: 'plain', textColor: textColor, isBack: false })` to get a data URI
+  - Render `<img :src="jerseyDataUri" class="w-full h-auto" />` replacing the inline `<svg>`
+  - Keep existing props: `jerseyNumber`, `lastName`, `bgColor` (default `#1a1a1a`), `textColor` (default `#FFFFFF`)
+  - Display `lastName` above the jersey number (use `isBack: true` which renders name + number on the back, or overlay with a positioned `<span>` if `isBack` doesn't fit the design)
+  - Verify live preview still works in `packages/frontend/src/pages/profile/player.vue`

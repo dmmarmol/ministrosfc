@@ -34,7 +34,8 @@ export default defineNuxtRouteMiddleware((to) => {
   if (
     authStore.isAuthenticated &&
     authStore.needsOnboarding &&
-    to.path !== "/login"
+    to.path !== "/login" &&
+    to.path !== "/profile/player"
   ) {
     return navigateTo("/auth/onboarding");
   }

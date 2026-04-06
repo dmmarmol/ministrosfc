@@ -3,6 +3,7 @@ import { mount } from "@vue/test-utils";
 import ProfileEditForm from "../../src/components/profile/ProfileEditForm.vue";
 
 describe("ProfileEditForm", () => {
+  /** @TODO reuse an existing interface to type defaultProfile */
   const defaultProfile = {
     firstName: "Juan",
     lastName: "Pérez",

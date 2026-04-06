@@ -45,6 +45,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   save: [data: Partial<ProfileFields>];
+  jerseyChange: [value: number | null];
+  lastNameChange: [value: string];
 }>();
 
 const form = reactive<ProfileFields>({
@@ -126,6 +128,7 @@ const isActive = computed({
           v-model="form.lastName"
           type="text"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          @input="emit('lastNameChange', form.lastName)"
         />
       </div>
     </div>
@@ -147,12 +150,26 @@ const isActive = computed({
       />
     </div>
 
-    <IsPlayerCheckbox
-      id="profileStatus"
-      v-model="isActive"
-      label="Activo en el equipo"
-      description="Desmarcá esta opción para marcarme como inactivo"
-    />
+    <div>
+      <IsPlayerCheckbox
+        id="profileStatus"
+        v-model="isActive"
+        label="Activo en el equipo"
+        description="Desmarcá esta opción para marcarme como inactivo"
+      />
+      <div
+        v-if="!isActive"
+        class="mt-2 flex gap-2 rounded-lg border border-yellow-300 bg-yellow-50 px-3 py-2.5 text-sm text-yellow-800"
+      >
+        <span class="mt-0.5 shrink-0">⚠️</span>
+        <p>
+          Al marcarte como <strong>inactivo</strong> dejás de aparecer en la
+          plantilla, no podés ser convocado a partidos y tu número de camiseta
+          queda disponible para otro jugador. Podés volver a activarte en
+          cualquier momento.
+        </p>
+      </div>
+    </div>
 
     <div class="grid grid-cols-2 gap-3">
       <div>
@@ -183,6 +200,7 @@ const isActive = computed({
         <JerseyNumberInput
           v-model="form.jerseyNumber"
           :taken-numbers="takenJerseys"
+          @update:model-value="emit('jerseyChange', $event)"
         />
       </div>
     </div>

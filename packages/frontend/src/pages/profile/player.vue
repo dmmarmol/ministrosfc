@@ -20,6 +20,8 @@ const {
 } = useProfile();
 
 const takenJerseys = ref<number[]>([]);
+const previewJerseyNumber = ref<number | null>(null);
+const previewLastName = ref<string>("");
 
 const editableProfile = computed(() => ({
   firstName: profile.value?.user.firstName ?? "",
@@ -32,12 +34,15 @@ const editableProfile = computed(() => ({
   phone: profile.value?.contact.phone ?? "",
   whatsapp: profile.value?.contact.whatsapp ?? "",
   emergencyContact: profile.value?.contact.emergencyContact ?? "",
+  status: profile.value?.player.status ?? "ACTIVE",
 }));
 
 onMounted(async () => {
   await fetchProfile();
   if (profile.value) {
     takenJerseys.value = await fetchJerseyAvailability(profile.value.player.id);
+    previewJerseyNumber.value = profile.value.player.jerseyNumber;
+    previewLastName.value = profile.value.player.lastName;
   }
 });
 
@@ -76,14 +81,16 @@ async function handlePhotoUpload(file: File) {
             :loading="loading"
             :error="error"
             @save="handleSave"
+            @jersey-change="previewJerseyNumber = $event"
+            @last-name-change="previewLastName = $event"
           />
         </div>
 
         <!-- Right: Jersey SVG -->
         <div class="w-48 shrink-0 self-start hidden md:block">
           <JerseySvg
-            :jersey-number="profile.player.jerseyNumber"
-            :last-name="profile.player.lastName"
+            :jersey-number="previewJerseyNumber"
+            :last-name="previewLastName"
           />
         </div>
       </div>
