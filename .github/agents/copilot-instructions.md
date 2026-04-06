@@ -1,11 +1,13 @@
 # ministrosfc Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-03-30
+Auto-generated from all feature plans. Last updated: 2026-04-06
 
 ## Active Technologies
 - TypeScript (Node 18+, Nuxt 4/Vue 3) + Express, Prisma, Zod, google-auth-library, Pinia (009-user-registration)
 - TypeScript 5.x, Vue 3 (Nuxt 3 app, ESM) + Nuxt, Vue, Tailwind CSS, Pinia, Vitest, @vue/test-utils (012-dropdown-add-more)
 - N/A (UI component; parent owns data-fetch and persistence) (012-dropdown-add-more)
+- TypeScript 5.x (strict mode) + `@ministrosfc/shared` (already a dependency of both cms and frontend) (011-shared-types-migration)
+- N/A — no DB changes (011-shared-types-migration)
 
 - TypeScript 5 (strict mode, both packages) + Express 4, Prisma 5, Zod, Nuxt 3, Vue 3, Pinia, Tailwind CSS (006-admin-player-delete)
 - PostgreSQL (Prisma ORM) + Redis (cache invalidation) (006-admin-player-delete)
@@ -108,10 +110,10 @@ npx prisma studio                  # Open Prisma Studio GUI
 - **Guest Players**: playerType=GUEST, linked to inviting player via invitedById
 
 ## Recent Changes
+- 011-shared-types-migration: Added TypeScript 5.x (strict mode) + `@ministrosfc/shared` (already a dependency of both cms and frontend)
 - 012-dropdown-add-more: Added TypeScript 5.x, Vue 3 (Nuxt 3 app, ESM) + Nuxt, Vue, Tailwind CSS, Pinia, Vitest, @vue/test-utils
 - 009-user-registration: Added TypeScript (Node 18+, Nuxt 4/Vue 3) + Express, Prisma, Zod, google-auth-library, Pinia
 
-- 009-user-registration: Added TypeScript 5 (strict mode, both packages) + Express 4, Prisma 5, Zod v4, Nuxt 3.21, Vue 3.5, Pinia, Tailwind CSS, `google-auth-library` (new — Google OAuth)
 
 
 <!-- MANUAL ADDITIONS START -->
