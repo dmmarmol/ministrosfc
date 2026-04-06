@@ -8,6 +8,14 @@ import {
   validatePhotoFile,
   type UploadedFile,
 } from "../utils/object-storage";
+import {
+  PlayerStatus,
+  PlayerType,
+  Position,
+  UserRole,
+  type PlayerProfileResponse,
+  type UpdatePlayerProfilePayload,
+} from "@ministrosfc/shared";
 
 export const ProfileService = {
   /** Get user-only profile (no player required) */
@@ -36,8 +44,7 @@ export const ProfileService = {
   },
 
   /** Get full player profile including user data (requires player link) */
-  /** @TODO enforce return type in this method */
-  async getProfile(userId: string) {
+  async getProfile(userId: string): Promise<PlayerProfileResponse> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -54,7 +61,7 @@ export const ProfileService = {
     const invitedGuests = await prisma.player.findMany({
       where: {
         invitedById: user.player.id,
-        playerType: "GUEST",
+        playerType: PlayerType.GUEST,
       },
       include: {
         gameParticipants: {
@@ -74,23 +81,23 @@ export const ProfileService = {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
+        role: user.role as unknown as UserRole,
         hasPassword: user.passwordHash != null,
         hasGoogle: user.googleSubjectId != null,
-        createdAt: user.createdAt,
+        createdAt: user.createdAt.toISOString(),
       },
       player: {
         id: user.player.id,
         firstName: user.player.firstName,
         lastName: user.player.lastName,
         nickname: user.player.nickname,
-        position: user.player.position,
+        position: user.player.position as unknown as Position | null,
         jerseyNumber: user.player.jerseyNumber,
-        dateOfBirth: user.player.dateOfBirth,
+        dateOfBirth: user.player.dateOfBirth ?? null,
         address: user.player.address,
         photoUrl: user.player.photoUrl,
-        status: user.player.status,
-        playerType: user.player.playerType,
+        status: user.player.status as unknown as PlayerStatus,
+        playerType: user.player.playerType as unknown as PlayerType,
       },
       contact: user.player.contactInfo
         ? {
@@ -106,7 +113,7 @@ export const ProfileService = {
         game: g.gameParticipants[0]?.game
           ? {
               id: g.gameParticipants[0].game.id,
-              date: g.gameParticipants[0].game.date,
+              date: g.gameParticipants[0].game.date.toISOString(),
               opponent: g.gameParticipants[0].game.opponentTeam?.name ?? null,
             }
           : null,
@@ -114,23 +121,7 @@ export const ProfileService = {
     };
   },
 
-  async updateProfile(
-    userId: string,
-    /** @TODO try to use existing PlayerData types to enforce typing here and maintain sync */
-    data: {
-      firstName?: string;
-      lastName?: string;
-      nickname?: string;
-      position?: string;
-      jerseyNumber?: number | null;
-      dateOfBirth?: string | null;
-      address?: string | null;
-      phone?: string | null;
-      whatsapp?: string | null;
-      emergencyContact?: string | null;
-      status?: "ACTIVE" | "INACTIVE";
-    },
-  ) {
+  async updateProfile(userId: string, data: UpdatePlayerProfilePayload) {
     await prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({
         where: { id: userId },
@@ -143,12 +134,11 @@ export const ProfileService = {
 
       // Jersey uniqueness check
       if (data.jerseyNumber != null) {
-        /** @TODO try to use existing PlayerData types to enforce typing here */
         const conflict = await tx.player.findFirst({
           where: {
             jerseyNumber: data.jerseyNumber,
-            status: "ACTIVE",
-            playerType: "REGISTERED",
+            status: PlayerStatus.ACTIVE,
+            playerType: PlayerType.REGISTERED,
             id: { not: user.player.id },
           },
         });
@@ -257,10 +247,9 @@ export const ProfileService = {
   },
 
   async getJerseyAvailability(excludePlayerId?: string) {
-    /** @TODO try to use existing PlayerData types to enforce typing here */
     const where: Record<string, unknown> = {
-      status: "ACTIVE",
-      playerType: "REGISTERED",
+      status: PlayerStatus.ACTIVE,
+      playerType: PlayerType.REGISTERED,
       jerseyNumber: { not: null },
     };
     if (excludePlayerId) {

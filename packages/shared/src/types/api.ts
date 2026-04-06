@@ -1,3 +1,57 @@
+import { PlayerStatus, PlayerType, Position } from "./player";
+import { UserRole } from "./user";
+
+export interface PlayerProfileResponse {
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: UserRole;
+    hasPassword: boolean;
+    hasGoogle: boolean;
+    createdAt: string;
+  };
+  player: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    nickname: string | null;
+    position: Position | null;
+    jerseyNumber: number | null;
+    dateOfBirth: string | null;
+    address: string | null;
+    photoUrl: string | null;
+    status: PlayerStatus;
+    playerType: PlayerType;
+  };
+  contact: {
+    phone: string | null;
+    whatsapp: string | null;
+    emergencyContact: string | null;
+  };
+  invitedGuests: Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    game: { id: string; date: string; opponent: string | null } | null;
+  }>;
+}
+
+export interface UpdatePlayerProfilePayload {
+  firstName?: string;
+  lastName?: string;
+  nickname?: string;
+  position?: Position | null;
+  jerseyNumber?: number | null;
+  dateOfBirth?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  whatsapp?: string | null;
+  emergencyContact?: string | null;
+  status?: PlayerStatus;
+}
+
 export interface ApiResponse<T> {
   data: T;
   meta?: {

@@ -5,6 +5,10 @@ import ProfileHeader from "~/components/profile/ProfileHeader.vue";
 import ProfileEditForm from "~/components/profile/ProfileEditForm.vue";
 import JerseySvg from "~/components/profile/JerseySvg.vue";
 import InvitedGuestsList from "~/components/profile/InvitedGuestsList.vue";
+import {
+  PlayerStatus,
+  type UpdatePlayerProfilePayload,
+} from "@ministrosfc/shared";
 
 definePageMeta({ middleware: "auth" });
 useHead({ title: "Perfil de Jugador – Ministros FC" });
@@ -34,7 +38,7 @@ const editableProfile = computed(() => ({
   phone: profile.value?.contact.phone ?? "",
   whatsapp: profile.value?.contact.whatsapp ?? "",
   emergencyContact: profile.value?.contact.emergencyContact ?? "",
-  status: profile.value?.player.status ?? "ACTIVE",
+  status: profile.value?.player.status ?? PlayerStatus.ACTIVE,
 }));
 
 onMounted(async () => {
@@ -46,7 +50,7 @@ onMounted(async () => {
   }
 });
 
-async function handleSave(data: Record<string, unknown>) {
+async function handleSave(data: UpdatePlayerProfilePayload) {
   await updateProfile(data);
   if (profile.value) {
     previewJerseyNumber.value = profile.value.player.jerseyNumber;

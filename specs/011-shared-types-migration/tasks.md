@@ -11,8 +11,8 @@
 
 **Note**: `packages/shared/src/index.ts` requires no change — `api.ts` is already re-exported via `packages/shared/src/types/index.ts`.
 
-- [ ] T001 Add `PlayerProfileResponse` and `UpdatePlayerProfilePayload` interfaces to `packages/shared/src/types/api.ts` (see exact shapes in data-model.md; requires adding `import { PlayerStatus, PlayerType, Position } from "./player"` and `import { UserRole } from "./user"` at top of file)
-- [ ] T002 Verify shared package compiles: run `tsc --noEmit` in `packages/shared` — must pass with zero errors before proceeding
+- [X] T001 Add `PlayerProfileResponse` and `UpdatePlayerProfilePayload` interfaces to `packages/shared/src/types/api.ts` (see exact shapes in data-model.md; requires adding `import { PlayerStatus, PlayerType, Position } from "./player"` and `import { UserRole } from "./user"` at top of file)
+- [X] T002 Verify shared package compiles: run `tsc --noEmit` in `packages/shared` — must pass with zero errors before proceeding
 
 **Checkpoint**: `packages/shared` clean ✓ — consumer packages can now be updated
 
@@ -24,10 +24,10 @@
 
 **Independent Test**: Rename `jerseyNumber` → `jersey` in the `player` block of `PlayerProfileResponse` in `packages/shared/src/types/api.ts`. Run `tsc --noEmit` in `packages/cms` AND `packages/frontend` — both must fail.
 
-- [ ] T003 [P] [US1][US2] Update `packages/cms/src/services/ProfileService.ts`: add import of `PlayerStatus`, `PlayerType`, `PlayerProfileResponse`, `UpdatePlayerProfilePayload` from `@ministrosfc/shared`; annotate `getProfile` return type as `Promise<PlayerProfileResponse>`; replace `data` param type in `updateProfile` with `UpdatePlayerProfilePayload`; replace all 6 raw string literals with enum values (`"GUEST"` → `PlayerType.GUEST`, `"ACTIVE"` → `PlayerStatus.ACTIVE` ×2, `"INACTIVE"` → `PlayerStatus.INACTIVE`, `"REGISTERED"` → `PlayerType.REGISTERED` ×2); remove both `@TODO` comments (covers FR-003, FR-004, FR-006, FR-007, FR-012)
-- [ ] T004 [P] [US1] Update `packages/frontend/src/composables/useProfile.ts`: add import of `PlayerProfileResponse` and `UpdatePlayerProfilePayload` from `@ministrosfc/shared`; delete the `export interface ProfileData { ... }` block (lines 6–40); replace all 4 `ProfileData` references with `PlayerProfileResponse` (`ref<>`, two `$fetch<>` generics); change `updateProfile(data: Record<string, unknown>)` param to `updateProfile(data: UpdatePlayerProfilePayload)` (covers FR-005, FR-013)
+- [X] T003 [P] [US1][US2] Update `packages/cms/src/services/ProfileService.ts`: add import of `PlayerStatus`, `PlayerType`, `PlayerProfileResponse`, `UpdatePlayerProfilePayload` from `@ministrosfc/shared`; annotate `getProfile` return type as `Promise<PlayerProfileResponse>`; replace `data` param type in `updateProfile` with `UpdatePlayerProfilePayload`; replace all 6 raw string literals with enum values (`"GUEST"` → `PlayerType.GUEST`, `"ACTIVE"` → `PlayerStatus.ACTIVE` ×2, `"INACTIVE"` → `PlayerStatus.INACTIVE`, `"REGISTERED"` → `PlayerType.REGISTERED` ×2); remove both `@TODO` comments (covers FR-003, FR-004, FR-006, FR-007, FR-012)
+- [X] T004 [P] [US1] Update `packages/frontend/src/composables/useProfile.ts`: add import of `PlayerProfileResponse` and `UpdatePlayerProfilePayload` from `@ministrosfc/shared`; delete the `export interface ProfileData { ... }` block (lines 6–40); replace all 4 `ProfileData` references with `PlayerProfileResponse` (`ref<>`, two `$fetch<>` generics); change `updateProfile(data: Record<string, unknown>)` param to `updateProfile(data: UpdatePlayerProfilePayload)` (covers FR-005, FR-013)
 
-- [ ] T010 [P] [US1] Update `packages/frontend/src/pages/profile/player.vue`: add `import { PlayerStatus } from "@ministrosfc/shared"`; change `handleSave(data: Record<string, unknown>)` → `handleSave(data: UpdatePlayerProfilePayload)` with import of `UpdatePlayerProfilePayload`; replace the string fallback `?? "ACTIVE"` in the `editableProfile` computed (line 37) with `?? PlayerStatus.ACTIVE` (prevents tsc error after `PlayerProfileResponse.player.status` becomes `PlayerStatus`) (covers FR-010, SC-001)
+- [X] T010 [P] [US1] Update `packages/frontend/src/pages/profile/player.vue`: add `import { PlayerStatus } from "@ministrosfc/shared"`; change `handleSave(data: Record<string, unknown>)` → `handleSave(data: UpdatePlayerProfilePayload)` with import of `UpdatePlayerProfilePayload`; replace the string fallback `?? "ACTIVE"` in the `editableProfile` computed (line 37) with `?? PlayerStatus.ACTIVE` (prevents tsc error after `PlayerProfileResponse.player.status` becomes `PlayerStatus`) (covers FR-010, SC-001)
 
 **Checkpoint**: US1 independently testable — compile-time drift detection works ✓
 
@@ -39,8 +39,8 @@
 
 **Independent Test**: Rename `PlayerStatus.ACTIVE` → `PlayerStatus.ACTIVO` in `packages/shared/src/types/player.ts`. Run `tsc --noEmit` in `packages/frontend` — `ProfileEditForm.vue` and `ProfileHeader.vue` must both fail.
 
-- [ ] T005 [P] [US2] Update `packages/frontend/src/components/profile/ProfileEditForm.vue`: add import of `PlayerStatus` and `Position` from `@ministrosfc/shared`; replace inline `defineProps<{...}>()` with `type Props = { profile: ProfileFields; takenJerseys: number[]; loading: boolean; error: string }` + `const props = defineProps<Props>()`; update `ProfileFields` so `position` is `Position | ""` and `status` is `PlayerStatus`; replace `"ACTIVE"` / `"INACTIVE"` string literals with `PlayerStatus.ACTIVE` / `PlayerStatus.INACTIVE` in reactive defaults, watch handler, and `isActive` computed; remove `@TODO` comment (line 6) (covers FR-014)
-- [ ] T006 [P] [US2] Update `packages/frontend/src/components/profile/ProfileHeader.vue`: add import of `UserRole` and `PlayerStatus` from `@ministrosfc/shared`; replace inline `defineProps<{...}>()` with `type Props = { firstName: string; lastName: string; role: UserRole; status: PlayerStatus; photoUrl: string | null; createdAt: string }` + `const props = defineProps<Props>()`; update `roleBadgeClass` computed to key on `UserRole.ADMIN`, `UserRole.EDITOR`, `UserRole.DT`, `UserRole.PLAYER`; update `statusBadgeClass` to compare `props.status === PlayerStatus.ACTIVE`; remove both `@TODO` comments (lines 4 and 28) (covers FR-015)
+- [X] T005 [P] [US2] Update `packages/frontend/src/components/profile/ProfileEditForm.vue`: add import of `PlayerStatus` and `Position` from `@ministrosfc/shared`; replace inline `defineProps<{...}>()` with `type Props = { profile: ProfileFields; takenJerseys: number[]; loading: boolean; error: string }` + `const props = defineProps<Props>()`; update `ProfileFields` so `position` is `Position | ""` and `status` is `PlayerStatus`; replace `"ACTIVE"` / `"INACTIVE"` string literals with `PlayerStatus.ACTIVE` / `PlayerStatus.INACTIVE` in reactive defaults, watch handler, and `isActive` computed; remove `@TODO` comment (line 6) (covers FR-014)
+- [X] T006 [P] [US2] Update `packages/frontend/src/components/profile/ProfileHeader.vue`: add import of `UserRole` and `PlayerStatus` from `@ministrosfc/shared`; replace inline `defineProps<{...}>()` with `type Props = { firstName: string; lastName: string; role: UserRole; status: PlayerStatus; photoUrl: string | null; createdAt: string }` + `const props = defineProps<Props>()`; update `roleBadgeClass` computed to key on `UserRole.ADMIN`, `UserRole.EDITOR`, `UserRole.DT`, `UserRole.PLAYER`; update `statusBadgeClass` to compare `props.status === PlayerStatus.ACTIVE`; remove both `@TODO` comments (lines 4 and 28) (covers FR-015)
 
 **Checkpoint**: US2 independently testable — IDE enum rename cascades to all frontend components ✓
 
@@ -52,8 +52,8 @@
 
 **Independent Test**: Review `packages/shared/src/types/api.ts` — `PlayerProfileResponse` and `UpdatePlayerProfilePayload` serve as the model for future cross-package types. Zero `@TODO` comments remain in `packages/frontend/src/components/profile/`.
 
-- [ ] T007 [US3] Create `packages/frontend/src/utils/formatDate.ts` — extract the date formatting function from `packages/frontend/src/components/profile/InvitedGuestsList.vue` into this new utility file; export a named function `formatDate(dateString: string, locale?: string): string`
-- [ ] T008 [US3] Update `packages/frontend/src/components/profile/InvitedGuestsList.vue`: import `formatDate` from `~/utils/formatDate`; replace the inline date formatting logic with the imported utility; remove `@TODO` comment (covers FR-016 for InvitedGuestsList.vue)
+- [X] T007 [US3] Create `packages/frontend/src/utils/formatDate.ts` — extract the date formatting function from `packages/frontend/src/components/profile/InvitedGuestsList.vue` into this new utility file; export a named function `formatDate(dateString: string, locale?: string): string`
+- [X] T008 [US3] Update `packages/frontend/src/components/profile/InvitedGuestsList.vue`: import `formatDate` from `~/utils/formatDate`; replace the inline date formatting logic with the imported utility; remove `@TODO` comment (covers FR-016 for InvitedGuestsList.vue)
 
 **Checkpoint**: US3 independently testable — zero `@TODO` comments in `components/profile/`, `formatDate` utility exists and is used ✓
 
@@ -63,7 +63,7 @@
 
 **Purpose**: Cross-cutting final validation; confirm all success criteria from quickstart.md pass.
 
-- [ ] T009 Run full verification suite from `quickstart.md`: `tsc --noEmit` across all three packages (SC-001); `grep` check for zero raw literals in `ProfileService.ts` (SC-002); `grep` check that `ProfileData` no longer declared in `useProfile.ts` (SC-003); `grep` check that `@TODO` type comments removed from `ProfileService.ts` (SC-004); run `npm test` in `packages/cms` and `packages/frontend` (SC-005); `grep` check for zero `@TODO` in `components/profile/` (SC-006)
+- [X] T009 Run full verification suite from `quickstart.md`: `tsc --noEmit` across all three packages (SC-001); `grep` check for zero raw literals in `ProfileService.ts` (SC-002); `grep` check that `ProfileData` no longer declared in `useProfile.ts` (SC-003); `grep` check that `@TODO` type comments removed from `ProfileService.ts` (SC-004); run `npm test` in `packages/cms` and `packages/frontend` (SC-005); `grep` check for zero `@TODO` in `components/profile/` (SC-006)
 
 ---
 
