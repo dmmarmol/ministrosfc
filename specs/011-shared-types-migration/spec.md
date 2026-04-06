@@ -23,7 +23,7 @@ After this feature, `ProfileService.getProfile` is annotated with the return typ
 
 1. **Given** a developer changes the shape of `ProfileService.getProfile` return, **When** they run `tsc --noEmit` in `packages/cms`, **Then** the compiler reports an error if the return shape no longer satisfies `PlayerProfileResponse`.
 2. **Given** the same change, **When** they run `tsc --noEmit` in `packages/frontend`, **Then** the compiler reports an error in `useProfile.ts` because `ProfileData` has been replaced with the same `PlayerProfileResponse` import.
-3. **Given** a developer changes `UpdatePlayerProfileInput` in `@ministrosfc/shared`, **When** they run `tsc --noEmit` in both packages, **Then** all usages (route schema base, service method parameter, frontend form type) fail if the shape is no longer satisfied.
+3. **Given** a developer changes `UpdatePlayerProfilePayload` in `@ministrosfc/shared`, **When** they run `tsc --noEmit` in both packages, **Then** all usages (route schema base, service method parameter, frontend composable `updateProfile` call) fail if the shape is no longer satisfied.
 
 ---
 
@@ -41,7 +41,7 @@ After this feature, all raw string literals for domain enums in `packages/cms` a
 
 1. **Given** `ProfileService.ts` references `playerType: "GUEST"` in a Prisma `where` clause, **When** migration is complete, **Then** that literal is replaced with `PlayerType.GUEST` imported from `@ministrosfc/shared`.
 2. **Given** `ProfileService.ts` references `status: "ACTIVE"` and `status: "INACTIVE"`, **When** migration is complete, **Then** those literals are replaced with `PlayerStatus.ACTIVE` and `PlayerStatus.INACTIVE`.
-3. **Given** `packages/frontend` components or composables use role/status string comparisons, **When** migration is complete, **Then** those comparisons use the imported enum values.
+3. **Given** `packages/frontend` components or composables use role/status/position string comparisons (including `ProfileEditForm.vue`'s `isActive` computed, `ProfileHeader.vue`'s `roleBadgeClass` and `statusBadgeClass`), **When** migration is complete, **Then** those comparisons use imported enum values from `@ministrosfc/shared`.
 
 ---
 
@@ -75,9 +75,9 @@ A developer working on a new feature (e.g., spec 012 Playground entity) needs to
 ### Functional Requirements
 
 - **FR-001**: `PlayerProfileResponse` MUST be defined in `packages/shared/src/types/api.ts` matching the exact shape returned by `ProfileService.getProfile`.
-- **FR-002**: `UpdatePlayerProfileInput` MUST be defined in `packages/shared/src/types/api.ts` matching the parameter accepted by `ProfileService.updateProfile`.
+- **FR-002**: `UpdatePlayerProfilePayload` MUST be defined in `packages/shared/src/types/api.ts` matching the parameter accepted by `ProfileService.updateProfile`.
 - **FR-003**: `ProfileService.getProfile` MUST be annotated with `Promise<PlayerProfileResponse>` as its explicit return type.
-- **FR-004**: `ProfileService.updateProfile` MUST use `UpdatePlayerProfileInput` as its `data` parameter type instead of an inline anonymous type.
+- **FR-004**: `ProfileService.updateProfile` MUST use `UpdatePlayerProfilePayload` as its `data` parameter type instead of an inline anonymous type.
 - **FR-005**: `packages/frontend/src/composables/useProfile.ts` MUST import `PlayerProfileResponse` from `@ministrosfc/shared` and remove the local `ProfileData` interface declaration.
 - **FR-006**: All raw string literals `"ACTIVE"`, `"INACTIVE"` in `packages/cms/src/services/ProfileService.ts` that represent `PlayerStatus` values MUST be replaced with `PlayerStatus.ACTIVE` / `PlayerStatus.INACTIVE` imported from `@ministrosfc/shared`.
 - **FR-007**: All raw string literals `"REGISTERED"`, `"GUEST"` in `packages/cms/src/services/ProfileService.ts` that represent `PlayerType` values MUST be replaced with `PlayerType.REGISTERED` / `PlayerType.GUEST`.
@@ -86,11 +86,15 @@ A developer working on a new feature (e.g., spec 012 Playground entity) needs to
 - **FR-010**: `packages/cms` and `packages/frontend` MUST each compile without errors after the migration.
 - **FR-011**: All existing tests in `packages/cms` and `packages/frontend` MUST continue to pass without modification (or with only import-path updates where the type name changes).
 - **FR-012**: The `@TODO` comment on `ProfileService.getProfile` ("enforce return type in this method") and the `@TODO` on `updateProfile` ("try to use existing PlayerData types") MUST be removed upon completion.
+- **FR-013**: `useProfile.ts`'s `updateProfile` function MUST use `UpdatePlayerProfilePayload` as its `data` parameter type instead of `Record<string, unknown>`.
+- **FR-014**: `ProfileEditForm.vue` MUST define a `type Props = { ... }` (replacing the inline `defineProps<{...}>()` type) whose `status` field uses `PlayerStatus` and whose `position` field uses `Position | ""`. The existing local `ProfileFields` interface may be kept for the reactive form state but MUST use `PlayerStatus` for `status` and `Position | ""` for `position`.
+- **FR-015**: `ProfileHeader.vue` MUST define a `type Props = { ..., role: UserRole, status: PlayerStatus, ... }` importing `UserRole` and `PlayerStatus` from `@ministrosfc/shared`. The `roleBadgeClass` computed MUST key on `UserRole` enum values; `statusBadgeClass` MUST compare against `PlayerStatus` enum values.
+- **FR-016**: All `@TODO` comments in `packages/frontend/src/components/profile/` (specifically `ProfileEditForm.vue`, `ProfileHeader.vue`, and `InvitedGuestsList.vue`) MUST be resolved and removed. "Resolved" means the underlying issue addressed in code (type imported, utility extracted, etc.) — not silently deleted.
 
 ### Key Entities
 
 - **PlayerProfileResponse**: New shared type. Represents the full player profile API response (user fields + player fields + contact + invitedGuests). Replaces `ProfileData` in frontend.
-- **UpdatePlayerProfileInput**: New shared type. Represents the validated set of fields a player can submit to update their own profile. Replaces the anonymous inline `data` type in `ProfileService.updateProfile`.
+- **UpdatePlayerProfilePayload**: New shared type. Represents the validated set of fields a player can submit to update their own profile. Replaces the anonymous inline `data` type in `ProfileService.updateProfile` and `Record<string, unknown>` in `useProfile.ts`.
 
 ---
 
@@ -100,9 +104,10 @@ A developer working on a new feature (e.g., spec 012 Playground entity) needs to
 
 - **SC-001**: Running `tsc --noEmit` across all three packages produces zero errors after migration.
 - **SC-002**: Zero occurrences of the raw string literals `"ACTIVE"`, `"INACTIVE"`, `"REGISTERED"`, `"GUEST"` remain in `packages/cms/src/services/ProfileService.ts` (all replaced with enum imports).
-- **SC-003**: The local `ProfileData` interface in `packages/frontend/src/composables/useProfile.ts` no longer exists — replaced by an import from `@ministrosfc/shared`.
+- **SC-003**: The local `ProfileData` interface in `packages/frontend/src/composables/useProfile.ts` no longer exists — replaced by an import from `@ministrosfc/shared`. The `updateProfile` function uses `UpdatePlayerProfilePayload` instead of `Record<string, unknown>`.
 - **SC-004**: All `@TODO` type-sync comments in `ProfileService.ts` are resolved and removed.
 - **SC-005**: All existing CMS and frontend tests pass after migration without changes to test assertions (only import paths may change).
+- **SC-006**: Zero `@TODO` comments remain in `packages/frontend/src/components/profile/` after migration. All underlying issues are addressed in code.
 
 ---
 
@@ -112,14 +117,15 @@ A developer working on a new feature (e.g., spec 012 Playground entity) needs to
 - `Prisma.PlayerWhereInput`, `Prisma.UserUpdateInput` and similar ORM-layer types are explicitly out of scope — they stay local to `packages/cms`.
 - The `Record<string, unknown>` update accumulator objects inside `ProfileService.updateProfile` are out of scope (separate quality concern).
 - No API behavior changes. This is purely a type-level refactor; request and response payloads remain identical.
-- Frontend component prop types that mirror profile fields (e.g., in `ProfileEditForm.vue`) are out of scope unless they already import `ProfileData` by name — the goal is the composable boundary, not every downstream consumer.
+- Frontend components that define their own prop interfaces (`ProfileEditForm.vue`, `ProfileHeader.vue`) ARE in scope: their prop types must adopt the `type Props = { ... }` pattern and use shared enum types (`PlayerStatus`, `UserRole`, `Position`) for typed fields.
 
 ---
 
 ## Out of Scope
 
 - Migrating types for all other services (`GameService`, `PlayerService`, `AuthService`, etc.) — incremental follow-up
-- Replacing `Record<string, unknown>` accumulators inside service methods with Prisma input types
+- Replacing `Record<string, unknown>` accumulators inside `ProfileService.updateProfile` with Prisma input types
 - Adding shared types for game, tournament, or statistics API responses
 - ESLint rule to enforce `no-restricted-imports` (future tooling hardening)
 - Any changes to API payloads or database schema
+- Frontend components outside `components/profile/` (out of scope for this spec)

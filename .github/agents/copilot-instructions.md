@@ -111,8 +111,8 @@ npx prisma studio                  # Open Prisma Studio GUI
 
 ## Recent Changes
 - 011-shared-types-migration: Added TypeScript 5.x (strict mode) + `@ministrosfc/shared` (already a dependency of both cms and frontend)
+- 011-shared-types-migration: Added TypeScript 5.x (strict mode) + `@ministrosfc/shared` (already a dependency of both cms and frontend)
 - 012-dropdown-add-more: Added TypeScript 5.x, Vue 3 (Nuxt 3 app, ESM) + Nuxt, Vue, Tailwind CSS, Pinia, Vitest, @vue/test-utils
-- 009-user-registration: Added TypeScript (Node 18+, Nuxt 4/Vue 3) + Express, Prisma, Zod, google-auth-library, Pinia
 
 
 

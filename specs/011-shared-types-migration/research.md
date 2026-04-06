@@ -12,11 +12,11 @@
 
 ---
 
-## Decision 2: Where to place `UpdatePlayerProfileInput` in shared
+## Decision 2: Where to place `UpdatePlayerProfilePayload` in shared
 
 **Decision**: `packages/shared/src/types/api.ts` alongside `PlayerProfileResponse`
 
-**Rationale**: Input types (request bodies) are also API contracts. They represent what the client sends in a PATCH request. Placing both the request input and response output for the same endpoint in the same file makes the contract self-contained and easy to locate.
+**Rationale**: Input types (request bodies) are also API contracts. They represent what the client sends in a PATCH request. Placing both the request input and response output for the same endpoint in the same file makes the contract self-contained and easy to locate. Named `Payload` (not `Input`) to signal it is the wire-format body, not a service-internal DTO.
 
 **Alternatives considered**:
 - Zod schema in shared — Zod is a CMS-only devDependency and is not listed in `packages/shared/package.json`; the shared package must remain framework-agnostic. The Zod schema in `profile.ts` route file stays in CMS; the TypeScript type in shared is what gets shared.
@@ -27,7 +27,7 @@
 
 **Decision**: No — Zod schema stays in CMS, TypeScript type stays in shared. The two are kept manually in sync.
 
-**Rationale**: `packages/shared` has no Zod dependency. Adding Zod to shared just for schema-first type generation would add a cross-cutting runtime dependency to a package that should remain lightweight. The safe approach for this spec is: define `UpdatePlayerProfileInput` as the canonical TS type in shared, annotate `ProfileService.updateProfile` to use it, and ensure the Zod schema's inferred type is compatible (verifiable at compile time via `satisfies` or explicit type annotation). Full Zod-in-shared integration is a future enhancement.
+**Rationale**: `packages/shared` has no Zod dependency. Adding Zod to shared just for schema-first type generation would add a cross-cutting runtime dependency to a package that should remain lightweight. The safe approach for this spec is: define `UpdatePlayerProfilePayload` as the canonical TS type in shared, annotate `ProfileService.updateProfile` to use it, and ensure the Zod schema's inferred type is compatible (verifiable at compile time via `satisfies` or explicit type annotation). Full Zod-in-shared integration is a future enhancement.
 
 **Alternatives considered**:
 - `z.infer<typeof updateProfileSchema>` exported from shared — requires Zod in shared package; out of scope.

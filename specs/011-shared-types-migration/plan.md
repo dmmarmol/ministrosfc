@@ -4,7 +4,7 @@
 
 ## Summary
 
-Migrate `PlayerProfileResponse` and `UpdatePlayerProfileInput` into `@ministrosfc/shared/src/types/api.ts` so that both `packages/cms` (service layer) and `packages/frontend` (composable layer) reference the same TypeScript contract. Replace all raw domain enum string literals in `ProfileService.ts` with typed enum imports from `@ministrosfc/shared`. Pure type-level refactor — zero API behavior changes, zero schema migrations.
+Migrate `PlayerProfileResponse` and `UpdatePlayerProfilePayload` into `@ministrosfc/shared/src/types/api.ts` so that both `packages/cms` (service layer) and `packages/frontend` (composable layer) reference the same TypeScript contract. Replace all raw domain enum string literals in `ProfileService.ts` with typed enum imports from `@ministrosfc/shared`. Apply `type Props = {}` pattern with shared enum types to `ProfileEditForm.vue` and `ProfileHeader.vue`. Resolve all `@TODO` comments in profile components. Pure type-level refactor — zero API behavior changes, zero schema migrations.
 
 ---
 
@@ -18,7 +18,7 @@ Migrate `PlayerProfileResponse` and `UpdatePlayerProfileInput` into `@ministrosf
 **Project Type**: Type-level refactor across monorepo packages
 **Performance Goals**: N/A — compile-time only
 **Constraints**: Must not change any runtime behavior; all existing tests must pass without assertion changes
-**Scale/Scope**: 3 files modified (api.ts in shared, ProfileService.ts in cms, useProfile.ts in frontend)
+**Scale/Scope**: 6 files modified (api.ts in shared, ProfileService.ts in cms, useProfile.ts + ProfileEditForm.vue + ProfileHeader.vue + InvitedGuestsList.vue in frontend)
 
 ---
 
@@ -30,7 +30,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 - [x] **Principle III (Plan-Driven)**: This document ✓
 - [x] **Principle IV (TDD)**: No new logic — existing tests serve as regression suite. No new test cases required. ✓
 - [x] **Principle VII (Shared Types)**: This spec IS the Principle VII compliance work. New types go to shared first (Phase 1), then consumers updated. Gate passes by construction. ✓
-- [x] **Shared types gate**: `PlayerProfileResponse` and `UpdatePlayerProfileInput` are added to `@ministrosfc/shared` before consumer packages are updated.
+- [x] **Shared types gate**: `PlayerProfileResponse` and `UpdatePlayerProfilePayload` are added to `@ministrosfc/shared` before consumer packages are updated.
 
 ---
 
@@ -52,15 +52,19 @@ specs/011-shared-types-migration/
 ```text
 packages/shared/src/
 └── types/
-    └── api.ts          ← ADD: PlayerProfileResponse, UpdatePlayerProfileInput
+    └── api.ts          ← ADD: PlayerProfileResponse, UpdatePlayerProfilePayload
 
 packages/cms/src/
 └── services/
     └── ProfileService.ts   ← MODIFY: import shared types + enums, annotate return/param, remove @TODOs
 
 packages/frontend/src/
-└── composables/
-    └── useProfile.ts       ← MODIFY: delete ProfileData, import PlayerProfileResponse from shared
+├── composables/
+│   └── useProfile.ts       ← MODIFY: delete ProfileData, import PlayerProfileResponse, type updateProfile param
+└── components/profile/
+    ├── ProfileEditForm.vue  ← MODIFY: type Props + ProfileFields use PlayerStatus/Position
+    ├── ProfileHeader.vue    ← MODIFY: type Props with UserRole/PlayerStatus, enum comparisons
+    └── InvitedGuestsList.vue ← MODIFY: extract date utility, remove @TODO
 ```
 
 ---
@@ -71,10 +75,11 @@ packages/frontend/src/
 
 Key decisions:
 1. New types go in `packages/shared/src/types/api.ts` (existing API contract file)
-2. No Zod dependency in shared — `UpdatePlayerProfileInput` stays as pure TS; Zod schema stays in CMS route
+2. No Zod dependency in shared — `UpdatePlayerProfilePayload` stays as pure TS; Zod schema stays in CMS route
 3. `dateOfBirth` and `createdAt` typed as `string` in shared (over-the-wire serialized form)
 4. `status`, `playerType`, `position` typed with shared enums in `PlayerProfileResponse`
 5. No new file needed in shared — `api.ts` is the correct home
+6. `UpdatePlayerProfileInput` renamed to `UpdatePlayerProfilePayload` (clearer intent: it's the PATCH request body)
 
 ---
 
@@ -128,14 +133,14 @@ export interface PlayerProfileResponse {
 }
 ```
 
-### `UpdatePlayerProfileInput` (add to `packages/shared/src/types/api.ts`)
+### `UpdatePlayerProfilePayload` (add to `packages/shared/src/types/api.ts`)
 
 ```ts
-export interface UpdatePlayerProfileInput {
+export interface UpdatePlayerProfilePayload {
   firstName?: string;
   lastName?: string;
   nickname?: string;
-  position?: string;
+  position?: Position | null;
   jerseyNumber?: number | null;
   dateOfBirth?: string | null;
   address?: string | null;
@@ -146,6 +151,8 @@ export interface UpdatePlayerProfileInput {
 }
 ```
 
+**Note on `position`**: Changed from `string` to `Position | null`. The shared `Position` enum is already defined in `shared/src/types/player.ts` and all valid values match exactly. The Zod schema in the CMS route validates against `z.nativeEnum(Position)` — this now aligns with the shared type with no extra import.
+
 ### CMS: `ProfileService.ts` changes (logic unchanged)
 
 ```ts
@@ -154,31 +161,99 @@ import {
   PlayerStatus,
   PlayerType,
   type PlayerProfileResponse,
-  type UpdatePlayerProfileInput,
+  type UpdatePlayerProfilePayload,
 } from "@ministrosfc/shared";
 
 // Annotate getProfile
 async getProfile(userId: string): Promise<PlayerProfileResponse>
 
 // Replace data param
-async updateProfile(userId: string, data: UpdatePlayerProfileInput)
+async updateProfile(userId: string, data: UpdatePlayerProfilePayload)
 
 // Replace 6 raw string literals (see data-model.md for line numbers):
 //   "GUEST"       → PlayerType.GUEST
 //   "ACTIVE"      → PlayerStatus.ACTIVE  (×2)
-//   "INACTIVE"    → PlayerStatus.INACTIVE (resolved by UpdatePlayerProfileInput)
+//   "INACTIVE"    → PlayerStatus.INACTIVE (resolved by UpdatePlayerProfilePayload)
 //   "REGISTERED"  → PlayerType.REGISTERED (×2)
 ```
 
 ### Frontend: `useProfile.ts` changes (logic unchanged)
 
 ```ts
-// Add import
-import { type PlayerProfileResponse } from "@ministrosfc/shared";
+// Add imports
+import { type PlayerProfileResponse, type UpdatePlayerProfilePayload } from "@ministrosfc/shared";
 
 // Delete: entire `export interface ProfileData { ... }` block
-// Replace: ProfileData → PlayerProfileResponse (all 3 occurrences)
+// Replace: ProfileData → PlayerProfileResponse (all 4 occurrences: interface decl + ref + 2× $fetch)
+// Replace: updateProfile(data: Record<string, unknown>) → updateProfile(data: UpdatePlayerProfilePayload)
 ```
+
+### Frontend: `ProfileEditForm.vue` changes
+
+```ts
+import { PlayerStatus, Position } from "@ministrosfc/shared";
+
+// 1. Adopt type Props pattern:
+type Props = {
+  profile: ProfileFields;
+  takenJerseys: number[];
+  loading: boolean;
+  error: string;
+};
+const props = defineProps<Props>();
+
+// 2. Update ProfileFields to use shared enum types:
+interface ProfileFields {
+  // ...
+  position: Position | "";     // was: string
+  status: PlayerStatus;         // was: string
+  // ...
+}
+
+// 3. isActive computed already correct structurally; update raw string to enum:
+//   get: form.status === "ACTIVE"    → form.status === PlayerStatus.ACTIVE
+//   set: val ? "ACTIVE" : "INACTIVE" → val ? PlayerStatus.ACTIVE : PlayerStatus.INACTIVE
+
+// 4. Default in reactive(): status: props.profile.status ?? "ACTIVE"
+//   → status: props.profile.status ?? PlayerStatus.ACTIVE
+
+// 5. Remove @TODO comment (line 6).
+```
+
+### Frontend: `ProfileHeader.vue` changes
+
+```ts
+import { UserRole, PlayerStatus } from "@ministrosfc/shared";
+
+// 1. Adopt type Props pattern:
+type Props = {
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  status: PlayerStatus;
+  photoUrl: string | null;
+  createdAt: string;
+};
+const props = defineProps<Props>();
+
+// 2. Update roleBadgeClass to key on UserRole enum values (logic unchanged, raw strings → enum):
+//   { ADMIN: ..., EDITOR: ..., DT: ..., PLAYER: ... }  →  { [UserRole.ADMIN]: ..., ... }
+
+// 3. Update statusBadgeClass:
+//   props.status === "ACTIVE"  →  props.status === PlayerStatus.ACTIVE
+
+// 4. Remove both @TODO comments.
+```
+
+### Frontend: `InvitedGuestsList.vue` changes
+
+```ts
+// Extract date formatting function to packages/frontend/src/utils/formatDate.ts (new utility)
+// Import in InvitedGuestsList.vue: import { formatDate } from "~/utils/formatDate";
+// Remove @TODO comment.
+```
+
+**Note**: `formatDate` utility extraction is the only new file. It is frontend-only; does not belong in `@ministrosfc/shared` (it's a display utility, not a type contract).
 
 ### Constitution Check (post-design re-evaluation)
 
@@ -191,20 +266,22 @@ All gates confirmed passing. No violations introduced.
 | Risk | Likelihood | Mitigation |
 |---|---|---|
 | Prisma `Date` for `dateOfBirth` vs shared `string` causes tsc error | Medium | Cast: `user.player.dateOfBirth?.toISOString() ?? null` in getProfile return. Verify during Step 2. |
-| Prisma `$Enums.PlayerStatus` not assignable to shared `PlayerStatus` | Low | Same string values; structural compatible. tsc will confirm. |
+| Prisma `$Enums.PlayerStatus` not assignable to shared `PlayerStatus` | Low | Same string values; structurally compatible. tsc will confirm. |
 | Frontend tests importing `ProfileData` by name | Low | `grep` scan before committing Step 3 (see quickstart.md). |
+| `ProfileEditForm.vue` uses `position: Position \| ""` — Zod route schema expects optional string | Low | Zod validates enum values at runtime; the form sends `""` → should be coerced to `undefined`/`null` at submit boundary. |
 
 ---
 
 ## Dependency Order
 
 ```
-Step 1: packages/shared — add types
-Step 2: packages/cms   — annotate + enum imports   (depends on Step 1)
-Step 3: packages/frontend — replace ProfileData    (depends on Step 1)
+Step 1: packages/shared       — add PlayerProfileResponse + UpdatePlayerProfilePayload
+Step 2: packages/cms          — annotate + enum imports           (depends on Step 1)
+Step 3: packages/frontend     — useProfile.ts migration           (depends on Step 1)
+Step 4: packages/frontend     — ProfileEditForm.vue + ProfileHeader.vue + InvitedGuestsList.vue  (depends on Step 1; independent of Step 2/3)
 ```
 
-Steps 2 and 3 are independent of each other after Step 1 but sequential is safer for catching type errors one package at a time.
+Steps 2, 3, and 4 are all independent of each other after Step 1. Sequential execution is safer for isolating tsc errors.
 
 ---
 

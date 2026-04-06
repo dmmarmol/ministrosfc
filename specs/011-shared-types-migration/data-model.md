@@ -64,16 +64,16 @@ export interface PlayerProfileResponse {
 
 ---
 
-### `UpdatePlayerProfileInput`
+### `UpdatePlayerProfilePayload`
 
 Represents the validated input a player may submit to `PATCH /api/v1/profile/player`.
 
 ```ts
-export interface UpdatePlayerProfileInput {
+export interface UpdatePlayerProfilePayload {
   firstName?: string;
   lastName?: string;
   nickname?: string;
-  position?: string;       // Accepts position code string; validated by Zod in the route
+  position?: Position | null;  // Uses shared Position enum (not raw string)
   jerseyNumber?: number | null;
   dateOfBirth?: string | null;
   address?: string | null;
@@ -84,12 +84,13 @@ export interface UpdatePlayerProfileInput {
 }
 ```
 
-**Note on `position`**: The Zod schema validates `position` against `z.nativeEnum(Position)` (Prisma enum imported in the route). The shared type uses `string` for `position` to avoid a `@prisma/client` dependency in `@ministrosfc/shared`. A follow-up improvement would be to align `Position` enum usage with the shared `Position` enum already defined in `shared/src/types/player.ts`.
+**Note on `position`**: Changed from `string` to `Position | null` to align with the shared `Position` enum already in `shared/src/types/player.ts`. The Zod schema in the CMS route validates against `z.nativeEnum(Position)` — this is now consistent. No additional import needed in shared since `Position` is already in the same package.
 
-**Replaces**: Inline anonymous `data` parameter type in `ProfileService.updateProfile`
+**Replaces**: Inline anonymous `data` parameter type in `ProfileService.updateProfile` and `Record<string, unknown>` in `useProfile.ts`
 
 **Used by**:
-- `ProfileService.updateProfile(userId, data: UpdatePlayerProfileInput)`
+- `ProfileService.updateProfile(userId, data: UpdatePlayerProfilePayload)`
+- `useProfile.ts`'s `updateProfile(data: UpdatePlayerProfilePayload)` composable function
 - CMS route validation in `routes/profile.ts` (indirect — Zod schema shape must remain compatible)
 
 ---
@@ -107,9 +108,20 @@ Locations in `ProfileService.ts`:
 - Line 57: `playerType: "GUEST"` → `PlayerType.GUEST`  
 - Line 150: `status: "ACTIVE"` → `PlayerStatus.ACTIVE`
 - Line 151: `playerType: "REGISTERED"` → `PlayerType.REGISTERED`
-- Line 131 (data type): `"ACTIVE" | "INACTIVE"` → `PlayerStatus` (resolved by `UpdatePlayerProfileInput`)
+- Line 131 (data type): `"ACTIVE" | "INACTIVE"` → `PlayerStatus` (resolved by `UpdatePlayerProfilePayload`)
 - Line 262: `status: "ACTIVE"` → `PlayerStatus.ACTIVE`
 - Line 263: `playerType: "REGISTERED"` → `PlayerType.REGISTERED`
+
+Additional locations in `packages/frontend/src/components/profile/`:
+
+**ProfileEditForm.vue** (raw literals in reactive defaults and `isActive` computed):
+- `status: props.profile.status ?? "ACTIVE"` (×2) → `PlayerStatus.ACTIVE`
+- `form.status === "ACTIVE"` → `form.status === PlayerStatus.ACTIVE`
+- `val ? "ACTIVE" : "INACTIVE"` → `val ? PlayerStatus.ACTIVE : PlayerStatus.INACTIVE`
+
+**ProfileHeader.vue** (raw literals in `roleBadgeClass` and `statusBadgeClass`):
+- Object keys `"ADMIN"`, `"EDITOR"`, `"DT"`, `"PLAYER"` → `UserRole.ADMIN`, etc.
+- `props.status === "ACTIVE"` → `props.status === PlayerStatus.ACTIVE`
 
 ---
 
@@ -118,15 +130,19 @@ Locations in `ProfileService.ts`:
 ```
 @ministrosfc/shared
   └── types/api.ts
-        ├── PlayerProfileResponse  (imports PlayerStatus, PlayerType, Position, UserRole from player.ts / user.ts)
-        └── UpdatePlayerProfileInput  (imports PlayerStatus)
+        ├── PlayerProfileResponse  (imports PlayerStatus, PlayerType, Position, UserRole)
+        └── UpdatePlayerProfilePayload  (imports PlayerStatus, Position)
 
 packages/cms
   └── services/ProfileService.ts
         ├── import { PlayerStatus, PlayerType } from "@ministrosfc/shared"
-        └── import { PlayerProfileResponse, UpdatePlayerProfileInput } from "@ministrosfc/shared"
+        └── import { PlayerProfileResponse, UpdatePlayerProfilePayload } from "@ministrosfc/shared"
 
 packages/frontend
-  └── composables/useProfile.ts
-        └── import { PlayerProfileResponse } from "@ministrosfc/shared"
+  ├── composables/useProfile.ts
+  │     └── import { PlayerProfileResponse, UpdatePlayerProfilePayload } from "@ministrosfc/shared"
+  └── components/profile/
+        ├── ProfileEditForm.vue → import { PlayerStatus, Position } from "@ministrosfc/shared"
+        ├── ProfileHeader.vue   → import { UserRole, PlayerStatus } from "@ministrosfc/shared"
+        └── InvitedGuestsList.vue → import { formatDate } from "~/utils/formatDate" (new utility)
 ```
