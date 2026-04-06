@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { reactive } from "vue";
+import EmailInput from "~/components/ui/EmailInput.vue";
 
 const props = defineProps<{
   loading: boolean;
@@ -20,21 +21,24 @@ function handleSubmit() {
 <template>
   <form class="space-y-4" @submit.prevent="handleSubmit">
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1" for="login-email">
+      <label
+        class="block text-sm font-medium text-gray-700 mb-1"
+        for="login-email"
+      >
         Correo electrónico
       </label>
-      <input
+      <EmailInput
         id="login-email"
         v-model="form.email"
-        type="email"
         autocomplete="email"
-        required
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-        placeholder="tu@ejemplo.com"
+        :required="true"
       />
     </div>
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1" for="login-password">
+      <label
+        class="block text-sm font-medium text-gray-700 mb-1"
+        for="login-password"
+      >
         Contraseña
       </label>
       <input

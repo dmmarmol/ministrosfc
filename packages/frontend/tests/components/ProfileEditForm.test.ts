@@ -14,6 +14,7 @@ describe("ProfileEditForm", () => {
     phone: "+54 11 1234-5678",
     whatsapp: "+54 11 1234-5678",
     emergencyContact: "María Pérez",
+    status: "ACTIVE",
   };
 
   const mountForm = (props = {}) =>
@@ -33,12 +34,13 @@ describe("ProfileEditForm", () => {
     expect(wrapper.find("#profile-lastName").exists()).toBe(true);
     expect(wrapper.find("#profile-nickname").exists()).toBe(true);
     expect(wrapper.find("#profile-position").exists()).toBe(true);
-    expect(wrapper.find("#profile-jerseyNumber").exists()).toBe(true);
+    expect(wrapper.find("#jerseyNumberInput").exists()).toBe(true);
     expect(wrapper.find("#profile-dateOfBirth").exists()).toBe(true);
     expect(wrapper.find("#profile-address").exists()).toBe(true);
     expect(wrapper.find("#profile-phone").exists()).toBe(true);
     expect(wrapper.find("#profile-whatsapp").exists()).toBe(true);
     expect(wrapper.find("#profile-emergencyContact").exists()).toBe(true);
+    expect(wrapper.find("#profileStatus").exists()).toBe(true);
   });
 
   it("populates fields from profile prop", () => {
@@ -61,15 +63,15 @@ describe("ProfileEditForm", () => {
     expect(emitted.nickname).toBe("Carlitos");
   });
 
-  it("shows jersey conflict warning", () => {
+  it("shows jersey available ranges hint", () => {
     const wrapper = mountForm({
       profile: { ...defaultProfile, jerseyNumber: null },
       takenJerseys: [7, 10],
     });
-    const hint = wrapper.find("[data-testid='jersey-hint']");
+    const hint = wrapper.find("[data-testid='jersey-available-hint']");
     expect(hint.exists()).toBe(true);
-    expect(hint.text()).toContain("7");
-    expect(hint.text()).toContain("10");
+    // Available ranges should exclude 7 and 10
+    expect(hint.text()).not.toContain("7");
   });
 
   it("shows loading state", () => {
@@ -81,5 +83,19 @@ describe("ProfileEditForm", () => {
   it("shows error message", () => {
     const wrapper = mountForm({ error: "Error al guardar" });
     expect(wrapper.text()).toContain("Error al guardar");
+  });
+
+  it("renders IsPlayerCheckbox checked when status is ACTIVE", () => {
+    const wrapper = mountForm();
+    const checkbox = wrapper.find("#profileStatus");
+    expect((checkbox.element as HTMLInputElement).checked).toBe(true);
+  });
+
+  it("emits save with status INACTIVE when IsPlayerCheckbox is unchecked", async () => {
+    const wrapper = mountForm();
+    await wrapper.find("#profileStatus").setValue(false);
+    await wrapper.find("form").trigger("submit.prevent");
+    const emitted = wrapper.emitted("save")![0][0] as any;
+    expect(emitted.status).toBe("INACTIVE");
   });
 });

@@ -9,7 +9,7 @@
 
 ### User Story 1 — Email Registration (Priority: P1)
 
-A new visitor arrives at the `/login` page and wants to create an account. They see two options: a traditional email/password form and a "Sign in with Google" button. They choose email registration, fill in their email and a password, and submit the form. The system creates their account, signs them in, and routes them through onboarding before the final role-based landing page.
+A new visitor arrives at the `/login` page and wants to create an account. They see two options: a traditional email/password form and a "Sign in with Google" button. They choose email registration, fill in their email and a password, and submit the form. The system creates their account, signs them in, and routes them through onboarding before the role-based landing page.
 
 **Why this priority**: Email registration is the foundational sign-up path — it works for all users regardless of whether they have a Google account, and it reuses the existing authentication infrastructure (JWT tokens, password hashing).
 
@@ -18,7 +18,7 @@ A new visitor arrives at the `/login` page and wants to create an account. They 
 **Acceptance Scenarios**:
 
 1. **Given** a visitor on the `/login` page, **When** they click the "Registrarse" link/button, **Then** a registration form is displayed with firstName, lastName, email, password, and password confirmation fields.
-2. **Given** the registration form is visible, **When** the visitor enters a valid email and matching passwords that meet strength requirements, **Then** a new account is created, the user is automatically signed in, and redirected to `/auth/onboarding` before final app landing.
+2. **Given** the registration form is visible, **When** the visitor enters a valid email and matching passwords that meet strength requirements, **Then** a new account is created, the user is automatically signed in, and redirected to `/auth/onboarding` before the role-based landing page.
 3. **Given** the registration form is visible, **When** the visitor enters an email already associated with an existing account, **Then** a clear error message is shown: "Este correo ya está registrado" (This email is already registered).
 4. **Given** the registration form is visible, **When** the visitor enters a password that does not meet strength requirements, **Then** the form shows validation feedback indicating the requirement (minimum 8 characters, at least one uppercase letter, one number, and one special character).
 5. **Given** the registration form is visible, **When** the password and confirmation fields do not match, **Then** the form shows a validation error before submission.
@@ -27,7 +27,7 @@ A new visitor arrives at the `/login` page and wants to create an account. They 
 
 ### User Story 2 — Google Sign-In (Priority: P2)
 
-A new or returning visitor on the `/login` page clicks "Iniciar sesión con Google" (Sign in with Google). They are redirected to Google's consent screen, authorize the app, and are redirected back. If they already have an account linked to that Google email, they are signed in. If not, a new account is automatically created, signed in, and routed through onboarding before final app landing.
+A new or returning visitor on the `/login` page clicks "Iniciar sesión con Google" (Sign in with Google). They are redirected to Google's consent screen, authorize the app, and are redirected back. If they already have an account linked to that Google email, they are signed in. If not, a new account is automatically created, signed in, and routed through onboarding before the role-based landing page.
 
 **Why this priority**: Google sign-in reduces friction — no password to remember — but depends on external OAuth configuration and is a secondary path to the core email registration.
 
@@ -36,7 +36,7 @@ A new or returning visitor on the `/login` page clicks "Iniciar sesión con Goog
 **Acceptance Scenarios**:
 
 1. **Given** a visitor on the `/login` page, **When** they click "Iniciar sesión con Google", **Then** they are redirected to Google's OAuth consent screen.
-2. **Given** a visitor completes Google consent, **When** Google redirects back to the application, **Then** the system creates a new account (if none exists for that Google email), signs the user in, and redirects to `/auth/onboarding` before final app landing.
+2. **Given** a visitor completes Google consent, **When** Google redirects back to the application, **Then** the system creates a new account (if none exists for that Google email), signs the user in, and redirects to `/auth/onboarding` before the role-based landing page.
 3. **Given** a visitor who previously registered via Google, **When** they click "Iniciar sesión con Google" again, **Then** they are signed into their existing account without creating a duplicate.
 4. **Given** a visitor who previously registered via email with the same email address as their Google account, **When** they click "Iniciar sesión con Google", **Then** their existing account is linked to Google and they are signed in (account merging by email).
 5. **Given** a visitor on Google's consent screen, **When** they cancel or deny authorization, **Then** they are returned to the `/login` page with an informational message.
@@ -97,7 +97,7 @@ After successful authentication (email registration or first-time Google sign-in
 - **FR-003**: Passwords MUST meet minimum strength requirements: at least 8 characters, one uppercase letter, one number, and one special character.
 - **FR-004**: The system MUST validate that password and confirmation match before submission.
 - **FR-005**: The system MUST reject registration if the email is already associated with an existing account, displaying a user-friendly error message.
-- **FR-006**: Upon successful email registration, the system MUST automatically sign the user in and redirect to `/auth/onboarding`; after onboarding completion, the user is redirected to their role-appropriate landing page.
+- **FR-006**: Upon successful email registration, the system MUST automatically sign the user in and redirect to `/auth/onboarding`. Navigation from onboarding completion to the role-based landing page is governed by **FR-032**.
 - **FR-007**: New accounts created via email registration MUST be assigned the PLAYER role by default.
 - **FR-008**: The `/login` page MUST display a "Iniciar sesión con Google" button that initiates the Google OAuth flow.
 - **FR-009**: When a user authenticates via Google for the first time, the system MUST create a new account using the Google profile's email and display name.

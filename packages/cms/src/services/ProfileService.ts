@@ -127,6 +127,7 @@ export const ProfileService = {
       phone?: string | null;
       whatsapp?: string | null;
       emergencyContact?: string | null;
+      status?: "ACTIVE" | "INACTIVE";
     },
   ) {
     return prisma.$transaction(async (tx) => {
@@ -181,6 +182,7 @@ export const ProfileService = {
           ? new Date(data.dateOfBirth)
           : null;
       if (data.address !== undefined) playerUpdate.address = data.address;
+      if (data.status !== undefined) playerUpdate.status = data.status;
 
       if (Object.keys(playerUpdate).length > 0) {
         await tx.player.update({

@@ -17,11 +17,11 @@
 
 **Purpose**: Prepare dependencies and shared validation/config modules.
 
-- [x] T001 Install `google-auth-library` in `packages/cms/package.json`
-- [x] T002 [P] Add Google OAuth env entries in `packages/cms/.env.example`
-- [x] T003 [P] Wire Google OAuth config in `packages/cms/src/config/auth.ts`
-- [x] T004 [P] Add shared password schema rules in `packages/shared/src/validation/password.ts`
-- [x] T005 [P] Export password schema from `packages/shared/src/index.ts`
+- [ ] T001 Install `google-auth-library` in `packages/cms/package.json`
+- [ ] T002 [P] Add Google OAuth env entries in `packages/cms/.env.example`
+- [ ] T003 [P] Wire Google OAuth config in `packages/cms/src/config/auth.ts`
+- [ ] T004 [P] Add shared password schema rules in `packages/shared/src/validation/password.ts`
+- [ ] T005 [P] Export password schema from `packages/shared/src/index.ts`
 
 ---
 
@@ -31,16 +31,16 @@
 
 **CRITICAL**: No story implementation starts before this phase is complete.
 
-- [x] T006 Add `User.onboardingCompletedAt` in `packages/cms/prisma/schema.prisma`
-- [x] T007 Add `User.googleSubjectId`, nullable `passwordHash`, and `Role.DT` in `packages/cms/prisma/schema.prisma`
-- [x] T008 Add `firstName`/`lastName` fields for `User` and `Player` plus `Player.address` in `packages/cms/prisma/schema.prisma`
-- [x] T009 Create migration SQL for `name` split + backfill in `packages/cms/prisma/migrations/`
-- [x] T010 Create migration for Google auth + DT + onboarding fields in `packages/cms/prisma/migrations/`
-- [x] T011 [P] Update user model typings in `packages/cms/src/models/User.ts`
-- [x] T012 [P] Update player model typings in `packages/cms/src/models/Player.ts`
-- [x] T013 [P] Update role hierarchy map in `packages/cms/src/middleware/rbac.ts`
-- [x] T014 [P] Update JWT/auth payload typing in `packages/cms/src/middleware/auth.ts`
-- [x] T015 [P] Update frontend auth state types in `packages/frontend/src/stores/auth.ts`
+- [ ] T006 Add `User.onboardingCompletedAt` in `packages/cms/prisma/schema.prisma`
+- [ ] T007 Add `User.googleSubjectId`, nullable `passwordHash`, and `Role.DT` in `packages/cms/prisma/schema.prisma`
+- [ ] T008 Add `firstName`/`lastName` fields for `User` and `Player` plus `Player.address` in `packages/cms/prisma/schema.prisma`
+- [ ] T009 Create migration SQL for `name` split + backfill in `packages/cms/prisma/migrations/`
+- [ ] T010 Create migration for Google auth + DT + onboarding fields in `packages/cms/prisma/migrations/`
+- [ ] T011 [P] Update user model typings in `packages/cms/src/models/User.ts`
+- [ ] T012 [P] Update player model typings in `packages/cms/src/models/Player.ts`
+- [ ] T013 [P] Update role hierarchy map in `packages/cms/src/middleware/rbac.ts`
+- [ ] T014 [P] Update JWT/auth payload typing in `packages/cms/src/middleware/auth.ts`
+- [ ] T015 [P] Update frontend auth state types in `packages/frontend/src/stores/auth.ts`
 
 **Checkpoint**: Database and auth foundations are ready.
 
@@ -54,16 +54,16 @@
 
 ### Tests (write first)
 
-- [x] T016 [P] [US3] Add mode toggle UI tests in `packages/frontend/tests/unit/login-page.test.ts`
-- [x] T017 [P] [US3] Add registration form field rendering tests in `packages/frontend/tests/unit/register-form.test.ts`
-- [x] T018 [P] [US3] Add login regression tests for existing email/password path in `packages/frontend/tests/unit/login-regression.test.ts`
+- [ ] T016 [P] [US3] Add mode toggle UI tests in `packages/frontend/tests/unit/login-page.test.ts`
+- [ ] T017 [P] [US3] Add registration form field rendering tests in `packages/frontend/tests/unit/register-form.test.ts`
+- [ ] T018 [P] [US3] Add login regression tests for existing email/password path in `packages/frontend/tests/unit/login-regression.test.ts`
 
 ### Implementation
 
-- [x] T019 [US3] Implement sign-in/sign-up mode toggle in `packages/frontend/src/pages/login.vue`
-- [x] T020 [US3] Add registration fields and default `isPlayer=true` checkbox in `packages/frontend/src/pages/login.vue`
-- [x] T021 [US3] Keep Google button visible in both auth modes in `packages/frontend/src/pages/login.vue`
-- [x] T022 [US3] Apply Spanish labels and validation/error copy in `packages/frontend/src/pages/login.vue`
+- [ ] T019 [US3] Implement sign-in/sign-up mode toggle in `packages/frontend/src/pages/login.vue`
+- [ ] T020 [US3] Add registration fields and default `isPlayer=true` checkbox in `packages/frontend/src/pages/login.vue`
+- [ ] T021 [US3] Keep Google button visible in both auth modes in `packages/frontend/src/pages/login.vue`
+- [ ] T022 [US3] Apply Spanish labels and validation/error copy in `packages/frontend/src/pages/login.vue`
 
 **Checkpoint**: Login/register entry UI is complete and regression-safe.
 
@@ -77,17 +77,17 @@
 
 ### Tests (write first)
 
-- [x] T023 [P] [US1] Add registration integration tests in `packages/cms/tests/integration/auth-register.test.ts`
-- [x] T024 [P] [US1] Add `AuthService.register` unit tests in `packages/cms/tests/unit/AuthService.test.ts`
-- [x] T025 [P] [US1] Add explicit default-role assertion test (`PLAYER`) in `packages/cms/tests/unit/AuthService.test.ts`
-- [x] T026 [P] [US1] Add frontend registration submit tests in `packages/frontend/tests/unit/register-submit.test.ts`
+- [ ] T023 [P] [US1] Add registration integration tests in `packages/cms/tests/integration/auth-register.test.ts`
+- [ ] T024 [P] [US1] Add `AuthService.register` unit tests in `packages/cms/tests/unit/AuthService.test.ts`
+- [ ] T025 [P] [US1] Add explicit default-role assertion test (`PLAYER`) in `packages/cms/tests/unit/AuthService.test.ts`
+- [ ] T026 [P] [US1] Add frontend registration submit tests in `packages/frontend/tests/unit/register-submit.test.ts`
 
 ### Implementation
 
-- [x] T027 [US1] Implement register request schema (`firstName/lastName/isPlayer`) in `packages/cms/src/routes/auth.ts`
-- [x] T028 [US1] Implement onboarding-pending user creation and token issuance in `packages/cms/src/services/AuthService.ts`
-- [x] T029 [US1] Return `nextStep=/auth/onboarding` and updated user payload in `packages/cms/src/routes/auth.ts`
-- [x] T030 [US1] Redirect to onboarding after successful registration in `packages/frontend/src/pages/login.vue`
+- [ ] T027 [US1] Implement register request schema (`firstName/lastName/isPlayer`) in `packages/cms/src/routes/auth.ts`
+- [ ] T028 [US1] Implement onboarding-pending user creation and token issuance in `packages/cms/src/services/AuthService.ts`
+- [ ] T029 [US1] Return `nextStep=/auth/onboarding` and updated user payload in `packages/cms/src/routes/auth.ts`
+- [ ] T030 [US1] Redirect to onboarding after successful registration in `packages/frontend/src/pages/login.vue`
 
 **Checkpoint**: Email registration flow is complete end-to-end.
 
@@ -101,19 +101,19 @@
 
 ### Tests (write first)
 
-- [x] T031 [P] [US4] Add onboarding status/complete integration tests in `packages/cms/tests/integration/onboarding.test.ts`
-- [x] T032 [P] [US4] Add onboarding service branch/idempotency tests in `packages/cms/tests/unit/OnboardingService.test.ts`
-- [x] T033 [P] [US4] Add conditional onboarding form tests in `packages/frontend/tests/unit/onboarding-page.test.ts`
+- [ ] T031 [P] [US4] Add onboarding status/complete integration tests in `packages/cms/tests/integration/onboarding.test.ts`
+- [ ] T032 [P] [US4] Add onboarding service branch/idempotency tests in `packages/cms/tests/unit/OnboardingService.test.ts`
+- [ ] T033 [P] [US4] Add conditional onboarding form tests in `packages/frontend/tests/unit/onboarding-page.test.ts`
 
 ### Implementation
 
-- [x] T034 [US4] Implement onboarding domain logic in `packages/cms/src/services/OnboardingService.ts`
-- [x] T035 [US4] Implement onboarding routes in `packages/cms/src/routes/onboarding.ts`
-- [x] T036 [US4] Register onboarding routes in `packages/cms/src/config/server.ts`
-- [x] T037 [P] [US4] Implement onboarding composable in `packages/frontend/src/composables/useOnboarding.ts`
-- [x] T038 [P] [US4] Implement onboarding page UI/validation in `packages/frontend/src/pages/auth/onboarding.vue`
-- [x] T039 [US4] Implement middleware guard for incomplete onboarding in `packages/frontend/src/middleware/auth.ts`
-- [x] T040 [US4] Implement post-onboarding role-based navigation in `packages/frontend/src/pages/auth/onboarding.vue`
+- [ ] T034 [US4] Implement onboarding domain logic in `packages/cms/src/services/OnboardingService.ts`
+- [ ] T035 [US4] Implement onboarding routes in `packages/cms/src/routes/onboarding.ts`
+- [ ] T036 [US4] Register onboarding routes in `packages/cms/src/config/server.ts`
+- [ ] T037 [P] [US4] Implement onboarding composable in `packages/frontend/src/composables/useOnboarding.ts`
+- [ ] T038 [P] [US4] Implement onboarding page UI/validation in `packages/frontend/src/pages/auth/onboarding.vue`
+- [ ] T039 [US4] Implement middleware guard for incomplete onboarding in `packages/frontend/src/middleware/auth.ts`
+- [ ] T040 [US4] Implement post-onboarding role-based navigation in `packages/frontend/src/pages/auth/onboarding.vue`
 
 **Checkpoint**: Unified onboarding gate and completion flow are complete.
 
@@ -127,16 +127,16 @@
 
 ### Tests (write first)
 
-- [x] T041 [P] [US2] Add Google OAuth integration tests in `packages/cms/tests/integration/google-oauth.test.ts`
-- [x] T042 [P] [US2] Add explicit account-linking test (email match) in `packages/cms/tests/integration/google-oauth.test.ts`
-- [x] T043 [P] [US2] Add frontend Google callback routing tests in `packages/frontend/tests/unit/google-callback.test.ts`
+- [ ] T041 [P] [US2] Add Google OAuth integration tests in `packages/cms/tests/integration/google-oauth.test.ts`
+- [ ] T042 [P] [US2] Add explicit account-linking test (email match) in `packages/cms/tests/integration/google-oauth.test.ts`
+- [ ] T043 [P] [US2] Add frontend Google callback routing tests in `packages/frontend/tests/unit/google-callback.test.ts`
 
 ### Implementation
 
-- [x] T044 [US2] Implement Google start/callback handlers in `packages/cms/src/routes/auth.ts`
-- [x] T045 [US2] Implement Google subject resolution/linking in `packages/cms/src/services/AuthService.ts`
-- [x] T046 [US2] Implement frontend callback token handling in `packages/frontend/src/pages/auth/google/callback.vue`
-- [x] T047 [US2] Reuse onboarding status gate after Google callback in `packages/frontend/src/pages/auth/google/callback.vue`
+- [ ] T044 [US2] Implement Google start/callback handlers in `packages/cms/src/routes/auth.ts`
+- [ ] T045 [US2] Implement Google subject resolution/linking in `packages/cms/src/services/AuthService.ts`
+- [ ] T046 [US2] Implement frontend callback token handling in `packages/frontend/src/pages/auth/google/callback.vue`
+- [ ] T047 [US2] Reuse onboarding status gate after Google callback in `packages/frontend/src/pages/auth/google/callback.vue`
 
 **Checkpoint**: Google auth path is aligned with onboarding source-of-truth behavior.
 
@@ -150,20 +150,20 @@
 
 ### Tests (write first)
 
-- [x] T048 [P] [US5] Add profile service unit tests in `packages/cms/tests/unit/ProfileService.test.ts`
-- [x] T049 [P] [US5] Add profile endpoint integration tests in `packages/cms/tests/integration/profile.test.ts`
-- [x] T050 [P] [US5] Add profile UI component tests (guests/jersey/tooltip) in `packages/frontend/tests/unit/profile-components.test.ts`
-- [x] T051 [P] [US5] Add inactive-player participation restriction tests in `packages/cms/tests/integration/participation-restrictions.test.ts`
+- [ ] T048 [P] [US5] Add profile service unit tests in `packages/cms/tests/unit/ProfileService.test.ts`
+- [ ] T049 [P] [US5] Add profile endpoint integration tests in `packages/cms/tests/integration/profile.test.ts`
+- [ ] T050 [P] [US5] Add profile UI component tests (guests/jersey/tooltip) in `packages/frontend/tests/unit/profile-components.test.ts`
+- [ ] T051 [P] [US5] Add inactive-player participation restriction tests in `packages/cms/tests/integration/participation-restrictions.test.ts`
 
 ### Implementation
 
-- [x] T052 [US5] Implement profile aggregation/update logic in `packages/cms/src/services/ProfileService.ts`
-- [x] T053 [US5] Implement profile endpoints (`GET/PATCH/PUT/jersey-availability`) in `packages/cms/src/routes/profile.ts`
-- [x] T054 [US5] Implement photo storage adapter updates in `packages/cms/src/utils/object-storage.ts`
-- [x] T055 [US5] Implement inactive-player participation guards in `packages/cms/src/services/ParticipationService.ts`
-- [x] T056 [P] [US5] Implement profile composable in `packages/frontend/src/composables/useProfile.ts`
-- [x] T057 [P] [US5] Implement profile components in `packages/frontend/src/components/profile/`
-- [x] T058 [US5] Implement profile page composition in `packages/frontend/src/pages/profile.vue`
+- [ ] T052 [US5] Implement profile aggregation/update logic in `packages/cms/src/services/ProfileService.ts`
+- [ ] T053 [US5] Implement profile endpoints (`GET/PATCH/PUT/jersey-availability`) in `packages/cms/src/routes/profile.ts`
+- [ ] T054 [US5] Implement photo storage adapter updates in `packages/cms/src/utils/object-storage.ts`
+- [ ] T055 [US5] Implement inactive-player participation guards in `packages/cms/src/services/ParticipationService.ts`
+- [ ] T056 [P] [US5] Implement profile composable in `packages/frontend/src/composables/useProfile.ts`
+- [ ] T057 [P] [US5] Implement profile components in `packages/frontend/src/components/profile/`
+- [ ] T058 [US5] Implement profile page composition in `packages/frontend/src/pages/profile.vue`
 
 **Checkpoint**: Profile and player-status behavior are complete.
 
@@ -177,18 +177,18 @@
 
 ### Tests (write first)
 
-- [x] T059 [P] [US6] Add role-management integration tests in `packages/cms/tests/integration/role-management.test.ts`
-- [x] T060 [P] [US6] Add role transition matrix unit tests in `packages/cms/tests/unit/UserService.test.ts`
-- [x] T061 [P] [US6] Add admin users UI tests in `packages/frontend/tests/unit/admin-users.test.ts`
-- [x] T062 [P] [US6] Add DT route-permission tests for game tactics/guest flows in `packages/cms/tests/integration/game-dt-permissions.test.ts`
+- [ ] T059 [P] [US6] Add role-management integration tests in `packages/cms/tests/integration/role-management.test.ts`
+- [ ] T060 [P] [US6] Add role transition matrix unit tests in `packages/cms/tests/unit/UserService.test.ts`
+- [ ] T061 [P] [US6] Add admin users UI tests in `packages/frontend/tests/unit/admin-users.test.ts`
+- [ ] T062 [P] [US6] Add DT route-permission tests for game tactics/guest flows in `packages/cms/tests/integration/game-dt-permissions.test.ts`
 
 ### Implementation
 
-- [x] T063 [US6] Implement role transition rules in `packages/cms/src/services/UserService.ts`
-- [x] T064 [US6] Implement admin users role/status/delete endpoints in `packages/cms/src/routes/users.ts`
-- [x] T065 [US6] Implement DT permission checks for game tactics and guest add in `packages/cms/src/routes/games.ts`
-- [x] T066 [US6] Implement admin user role manager UI in `packages/frontend/src/components/admin/UserRoleManager.vue`
-- [x] T067 [US6] Implement admin users management page in `packages/frontend/src/pages/admin/users/index.vue`
+- [ ] T063 [US6] Implement role transition rules in `packages/cms/src/services/UserService.ts`
+- [ ] T064 [US6] Implement admin users role/status/delete endpoints in `packages/cms/src/routes/users.ts`
+- [ ] T065 [US6] Implement DT permission checks for game tactics and guest add in `packages/cms/src/routes/games.ts`
+- [ ] T066 [US6] Implement admin user role manager UI in `packages/frontend/src/components/admin/UserRoleManager.vue`
+- [ ] T067 [US6] Implement admin users management page in `packages/frontend/src/pages/admin/users/index.vue`
 
 **Checkpoint**: Admin and DT scope is complete.
 
@@ -198,13 +198,13 @@
 
 **Purpose**: Final consistency, regression, and quality gates.
 
-- [x] T068 [P] Sync final auth/onboarding/profile/admin contracts in `specs/009-user-registration/contracts/`
-- [x] T069 [P] Sync quickstart endpoints and scenarios in `specs/009-user-registration/quickstart.md`
-- [x] T070 Add CMS auth regression test coverage for legacy login behavior in `packages/cms/tests/integration/auth-flow.test.ts`
-- [x] T071 Run focused CMS suites for auth/onboarding/profile/roles in `packages/cms/tests/`
-- [x] T072 Run focused frontend suites for login/onboarding/profile/admin in `packages/frontend/tests/`
-- [x] T073 Verify new-code coverage gate (>=80%) in `packages/cms/tests/` and `packages/frontend/tests/`
-- [x] T074 Execute quickstart manual validation and record outcomes in `specs/009-user-registration/research.md`
+- [ ] T068 [P] Sync final auth/onboarding/profile/admin contracts in `specs/009-user-registration/contracts/`
+- [ ] T069 [P] Sync quickstart endpoints and scenarios in `specs/009-user-registration/quickstart.md`
+- [ ] T070 Add CMS auth regression test coverage for legacy login behavior in `packages/cms/tests/integration/auth-flow.test.ts`
+- [ ] T071 Run focused CMS suites for auth/onboarding/profile/roles in `packages/cms/tests/`
+- [ ] T072 Run focused frontend suites for login/onboarding/profile/admin in `packages/frontend/tests/`
+- [ ] T073 Verify new-code coverage gate (>=80%) in `packages/cms/tests/` and `packages/frontend/tests/`
+- [ ] T074 Execute quickstart manual validation and record outcomes in `specs/009-user-registration/research.md`
 
 ---
 

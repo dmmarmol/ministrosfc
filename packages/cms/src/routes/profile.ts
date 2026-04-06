@@ -28,6 +28,7 @@ const updateProfileSchema = z.object({
   phone: z.string().max(255).optional().nullable(),
   whatsapp: z.string().max(255).optional().nullable(),
   emergencyContact: z.string().max(255).optional().nullable(),
+  status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
 });
 
 // GET /api/v1/profile — user-only profile (no player required)

@@ -5,6 +5,7 @@ export * from "./types";
 
 // Utils
 export * from "./utils/validation";
+export * from "./utils/jersey";
 
 // Validation schemas
 export { passwordSchema, PASSWORD_RULES } from "./validation/password";

@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { reactive, watch } from "vue";
+import { reactive, watch, computed } from "vue";
+import JerseyNumberInput from "~/components/ui/JerseyNumberInput.vue";
+import IsPlayerCheckbox from "~/components/ui/IsPlayerCheckbox.vue";
 
 /** @TODO try to use existing types or type values to enforce typing here */
 const positions = [
@@ -31,6 +33,7 @@ interface ProfileFields {
   phone: string;
   whatsapp: string;
   emergencyContact: string;
+  status: string;
 }
 
 const props = defineProps<{
@@ -55,6 +58,7 @@ const form = reactive<ProfileFields>({
   phone: props.profile.phone ?? "",
   whatsapp: props.profile.whatsapp ?? "",
   emergencyContact: props.profile.emergencyContact ?? "",
+  status: props.profile.status ?? "ACTIVE",
 });
 
 watch(
@@ -70,6 +74,7 @@ watch(
     form.phone = p.phone ?? "";
     form.whatsapp = p.whatsapp ?? "";
     form.emergencyContact = p.emergencyContact ?? "";
+    form.status = p.status ?? "ACTIVE";
   },
   { deep: true },
 );
@@ -77,6 +82,19 @@ watch(
 function handleSubmit() {
   emit("save", { ...form });
 }
+
+const jerseyIsTaken = computed(
+  () =>
+    form.jerseyNumber !== null &&
+    props.takenJerseys.includes(form.jerseyNumber),
+);
+
+const isActive = computed({
+  get: () => form.status === "ACTIVE",
+  set: (val: boolean) => {
+    form.status = val ? "ACTIVE" : "INACTIVE";
+  },
+});
 </script>
 
 <template>
@@ -129,6 +147,13 @@ function handleSubmit() {
       />
     </div>
 
+    <IsPlayerCheckbox
+      id="profileStatus"
+      v-model="isActive"
+      label="Activo en el equipo"
+      description="Desmarcá esta opción para marcarme como inactivo"
+    />
+
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label
@@ -151,24 +176,14 @@ function handleSubmit() {
       <div>
         <label
           class="block text-sm font-medium text-gray-700 mb-1"
-          for="profile-jerseyNumber"
+          for="jerseyNumberInput"
         >
           Número de camiseta
         </label>
-        <input
-          id="profile-jerseyNumber"
-          v-model.number="form.jerseyNumber"
-          type="number"
-          min="1"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+        <JerseyNumberInput
+          v-model="form.jerseyNumber"
+          :taken-numbers="takenJerseys"
         />
-        <p
-          v-if="takenJerseys.length > 0"
-          data-testid="jersey-hint"
-          class="text-xs text-gray-400 mt-1"
-        >
-          Ocupados: {{ takenJerseys.join(", ") }}
-        </p>
       </div>
     </div>
 
@@ -256,7 +271,7 @@ function handleSubmit() {
 
     <button
       type="submit"
-      :disabled="loading"
+      :disabled="loading || jerseyIsTaken"
       class="w-full bg-brand text-gray-900 font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-60"
     >
       {{ loading ? "Guardando…" : "Guardar cambios" }}

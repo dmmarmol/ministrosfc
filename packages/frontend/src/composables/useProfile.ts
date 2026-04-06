@@ -1,6 +1,7 @@
 import { ref } from "vue";
 import { useAuthStore } from "~/stores/auth";
 import { useRuntimeConfig } from "nuxt/app";
+import { useJerseyAvailability } from "~/composables/useJerseyAvailability";
 
 export interface ProfileData {
   user: {
@@ -110,16 +111,9 @@ export function useProfile() {
   }
 
   async function fetchJerseyAvailability(excludePlayerId?: string) {
-    try {
-      const params = excludePlayerId ? `?exclude=${excludePlayerId}` : "";
-      const res = await $fetch<{ data: { taken: number[] } }>(
-        `${config.public.apiBaseUrl}/api/v1/profile/player/jersey-availability${params}`,
-        { headers: { Authorization: `Bearer ${authStore.accessToken}` } },
-      );
-      return res.data.taken;
-    } catch {
-      return [];
-    }
+    const jerseyAvailability = useJerseyAvailability();
+    await jerseyAvailability.fetch(excludePlayerId);
+    return jerseyAvailability.taken.value;
   }
 
   return {

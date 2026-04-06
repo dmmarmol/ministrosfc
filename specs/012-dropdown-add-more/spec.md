@@ -96,7 +96,7 @@ The dropdown gracefully handles scenarios where there are no options or options 
 - **FR-007**: The component MUST emit a selection event when the user selects an option, providing the selected value.
 - **FR-008**: The component MUST emit a creation event when a new entry is created inline, providing the created entry's data.
 - **FR-009**: The component MUST support an optional search/filter input to narrow the options list.
-- **FR-010**: The component MUST handle empty states (no options) with a user-friendly message while keeping "Agregar nueva…" accessible.
+- **FR-010**: The component MUST handle empty states (no options) by showing the exact default message "Sin opciones disponibles" while keeping "Agregar nueva…" accessible.
 - **FR-011**: The component MUST handle loading states with a visual indicator.
 - **FR-012**: The component MUST support a pre-selected value (for edit forms).
 - **FR-013**: The component MUST close when the user clicks outside of it.
