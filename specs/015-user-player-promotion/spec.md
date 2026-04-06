@@ -1,6 +1,6 @@
 # Feature Specification: User-to-Player Promotion & Guest Merge
 
-**Feature Branch**: `feat/014-user-player-promotion`  
+**Feature Branch**: `feat/015-user-player-promotion`  
 **Created**: March 28, 2026  
 **Status**: Draft  
 **References**: None (new feature)
