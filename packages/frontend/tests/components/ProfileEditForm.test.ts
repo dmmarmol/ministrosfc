@@ -1,5 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { mount } from "@vue/test-utils";
+
+vi.stubGlobal("useRuntimeConfig", () => ({
+  public: { apiBaseUrl: "http://localhost:5102" },
+}));
+vi.stubGlobal("$fetch", vi.fn());
+
 import ProfileEditForm from "../../src/components/profile/ProfileEditForm.vue";
 
 describe("ProfileEditForm", () => {

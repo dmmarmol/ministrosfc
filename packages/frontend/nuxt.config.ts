@@ -5,6 +5,8 @@ export default defineNuxtConfig({
 
   modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt", "@nuxt/image"],
 
+  css: ["leaflet/dist/leaflet.css"],
+
   runtimeConfig: {
     public: {
       apiBaseUrl:

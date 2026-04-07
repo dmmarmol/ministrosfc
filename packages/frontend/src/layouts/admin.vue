@@ -4,6 +4,8 @@ import { useAuthStore } from "~/stores/auth";
 const authStore = useAuthStore();
 const route = useRoute();
 
+const noPadding = computed(() => !!(route.meta as Record<string, unknown>).noPadding);
+
 const pageTitle = computed(() => {
   const segments = route.path.split("/").filter(Boolean);
   const last = segments[segments.length - 1];
@@ -88,7 +90,7 @@ const pageTitle = computed(() => {
           authStore.user?.role?.toLowerCase()
         }}</span>
       </header>
-      <main class="flex-1 overflow-y-auto p-6">
+      <main class="flex-1 overflow-y-auto" :class="noPadding ? '' : 'p-6'">
         <slot />
       </main>
     </div>

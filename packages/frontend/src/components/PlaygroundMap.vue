@@ -19,9 +19,11 @@ async function initMap() {
   const L = await import("leaflet");
 
   // Fix default icon paths broken by bundlers
-  delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
+  delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)
+    ._getIconUrl;
   L.Icon.Default.mergeOptions({
-    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+    iconRetinaUrl:
+      "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
     iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
     shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
   });
@@ -29,12 +31,16 @@ async function initMap() {
   const mapEl = document.getElementById("playground-map");
   if (!mapEl) return;
 
-  map = L.map(mapEl).setView([-34.6037, -58.3816], 12);
+  map = L.map(mapEl, { zoomControl: false }).setView([-34.6037, -58.3816], 12);
+
+  L.control.zoom({ position: "bottomright" }).addTo(map);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19,
   }).addTo(map);
+
 
   renderMarkers();
 }
@@ -77,5 +83,5 @@ watch(() => props.playgrounds, renderMarkers, { deep: true });
 </script>
 
 <template>
-  <div id="playground-map" class="w-full h-full min-h-[400px] rounded-lg" />
+  <div id="playground-map" class="w-full h-full min-h-[400px]" />
 </template>
