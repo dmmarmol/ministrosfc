@@ -13,6 +13,9 @@ export const ErrorCode = {
   RATE_LIMITED: "RATE_LIMITED",
   CONFLICT: "CONFLICT",
   INTERNAL_ERROR: "INTERNAL_ERROR",
+  PLAYGROUND_NOT_FOUND: "PLAYGROUND_NOT_FOUND",
+  PLAYGROUND_IN_USE: "PLAYGROUND_IN_USE",
+  ADDRESS_NOT_FOUND: "ADDRESS_NOT_FOUND",
 } as const;
 
 export type ErrorCodeType = (typeof ErrorCode)[keyof typeof ErrorCode];

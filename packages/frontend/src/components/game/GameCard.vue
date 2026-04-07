@@ -92,7 +92,7 @@ const statusClass = computed(() => {
       </p>
       <p class="text-xs text-gray-500 mt-0.5">
         {{ formatDate(game.date)
-        }}{{ game.location ? ` · ${game.location}` : "" }}
+        }}{{ (game.playground?.name ?? game.location) ? ` · ${game.playground?.name ?? game.location}` : "" }}
       </p>
     </div>
     <!-- Score / Status -->

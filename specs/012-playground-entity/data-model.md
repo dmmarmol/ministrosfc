@@ -133,17 +133,17 @@ Playground has no complex state. It is either:
 
 ## Entity Summary Table
 
-| Field         | Type        | Required | Notes                              |
-| ------------- | ----------- | -------- | ---------------------------------- |
-| `id`          | UUID        | Yes      | Auto-generated                     |
-| `name`        | String(255) | Yes      | Trimmed, 1–255 chars               |
-| `address`     | String(500) | Yes      | Trimmed; geocoded on create/update |
-| `latitude`    | Float?      | No       | Set automatically after geocoding  |
-| `longitude`   | Float?      | No       | Set automatically after geocoding  |
-| `createdAt`   | DateTime    | Yes      | Auto-set                           |
-| `updatedAt`   | DateTime    | Yes      | Auto-updated                       |
-| `createdById` | UUID (FK)   | Yes      | References User; set on create     |
-| `updatedById` | UUID? (FK)  | No       | References User; set on update     |
+| Field         | Type        | Required | Notes                                                                                     |
+| ------------- | ----------- | -------- | ----------------------------------------------------------------------------------------- |
+| `id`          | UUID        | Yes      | Auto-generated                                                                            |
+| `name`        | String(255) | Yes      | Trimmed, 1–255 chars                                                                      |
+| `address`     | String(500) | Yes      | Trimmed; geocoded on create/update                                                        |
+| `latitude`    | Float?      | No       | Set automatically after geocoding                                                         |
+| `longitude`   | Float?      | No       | Set automatically after geocoding                                                         |
+| `createdAt`   | DateTime    | Yes      | Auto-set                                                                                  |
+| `updatedAt`   | DateTime    | Yes      | Auto-updated                                                                              |
+| `createdById` | UUID (FK)   | Yes      | References User; set on create                                                            |
+| `updatedById` | UUID? (FK)  | No       | References User; set on update                                                            |
 | `gameCount`   | Int         | Derived  | Count of games referencing this playground; included in list/single responses; not stored |
 
 ### Game.playground relation fields

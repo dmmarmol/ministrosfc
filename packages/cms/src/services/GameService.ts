@@ -7,9 +7,9 @@ import type { GameStatus, Role } from "@prisma/client";
 // Non-admin game editors are limited to metadata/tactical notes.
 const NON_ADMIN_ALLOWED_FIELDS = new Set([
   "date",
-  "location",
   "notes",
   "tournamentId",
+  "playgroundId",
 ]);
 
 interface GameCreateDTO {
@@ -19,6 +19,7 @@ interface GameCreateDTO {
   opponentTeamId: string;
   tournamentId?: string;
   competitionType?: string;
+  playgroundId?: string | null;
 }
 
 interface GameUpdateDTO {
@@ -31,6 +32,7 @@ interface GameUpdateDTO {
   status?: GameStatus;
   homeTeamScore?: number;
   awayTeamScore?: number;
+  playgroundId?: string | null;
 }
 
 interface SearchOptions {
@@ -56,6 +58,11 @@ const GameService = {
     if (dto.tournamentId)
       data.tournament = { connect: { id: dto.tournamentId } };
     if (dto.competitionType) data.competitionType = dto.competitionType;
+    if (dto.playgroundId !== undefined) {
+      data.playground = dto.playgroundId
+        ? { connect: { id: dto.playgroundId } }
+        : { disconnect: true };
+    }
 
     const game = await GameModel.create(data);
     await GameService.invalidateCache();
@@ -110,7 +117,8 @@ const GameService = {
 
     const data: any = {};
     if (dto.date) data.date = new Date(dto.date);
-    if ("location" in dto) data.location = dto.location;
+    // NOTE: 'location' is intentionally excluded from update payloads (legacy field,
+    // superseded by playgroundId). Any location value in the DTO is silently dropped.
     if ("notes" in dto) data.notes = dto.notes;
     if (dto.status) data.status = dto.status;
     if (dto.competitionType) data.competitionType = dto.competitionType;
@@ -120,6 +128,11 @@ const GameService = {
       data.opponentTeam = { connect: { id: dto.opponentTeamId } };
     if (dto.tournamentId)
       data.tournament = { connect: { id: dto.tournamentId } };
+    if (dto.playgroundId !== undefined) {
+      data.playground = dto.playgroundId
+        ? { connect: { id: dto.playgroundId } }
+        : { disconnect: true };
+    }
 
     const updated = await GameModel.update(id, data);
 

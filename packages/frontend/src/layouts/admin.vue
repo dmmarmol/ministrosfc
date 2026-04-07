@@ -40,6 +40,12 @@ const pageTitle = computed(() => {
           >Games</NuxtLink
         >
         <NuxtLink
+          to="/admin/playgrounds"
+          class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
+          active-class="bg-gray-700 text-brand"
+          >Canchas</NuxtLink
+        >
+        <NuxtLink
           to="/admin/teams"
           class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
           active-class="bg-gray-700 text-brand"

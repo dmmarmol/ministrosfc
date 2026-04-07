@@ -36,6 +36,7 @@ const GameModel = {
       include: {
         opponentTeam: true,
         tournament: true,
+        playground: true,
         participants: {
           include: {
             player: {
@@ -80,6 +81,7 @@ const GameModel = {
         include: {
           opponentTeam: { select: { id: true, name: true, logoUrl: true } },
           tournament: { select: { id: true, name: true } },
+          playground: { select: { id: true, name: true, address: true, latitude: true, longitude: true } },
         },
       }),
       prisma.game.count({ where }),

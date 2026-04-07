@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useAuthStore } from "~/stores/auth";
+import PlaygroundSelect from "~/components/PlaygroundSelect.vue";
 
 definePageMeta({ layout: "admin", middleware: "auth" });
 
@@ -17,7 +18,7 @@ const game = computed(() => data.value?.data ?? null);
 const form = reactive({
   date: "",
   time: "",
-  location: "",
+  playgroundId: null as string | null,
   notes: "",
   homeTeamScore: null as number | null,
   awayTeamScore: null as number | null,
@@ -30,7 +31,7 @@ watch(
     if (!g) return;
     form.date = g.date ? g.date.split("T")[0] : "";
     form.time = g.time ?? "";
-    form.location = g.location ?? "";
+    form.playgroundId = g.playgroundId ?? null;
     form.notes = g.notes ?? "";
     form.homeTeamScore = g.homeTeamScore ?? null;
     form.awayTeamScore = g.awayTeamScore ?? null;
@@ -54,8 +55,8 @@ async function submit() {
   try {
     const body: Record<string, any> = {
       date: form.date,
-      location: form.location,
       notes: form.notes,
+      playgroundId: form.playgroundId ?? null,
     };
     if (form.time) body.time = form.time;
     if (authStore.isAdmin) {
@@ -128,12 +129,13 @@ async function submit() {
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-700 mb-1"
-          >Ubicación</label
+          >Ubicación (Cancha)</label
         >
-        <input
-          v-model="form.location"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-        />
+        <PlaygroundSelect v-model="form.playgroundId" />
+        <!-- Legacy location text shown read-only if present and no playground assigned -->
+        <p v-if="game.location && !form.playgroundId" class="mt-1 text-xs text-gray-400">
+          Legado: {{ game.location }}
+        </p>
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-700 mb-1"

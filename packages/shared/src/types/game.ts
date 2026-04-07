@@ -30,6 +30,14 @@ export interface Game {
   tournamentId?: string | null;
   date: string;
   location?: string | null;
+  playgroundId?: string | null;
+  playground?: {
+    id: string;
+    name: string;
+    address: string;
+    latitude: number | null;
+    longitude: number | null;
+  } | null;
   competitionType: CompetitionType;
   status: GameStatus;
   homeTeamScore?: number | null;

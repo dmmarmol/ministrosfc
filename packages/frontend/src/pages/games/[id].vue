@@ -66,7 +66,7 @@ const statusClass = computed(() => {
       <!-- Game header -->
       <div class="bg-gray-900 text-white rounded-2xl p-6 mb-8">
         <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
-          {{ formatDate(game.date) }} · {{ game.location ?? "TBD" }}
+          {{ formatDate(game.date) }} · {{ game.playground?.name ?? game.location ?? "TBD" }}
         </p>
         <div class="flex items-center justify-between gap-4">
           <div class="flex items-center gap-3">

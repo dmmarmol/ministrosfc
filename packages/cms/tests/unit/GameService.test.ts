@@ -71,15 +71,15 @@ describe("GameService", () => {
       });
       (GameModel.update as jest.Mock).mockResolvedValue({
         id: "g1",
-        location: "New Field",
+        playgroundId: "pg-1",
       });
 
       const result = await GameService.updateGame(
         "g1",
-        { location: "New Field" },
+        { playgroundId: "pg-1" },
         "EDITOR",
       );
-      expect(result.location).toBe("New Field");
+      expect(result.playgroundId).toBe("pg-1");
     });
 
     it("throws 403 when editor tries to update score", async () => {
