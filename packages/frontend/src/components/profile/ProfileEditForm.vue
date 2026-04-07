@@ -2,6 +2,7 @@
 import { reactive, watch, computed } from "vue";
 import JerseyNumberInput from "~/components/ui/JerseyNumberInput.vue";
 import IsPlayerCheckbox from "~/components/ui/IsPlayerCheckbox.vue";
+import AddressAutocompleteInput from "~/components/AddressAutocompleteInput.vue";
 import {
   PlayerStatus,
   Position,
@@ -215,12 +216,9 @@ const isActive = computed({
       >
         Dirección
       </label>
-      <input
+      <AddressAutocompleteInput
         id="profile-address"
         v-model="form.address"
-        type="text"
-        maxlength="500"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
       />
     </div>
 

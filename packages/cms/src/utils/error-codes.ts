@@ -16,6 +16,7 @@ export const ErrorCode = {
   PLAYGROUND_NOT_FOUND: "PLAYGROUND_NOT_FOUND",
   PLAYGROUND_IN_USE: "PLAYGROUND_IN_USE",
   ADDRESS_NOT_FOUND: "ADDRESS_NOT_FOUND",
+  GEOCODER_UNAVAILABLE: "GEOCODER_UNAVAILABLE",
 } as const;
 
 export type ErrorCodeType = (typeof ErrorCode)[keyof typeof ErrorCode];

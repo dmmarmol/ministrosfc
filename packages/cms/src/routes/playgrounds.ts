@@ -7,15 +7,29 @@ import { PlaygroundService } from "../services/PlaygroundService";
 
 const router = Router();
 
-const playgroundCreateSchema = z.object({
-  name: z.string().min(1).max(255, "Name must be 255 characters or less"),
-  address: z.string().min(1).max(500, "Address must be 500 characters or less"),
-});
+const playgroundCreateSchema = z
+  .object({
+    name: z.string().min(1).max(255, "Name must be 255 characters or less"),
+    address: z.string().min(1).max(500, "Address must be 500 characters or less"),
+    latitude: z.number().optional(),
+    longitude: z.number().optional(),
+  })
+  .refine((d) => (d.latitude == null) === (d.longitude == null), {
+    message: "latitude and longitude must both be present or both absent",
+    path: ["latitude"],
+  });
 
-const playgroundUpdateSchema = z.object({
-  name: z.string().min(1).max(255).optional(),
-  address: z.string().min(1).max(500).optional(),
-});
+const playgroundUpdateSchema = z
+  .object({
+    name: z.string().min(1).max(255).optional(),
+    address: z.string().min(1).max(500).optional(),
+    latitude: z.number().optional(),
+    longitude: z.number().optional(),
+  })
+  .refine((d) => (d.latitude == null) === (d.longitude == null), {
+    message: "latitude and longitude must both be present or both absent",
+    path: ["latitude"],
+  });
 
 // GET /api/v1/playgrounds — public
 router.get("/", async (_req: Request, res: Response, next: NextFunction) => {

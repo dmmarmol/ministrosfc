@@ -14,9 +14,13 @@ export interface Playground {
 export interface PlaygroundCreatePayload {
   name: string;
   address: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface PlaygroundUpdatePayload {
   name?: string;
   address?: string;
+  latitude?: number;
+  longitude?: number;
 }

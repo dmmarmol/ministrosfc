@@ -67,9 +67,11 @@ describe("PlaygroundService", () => {
 
     it("throws AppError 404 when record is not found", async () => {
       (PlaygroundModel.findById as jest.Mock).mockResolvedValue(null);
-      await expect(PlaygroundService.findById("missing")).rejects.toMatchObject({
-        statusCode: 404,
-      });
+      await expect(PlaygroundService.findById("missing")).rejects.toMatchObject(
+        {
+          statusCode: 404,
+        },
+      );
     });
   });
 
@@ -100,6 +102,38 @@ describe("PlaygroundService", () => {
         code: "ADDRESS_NOT_FOUND",
       });
     });
+
+    it("skips geocoding when both latitude and longitude are provided", async () => {
+      (PlaygroundModel.create as jest.Mock).mockResolvedValue(mockPlayground);
+
+      await PlaygroundService.create(
+        {
+          name: "Cancha Sur",
+          address: "Calle Falsa 123",
+          latitude: -34.9,
+          longitude: -57.5,
+        },
+        "user-1",
+      );
+
+      // fetch should NOT have been called
+      expect(mockFetch).not.toHaveBeenCalled();
+      const createCall = (PlaygroundModel.create as jest.Mock).mock.calls[0][0];
+      expect(createCall).toMatchObject({ latitude: -34.9, longitude: -57.5 });
+    });
+
+    it("falls back to geocoding when only one coordinate is provided (invariant violated)", async () => {
+      mockNominatimSuccess();
+      (PlaygroundModel.create as jest.Mock).mockResolvedValue(mockPlayground);
+
+      // Only latitude provided — must treat as absent and geocode
+      await PlaygroundService.create(
+        { name: "Cancha X", address: "Av. Test 1", latitude: -34.9 },
+        "user-1",
+      );
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("update", () => {
@@ -108,11 +142,18 @@ describe("PlaygroundService", () => {
       (PlaygroundModel.findById as jest.Mock).mockResolvedValue(mockPlayground);
       (PlaygroundModel.update as jest.Mock).mockResolvedValue(mockPlayground);
 
-      await PlaygroundService.update("pg-1", { address: "New Address 99" }, "user-2");
+      await PlaygroundService.update(
+        "pg-1",
+        { address: "New Address 99" },
+        "user-2",
+      );
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
       const updateCall = (PlaygroundModel.update as jest.Mock).mock.calls[0][1];
-      expect(updateCall).toMatchObject({ latitude: -34.6037, longitude: -58.3816 });
+      expect(updateCall).toMatchObject({
+        latitude: -34.6037,
+        longitude: -58.3816,
+      });
     });
 
     it("does NOT re-geocode when address is absent from the payload", async () => {

@@ -1,4 +1,4 @@
-# Data Model: 012 — Playground Entity
+# Data Model: 012 — Playground Entity + Address Autocomplete (Extension)
 
 ## New Entity: Playground
 
@@ -57,6 +57,74 @@ location String? @db.VarChar(255)  // kept as-is, legacy free-text
 - `playgroundId` is optional — both new and existing games can have `null`
 - `onDelete: Restrict` — prevents deletion of a playground referenced by any game
 - Display priority: `playground.name` if linked, else `location` text, else nothing
+
+---
+
+## Extension: Address Autocomplete Shared Types
+
+### New Shared Type: `AddressSuggestion`
+
+**File**: `packages/shared/src/types/address.ts`  
+**Exported from**: `@ministrosfc/shared`  
+**Used by**: `packages/cms/src/routes/address.ts` (response shape) + `packages/frontend/src/components/AddressAutocompleteInput.vue`
+
+```typescript
+export interface AddressSuggestion {
+  displayName: string;  // full human-readable address (Nominatim display_name)
+  lat: number;          // parsed latitude (float)
+  lon: number;          // parsed longitude (float)
+  placeId?: number;     // Nominatim place_id — useful for exclude_place_ids param
+}
+```
+
+**Validation rules**:
+- `displayName`: non-empty string; Nominatim guarantees this for all results
+- `lat` / `lon`: valid floating-point coordinates; parsed from Nominatim's string fields
+- `placeId`: internal Nominatim integer identifier; optional (some result types may omit it)
+
+---
+
+### Modified Shared Types: Playground Payloads
+
+**File**: `packages/shared/src/types/playground.ts`  
+**Change**: Add optional `latitude` and `longitude` to both payload interfaces to support the pre-geocoded coordinates optimization.
+
+```typescript
+// Before:
+export interface PlaygroundCreatePayload {
+  name: string;
+  address: string;
+}
+
+export interface PlaygroundUpdatePayload {
+  name?: string;
+  address?: string;
+}
+
+// After:
+export interface PlaygroundCreatePayload {
+  name: string;
+  address: string;
+  latitude?: number;    // pre-geocoded lat from AddressSuggestion — skips server geocode
+  longitude?: number;   // pre-geocoded lon from AddressSuggestion — skips server geocode
+}
+
+export interface PlaygroundUpdatePayload {
+  name?: string;
+  address?: string;
+  latitude?: number;    // only valid when address is also present in the payload
+  longitude?: number;
+}
+```
+
+**Invariant**: `latitude` and `longitude` must both be present or both absent. `PlaygroundService` checks both; if only one is provided the server falls back to geocoding (treats as if neither was given).
+
+---
+
+### Address Search — No DB Changes
+
+The `GET /api/v1/address/search` endpoint does NOT introduce any new Prisma model or migration. It is a pure proxy: query string in → Nominatim JSON → `AddressSuggestion[]` out. No persistence layer involved.
+
 
 ---
 

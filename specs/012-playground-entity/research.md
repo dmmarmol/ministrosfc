@@ -1,4 +1,4 @@
-# Research: 012 — Playground Entity
+# Research: 012 — Playground Entity + Address Autocomplete (Extension)
 
 ## Current State of Game Locations
 
@@ -69,3 +69,57 @@
 **Decision**: Playground list is cached in Redis with key `playgrounds:all`; invalidated on any write. TTL: 5 minutes (same as player search cache).  
 **Rationale**: Playground list rarely changes and is read on every game create/edit form load. Caching reduces DB load.  
 **Alternatives considered**: No cache (acceptable at this scale, but inconsistent with existing pattern).
+
+---
+
+## Extension: Address Autocomplete
+
+### Address Search API
+
+**Decision**: Use Nominatim `/search` endpoint as-is for autocomplete, proxied through a new CMS route `GET /api/v1/address/search?q=...`.  
+**Rationale**: Nominatim's `/search?q=...&format=json&limit=5` endpoint works well as an autocomplete source — it returns `display_name`, `lat`, `lon`, and `place_id` in a single call. The same API is already integrated in `PlaygroundService.ts` for post-save geocoding; reusing it avoids adding any new external dependency. Nominatim is fully open source (OSM data under ODbL license), has no API keys, and has no billing.  
+**Alternatives considered**:
+
+- **Photon (komoot.io)** — purpose-built OSM autocomplete with faster response times and fuzzy matching, but introduces a dependency on a third-party service with no formal SLA. At Ministros FC scale (< 10 concurrent admins), Nominatim quality is sufficient.
+- **Direct browser → Nominatim** — rejected because Nominatim requires a `User-Agent` header that browsers cannot set for cross-origin requests (CORS preflight blocks non-simple headers); maintaining this in the server proxy is cleaner.
+- **Pelias (self-hosted)** — powerful open source geocoder but requires running a separate service with significant infrastructure overhead (Elasticsearch + import pipeline); overkill for a single-team app.
+
+---
+
+### CMS Proxy Architecture
+
+**Decision**: New Express route module `packages/cms/src/routes/address.ts` + service `AddressSearchService.ts`. No auth required on the endpoint.  
+**Rationale**: The address search data is entirely public (Nominatim/OSM). Making it public on our side is correct. Player profile forms are used by any authenticated user; Playground forms by EDITOR+. Centralizing auth at the page/layout level (already done) avoids coupling a utility search endpoint to role checks.  
+**Alternatives considered**: Require authentication (over-engineering for public open data); put Nominatim URL in frontend env and call directly (rejected — CORS + User-Agent issues).
+
+---
+
+### Rate Limiting and Debouncing
+
+**Decision**: 400ms frontend debounce, 3-character minimum input length.  
+**Rationale**: Nominatim usage policy asks for ≤ 1 req/s from a single server. At team size (< 10 concurrent users), 400ms debounce effectively limits peak load to ~2.5 req/s which is within safe range on the server (bounded further by the small team). The 3-char minimum eliminates noise queries ("Bu", "Co") that produce overly broad results.  
+**Alternatives considered**: Server-side rate limiter per IP (valid but adds complexity; deferred to future if team grows); 300ms debounce (too tight for Nominatim policy); 500ms (unnecessary UX penalty).
+
+---
+
+### Pre-Geocoded Coordinates Optimization
+
+**Decision**: Extend `PlaygroundCreatePayload` and `PlaygroundUpdatePayload` with optional `latitude` and `longitude` fields. When these are present in the CMS request body, `PlaygroundService` skips the Nominatim geocode call.  
+**Rationale**: When a user selects from the autocomplete dropdown, the `AddressSuggestion` already contains `lat`/`lon` from the search response. Forwarding these prevents a redundant second Nominatim round-trip on the server (which adds ~300–800ms of latency and an extra usage count). The server still geocodes as a fallback when `lat`/`lon` are absent (e.g., user manually typed an address without selecting from the dropdown).  
+**Alternatives considered**: Always geocode on the server (simpler but wastes Nominatim calls and adds latency); cache the coords client-side only (rejected — server is authoritative for the stored Playground record).
+
+---
+
+### Component Design
+
+**Decision**: Single `AddressAutocompleteInput.vue` combobox component with `v-model` (text) + optional `@select` event (full `AddressSuggestion` with `lat`/`lon`).  
+**Rationale**: Two call sites have different needs — playground forms need `lat`/`lon` for the optimization; profile form only needs the text. Using a single event pair (`update:modelValue` + `select`) keeps the component API clean and non-prescriptive: callers opt into coordinate handling independently.  
+**Alternatives considered**: Two separate components (unnecessary duplication); emitting coords always via `update:modelValue` with a different `modelValue` type (couples the text-only callers to a richer object, breaking simplicity).
+
+---
+
+### Country Bias
+
+**Decision**: Hardcode `countrycodes=ar` (Argentina) in `AddressSearchService.ts`; make it overridable via env var `ADDRESS_SEARCH_COUNTRY`.  
+**Rationale**: Ministros FC is an Argentine amateur team; all games are played in Argentina. Biasing results to AR produces far more relevant suggestions. The env var override makes the code reusable for future forks or deployments.  
+**Alternatives considered**: Expose country as a component prop (unnecessary complexity at this stage — no multi-country use case); no country bias (produces many irrelevant international results for short queries like "cordoba").

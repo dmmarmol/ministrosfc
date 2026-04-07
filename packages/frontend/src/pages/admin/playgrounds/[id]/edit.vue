@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { usePlaygrounds } from "~/composables/usePlaygrounds";
+import AddressAutocompleteInput from "~/components/AddressAutocompleteInput.vue";
+import type { AddressSuggestion } from "@ministrosfc/shared";
 
 definePageMeta({ layout: "admin", middleware: "auth" });
 
@@ -11,7 +13,7 @@ const id = route.params.id as string;
 const { updatePlayground } = usePlaygrounds();
 const { $api } = useNuxtApp();
 
-const form = reactive({ name: "", address: "" });
+const form = reactive({ name: "", address: "", latitude: null as number | null, longitude: null as number | null });
 const loading = ref(false);
 const fetching = ref(true);
 const error = ref("");
@@ -19,12 +21,19 @@ const addressError = ref("");
 
 useHead({ title: "Editar Cancha – Admin" });
 
+function onAddressSelect(suggestion: AddressSuggestion | null) {
+  form.latitude = suggestion?.lat ?? null;
+  form.longitude = suggestion?.lon ?? null;
+}
+
 onMounted(async () => {
   try {
     const res = await $api<{ data: any }>(`/api/v1/playgrounds/${id}`);
     const pg = res.data;
     form.name = pg.name ?? "";
     form.address = pg.address ?? "";
+    form.latitude = pg.latitude ?? null;
+    form.longitude = pg.longitude ?? null;
   } catch {
     error.value = "No se pudo cargar la cancha.";
   } finally {
@@ -37,7 +46,13 @@ async function submit() {
   addressError.value = "";
   loading.value = true;
   try {
-    await updatePlayground(id, { name: form.name, address: form.address });
+    await updatePlayground(id, {
+      name: form.name,
+      address: form.address,
+      ...(form.latitude != null && form.longitude != null
+        ? { latitude: form.latitude, longitude: form.longitude }
+        : {}),
+    });
     await router.push("/admin/playgrounds");
   } catch (e: unknown) {
     const err = e as { data?: { code?: string }; message?: string };
@@ -76,12 +91,11 @@ async function submit() {
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Dirección <span class="text-red-500">*</span></label>
-        <input
+        <AddressAutocompleteInput
           v-model="form.address"
-          type="text"
           required
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           :class="{ 'border-red-400': addressError }"
+          @select="onAddressSelect"
         />
         <p v-if="addressError" class="mt-1 text-xs text-red-600">{{ addressError }}</p>
       </div>

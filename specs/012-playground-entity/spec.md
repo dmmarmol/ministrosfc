@@ -1,6 +1,6 @@
 # Feature Specification: Playground Entity (Game Locations)
 
-**Feature Branch**: `feat/012-playground-entity`
+**Feature Branch**: `chore/012-playground-entity`
 **Created**: 2026-03-25
 **Status**: Draft
 **Input**: User description: "Create a new entity such as Playground that will contain data from the places where Ministros FC can or had played. This list must also appear in the Create game > Location field as a dropdown"
@@ -78,6 +78,29 @@ Public visitors viewing the schedule or game details see the playground name as 
 
 ---
 
+### User Story 5 — Address Autocomplete in Forms (Priority: P2)
+
+An Admin, Editor, or registered player who needs to enter a street address sees live suggestions appear as they type in any address field. All three address inputs — the Playground create form, the Playground edit form, and the User Profile form — replace the plain text input with an autocomplete combobox. Suggestions are drawn from OpenStreetMap (Nominatim) data and are displayed as a dropdown list ranked by relevance. Selecting a suggestion fills the field with the full formatted address. On the Playground forms, the geocoded coordinates from the selected suggestion are silently forwarded to the server, eliminating a redundant server-side geocoding round-trip. The Profile form accepts the text only.
+
+**Why this priority**: Address entry is error-prone — free-text input leads to unresolvable addresses, failed geocoding, and poor map pin placement. Autocomplete reduces friction and improves data quality. It is secondary to the core Playground CRUD (P1) because the system works without it, but it is a significant quality-of-life improvement.
+
+**Independent Test**: Can be fully tested by opening the Playground create form, typing 3+ characters into the address field, and verifying that a dropdown of real Argentine addresses appears within 400ms. Selecting a suggestion should fill the field. The form can then be submitted and the playground should be created without a geocoding error.
+
+**Acceptance Scenarios**:
+
+1. **Given** an Admin or Editor on the Playground create or edit form, **When** they type 3 or more characters into the address field, **Then** a dropdown list of up to 5 real-world address suggestions sourced from OpenStreetMap appears within 400ms of the user stopping typing.
+2. **Given** the address autocomplete dropdown is visible, **When** the user clicks a suggestion or navigates to it with the arrow keys and presses Enter, **Then** the address field is filled with the selected suggestion's full formatted name and the dropdown closes.
+3. **Given** the address autocomplete dropdown is visible, **When** the user presses Escape or clicks outside the dropdown, **Then** the dropdown closes without changing the input value.
+4. **Given** the address autocomplete is active, **When** a user selects a suggestion in the Playground create or edit form and then submits, **Then** the playground is saved with the coordinates from the selected suggestion — no additional geocoding error occurs (the server does not reject the address).
+5. **Given** the address autocomplete is active, **When** a user types an address manually (without selecting from the dropdown) and submits the Playground form, **Then** the server geocodes the typed address via Nominatim as it did before — the system falls back correctly.
+6. **Given** an Admin, Editor, or player on the User Profile edit form, **When** they type 3 or more characters into the "Dirección" field, **Then** the same address autocomplete dropdown appears and selecting a suggestion fills the field. No coordinates are captured (the profile stores address text only).
+7. **Given** the address autocomplete component is rendered, **When** Nominatim returns zero results for the typed query, **Then** the dropdown shows a "Sin resultados para esta búsqueda" message and the user can continue typing or submit the form as free text.
+8. **Given** the address autocomplete component is rendered, **When** the address search service is temporarily unavailable (network error or 503), **Then** the dropdown shows "No se pueden cargar sugerencias en este momento", the text input remains fully functional, and the user can type an address manually and submit.
+9. **Given** the address autocomplete dropdown is showing suggestions, **Then** an attribution line "© OpenStreetMap contributors" is displayed below the suggestion list to comply with the ODbL license.
+10. **Given** the address autocomplete is active, **When** the user has typed fewer than 3 characters, **Then** no request is sent to the server and no dropdown is shown.
+
+---
+
 ### Edge Cases
 
 - What happens to existing games that have free-text location data after migration? → The existing `location` text field is preserved as a legacy field. Games display the playground name when a playground is linked, falling back to the legacy text field. No data is lost.
@@ -110,8 +133,12 @@ Public visitors viewing the schedule or game details see the playground name as 
 - **FR-019**: Each table row MUST show only an "Eliminar" button as the sole row action. The button MUST be visible to Admins only, aligned to the right side of the row, and disabled (with a tooltip explaining the playground is in use) when the playground's `gameCount` is greater than zero.
 - **FR-020**: The `/admin/playgrounds` list page MUST NOT include search or filter controls.
 - **FR-021**: The Playground entity MUST record the user who created it (`createdBy`) and the user who last modified it (`updatedBy`).
-- **FR-022**: During playground creation and edit, the address field MUST be geocoded via OpenStreetMap Nominatim. If the address cannot be resolved to valid coordinates, the system MUST return a validation error and reject the submission.
+- **FR-022**: During playground creation and edit, the address field MUST be geocoded via OpenStreetMap Nominatim. If the address cannot be resolved to valid coordinates, the system MUST return a validation error and reject the submission. **Exception**: when the frontend supplies pre-validated coordinates obtained from an autocomplete suggestion (both `latitude` and `longitude` present in the payload), the server MUST skip the Nominatim geocode call and use the provided coordinates directly. Both coordinates must be numeric and present together; supplying only one is treated as absent and triggers normal geocoding.
 - **FR-023**: The map implementation MUST use an open-source library with OpenStreetMap tiles. Google Maps MUST NOT be used.
+- **FR-024**: All address fields in Playground create/edit forms and in the User Profile form MUST be replaced by an address autocomplete combobox. The component MUST enforce a minimum of 3 characters before issuing a search request and MUST apply a debounce of at least 400ms per keystroke to comply with Nominatim rate-limit policy.
+- **FR-025**: The address autocomplete component MUST display a visible "© OpenStreetMap contributors" attribution line below the suggestions list whenever suggestions are shown, to satisfy the ODbL license requirement for any public display of OSM data.
+- **FR-026**: When the address search service returns an error or is temporarily unavailable, the autocomplete component MUST display an inline message ("No se pueden cargar sugerencias en este momento") and keep the plain text input fully functional so users can still submit the form by typing manually.
+- **FR-027**: The server-side address search proxy endpoint MUST NOT require authentication. It forwards the query to Nominatim, applies a country bias to Argentina (`ar`) by default, and returns up to 10 suggestions.
 
 ### Key Entities
 
@@ -128,17 +155,20 @@ Public visitors viewing the schedule or game details see the playground name as 
 - **SC-004**: Users can create a game with a playground selected in under 3 minutes (same as current game creation time).
 - **SC-005**: The inline "Add new playground" flow from the game creation form completes without navigating away from the page.
 - **SC-006**: All map pins are visible on the `/admin/playgrounds` map within 3 seconds of the page loading.
+- **SC-007**: Address autocomplete suggestions appear within 400ms of the user stopping typing (3 or more characters entered), under normal network conditions.
 
 ## Assumptions
 
 - The UI language is Spanish (Argentine dialect). All new labels and messages follow existing conventions.
-- Address is required when creating or editing a playground. Geocoding via OpenStreetMap Nominatim is performed on save; if it fails, the submission is rejected with a validation error.
-- Geocoded lat/lng are stored with the playground record to avoid re-geocoding on every map load. Re-geocoding occurs only when the address field changes.
+- Address is required when creating or editing a playground. Geocoding via OpenStreetMap Nominatim is performed on save; if it fails, the submission is rejected with a validation error. When coordinates are forwarded from autocomplete selection, geocoding is skipped on the server (FR-022 exception).
+- Geocoded lat/lng are stored with the playground record to avoid re-geocoding on every map load. Re-geocoding occurs only when the address field changes and no pre-validated coordinates are provided.
 - The frontend map library is Leaflet.js (open-source, OpenStreetMap tiles). No paid API key is required.
 - The legacy `location` text field on Game is preserved and not deleted. Existing data remains untouched.
 - RBAC follows the existing pattern: Editors can create/edit, Admins get full CRUD including delete.
 - The inline "Add new" functionality in the dropdown depends on the reusable dropdown component (spec 012). If that component is not yet available, a simpler "navigate to playground creation" link may be used as interim.
 - `createdBy` and `updatedBy` reference the authenticated user performing the create or update action.
+- The address search proxy endpoint is unauthenticated (Nominatim data is public). At the current team scale (< 10 concurrent admin users), frontend debouncing is the primary rate-limit guard. A server-side IP rate limiter (e.g., `express-rate-limit`) is deferred until traffic growth requires it — this is acknowledged tech-debt.
+- Autocomplete suggestions are biased to Argentina (`countrycodes=ar`) by default. This is configurable via environment variable for future deployments.
 
 ## Out of Scope
 

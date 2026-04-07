@@ -248,4 +248,92 @@ Continue with: 8. Phase 5: US3 — Game Edit Dropdown 9. Phase 6: US4 — Public
 
 **Total tasks**: 34  
 **Parallelizable**: ~14 tasks across all phases  
+
+---
+
+## Extension: US5 — Address Autocomplete (Nominatim Proxy)
+
+**Spec refs**: US5 (AS1–AS10), FR-022 (exception), FR-024–FR-027, SC-007  
+**Added**: 2026-04-07  
+**Prerequisites**: All T001–T034 complete ✓
+
+### Phase EXT-1: Shared Types (Gate)
+
+- [X] T03[5-9] [P] Update `packages/shared/src/types/playground.ts` — add optional `latitude?: number` and `longitude?: number` to both `PlaygroundCreatePayload` and `PlaygroundUpdatePayload`; both fields represent pre-geocoded coordinates obtained from an autocomplete selection; both must be present together or both absent
+- [X] T03[5-9] [P] Create `packages/shared/src/types/address.ts` — define and export `AddressSuggestion` interface with fields: `displayName: string`, `lat: number`, `lon: number`, `placeId?: number`
+- [X] T03[5-9] Update `packages/shared/src/types/index.ts` — add `export * from "./address";`
+- [X] T03[5-9] Run `npx tsc --noEmit` in `packages/shared` — must pass with zero errors before EXT-2 begins
+
+---
+
+### Phase EXT-2: CMS Backend — Address Proxy + Geocode Skip
+
+**Purpose**: Expose the Nominatim proxy endpoint and update PlaygroundService to skip geocoding when pre-validated coordinates are supplied.
+
+#### Tests — Write First (must FAIL before EXT implementation)
+
+- [X] T03[5-9] [P] Create `packages/cms/tests/unit/AddressSearchService.test.ts` — unit tests with mocked `fetch` (use `jest.spyOn(global, 'fetch')` or `jest.mock`): (1) returns `AddressSuggestion[]` mapped from Nominatim JSON; (2) passes `countrycodes=ar` in the upstream URL; (3) respects the `limit` parameter (default 5, max 10); (4) throws `AppError` with code `GEOCODER_UNAVAILABLE` and status 503 when the upstream fetch rejects or returns a non-2xx status; (5) parses Nominatim string `lat`/`lon` fields into numbers
+- [X] T040 [P] Create `packages/cms/tests/unit/AddressRoute.test.ts` — integration-style route tests using a mocked `AddressSearchService`: (1) `GET /api/v1/address/search?q=Corrientes` returns 200 `{ data: AddressSuggestion[] }`; (2) `GET /api/v1/address/search?q=ab` returns 400 `QUERY_TOO_SHORT`; (3) `GET /api/v1/address/search` (missing `q`) returns 400 `VALIDATION_ERROR`; (4) when service throws `GEOCODER_UNAVAILABLE`, route returns 503
+- [X] T041 [P] Extend `packages/cms/tests/unit/PlaygroundService.test.ts` — add two new test cases: (1) when `create` payload includes both `latitude` and `longitude`, the `geocode` function is NOT called and the provided coordinates are stored directly; (2) when only one of `latitude`/`longitude` is present (invariant violation), the `geocode` function IS called (treated as absent)
+
+#### Implementation
+
+- [X] T042 Create `packages/cms/src/services/AddressSearchService.ts` — implement `search(query: string, limit = 5): Promise<AddressSuggestion[]>`: build the Nominatim URL as `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=0&limit=${limit}&countrycodes=${COUNTRY}` where `COUNTRY` defaults to `process.env.ADDRESS_SEARCH_COUNTRY ?? 'ar'`; set `User-Agent: ministrosfc/1.0` header on the upstream request; parse results into `AddressSuggestion[]` (map `display_name` → `displayName`, parse string `lat`/`lon` to `number`, include `place_id` as `placeId`); if the upstream fetch throws or returns a non-2xx status, throw `new AppError('GEOCODER_UNAVAILABLE', 503, 'Address search service temporarily unavailable')`
+- [X] T043 Create `packages/cms/src/routes/address.ts` — define `GET /search` with Zod query validation: `{ q: z.string().trim().min(3, { message: 'QUERY_TOO_SHORT' }).max(200), limit: z.coerce.number().int().min(1).max(10).default(5) }`; on validation failure return 400 with appropriate error code; on `QUERY_TOO_SHORT` violation return `{ code: 'QUERY_TOO_SHORT', message: 'Query must be at least 3 characters', statusCode: 400 }`; delegate to `AddressSearchService.search(q, limit)`; return `{ data: suggestions }` on success; on `GEOCODER_UNAVAILABLE` AppError return 503; no auth middleware
+- [X] T044 Mount the address router in `packages/cms/src/main.ts` — add `app.use('/api/v1/address', addressRouter)` after the existing route mounts
+- [X] T045 Update `packages/cms/src/routes/playgrounds.ts` — extend the create and update Zod schemas with `latitude: z.number().optional()` and `longitude: z.number().optional()`; add a `.refine()` call to each schema enforcing the invariant: `(d) => (d.latitude == null) === (d.longitude == null)` with message `"latitude and longitude must both be present or both absent"`
+- [X] T046 Update `packages/cms/src/services/PlaygroundService.ts` — in the `create` method, before calling `geocode`, check if both `payload.latitude` and `payload.longitude` are non-null numbers; if so, use them directly as `latitude` and `longitude` and skip the `geocode()` call; in the `update` method, apply the same skip logic when both coordinates are present alongside an `address` field change; preserve the existing geocoding path for all other cases
+- [X] T047 Run `npx tsc --noEmit` in `packages/cms`, then `npm test` — T039, T040, and T041 tests must pass; no existing playground, game, or auth tests may regress
+
+---
+
+### Phase EXT-3: Frontend — AddressAutocompleteInput Component
+
+**Purpose**: Reusable autocomplete combobox used in all three address fields (playground create, playground edit, profile edit).
+
+#### Tests — Write First (must FAIL before T049 implementation)
+
+- [X] T048 Create `packages/frontend/src/components/AddressAutocompleteInput.test.ts` — Vitest unit tests with `$fetch` mocked via `vi.stubGlobal` covering: (1) typing fewer than 3 characters emits no request and shows no dropdown; (2) typing 3+ characters after 400ms triggers a request to `/api/v1/address/search?q=...` and renders the returned suggestions; (3) clicking a suggestion emits `update:modelValue` with the suggestion's `displayName` and emits `select` with the full `AddressSuggestion` object; (4) pressing Escape closes the dropdown without changing the input value; (5) when the API returns an empty array, the dropdown shows "Sin resultados para esta búsqueda"; (6) when the API throws / returns 503, the dropdown shows "No se pueden cargar sugerencias en este momento" and the input remains editable; (7) "© OpenStreetMap contributors" is rendered in the dropdown whenever suggestions are visible; (8) selecting a suggestion closes the dropdown
+
+#### Implementation
+
+- [X] T049 Create `packages/frontend/src/components/AddressAutocompleteInput.vue` — component contract: props `modelValue: string` (v-model text), `id?: string`, `placeholder?: string`, `required?: boolean`; emits `update:modelValue` (string — the text value) and `select` (AddressSuggestion | null — the chosen suggestion, null when user clears/types manually); internal state: `suggestions: AddressSuggestion[]`, `loading: boolean`, `error: string | null`, `open: boolean`; behaviour: (a) on input, update `modelValue` and emit `select(null)` to clear any previously captured coords; (b) if the new value has ≥3 chars, start a 400ms debounce timer; on debounce fire, call `$fetch<{ data: AddressSuggestion[] }>('/api/v1/address/search', { params: { q: value } })` — on success populate `suggestions` and set `open = true`; on error set `error = 'No se pueden cargar sugerencias en este momento'` and keep input editable; (c) if value is < 3 chars, cancel debounce, clear suggestions, close dropdown; (d) on suggestion click: set input text to `suggestion.displayName`, emit `update:modelValue(displayName)`, emit `select(suggestion)`, close dropdown; (e) on Escape: close dropdown, do not change input; (f) template: `<input type="text">` bound to `modelValue` + `<ul>` dropdown below it; when `open && suggestions.length > 0` render `<li>` for each suggestion; when `open && suggestions.length === 0 && !error` render "Sin resultados para esta búsqueda"; when `error` render the error message; always render `<p class="text-xs text-gray-400">© OpenStreetMap contributors</p>` at the bottom of the dropdown `<ul>` whenever the dropdown is open; click-outside detection to close dropdown
+
+---
+
+### Phase EXT-4: Frontend — Integrate Autocomplete in All Three Forms
+
+- [X] T050 [P] Update `packages/frontend/src/pages/admin/playgrounds/create.vue` — replace the plain `<input v-model="form.address">` with `<AddressAutocompleteInput v-model="form.address" @select="onAddressSelect" />`; add `form.latitude` and `form.longitude` to the reactive state (both `number | null`, default `null`); implement `onAddressSelect(s: AddressSuggestion | null)` to set `form.latitude = s?.lat ?? null` and `form.longitude = s?.lon ?? null`; include `latitude: form.latitude ?? undefined` and `longitude: form.longitude ?? undefined` in the `createPlayground()` call payload; if the user clears/changes the address after selecting, `onAddressSelect(null)` clears the coords so the server falls back to geocoding
+- [X] T051 [P] Update `packages/frontend/src/pages/admin/playgrounds/[id]/edit.vue` — same pattern as T050: replace plain address input with `<AddressAutocompleteInput>`; add latitude/longitude to form state (seed from the loaded playground's `latitude`/`longitude`); implement `onAddressSelect` handler; include coords in the `updatePlayground()` payload when both are non-null; clear coords when the user edits the address manually (emit `select(null)` path already handled inside the component)
+- [X] T052 [P] Update `packages/frontend/src/components/profile/ProfileEditForm.vue` — replace the plain `<input id="profile-address" v-model="form.address">` with `<AddressAutocompleteInput id="profile-address" v-model="form.address" />`; do NOT handle the `@select` event — the profile stores address text only, no coordinates; no other form state changes needed
+
+---
+
+### Phase EXT-5: Polish
+
+- [X] T053 [P] Run `npx tsc --noEmit` in all three packages — `packages/shared`, `packages/cms`, and `packages/frontend` must each report zero TypeScript errors
+- [X] T054 [P] Run the full test suite (`npm run test:all` from the workspace root) — all existing and new tests must pass; no regressions in any package
+- [X] T055 Run manual SC-007 verification: open the Playground create form, type 3+ characters into the address field, confirm suggestions appear within 400ms; select a suggestion, submit the form, confirm the playground is created without a geocoding error; verify "© OpenStreetMap contributors" is visible in the dropdown; verify that typing fewer than 3 characters shows no dropdown
+
+---
+
+### EXT Dependencies & Execution Order
+
+1. **EXT-1** (T035–T038): No dependencies — extends existing shared types; run immediately; gates EXT-2 and EXT-3
+2. **EXT-2** (T039–T047): Requires EXT-1 complete; T039+T040+T041 in parallel (write tests first); then T042→T043→T044 sequential; T045+T046 parallel after T038
+3. **EXT-3** (T048–T049): Requires EXT-1 complete; T048 (write test first) then T049
+4. **EXT-4** (T050+T051+T052): Requires EXT-3 complete (component must exist); all three in parallel
+5. **EXT-5** (T053–T055): Requires all prior EXT phases complete; T053+T054 parallel
+
+### EXT Task Summary
+
+| Phase         | Tasks     | Purpose                                    | Parallel           |
+| ------------- | --------- | ------------------------------------------ | ------------------ |
+| EXT-1 Shared  | T035–T038 | AddressSuggestion type + payload extension | T035, T036         |
+| EXT-2 CMS     | T039–T047 | Proxy endpoint + geocode-skip logic        | T039, T040, T041   |
+| EXT-3 Comp    | T048–T049 | AddressAutocompleteInput.vue               | T048 (write first) |
+| EXT-4 Forms   | T050–T052 | Wire component into all three forms        | T050, T051, T052   |
+| EXT-5 Polish  | T053–T055 | tsc + tests + manual SC-007               | T053, T054         |
+
+**Extension tasks**: 21 (T035–T055)
 **MVP scope**: Phases 1–4 (T001–T034, 28 tasks)

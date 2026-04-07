@@ -82,10 +82,14 @@ Create a new playground.
 }
 ```
 
-| Field     | Type   | Required | Constraints                                  |
-| --------- | ------ | -------- | -------------------------------------------- |
-| `name`    | string | Yes      | 1–255 chars, trimmed                         |
-| `address` | string | Yes      | 1–500 chars, trimmed; geocoded via Nominatim |
+| Field       | Type   | Required | Constraints                                                                                  |
+| ----------- | ------ | -------- | -------------------------------------------------------------------------------------------- |
+| `name`      | string | Yes      | 1–255 chars, trimmed                                                                         |
+| `address`   | string | Yes      | 1–500 chars, trimmed; geocoded via Nominatim unless `latitude`+`longitude` are both provided |
+| `latitude`  | number | No       | Valid float; must be paired with `longitude`; skips server-side geocoding when present       |
+| `longitude` | number | No       | Valid float; must be paired with `latitude`; skips server-side geocoding when present        |
+
+> **Note on `latitude`/`longitude`**: These optional fields are populated by the `AddressAutocompleteInput` frontend component when a user selects a suggestion. The coordinates come directly from Nominatim's search response and are forwarded to avoid a redundant server-side geocode round-trip. When both are absent, `PlaygroundService` geocodes `address` normally.
 
 **Response 201**:
 
@@ -135,9 +139,18 @@ Update a playground (partial update — only provided fields are changed).
 ```json
 {
   "name": "Nuevo nombre",
-  "address": "Nueva dirección"
+  "address": "Nueva dirección",
+  "latitude": -34.6037,
+  "longitude": -58.3816
 }
 ```
+
+| Field       | Type   | Required | Constraints                                                                             |
+| ----------- | ------ | -------- | --------------------------------------------------------------------------------------- |
+| `name`      | string | No       | 1–255 chars, trimmed                                                                    |
+| `address`   | string | No       | 1–500 chars, trimmed; geocoded via Nominatim unless `latitude`+`longitude` also present |
+| `latitude`  | number | No       | Valid float; only valid when `address` is also in the payload; skips geocoding          |
+| `longitude` | number | No       | Valid float; only valid when `address` is also in the payload; skips geocoding          |
 
 **Response 200**: same shape as GET single
 
