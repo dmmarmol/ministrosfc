@@ -46,8 +46,8 @@
 ### Backend Implementation
 
 - [ ] T010 Create `packages/cms/src/models/PlaygroundModel.ts` — implement five methods using the Prisma client: `findAll` (query with `include: { _count: { select: { games: true } } }`, `orderBy: { name: 'asc' }`, map each record's `_count.games` to a `gameCount` property), `findById(id)`, `create(data)`, `update(id, data)`, `delete(id)`, and `countGames(id): Promise<number>`
-- [ ] T011 Create `packages/cms/src/services/PlaygroundService.ts` — implement `list` (delegates to model), `findById` (throws AppError 404 on miss), `create` (geocodes address via `https://nominatim.openstreetmap.org/search?q=...&format=json` with a `User-Agent` header per Nominatim usage policy, uses the first result's `lat` and `lon` as `latitude`/`longitude`, throws AppError 422 `ADDRESS_NOT_FOUND` if results array is empty, sets `createdById` and `updatedById` from `req.user.id`), `update` (re-geocodes only when `address` is present in the payload, sets `updatedById`), `delete` (calls `countGames` first, throws AppError 409 `PLAYGROUND_IN_USE` if count > 0)
-- [ ] T012 Create `packages/cms/src/routes/playgrounds.ts` — define 5 Express endpoints: `GET /` (list, requires authentication), `GET /:id` (single, requires authentication), `POST /` (create, requires Admin or Editor role, Zod body: `{ name: z.string().min(1).max(255), address: z.string().min(1).max(500) }`), `PATCH /:id` (update, requires Admin or Editor role, Zod body: `{ name: z.string().min(1).max(255).optional(), address: z.string().min(1).max(500).optional() }`), `DELETE /:id` (delete, requires Admin role only)
+- [ ] T011 Create `packages/cms/src/services/PlaygroundService.ts` — implement `list` (checks Redis key `playgrounds:all`; on cache miss delegates to model and writes result to Redis with 5-minute TTL; on cache hit returns parsed JSON), `findById` (throws AppError 404 on miss), `create` (builds Nominatim URL using `encodeURIComponent(address)` as `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json` with a `User-Agent` header per Nominatim usage policy; uses the first result's `lat` and `lon` as `latitude`/`longitude`; throws AppError 422 `ADDRESS_NOT_FOUND` if results array is empty; sets `createdById` and `updatedById` from `req.user.id`; invalidates Redis key `playgrounds:all` after successful save), `update` (re-geocodes only when `address` is present in the payload, sets `updatedById`, invalidates `playgrounds:all`), `delete` (calls `countGames` first, throws AppError 409 `PLAYGROUND_IN_USE` if count > 0, invalidates `playgrounds:all` after successful delete)
+- [ ] T012 Create `packages/cms/src/routes/playgrounds.ts` — define 5 Express endpoints: `GET /` (list, no auth required — public endpoint), `GET /:id` (single, no auth required — public endpoint), `POST /` (create, requires Admin or Editor role, Zod body: `{ name: z.string().min(1).max(255), address: z.string().min(1).max(500) }`), `PATCH /:id` (update, requires Admin or Editor role, Zod body: `{ name: z.string().min(1).max(255).optional(), address: z.string().min(1).max(500).optional() }`), `DELETE /:id` (delete, requires Admin role only)
 - [ ] T013 Mount the playgrounds router in `packages/cms/src/main.ts` — add `app.use('/api/v1/playgrounds', playgroundsRouter)` after the existing route mounts
 - [ ] T014 [P] Extend `packages/cms/src/models/GameModel.ts` — add `include: { playground: true }` to the `findAll` and `findById` Prisma queries so the expanded playground relation is returned in game responses
 - [ ] T015 [P] Add `playgroundId: z.string().uuid().optional().nullable()` to both the create and update Zod request body schemas in `packages/cms/src/routes/games.ts`
@@ -64,10 +64,16 @@
 
 **Independent Test**: Navigate to `/admin/playgrounds` — table and map render. Create a playground with a real address → row appears and pin is placed. Clicking the name link → edit page opens pre-populated. Admin clicks "Eliminar" on a playground with `gameCount === 0` → deleted. "Eliminar" is disabled and shows tooltip when `gameCount > 0`. Editor sees no "Eliminar" button.
 
+### Tests — Write First (must FAIL before T019/T020 implementation)
+
+- [ ] T033 [P] [US1] Create `packages/frontend/src/composables/usePlaygrounds.test.ts` — Vitest unit tests with mocked `$fetch` covering: `fetchPlaygrounds` populates the `playgrounds` ref and sets `loading` correctly; `createPlayground` calls POST then re-fetches and returns the new record; `deletePlayground` calls DELETE then re-fetches; `error` ref is set on API failure
+
+### Implementation
+
 - [ ] T018 [US1] Install `leaflet` and `@types/leaflet` in `packages/frontend` — run `npm install leaflet` and `npm install --save-dev @types/leaflet` from the `packages/frontend` directory
 - [ ] T019 [US1] Create `packages/frontend/src/composables/usePlaygrounds.ts` — expose reactive state: `playgrounds: Ref<Playground[]>`, `loading: Ref<boolean>`, `error: Ref<string | null>`; implement `fetchPlaygrounds()` (GET `/api/v1/playgrounds`, stores result in `playgrounds`), `createPlayground(payload: PlaygroundCreatePayload): Promise<Playground>` (POST then calls `fetchPlaygrounds()` and returns the newly created record so the caller can auto-select it), `updatePlayground(id: string, payload: PlaygroundUpdatePayload): Promise<void>` (PATCH), `deletePlayground(id: string): Promise<void>` (DELETE then calls `fetchPlaygrounds()`)
-- [ ] T020 [US1] Create `packages/frontend/src/components/PlaygroundMap.vue` — Leaflet.js wrapper component: dynamically import `leaflet` using `import('leaflet')` (deferred import for Nuxt SSR compatibility); initialize the map inside `onMounted` using `import.meta.client` guard; use OpenStreetMap tile layer `https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png` with attribution; accept `playgrounds: Playground[]` prop and render a `L.marker([lat, lng])` for each playground with valid `latitude`/`longitude`; emit `pin-click` with the playground `id` when a marker is clicked; expose `centerOn(id: string)` method that calls `map.setView([lat, lng], zoom)` for the matching playground; clear and re-render all markers reactively when the `playgrounds` prop changes
-- [ ] T021 [US1] Create `packages/frontend/src/pages/admin/playgrounds/index.vue` — 12-column responsive grid: left 4 columns contain a `<table>` with columns Name (rendered as `<NuxtLink :to="\`/admin/playgrounds/${p.id}/edit\`">{{ p.name }}</NuxtLink>`), Address, and a right-aligned Actions column (show `<button @click="confirmDelete(p)" :disabled="p.gameCount > 0" title="Cancha en uso">Eliminar</button>` only when the authenticated user has Admin role; hide the Actions column entirely for Editors); right 8 columns contain `<PlaygroundMap :playgrounds="playgrounds" @pin-click="highlightRow" ref="mapRef" />`; clicking any table row calls `mapRef.centerOn(p.id)`; `highlightRow(id)` applies an accent-color CSS class to the matching `<tr>`; calls `fetchPlaygrounds()` on mount via `usePlaygrounds`; no search or filter controls
+- [ ] T020 [US1] Create `packages/frontend/src/components/PlaygroundMap.vue` — Leaflet.js wrapper component: dynamically import `leaflet` using `import('leaflet')` (deferred import for Nuxt SSR compatibility); initialize the map inside `onMounted` using `import.meta.client` guard; use OpenStreetMap tile layer `https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png` with attribution; accept `playgrounds: Playground[]` prop and render a `L.marker([lat, lng])` for each playground with valid `latitude`/`longitude`; emit `pin-click` with the playground `id` when a marker is clicked; implement `centerOn(id: string)` method that calls `map.setView([lat, lng], zoom)` for the matching playground and call `defineExpose({ centerOn })` so parent template refs can invoke it; clear and re-render all markers reactively when the `playgrounds` prop changes
+- [ ] T021 [US1] Create `packages/frontend/src/pages/admin/playgrounds/index.vue` — responsive grid using `grid-cols-1 lg:grid-cols-12`: left `lg:col-span-4` contains a `<table>` with columns Name (rendered as `<NuxtLink :to="\`/admin/playgrounds/${p.id}/edit\`">{{ p.name }}</NuxtLink>`), Address, and a right-aligned Actions column (show `<span :title="p.gameCount > 0 ? 'Cancha en uso' : undefined"><button @click="confirmDelete(p)" :disabled="p.gameCount > 0" class="disabled:pointer-events-none">Eliminar</button></span>` only when the authenticated user has Admin role — wrapping the button in a `<span>` ensures the `title` tooltip renders even when the button is disabled; hide the Actions column entirely for Editors); right `lg:col-span-8` contains `<PlaygroundMap>` hidden on small screens via `hidden lg:block`; clicking any table row calls `mapRef.centerOn(p.id)`; `highlightRow(id)` applies an accent-color CSS class to the matching `<tr>`; calls `fetchPlaygrounds()` on mount via `usePlaygrounds`; no search or filter controls
 - [ ] T022 [US1] Create `packages/frontend/src/pages/admin/playgrounds/create.vue` — form with `name` (required `<input type="text">`) and `address` (required `<input type="text">`) fields; on submit calls `usePlaygrounds().createPlayground({ name, address })`; on success redirects to `/admin/playgrounds`; on API error with code `ADDRESS_NOT_FOUND` displays an inline validation message "No se pudo geocodificar la dirección. Por favor, verifica el domicilio."
 - [ ] T023 [US1] Create `packages/frontend/src/pages/admin/playgrounds/[id]/edit.vue` — on mount fetches `GET /api/v1/playgrounds/:id` and pre-populates form fields with current `name` and `address`; on submit calls `usePlaygrounds().updatePlayground(id, payload)`; on success redirects to `/admin/playgrounds`; on API error code `ADDRESS_NOT_FOUND` displays same validation message as create page
 - [ ] T024 [US1] Add "Canchas" navigation link to `packages/frontend/src/layouts/admin.vue` — insert a `<NuxtLink to="/admin/playgrounds">Canchas</NuxtLink>` (or equivalent nav item component) in the admin sidebar in a logical position relative to existing nav items
@@ -81,6 +87,12 @@
 **Goal**: The "Ubicación" field in the game creation form is replaced by a `PlaygroundSelect` dropdown listing all playgrounds alphabetically. Users can inline-create a new playground (with required name and address fields that geocode via the API) without leaving the form. Leaving the field empty is valid.
 
 **Independent Test**: Navigate to `/admin/games/create` — the Location field is a dropdown listing all playgrounds. Select one → game saved with `playgroundId`. Click "Agregar nueva…" → inline mini-form appears; fill in name + address → new playground created and auto-selected in the dropdown. Leave dropdown empty → game saved without a location.
+
+### Tests — Write First (must FAIL before T025 implementation)
+
+- [ ] T034 [P] [US2] Create `packages/frontend/src/components/PlaygroundSelect.test.ts` — Vitest unit tests with mocked `usePlaygrounds` covering: renders all playground options in alphabetical order; emits `update:modelValue` with the selected playground id on selection; emits `null` when selection is cleared; shows "No hay canchas registradas" when the list is empty; clicking "Agregar nueva…" reveals the inline mini-form; submitting the mini-form calls `createPlayground` and emits the newly created playground's id
+
+### Implementation
 
 - [ ] T025 [US2] Create `packages/frontend/src/components/PlaygroundSelect.vue` — a `<select>` or combobox component that: uses `usePlaygrounds().fetchPlaygrounds()` on mount to populate options; renders each option as `{{ p.name }} — {{ p.address }}`; shows "No hay canchas registradas" placeholder option when the list is empty; renders an "Agregar nueva…" option at the bottom of the list that, when selected, toggles an inline mini-form with `name` (required) and `address` (required) inputs; on mini-form submit calls `usePlaygrounds().createPlayground(payload)` → on success closes the mini-form and auto-selects the new playground's id; emits `update:modelValue` with the selected playground id (`string`) or `null` when cleared; accepts `modelValue: string | null` prop for v-model compatibility
 - [ ] T026 [US2] Replace the free-text location `<input>` with `<PlaygroundSelect v-model="form.playgroundId" />` in `packages/frontend/src/pages/admin/games/create.vue`; include `playgroundId: form.playgroundId ?? null` in the game create request payload; remove the old `location` text input (the legacy field is preserved in the DB but is no longer set on new games)
@@ -218,25 +230,22 @@ Task T023: "Create admin/playgrounds/[id]/edit.vue" ← parallel
 
 ### Full Feature Scope
 
-Continue with:
-8. Phase 5: US3 — Game Edit Dropdown
-9. Phase 6: US4 — Public Pages Location Display
-10. Phase 7: Polish and verification
+Continue with: 8. Phase 5: US3 — Game Edit Dropdown 9. Phase 6: US4 — Public Pages Location Display 10. Phase 7: Polish and verification
 
 ---
 
 ## Task Summary
 
-| Phase | Tasks | User Story | Parallel |
-|-------|-------|-----------|---------|
-| 1 — Shared Types (Gate) | T001–T004 | Setup | T001, T002 |
-| 2 — CMS Backend | T005–T017 | Foundational | T005+T006, T014+T015 |
-| 3 — US1 Admin + Map | T018–T024 | US1 (P1) | T021, T022, T023 |
-| 4 — US2 Game Create | T025–T026 | US2 (P1) | — |
-| 5 — US3 Game Edit | T027–T028 | US3 (P2) | — |
-| 6 — US4 Public Display | T029 | US4 (P3) | runs in parallel with Phase 3 |
-| 7 — Polish | T030–T032 | Cross-cutting | T030, T031 |
+| Phase                   | Tasks              | User Story    | Parallel                      |
+| ----------------------- | ------------------ | ------------- | ----------------------------- |
+| 1 — Shared Types (Gate) | T001–T004          | Setup         | T001, T002                    |
+| 2 — CMS Backend         | T005–T017          | Foundational  | T005+T006, T014+T015          |
+| 3 — US1 Admin + Map     | T033, T018–T024    | US1 (P1)      | T033, T021, T022, T023        |
+| 4 — US2 Game Create     | T034, T025–T026    | US2 (P1)      | T034                          |
+| 5 — US3 Game Edit       | T027–T028          | US3 (P2)      | —                             |
+| 6 — US4 Public Display  | T029               | US4 (P3)      | runs in parallel with Phase 3 |
+| 7 — Polish              | T030–T032          | Cross-cutting | T030, T031                    |
 
-**Total tasks**: 32  
-**Parallelizable**: ~12 tasks across all phases  
-**MVP scope**: Phases 1–4 (T001–T026, 26 tasks)
+**Total tasks**: 34  
+**Parallelizable**: ~14 tasks across all phases  
+**MVP scope**: Phases 1–4 (T001–T034, 28 tasks)
