@@ -210,11 +210,11 @@ Add the composable, shared components, and pages.
 
 **New pages**:
 
-| File | Description |
-|------|-------------|
-| `src/pages/admin/playgrounds/index.vue` | 12-column grid: 4-col table (name as edit link, address, "Eliminar" for Admins; no filters) + 8-col `<PlaygroundMap>`; row click → `centerOn(id)`; `pin-click` event → highlight row with accent color |
-| `src/pages/admin/playgrounds/create.vue` | Create form |
-| `src/pages/admin/playgrounds/[id]/edit.vue` | Edit form (pre-populated) |
+| File                                        | Description                                                                                                                                                                                            |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/pages/admin/playgrounds/index.vue`     | 12-column grid: 4-col table (name as edit link, address, "Eliminar" for Admins; no filters) + 8-col `<PlaygroundMap>`; row click → `centerOn(id)`; `pin-click` event → highlight row with accent color |
+| `src/pages/admin/playgrounds/create.vue`    | Create form                                                                                                                                                                                            |
+| `src/pages/admin/playgrounds/[id]/edit.vue` | Edit form (pre-populated)                                                                                                                                                                              |
 
 **Edit**: `packages/frontend/src/layouts/admin.vue` — add sidebar nav link:
 
@@ -277,11 +277,11 @@ npm run typecheck:all  # or equivalent per-package tsc --noEmit
 
 ## Success Criteria Verification
 
-| SC     | Check                                                                                                          |
-| ------ | -------------------------------------------------------------------------------------------------------------- |
-| SC-001 | `curl /api/v1/playgrounds` → returns `{ data: [...] }` (empty array on fresh DB)                               |
-| SC-002 | Inspect existing `games` rows — `location` text values preserved, `playgroundId` is NULL                       |
-| SC-003 | Create a game with `playgroundId` → game detail returns `{ playground: { name: "..." } }`                      |
-| SC-004 | Attempt `DELETE /api/v1/playgrounds/:id` when in use → 409 `PLAYGROUND_IN_USE`                                 |
-| SC-005 | In `/admin/games/create`, select "Agregar nueva" → inline form appears → submit → new playground auto-selected |
+| SC     | Check                                                                                                                                     |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| SC-001 | `curl /api/v1/playgrounds` → returns `{ data: [...] }` (empty array on fresh DB)                                                          |
+| SC-002 | Inspect existing `games` rows — `location` text values preserved, `playgroundId` is NULL                                                  |
+| SC-003 | Create a game with `playgroundId` → game detail returns `{ playground: { name: "..." } }`                                                 |
+| SC-004 | Attempt `DELETE /api/v1/playgrounds/:id` when in use → 409 `PLAYGROUND_IN_USE`                                                            |
+| SC-005 | In `/admin/games/create`, select "Agregar nueva" → inline form appears → submit → new playground auto-selected                            |
 | SC-006 | Navigate to `/admin/playgrounds` → map renders with pins within 3 seconds; clicking a row pans the map; clicking a pin highlights the row |

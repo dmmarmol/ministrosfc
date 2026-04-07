@@ -25,7 +25,8 @@ List all playgrounds, sorted alphabetically by name.
       "createdAt": "2026-04-06T00:00:00.000Z",
       "updatedAt": "2026-04-06T00:00:00.000Z",
       "createdById": "user-uuid",
-      "updatedById": null
+      "updatedById": null,
+      "gameCount": 3
     }
   ]
 }
@@ -52,7 +53,8 @@ Get a single playground by ID.
     "createdAt": "2026-04-06T00:00:00.000Z",
     "updatedAt": "2026-04-06T00:00:00.000Z",
     "createdById": "user-uuid",
-    "updatedById": null
+    "updatedById": null,
+    "gameCount": 3
   }
 }
 ```
@@ -80,9 +82,9 @@ Create a new playground.
 }
 ```
 
-| Field     | Type   | Required | Constraints            |
-| --------- | ------ | -------- | ---------------------- |
-| `name`    | string | Yes      | 1–255 chars, trimmed   |
+| Field     | Type   | Required | Constraints                                  |
+| --------- | ------ | -------- | -------------------------------------------- |
+| `name`    | string | Yes      | 1–255 chars, trimmed                         |
 | `address` | string | Yes      | 1–500 chars, trimmed; geocoded via Nominatim |
 
 **Response 201**:
@@ -98,7 +100,8 @@ Create a new playground.
     "createdAt": "2026-04-06T00:00:00.000Z",
     "updatedAt": "2026-04-06T00:00:00.000Z",
     "createdById": "user-uuid",
-    "updatedById": null
+    "updatedById": null,
+    "gameCount": 3
   }
 }
 ```
@@ -112,7 +115,11 @@ Create a new playground.
 **Response 422** (address not found by geocoding service):
 
 ```json
-{ "code": "ADDRESS_NOT_FOUND", "message": "La dirección no pudo ser validada. Verificá el texto e intentá nuevamente.", "statusCode": 422 }
+{
+  "code": "ADDRESS_NOT_FOUND",
+  "message": "La dirección no pudo ser validada. Verificá el texto e intentá nuevamente.",
+  "statusCode": 422
+}
 ```
 
 ---
@@ -139,7 +146,11 @@ Update a playground (partial update — only provided fields are changed).
 **Response 422** (address not found by geocoding service):
 
 ```json
-{ "code": "ADDRESS_NOT_FOUND", "message": "La dirección no pudo ser validada. Verificá el texto e intentá nuevamente.", "statusCode": 422 }
+{
+  "code": "ADDRESS_NOT_FOUND",
+  "message": "La dirección no pudo ser validada. Verificá el texto e intentá nuevamente.",
+  "statusCode": 422
+}
 ```
 
 ---

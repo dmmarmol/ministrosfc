@@ -9,7 +9,7 @@
 
 ### User Story 1 — Manage Playgrounds (Priority: P1)
 
-An Admin or Editor navigates to a new "Canchas" (Playgrounds) section in the admin area. They see a list of all previously registered playgrounds with their names and addresses. They can add a new playground by providing a name and optional address. The playground appears immediately in the list.
+An Admin or Editor navigates to a new "Canchas" (Playgrounds) section in the admin area. They see a list of all previously registered playgrounds with their names and addresses. They can add a new playground by providing a name (required) and address (required, geocoded). The playground appears immediately in the list and a pin is placed on the map.
 
 **Why this priority**: The playground catalog is the foundational data that all other stories depend on — without playgrounds in the system, the game creation dropdown (US2) has no data to display.
 
@@ -40,7 +40,7 @@ An Admin or Editor creates a new game. The "Ubicación" (Location) field, which 
 
 1. **Given** an Admin or Editor on the game creation page, **When** the page loads, **Then** the "Ubicación" field is a dropdown listing all registered playgrounds sorted alphabetically.
 2. **Given** the game creation form, **When** the user selects a playground from the dropdown, **Then** the selected playground's name is displayed and its identifier is associated with the game.
-3. **Given** the game creation form, **When** the user wants a playground that is not in the list, **Then** they can click "Agregar nueva…" (Add new) at the bottom of the dropdown, enter a playground name and optional address, and the new playground is created and automatically selected.
+3. **Given** the game creation form, **When** the user wants a playground that is not in the list, **Then** they can click "Agregar nueva…" (Add new) at the bottom of the dropdown, enter a playground name (required) and address (required, geocoded), and the new playground is created and automatically selected.
 4. **Given** a game that was created with a playground reference, **When** viewing the game details, **Then** the playground name is displayed as the location.
 5. **Given** a game creation form, **When** the location field is left empty (no playground selected), **Then** the game is created without a location (location remains optional).
 
@@ -107,7 +107,7 @@ Public visitors viewing the schedule or game details see the playground name as 
 - **FR-016**: Clicking a row in the playground table MUST center the map view on the corresponding playground's pin.
 - **FR-017**: Clicking a map pin MUST highlight the corresponding table row by applying the UI accent color to that row.
 - **FR-018**: The playground name in the table MUST be rendered as a clickable link that navigates to the playground's edit page. No separate "Editar" button is shown.
-- **FR-019**: Each table row MUST show only an "Eliminar" button as the sole row action. The button MUST be visible to Admins only and aligned to the right side of the row.
+- **FR-019**: Each table row MUST show only an "Eliminar" button as the sole row action. The button MUST be visible to Admins only, aligned to the right side of the row, and disabled (with a tooltip explaining the playground is in use) when the playground's `gameCount` is greater than zero.
 - **FR-020**: The `/admin/playgrounds` list page MUST NOT include search or filter controls.
 - **FR-021**: The Playground entity MUST record the user who created it (`createdBy`) and the user who last modified it (`updatedBy`).
 - **FR-022**: During playground creation and edit, the address field MUST be geocoded via OpenStreetMap Nominatim. If the address cannot be resolved to valid coordinates, the system MUST return a validation error and reject the submission.
