@@ -2,6 +2,9 @@
 import { ref, watch } from "vue";
 import type { AddressSuggestion } from "@ministrosfc/shared";
 
+const config = useRuntimeConfig();
+const apiBase = config.public.apiBaseUrl as string;
+
 const props = withDefaults(
   defineProps<{
     modelValue: string;
@@ -46,7 +49,7 @@ function onInput(event: Event) {
     loading.value = true;
     try {
       const result = await $fetch<{ data: AddressSuggestion[] }>(
-        "/api/v1/address/search",
+        `${apiBase}/api/v1/address/search`,
         {
           params: { q: value },
         },

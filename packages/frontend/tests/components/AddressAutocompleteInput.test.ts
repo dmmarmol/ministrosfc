@@ -9,6 +9,9 @@ vi.mock("nuxt/app", () => ({
 }));
 
 vi.stubGlobal("definePageMeta", vi.fn());
+vi.stubGlobal("useRuntimeConfig", () => ({
+  public: { apiBaseUrl: "http://localhost:5102" },
+}));
 
 const mockFetch = vi.fn();
 vi.stubGlobal("$fetch", mockFetch);
