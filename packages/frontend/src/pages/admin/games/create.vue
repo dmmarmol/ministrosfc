@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import PlaygroundSelect from "~/components/PlaygroundSelect.vue";
+
 definePageMeta({ layout: "admin", middleware: "auth" });
 useHead({ title: "Schedule Game – Admin" });
 
@@ -20,7 +22,7 @@ const form = reactive({
   opponentTeamId: "",
   date: "",
   time: "",
-  location: "",
+  playgroundId: null as string | null,
   competitionType: "FRIENDLY",
   tournamentId: "",
 });
@@ -53,8 +55,8 @@ async function submit() {
       opponentTeamId: form.opponentTeamId,
       date: buildIsoDateTime(form.date, form.time),
       competitionType: form.competitionType,
+      playgroundId: form.playgroundId ?? null,
     };
-    if (form.location) body.location = form.location;
     if (form.tournamentId) body.tournamentId = form.tournamentId;
     await $api("/api/v1/games", { method: "POST", body });
     await router.push("/admin/games");
@@ -118,13 +120,9 @@ async function submit() {
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-700 mb-1"
-          >Ubicación</label
+          >Ubicación (Cancha)</label
         >
-        <input
-          v-model="form.location"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          placeholder="Nombre del campo"
-        />
+        <PlaygroundSelect v-model="form.playgroundId" />
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-700 mb-1"

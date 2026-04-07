@@ -4,6 +4,10 @@ import { useAuthStore } from "~/stores/auth";
 const authStore = useAuthStore();
 const route = useRoute();
 
+const noPadding = computed(
+  () => !!(route.meta as Record<string, unknown>).noPadding,
+);
+
 const pageTitle = computed(() => {
   const segments = route.path.split("/").filter(Boolean);
   const last = segments[segments.length - 1];
@@ -40,6 +44,12 @@ const pageTitle = computed(() => {
           >Games</NuxtLink
         >
         <NuxtLink
+          to="/admin/playgrounds"
+          class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
+          active-class="bg-gray-700 text-brand"
+          >Canchas</NuxtLink
+        >
+        <NuxtLink
           to="/admin/teams"
           class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
           active-class="bg-gray-700 text-brand"
@@ -55,12 +65,14 @@ const pageTitle = computed(() => {
       <!-- User info + logout -->
       <div class="p-4 border-t border-gray-700">
         <p class="text-xs text-gray-400 truncate mb-2">
+          <!-- @TODO add user icon from a library like Heroicons -->
           {{ authStore.user?.firstName }} {{ authStore.user?.lastName }}
         </p>
         <NuxtLink
           to="/"
           class="inline-block text-xs text-brand hover:opacity-90 transition-opacity mb-2"
         >
+          <!-- @TODO add Home icon from a library like Heroicons -->
           Volver al sitio publico
         </NuxtLink>
         <br />
@@ -68,6 +80,7 @@ const pageTitle = computed(() => {
           class="text-xs text-red-400 hover:text-red-300 transition-colors"
           @click="authStore.logout()"
         >
+          <!-- @TODO add Sign out icon from a library like Heroicons -->
           Sign out
         </button>
       </div>
@@ -82,7 +95,7 @@ const pageTitle = computed(() => {
           authStore.user?.role?.toLowerCase()
         }}</span>
       </header>
-      <main class="flex-1 overflow-y-auto p-6">
+      <main class="flex-1 overflow-y-auto" :class="noPadding ? '' : 'p-6'">
         <slot />
       </main>
     </div>

@@ -39,6 +39,7 @@ const gameCreateSchema = z.object({
         "competitionType must be one of: FRIENDLY, LEAGUE, CUP, PLAYOFF, SEASON",
     })
     .optional(),
+  playgroundId: z.string().uuid("playgroundId must be a valid UUID").optional().nullable(),
 });
 
 const gameUpdateSchema = z.object({
@@ -72,6 +73,7 @@ const gameUpdateSchema = z.object({
   status: z.nativeEnum(GameStatus).optional(),
   homeTeamScore: z.coerce.number().int().min(0).optional(),
   awayTeamScore: z.coerce.number().int().min(0).optional(),
+  playgroundId: z.string().uuid("playgroundId must be a valid UUID").optional().nullable(),
 });
 
 const gameFilterSchema = paginationSchema.extend({

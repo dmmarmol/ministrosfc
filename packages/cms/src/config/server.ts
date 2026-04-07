@@ -20,6 +20,8 @@ import { participantRouter } from "../routes/participants";
 import { profileRouter } from "../routes/profile";
 import { usersRouter } from "../routes/users";
 import { onboardingRouter } from "../routes/onboarding";
+import { playgroundRouter } from "../routes/playgrounds";
+import { addressRouter } from "../routes/address";
 
 export function createApp(): Application {
   const app = express();
@@ -69,6 +71,8 @@ export function createApp(): Application {
   app.use("/api/v1/profile", profileRouter);
   app.use("/api/v1/admin/users", usersRouter);
   app.use("/api/v1/onboarding", onboardingRouter);
+  app.use("/api/v1/playgrounds", playgroundRouter);
+  app.use("/api/v1/address", addressRouter);
 
   // Global error handler (must be last)
   app.use(globalErrorHandler);

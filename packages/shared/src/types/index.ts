@@ -6,3 +6,5 @@ export * from "./opponent-team";
 export * from "./tournament";
 export * from "./statistics";
 export * from "./api";
+export * from "./playground";
+export * from "./address";

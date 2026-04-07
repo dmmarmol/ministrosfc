@@ -1,6 +1,6 @@
 # ministrosfc Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-06
+Auto-generated from all feature plans. Last updated: 2026-04-07
 
 ## Active Technologies
 - TypeScript (Node 18+, Nuxt 4/Vue 3) + Express, Prisma, Zod, google-auth-library, Pinia (009-user-registration)
@@ -8,6 +8,10 @@ Auto-generated from all feature plans. Last updated: 2026-04-06
 - N/A (UI component; parent owns data-fetch and persistence) (012-dropdown-add-more)
 - TypeScript 5.x (strict mode) + `@ministrosfc/shared` (already a dependency of both cms and frontend) (011-shared-types-migration)
 - N/A — no DB changes (011-shared-types-migration)
+- TypeScript (Node 18+ LTS, Nuxt 4 / Vue 3) + Express + Prisma (CMS), Nuxt 4 + Pinia (frontend), Zod (request validation), `@ministrosfc/shared` (type contracts) (012-playground-entity)
+- PostgreSQL (Prisma ORM) + Redis (session/cache — no changes for this feature) (012-playground-entity)
+- TypeScript 5, Node.js 20 (CMS), Vue 3 / Nuxt 4 (frontend) + Express 4 (CMS router), `$fetch` / Vitest (frontend), Nominatim public API (address data) (chore/012-playground-entity)
+- N/A — no new DB fields; `latitude`/`longitude` already exist on `Playground` (chore/012-playground-entity)
 
 - TypeScript 5 (strict mode, both packages) + Express 4, Prisma 5, Zod, Nuxt 3, Vue 3, Pinia, Tailwind CSS (006-admin-player-delete)
 - PostgreSQL (Prisma ORM) + Redis (cache invalidation) (006-admin-player-delete)
@@ -110,9 +114,9 @@ npx prisma studio                  # Open Prisma Studio GUI
 - **Guest Players**: playerType=GUEST, linked to inviting player via invitedById
 
 ## Recent Changes
+- chore/012-playground-entity: Added TypeScript 5, Node.js 20 (CMS), Vue 3 / Nuxt 4 (frontend) + Express 4 (CMS router), `$fetch` / Vitest (frontend), Nominatim public API (address data)
+- 012-playground-entity: Added TypeScript (Node 18+ LTS, Nuxt 4 / Vue 3) + Express + Prisma (CMS), Nuxt 4 + Pinia (frontend), Zod (request validation), `@ministrosfc/shared` (type contracts)
 - 011-shared-types-migration: Added TypeScript 5.x (strict mode) + `@ministrosfc/shared` (already a dependency of both cms and frontend)
-- 011-shared-types-migration: Added TypeScript 5.x (strict mode) + `@ministrosfc/shared` (already a dependency of both cms and frontend)
-- 012-dropdown-add-more: Added TypeScript 5.x, Vue 3 (Nuxt 3 app, ESM) + Nuxt, Vue, Tailwind CSS, Pinia, Vitest, @vue/test-utils
 
 
 
