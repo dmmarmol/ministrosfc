@@ -15,10 +15,10 @@ Search for real-world addresses using Nominatim (OpenStreetMap). Intended for po
 
 ### Query Parameters
 
-| Parameter | Type    | Required | Constraints           | Default | Description                              |
-| --------- | ------- | -------- | --------------------- | ------- | ---------------------------------------- |
-| `q`       | string  | Yes      | 3–200 chars, trimmed  | —       | Free-form address query                  |
-| `limit`   | integer | No       | 1–10                  | 5       | Maximum number of suggestions to return  |
+| Parameter | Type    | Required | Constraints          | Default | Description                             |
+| --------- | ------- | -------- | -------------------- | ------- | --------------------------------------- |
+| `q`       | string  | Yes      | 3–200 chars, trimmed | —       | Free-form address query                 |
+| `limit`   | integer | No       | 1–10                 | 5       | Maximum number of suggestions to return |
 
 ---
 

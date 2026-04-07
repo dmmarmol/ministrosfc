@@ -68,7 +68,10 @@ describe("usePlaygrounds", () => {
       mockFetch.mockResolvedValueOnce({ data: [newPlayground] });
 
       const { playgrounds, createPlayground } = usePlaygrounds();
-      const result = await createPlayground({ name: "Nueva", address: "Av. 99" });
+      const result = await createPlayground({
+        name: "Nueva",
+        address: "Av. 99",
+      });
 
       expect(mockFetch).toHaveBeenCalledTimes(2);
       expect(result.id).toBe("pg-new");

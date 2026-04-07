@@ -4,7 +4,9 @@ import { useAuthStore } from "~/stores/auth";
 const authStore = useAuthStore();
 const route = useRoute();
 
-const noPadding = computed(() => !!(route.meta as Record<string, unknown>).noPadding);
+const noPadding = computed(
+  () => !!(route.meta as Record<string, unknown>).noPadding,
+);
 
 const pageTitle = computed(() => {
   const segments = route.path.split("/").filter(Boolean);
@@ -63,12 +65,14 @@ const pageTitle = computed(() => {
       <!-- User info + logout -->
       <div class="p-4 border-t border-gray-700">
         <p class="text-xs text-gray-400 truncate mb-2">
+          <!-- @TODO add user icon from a library like Heroicons -->
           {{ authStore.user?.firstName }} {{ authStore.user?.lastName }}
         </p>
         <NuxtLink
           to="/"
           class="inline-block text-xs text-brand hover:opacity-90 transition-opacity mb-2"
         >
+          <!-- @TODO add Home icon from a library like Heroicons -->
           Volver al sitio publico
         </NuxtLink>
         <br />
@@ -76,6 +80,7 @@ const pageTitle = computed(() => {
           class="text-xs text-red-400 hover:text-red-300 transition-colors"
           @click="authStore.logout()"
         >
+          <!-- @TODO add Sign out icon from a library like Heroicons -->
           Sign out
         </button>
       </div>

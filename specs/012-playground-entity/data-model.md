@@ -70,14 +70,15 @@ location String? @db.VarChar(255)  // kept as-is, legacy free-text
 
 ```typescript
 export interface AddressSuggestion {
-  displayName: string;  // full human-readable address (Nominatim display_name)
-  lat: number;          // parsed latitude (float)
-  lon: number;          // parsed longitude (float)
-  placeId?: number;     // Nominatim place_id — useful for exclude_place_ids param
+  displayName: string; // full human-readable address (Nominatim display_name)
+  lat: number; // parsed latitude (float)
+  lon: number; // parsed longitude (float)
+  placeId?: number; // Nominatim place_id — useful for exclude_place_ids param
 }
 ```
 
 **Validation rules**:
+
 - `displayName`: non-empty string; Nominatim guarantees this for all results
 - `lat` / `lon`: valid floating-point coordinates; parsed from Nominatim's string fields
 - `placeId`: internal Nominatim integer identifier; optional (some result types may omit it)
@@ -105,14 +106,14 @@ export interface PlaygroundUpdatePayload {
 export interface PlaygroundCreatePayload {
   name: string;
   address: string;
-  latitude?: number;    // pre-geocoded lat from AddressSuggestion — skips server geocode
-  longitude?: number;   // pre-geocoded lon from AddressSuggestion — skips server geocode
+  latitude?: number; // pre-geocoded lat from AddressSuggestion — skips server geocode
+  longitude?: number; // pre-geocoded lon from AddressSuggestion — skips server geocode
 }
 
 export interface PlaygroundUpdatePayload {
   name?: string;
   address?: string;
-  latitude?: number;    // only valid when address is also present in the payload
+  latitude?: number; // only valid when address is also present in the payload
   longitude?: number;
 }
 ```
@@ -124,7 +125,6 @@ export interface PlaygroundUpdatePayload {
 ### Address Search — No DB Changes
 
 The `GET /api/v1/address/search` endpoint does NOT introduce any new Prisma model or migration. It is a pure proxy: query string in → Nominatim JSON → `AddressSuggestion[]` out. No persistence layer involved.
-
 
 ---
 

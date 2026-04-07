@@ -216,10 +216,7 @@ const isActive = computed({
       >
         Dirección
       </label>
-      <AddressAutocompleteInput
-        id="profile-address"
-        v-model="form.address"
-      />
+      <AddressAutocompleteInput id="profile-address" v-model="form.address" />
     </div>
 
     <div class="grid grid-cols-2 gap-3">

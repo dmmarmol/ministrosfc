@@ -13,8 +13,18 @@ const mockSearch = AddressSearchService.search as jest.MockedFunction<
 >;
 
 const mockSuggestions = [
-  { displayName: "Av. Corrientes, Buenos Aires", lat: -34.6037, lon: -58.3816, placeId: 1 },
-  { displayName: "Av. Corrientes, Rosario", lat: -32.9587, lon: -60.6927, placeId: 2 },
+  {
+    displayName: "Av. Corrientes, Buenos Aires",
+    lat: -34.6037,
+    lon: -58.3816,
+    placeId: 1,
+  },
+  {
+    displayName: "Av. Corrientes, Rosario",
+    lat: -32.9587,
+    lon: -60.6927,
+    placeId: 2,
+  },
 ];
 
 function buildApp() {
@@ -70,7 +80,11 @@ describe("GET /api/v1/address/search", () => {
 
   it("returns 503 when service throws GEOCODER_UNAVAILABLE", async () => {
     mockSearch.mockRejectedValue(
-      createError("Address search service temporarily unavailable", 503, "GEOCODER_UNAVAILABLE"),
+      createError(
+        "Address search service temporarily unavailable",
+        503,
+        "GEOCODER_UNAVAILABLE",
+      ),
     );
 
     const res = await request(app).get("/api/v1/address/search?q=Corrientes");

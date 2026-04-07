@@ -43,7 +43,7 @@ async function confirmDelete(pg: Playground) {
 <template>
   <div class="flex flex-col h-full">
     <header
-      class="flex items-center justify-between p-6 shadow-md bg-gray-200 z-50 relative"
+      class="flex items-center justify-between p-6 shadow-md bg-gray-100 z-50 relative"
     >
       <h2 class="text-base font-semibold text-gray-700">Canchas</h2>
       <NuxtLink

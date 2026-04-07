@@ -1,7 +1,11 @@
 import { ref } from "vue";
 import { useRuntimeConfig } from "nuxt/app";
 import { useAuthStore } from "~/stores/auth";
-import type { Playground, PlaygroundCreatePayload, PlaygroundUpdatePayload } from "@ministrosfc/shared";
+import type {
+  Playground,
+  PlaygroundCreatePayload,
+  PlaygroundUpdatePayload,
+} from "@ministrosfc/shared";
 
 export function usePlaygrounds() {
   const config = useRuntimeConfig();
@@ -24,13 +28,16 @@ export function usePlaygrounds() {
       const res = await $fetch<{ data: Playground[] }>(baseUrl);
       playgrounds.value = res.data;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Error al cargar canchas";
+      error.value =
+        err instanceof Error ? err.message : "Error al cargar canchas";
     } finally {
       loading.value = false;
     }
   }
 
-  async function createPlayground(payload: PlaygroundCreatePayload): Promise<Playground> {
+  async function createPlayground(
+    payload: PlaygroundCreatePayload,
+  ): Promise<Playground> {
     const res = await $fetch<{ data: Playground }>(baseUrl, {
       method: "POST",
       headers: authHeaders(),
@@ -40,7 +47,10 @@ export function usePlaygrounds() {
     return res.data;
   }
 
-  async function updatePlayground(id: string, payload: PlaygroundUpdatePayload): Promise<void> {
+  async function updatePlayground(
+    id: string,
+    payload: PlaygroundUpdatePayload,
+  ): Promise<void> {
     await $fetch(`${baseUrl}/${id}`, {
       method: "PATCH",
       headers: authHeaders(),
@@ -57,5 +67,13 @@ export function usePlaygrounds() {
     await fetchPlaygrounds();
   }
 
-  return { playgrounds, loading, error, fetchPlaygrounds, createPlayground, updatePlayground, deletePlayground };
+  return {
+    playgrounds,
+    loading,
+    error,
+    fetchPlaygrounds,
+    createPlayground,
+    updatePlayground,
+    deletePlayground,
+  };
 }

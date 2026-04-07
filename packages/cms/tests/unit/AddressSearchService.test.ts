@@ -50,7 +50,9 @@ describe("AddressSearchService", () => {
   });
 
   it("parses Nominatim string lat/lon fields into numbers", async () => {
-    mockNominatimOk([{ place_id: 1, display_name: "Test", lat: "-12.345", lon: "67.890" }]);
+    mockNominatimOk([
+      { place_id: 1, display_name: "Test", lat: "-12.345", lon: "67.890" },
+    ]);
     const results = await AddressSearchService.search("Test");
 
     expect(typeof results[0]!.lat).toBe("number");
@@ -81,7 +83,9 @@ describe("AddressSearchService", () => {
 
   it("throws GEOCODER_UNAVAILABLE (503) when fetch rejects", async () => {
     mockNominatimError();
-    await expect(AddressSearchService.search("Corrientes")).rejects.toMatchObject({
+    await expect(
+      AddressSearchService.search("Corrientes"),
+    ).rejects.toMatchObject({
       statusCode: 503,
       code: "GEOCODER_UNAVAILABLE",
     });
@@ -89,7 +93,9 @@ describe("AddressSearchService", () => {
 
   it("throws GEOCODER_UNAVAILABLE (503) when upstream returns non-2xx", async () => {
     mockNominatimNonOk();
-    await expect(AddressSearchService.search("Corrientes")).rejects.toMatchObject({
+    await expect(
+      AddressSearchService.search("Corrientes"),
+    ).rejects.toMatchObject({
       statusCode: 503,
       code: "GEOCODER_UNAVAILABLE",
     });

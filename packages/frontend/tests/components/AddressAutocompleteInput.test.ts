@@ -101,7 +101,9 @@ describe("AddressAutocompleteInput", () => {
 
     expect(wrapper.emitted("select")).toBeTruthy();
     const allSelectEmissions = wrapper.emitted("select")!;
-    expect(allSelectEmissions[allSelectEmissions.length - 1]).toEqual([mockSuggestions[0]]);
+    expect(allSelectEmissions[allSelectEmissions.length - 1]).toEqual([
+      mockSuggestions[0],
+    ]);
   });
 
   it("closes dropdown without changing input on Escape key", async () => {

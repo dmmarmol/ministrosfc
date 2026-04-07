@@ -27,13 +27,18 @@ vi.mock("nuxt/app", () => ({
 
 vi.stubGlobal("definePageMeta", vi.fn());
 
-const { default: PlaygroundSelect } = await import("../../src/components/PlaygroundSelect.vue");
+const { default: PlaygroundSelect } =
+  await import("../../src/components/PlaygroundSelect.vue");
 
 describe("PlaygroundSelect", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFetchPlaygrounds.mockResolvedValue(undefined);
-    mockCreatePlayground.mockResolvedValue({ id: "pg-new", name: "Nueva", address: "Calle 99" });
+    mockCreatePlayground.mockResolvedValue({
+      id: "pg-new",
+      name: "Nueva",
+      address: "Calle 99",
+    });
   });
 
   it("renders all playground options from the composable", async () => {

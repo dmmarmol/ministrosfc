@@ -83,8 +83,17 @@ describe("PlaygroundModel", () => {
         longitude: -58.4,
         createdBy: { connect: { id: "user-1" } },
       };
-      const mockCreated = { id: "pg-2", ...payload, createdAt: new Date(), updatedAt: new Date(), updatedById: null };
-      (prisma.playground.create as jest.Mock).mockResolvedValue({ ...mockCreated, _count: { games: 0 } });
+      const mockCreated = {
+        id: "pg-2",
+        ...payload,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        updatedById: null,
+      };
+      (prisma.playground.create as jest.Mock).mockResolvedValue({
+        ...mockCreated,
+        _count: { games: 0 },
+      });
 
       await PlaygroundModel.create(payload as any);
 
@@ -97,8 +106,15 @@ describe("PlaygroundModel", () => {
   describe("update", () => {
     it("applies a partial update to the correct record", async () => {
       (prisma.playground.update as jest.Mock).mockResolvedValue({
-        id: "pg-1", name: "Updated", address: "Av. 1234", latitude: -34.6, longitude: -58.3,
-        createdAt: new Date(), updatedAt: new Date(), createdById: "u1", updatedById: "u2",
+        id: "pg-1",
+        name: "Updated",
+        address: "Av. 1234",
+        latitude: -34.6,
+        longitude: -58.3,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdById: "u1",
+        updatedById: "u2",
         _count: { games: 0 },
       });
 
@@ -116,7 +132,9 @@ describe("PlaygroundModel", () => {
 
       await PlaygroundModel.delete("pg-1");
 
-      expect(prisma.playground.delete).toHaveBeenCalledWith({ where: { id: "pg-1" } });
+      expect(prisma.playground.delete).toHaveBeenCalledWith({
+        where: { id: "pg-1" },
+      });
     });
   });
 
@@ -127,7 +145,9 @@ describe("PlaygroundModel", () => {
       const count = await PlaygroundModel.countGames("pg-1");
 
       expect(count).toBe(5);
-      expect(prisma.game.count).toHaveBeenCalledWith({ where: { playgroundId: "pg-1" } });
+      expect(prisma.game.count).toHaveBeenCalledWith({
+        where: { playgroundId: "pg-1" },
+      });
     });
   });
 });

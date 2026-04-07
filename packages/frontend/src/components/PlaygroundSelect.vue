@@ -61,17 +61,21 @@ async function submitInlineForm() {
       @change="onSelectChange"
     >
       <option value="">-- Sin cancha --</option>
-      <option
-        v-for="pg in playgrounds"
-        :key="pg.id"
-        :value="pg.id"
-      >{{ pg.name }} — {{ pg.address }}</option>
+      <option v-for="pg in playgrounds" :key="pg.id" :value="pg.id">
+        {{ pg.name }} — {{ pg.address }}
+      </option>
       <option value="__add_new__">Agregar nueva…</option>
     </select>
 
-    <div v-if="showInlineForm" data-testid="inline-form" class="mt-3 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3">
+    <div
+      v-if="showInlineForm"
+      data-testid="inline-form"
+      class="mt-3 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3"
+    >
       <p class="text-xs font-semibold text-gray-600">Nueva cancha</p>
-      <div v-if="inlineError" class="text-xs text-red-600">{{ inlineError }}</div>
+      <div v-if="inlineError" class="text-xs text-red-600">
+        {{ inlineError }}
+      </div>
       <form @submit.prevent="submitInlineForm" class="space-y-2">
         <input
           v-model="inlineName"
@@ -98,7 +102,10 @@ async function submitInlineForm() {
           <button
             type="button"
             class="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5"
-            @click="showInlineForm = false; emit('update:modelValue', null)"
+            @click="
+              showInlineForm = false;
+              emit('update:modelValue', null);
+            "
           >
             Cancelar
           </button>
