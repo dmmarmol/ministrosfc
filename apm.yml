@@ -1,0 +1,11 @@
+name: ministrosfc
+version: 1.0.0
+description: APM project for ministrosfc
+author: Diego Martin Marmol
+dependencies:
+  apm:
+  - github/awesome-copilot/skills/unit-test-vue-pinia
+  - github/awesome-copilot/skills/web-coder
+  - github/awesome-copilot/skills/git-commit
+  mcp: []
+scripts: {}

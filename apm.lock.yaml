@@ -1,0 +1,31 @@
+lockfile_version: '1'
+generated_at: '2026-04-07T22:04:27.374976+00:00'
+apm_version: 0.8.7
+dependencies:
+- repo_url: github/awesome-copilot
+  host: github.com
+  resolved_commit: ba2ade0312708d44c2966a4a1c278b92471d2b8b
+  virtual_path: skills/unit-test-vue-pinia
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .github/skills/unit-test-vue-pinia
+  content_hash: sha256:a474c899c691cfe438a31401af6f3911e80ad1566142c65555f6e08aafd582a4
+- repo_url: github/awesome-copilot
+  host: github.com
+  resolved_commit: ba2ade0312708d44c2966a4a1c278b92471d2b8b
+  virtual_path: skills/web-coder
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .github/skills/web-coder
+  content_hash: sha256:d9fe089752bbe8bfcae9af20f91da6037bf9a5fdac076a2100632acc2ede1c1e
+- repo_url: github/awesome-copilot
+  host: github.com
+  resolved_commit: ba2ade0312708d44c2966a4a1c278b92471d2b8b
+  virtual_path: skills/git-commit
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .github/skills/git-commit
+  content_hash: sha256:2607fc60629b82b257136dd2a7a373f0a4466c0b49df7746d845d59313c99b21
