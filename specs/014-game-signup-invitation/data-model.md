@@ -213,7 +213,7 @@ export async function generateGameSlug(
 | `maxPlayers`                     | Int ≥ 1 or null                                                                               |
 | `lineup`                         | Must be one of `FORMATIONS` or null                                                           |
 | `slug`                           | Auto-generated server-side; not user-settable                                                 |
-| `endDate`                        | Auto-computed server-side as `date + 100 minutes` (rounded down); not user-settable; nullable for legacy records only |
+| `endDate`                        | Auto-computed server-side as `date + exactly 100 minutes` (no sub-minute rounding); not user-settable; stripped silently from client payloads; nullable for legacy records only |
 | `firstName` / `lastName` (guest) | 1–255 chars, required                                                                         |
 | `targetPlayerId` (proxy)         | Valid UUID, must exist as `REGISTERED + ACTIVE` in DB                                        |
 | Slug opponent name               | After normalization, must produce at least 1 non-hyphen char                                  |
