@@ -120,21 +120,23 @@ The Game Sign Up Page renders a full-size soccer field (SVG or Canvas) on the le
 
 ---
 
-### User Story 7 — Game Status Auto-Transition to COMPLETED (Priority: P1)
+### User Story 7 — Game Status Auto-Transition (SCHEDULED → IN_PROGRESS → COMPLETED) (Priority: P1)
 
-The system automatically transitions any game from `SCHEDULED` to `COMPLETED` one day after its scheduled date, preventing further signups and moving the game to the "past games" section of the public homepage.
+The system automatically transitions game status through its lifecycle without manual admin intervention: a game moves from `SCHEDULED` to `IN_PROGRESS` when the current time reaches its start datetime (`game.date`), and from `IN_PROGRESS` to `COMPLETED` when the current time reaches its end datetime (`game.endDate`). If `endDate` is not set, the job falls back to transitioning `IN_PROGRESS → COMPLETED` 24 hours after `game.date`. This ensures signup eligibility, homepage display, and admin share links always reflect accurate game state.
 
-**Why this priority**: Ensures system state accurately reflects past games without manual admin intervention and gates all time-sensitive behaviors — signup eligibility, homepage display, and admin share links.
+**Why this priority**: Ensures system state accurately reflects the game lifecycle without manual admin intervention and gates all time-sensitive behaviors — signup eligibility, homepage display, and admin share links.
 
-**Independent Test**: Create a game with `date = now − 25 hours` and `status = SCHEDULED`; run the scheduled transition job; verify `game.status = COMPLETED`, the Game Sign Up Page returns 422, and the game appears in the "past games" homepage section.
+**Independent Test**: (1) Create a game with `date = now − 5 minutes` and `status = SCHEDULED`; run the job; verify `game.status = IN_PROGRESS` and the Game Sign Up Page returns 422. (2) Update that game's `endDate = now − 1 minute`; run the job; verify `game.status = COMPLETED` and the game appears in the "past games" homepage section.
 
 **Acceptance Scenarios**:
 
-1. **Given** a game with `status = SCHEDULED` and `date < now − 24 hours`, **When** the scheduled transition job runs, **Then** `game.status` is updated to `COMPLETED`.
-2. **Given** a game with `status = SCHEDULED` and `date >= now − 24 hours`, **When** the scheduled transition job runs, **Then** the game's status is NOT changed.
-3. **Given** a game has transitioned to `COMPLETED`, **When** any user attempts to sign up via the Game Sign Up Page, **Then** the signup endpoint returns HTTP 422 with the message "El juego ya no está disponible para inscripciones".
-4. **Given** a game has transitioned to `COMPLETED`, **When** an Admin, Editor, or DT user views the game in the admin panel, **Then** they can see all game details and the full list of signed-up players in read-only mode.
-5. **Given** a game has `status = COMPLETED`, **When** an ADMIN user edits the game, **Then** they can still modify the `lineup` field and add participants via admin override; Editor and DT users attempting to modify lineup or add participants for a COMPLETED game receive HTTP 403.
+1. **Given** a game with `status = SCHEDULED` and `date <= now`, **When** the scheduled transition job runs, **Then** `game.status` is updated to `IN_PROGRESS`.
+2. **Given** a game with `status = SCHEDULED` and `date > now`, **When** the scheduled transition job runs, **Then** the game's status is NOT changed.
+3. **Given** a game with `status = IN_PROGRESS` and `endDate <= now`, **When** the scheduled transition job runs, **Then** `game.status` is updated to `COMPLETED`.
+4. **Given** a game with `status = IN_PROGRESS` and `endDate` is null and `date < now − 24 hours`, **When** the scheduled transition job runs, **Then** `game.status` is updated to `COMPLETED` (fallback rule).
+5. **Given** a game has `status = IN_PROGRESS` or `COMPLETED`, **When** any user attempts to sign up via the Game Sign Up Page, **Then** the signup endpoint returns HTTP 422 with the message "El juego ya no está disponible para inscripciones".
+6. **Given** a game has transitioned to `COMPLETED`, **When** an Admin, Editor, or DT user views the game in the admin panel, **Then** they can see all game details and the full list of signed-up players in read-only mode.
+7. **Given** a game has `status = COMPLETED`, **When** an ADMIN user edits the game, **Then** they can still modify the `lineup` field and add participants via admin override; Editor and DT users attempting to modify lineup or add participants for a COMPLETED game receive HTTP 403.
 
 ---
 
@@ -151,9 +153,12 @@ The system automatically transitions any game from `SCHEDULED` to `COMPLETED` on
 - A registered player with `position = null`: placed in the next available field slot in ascending confirmation timestamp order after all position-matched players have been assigned.
 - Capacity conflict during individual registration: each confirm action (self, guest, or proxy) is fully independent; capacity is checked at the time of each confirm. If capacity is full when confirm is clicked, that single action fails with a capacity-exceeded message; all previously confirmed registrations are unaffected.
 - Concurrent signups for the last slot: capacity enforcement MUST be atomic at the database level (unique constraint + transaction); when two or more requests race for the last available slot, exactly one succeeds and the others receive HTTP 422 with a capacity-exceeded message; no partial state is persisted.
-- Game date passes but the scheduled job has not yet run: the game remains `SCHEDULED` until the next job execution; in the interim, the existing date-past check in `ParticipationService` still blocks signups as a secondary guard until the cron fires.
+- Game start time passes but the scheduled job has not yet run: the game remains `SCHEDULED` until the next job execution; the signup endpoint's own `game.status ≠ SCHEDULED` check (FR-024) provides a secondary guard once the status is updated.
+- Game end time passes but the scheduled job has not yet run: the game remains `IN_PROGRESS`; signups are still blocked (FR-024 rejects non-SCHEDULED); the game appears in neither "next games" nor "past games" on the homepage (FR-029) until the job transitions it to `COMPLETED`.
+- `endDate` is null: the job falls back to transitioning `IN_PROGRESS → COMPLETED` 24 hours after `game.date`. This preserves backward compatibility for games created before `endDate` was added.
+- `endDate` is set to a value before `game.date`: system MUST reject the save with a validation error ("La fecha de fin debe ser posterior a la fecha de inicio").
 - `maxPlayers` is null and game is `SCHEDULED`: the share-signup-link (FR-027) MUST still appear in `/admin/games` since there is no capacity ceiling — the game is always open for more signups.
-- Admin has the game edit form open when the cron transitions status to `COMPLETED`: on form submit, the PATCH endpoint checks the current `game.status` and returns HTTP 403 to non-ADMIN users; ADMIN continues to save normally.
+- Admin has the game edit form open when the cron transitions status to `IN_PROGRESS` or `COMPLETED`: on form submit, the PATCH endpoint checks the current `game.status` and returns HTTP 403 to non-ADMIN users trying to mutate lineup/participants on a COMPLETED game; ADMIN continues to save normally.
 - Player self-withdrawal from a game is out of scope for this release; only Admin and Editor users can remove a player or guest from a game (FR-014).
 
 ## Requirements _(mandatory)_
@@ -186,7 +191,7 @@ The system automatically transitions any game from `SCHEDULED` to `COMPLETED` on
 - **FR-023**: Formation-to-slot mapping MUST be defined as a static client-side lookup (no server computation required). Hovering (desktop) or tapping (mobile) a player circle on the field MUST highlight the corresponding row in the right-side player table; no tooltip is shown on the field itself. The highlight MUST clear when the pointer leaves the circle (desktop) or when another circle is tapped (mobile).
 - **FR-024**: The signup endpoint MUST return HTTP 422 and reject all signup and guest-creation attempts when `game.status` is not `SCHEDULED`. The 422 response body MUST include an explanatory message (e.g., "El juego ya no está disponible para inscripciones"). Upon receiving this 422, the frontend MUST display the message inline and disable the confirm button without requiring a page refresh.
 - **FR-025**: A signed-up player MUST be able to register another existing active `REGISTERED` player who is not yet confirmed for the game by selecting them from the `DropdownAddMore` (filtered to show only players where `playerType = REGISTERED`, `status = ACTIVE`, and `confirmationStatus ≠ CONFIRMED` for this specific game) and clicking the confirm button. If two players concurrently attempt to proxy-register the same target player, the second request MUST return HTTP 409 with the message "Este jugador ya fue registrado. Refresca el navegador para visualizar los cambios". The resulting `GameParticipant` record MUST set `confirmedById` to the inviting player's ID. The proxy-registered player appears in the player table with "Agregado por: {Inviting Player Name}" displayed below their name in a smaller font size.
-- **FR-026**: The system MUST include a scheduled job that runs at least once daily and sets `game.status` to `COMPLETED` for every game where `status = SCHEDULED` AND `date < NOW − 24 hours`. The job MUST be idempotent and MUST NOT affect games in `COMPLETED`, `IN_PROGRESS`, or `CANCELLED` status.
+- **FR-026**: The system MUST include a scheduled job that runs at least every 5 minutes and applies two idempotent transitions in order: (1) set `game.status = IN_PROGRESS` for every game where `status = SCHEDULED` AND `date <= NOW`; (2) set `game.status = COMPLETED` for every game where `status = IN_PROGRESS` AND ((`endDate IS NOT NULL` AND `endDate <= NOW`) OR (`endDate IS NULL` AND `date < NOW − 24 hours`)). The job MUST NOT affect games in `COMPLETED` or `CANCELLED` status. Both transitions are idempotent — re-running on already-transitioned games is a no-op.
 - **FR-027**: The `/admin/games` table MUST render a shareable signup link for each row where `game.status = SCHEDULED` AND (`signedUpCount < maxPlayers` OR `maxPlayers IS NULL`). The link URL MUST be `{baseUrl}/games/{slug}/signup`. Clicking it MUST copy the URL to the clipboard AND invoke `navigator.share` on devices that support the Web Share API; on unsupported devices, clipboard copy alone is acceptable with a confirmation toast.
 - **FR-028**: The `/admin/games` table MUST render a shareable game detail link for each row where `game.status = COMPLETED`. The link URL MUST be `{baseUrl}/games/{slug}`. Clicking it MUST copy the URL to the clipboard AND invoke `navigator.share` on supporting devices.
 - **FR-029**: The public homepage game sections MUST be filtered strictly by status: the "next games" section MUST show ONLY `status = SCHEDULED` games; the "past games" section MUST show ONLY `status = COMPLETED` games; games with `status = CANCELLED` or `status = IN_PROGRESS` MUST NOT appear in any homepage section.
@@ -195,7 +200,7 @@ The system automatically transitions any game from `SCHEDULED` to `COMPLETED` on
 
 - **GameSignup** (semantic alias for `GameParticipant`): No new DB table. A confirmed signup is a `GameParticipant` record with `confirmationStatus: CONFIRMED`. The existing `GameParticipant` model (fields: `gameId`, `playerId`, `confirmationStatus`, `confirmedAt`, per-game stats) is reused.
 - **GuestPlayer** (semantic alias for `Player` with `playerType: GUEST`): No new DB table. Guest players are standard `Player` records with `playerType: GUEST` and an `invitedById` FK. They have no login credentials.
-- **Game** (extended): Gains `maxPlayers` (nullable int), `slug` (unique string), and `lineup` (nullable string — one of the 14 pre-defined formation codes).
+- **Game** (extended): Gains `maxPlayers` (nullable int), `slug` (unique string), `lineup` (nullable string — one of the 14 pre-defined formation codes), and `endDate` (nullable DateTime — game end datetime; when null the auto-transition fallback of `date + 24h` applies).
 
 ## Success Criteria _(mandatory)_
 
@@ -217,7 +222,7 @@ The system automatically transitions any game from `SCHEDULED` to `COMPLETED` on
 - The Game Sign Up Page is intentionally not linked from any public navigation or sitemap; distribution is via direct link only.
 - Formation-to-position-slot mapping (e.g., which field positions map to GK, DEF, MID, FWD slots for each formation string) is defined as a static lookup table in the frontend — no server computation is required.
 - The field visualization is entirely client-side rendered; server only provides the `lineup` string and roster data.
-- Valid `Game.status` values in this codebase are `SCHEDULED` and `COMPLETED`; this spec gates signup eligibility and all mutation endpoints exclusively on the `SCHEDULED` status.
+- The `GameStatus` enum contains four values: `SCHEDULED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`. This spec gates signup eligibility and all mutation endpoints on `SCHEDULED` status; `IN_PROGRESS` is treated as non-enrollable (same HTTP 422 response) and otherwise read-only from the player's perspective.
 - If a user holds the `PLAYER` role in addition to any admin role (Admin/Editor/DT), they are treated as a `PLAYER` for signup purposes on the Game Sign Up Page and may register themselves as an attendee.
 
 ## Clarifications
@@ -277,3 +282,4 @@ The system automatically transitions any game from `SCHEDULED` to `COMPLETED` on
 - E4 (homepage status filtering): Next games = SCHEDULED only; past games = COMPLETED only; CANCELLED and IN‑PROGRESS excluded from all homepage sections. Added as FR-029; US-4 ACs 5–6 added.
 - E5 (share link when maxPlayers is null): No capacity ceiling → share-signup-link always visible when `status = SCHEDULED` and `maxPlayers IS NULL`. Clarified in FR-027 and Edge Cases.
 - E6 (IN_PROGRESS on homepage): Games with `status = IN_PROGRESS` are excluded from the public homepage (neither upcoming nor past). Covered by FR-029.
+- E7 (IN_PROGRESS transition via startDate/endDate): `game.date` is reused as the game start datetime (SCHEDULED → IN_PROGRESS trigger). A new nullable `game.endDate` field drives the IN_PROGRESS → COMPLETED transition. If `endDate` is null, the fallback is `game.date + 24h`. The scheduled job frequency increases from daily to every 5 minutes to support real-time transitions. Updated FR-026; US-7 ACs 1–7 updated.
