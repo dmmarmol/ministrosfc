@@ -54,8 +54,8 @@ After confirming their own attendance, a player can add an unlimited number of g
 
 **Acceptance Scenarios**:
 
-1. **Given** a signed-up player is on the Game Sign Up Page, **When** they open the guest section, **Then** a `DropdownAddMore` component is shown to create or search guest names.
-2. **Given** a player creates a new guest using the inline form, **When** they submit, **Then** the guest record is created with at least first and last name, linked to the inviting player, and appears at the bottom of the game roster as "Invitado por {Player Name}" (guest's own name is hidden on public pages).
+1. **Given** an authenticated player on the Game Sign Up Page has NOT yet confirmed attendance, **When** they view the signup form, **Then** an optional guest section with a `DropdownAddMore` component is shown below the "Confirmar asistencia" button to create or search guest names before submitting.
+2. **Given** a player fills in the form with optional guests and submits, **When** the single atomic request completes, **Then** the player's signup and all guest records (each with at least first and last name, linked to the inviting player) are created simultaneously; guests appear at the bottom of the game roster as "Invitado por {Player Name}" (guests' own names are hidden on game detail pages and general roster pages).
 3. **Given** the game roster is rendered, **When** guests are present, **Then** registered players (with number, position, name) are listed first; guests appear after a visual separator as "Invitado por {Player Name}" only.
 4. **Given** an Admin views `/admin/players`, **When** guest records exist, **Then** each guest shows an "Invitado" badge and a visible reference to the registered player who invited them.
 
@@ -74,6 +74,7 @@ The public game detail page is served at the SEO-friendly URL and shows the rost
 1. **Given** a game with players and guests, **When** an anonymous user visits the game detail page, **Then** registered players show number, position, and name; guests appear as "Invitado por {Player Name}" after a separator.
 2. **Given** the public homepage, **When** the schedule renders, **Then** game links use the `games/{date}/{opponent}` format.
 3. **Given** the public player roster page, **When** it renders, **Then** guest players do NOT appear in the general roster listing.
+4. **Given** a game with a lineup set, **When** an anonymous user visits the public game detail page at `/games/{slug}`, **Then** the lineup field visualization is NOT displayed; the page shows only game info and the player roster table.
 
 ---
 
@@ -87,7 +88,7 @@ An Admin, Editor or DT user selects a tactical formation for the game from the a
 
 **Acceptance Scenarios**:
 
-1. **Given** an Admin is on a game's admin edit page, **When** they view the game form, **Then** a "Formación" select element is visible with at least 14 pre-defined formation options (4-4-2, 4-3-3, 4-2-3-1, 4-5-1, 4-1-4-1, 4-3-2-1, 4-4-1-1, 3-4-3, 3-5-2, 3-4-2-1, 5-3-2, 5-4-1, 5-2-3, 4-2-4) plus a "Sin formación" empty option.
+1. **Given** an Admin, Editor or DT user is on a game's admin edit page, **When** they view the game form, **Then** a "Formación" select element is visible with at least 14 pre-defined formation options (4-4-2, 4-3-3, 4-2-3-1, 4-5-1, 4-1-4-1, 4-3-2-1, 4-4-1-1, 3-4-3, 3-5-2, 3-4-2-1, 5-3-2, 5-4-1, 5-2-3, 4-2-4) plus a "Sin formación" empty option.
 2. **Given** a formation is selected and saved, **When** the game is persisted, **Then** the formation string is stored on the game record.
 3. **Given** an Admin changes the lineup after players have already signed up, **When** the Game Sign Up Page is refreshed, **Then** the field re-renders with players repositioned according to the new formation.
 4. **Given** no lineup is set, **When** the Game Sign Up Page loads, **Then** the field visualization is hidden and only the player table is shown.
@@ -104,8 +105,8 @@ The Game Sign Up Page renders a full-size soccer field (SVG or Canvas) on the le
 
 **Acceptance Scenarios**:
 
-1. **Given** a game with a lineup set and 11+ confirmed attendees, **When** the Game Sign Up Page renders, **Then** an SVG or Canvas soccer field occupies 8 of 12 grid columns and displays exactly 11 filled player circles, each showing the player's jersey number, positioned according to the formation.
-2. **Given** fewer than 11 registered players are confirmed, **When** the field renders, **Then** guest players (as black circles labelled "Inv.") fill the next available slots in signup order; remaining unfilled slots display an empty "TBD" circle.
+1. **Given** a game with a lineup set and 11+ confirmed attendees, **When** the Game Sign Up Page renders, **Then** an SVG or Canvas soccer field occupies 8 of 12 grid columns and displays exactly 11 filled player circles, each showing the player's jersey number (or initials, e.g., `JG`, if jersey number is null), positioned according to the formation.
+2. **Given** fewer than 11 registered players are confirmed, **When** the field renders, **Then** guest players (as black circles labelled `I{n}` where n is their 1-based index, e.g., `I1`, `I2`) fill the next available slots in signup order; remaining unfilled slots display an empty "TBD" circle.
 3. **Given** a player's stored position matches a formation slot, **When** the field renders, **Then** that player is placed in the best-matching slot; where multiple players match the same slot type, the best fit by position hierarchy is chosen deterministically.
 4. **Given** the page is viewed on a screen narrower than 768 px, **When** the layout renders, **Then** the field and table stack vertically (field full-width on top, table below) with no horizontal overflow.
 5. **Given** the right-hand player table (4 of 12 columns on desktop), **When** it renders, **Then** it lists each confirmed attendee with jersey number, position abbreviation, and full name; guests appear at the bottom with an "Inv." prefix and no jersey number.
@@ -121,39 +122,44 @@ The Game Sign Up Page renders a full-size soccer field (SVG or Canvas) on the le
 - More than 11 confirmed attendees: only the first 11 (registered by confirmation time, then guests by signup time) appear on the field; all appear in the adjacent player table.
 - No registered players at all: first 11 guests fill all field slots in signup order.
 - Multiple players tied for the same formation slot (identical position): placement is deterministic — ordered by confirmation timestamp ascending.
+- A registered player with `position = null`: placed in the next available field slot in ascending confirmation timestamp order after all position-matched players have been assigned.
+- Guest batch capacity conflict: if a player submits multiple guests but insufficient capacity remains for all, guests are accepted in submission order (first-write-wins) until capacity is reached; remaining guests in the same request are rejected with a capacity-exceeded error. The player's own signup is never rejected for this reason.
+- Player self-withdrawal from a game is out of scope for this release; only Admin and Editor users can remove a player or guest from a game (FR-014).
 
 ## Requirements _(mandatory)_
 
 ### Functional Requirements
 
 - **FR-001**: System MUST add `maxPlayers` (nullable integer) to the `Game` entity; when null, capacity is unlimited.
-- **FR-002**: System MUST add a unique URL slug to each game (derived from date + opponent); old `/games/{GUID}` URLs MUST return HTTP 301 to `/games/{slug}`.
+- **FR-002**: System MUST add a unique URL slug to each game derived from `{YYYY-MM-DD}-{opponentName}`; slugs MUST be normalized to lowercase, accented characters transliterated to ASCII equivalents (e.g., `é→e`, `ñ→n`), spaces and non-alphanumeric characters replaced by hyphens, and consecutive hyphens collapsed to a single hyphen. Old `/games/{GUID}` URLs MUST return HTTP 301 to `/games/{slug}`. The frontend game detail route MUST be updated to `/games/[slug]`, replacing the existing `/games/[id]` route.
 - **FR-003**: Admin, Editor and DT users MUST be able to view and copy the signup link from the game admin page.
-- **FR-004**: System MUST provide a signup endpoint (authenticated, player-role only) that records a `GameSignup` entry.
+- **FR-004**: System MUST provide a signup endpoint (authenticated, player-role only) that creates a `GameParticipant` record with `confirmationStatus: CONFIRMED`; `GameSignup` used elsewhere in this spec is a conceptual alias for this model — no new DB table is required.
 - **FR-005**: System MUST prevent duplicate signups — a player MUST NOT be registered for the same game more than once.
 - **FR-006**: System MUST reject signups when total attendee count (registered players + guests) ≥ `maxPlayers`; guests count as full capacity slots.
 - **FR-007**: Unauthenticated users visiting the signup URL MUST be redirected to login with a `redirect` param pointing back to the signup URL.
 - **FR-008**: Authenticated non-player users (Admin/Editor/DT) MUST see the Game Sign Up Page in read-only mode with the full roster including guest full names visible; they MUST NOT be able to sign up.
-- **FR-009**: A signed-up player MUST be able to add any number of guest players; each guest MUST store a reference to the inviting player.
+- **FR-009**: Player signup and guest additions MUST be submitted as a single atomic request; upon successful confirmation the player's `GameParticipant` record and all submitted guest `Player` records are created simultaneously. Each guest MUST store a reference to the inviting player. If confirming all guests would exceed `maxPlayers`, guests are accepted in submission order until capacity is reached; remaining guests in the same request are rejected with a capacity-exceeded error without rolling back the player's own signup.
 - **FR-010**: Guest players MUST have an `isGuest: true` flag and a `invitedBy` FK to the registering player; they MUST appear in `/admin/players` with an "Invitado" badge.
 - **FR-011**: Guest players MUST NOT appear in the public player roster (homepage or general roster pages).
 - **FR-012**: On game detail pages (public and admin roster views), guests MUST appear as "Invitado por {Player Name}" without revealing the guest's name, listed after all registered players with a visual separator. On the Game Sign Up Page, the inviting player MUST see the guest's full name in their own guest list; Admin/Editor/DT in read-only mode MUST also see guest full names.
-- **FR-013**: Guest players MUST default to active status. Admins and Editors MUST be able to set a guest's status to inactive (prospective: existing game rosters are unaffected) AND explicitly remove a guest or registered player from a specific game. DT users MUST be able to set a guest's status to inactive (prospective only) but MUST NOT be able to remove players or guests from games.
-- **FR-015**: When a player or guest is explicitly removed from a game by an Admin or Editor, they MUST be removed from that game's roster immediately without affecting their overall player record or other games.
+- **FR-013a**: Guest players MUST default to active status. Admins and Editors MUST be able to set a guest's status to inactive (prospective effect only: existing game rosters are unaffected). DT users MUST also be able to set a guest's status to inactive (prospective only).
+- **FR-013b**: Admins and Editors MUST be able to explicitly remove any guest or registered player from a specific game. DT users MUST NOT be able to remove players or guests from games.
+- **FR-014**: When a player or guest is explicitly removed from a game by an Admin or Editor, they MUST be removed from that game's roster immediately without affecting their overall player record or other games; their removal MUST decrement the confirmed attendee count, re-opening that capacity slot for new signups.
+- **FR-015**: The Game Sign Up Page (`/games/{date}/{opponent}/signup`) MUST include `<meta name="robots" content="noindex,nofollow">` in its `<head>` and MUST NOT appear in any auto-generated sitemap; its URL pattern MUST be disallowed in `robots.txt`.
 - **FR-016**: The `Game` entity MUST include an optional `lineup` field (nullable string, formation code); when null, no formation is set and the field visualization is hidden.
-- **FR-017**: The admin game edit page MUST include a "Formación" `<select>` pre-filled with the following 14 formations: `4-4-2`, `4-3-3`, `4-2-3-1`, `4-5-1`, `4-1-4-1`, `4-3-2-1`, `4-4-1-1`, `3-4-3`, `3-5-2`, `3-4-2-1`, `5-3-2`, `5-4-1`, `5-2-3`, `4-2-4`; plus a blank "Sin formación" option (value: null).
-- **FR-018**: When a lineup is set, the Game Sign Up Page MUST render a soccer field using SVG or Canvas occupying 8 of 12 grid columns, with 11 position slot circles laid out according to the selected formation; each circle displays the player's jersey number as a black filled circle.
-- **FR-019**: Confirmed registered players MUST be assigned to the field slots whose position type best matches their stored `position` field. Guest players MUST fill any remaining empty slots in order of signup time. Unoccupied slots MUST display as empty "TBD" circles.
+- **FR-017**: The admin game edit page MUST include a "Formación" `<select>` pre-filled with the following 14 formations: `4-4-2`, `4-3-3`, `4-2-3-1`, `4-5-1`, `4-1-4-1`, `4-3-2-1`, `4-4-1-1`, `3-4-3`, `3-5-2`, `3-4-2-1`, `5-3-2`, `5-4-1`, `5-2-3`, `4-2-4`; plus a blank "Sin formación" option (value: null). DT users MUST be permitted to set and modify the `lineup` field via the game PATCH endpoint (adds `lineup` to the DT-allowed field whitelist).
+- **FR-018**: When a lineup is set, the Game Sign Up Page MUST render a soccer field using SVG or Canvas occupying 8 of 12 grid columns, visible to all authenticated visitors regardless of whether they have confirmed attendance. The field displays 11 position slot circles according to the selected formation; circles for registered players show their jersey number, or initials (e.g., `JG`) if jersey number is null; guest circles show `I{n}` (1-based index, e.g., `I1`, `I2`); empty slots show `TBD`.
+- **FR-019**: Confirmed registered players MUST be assigned to the field slots whose position type best matches their stored `position` field. Players with `position = null` are assigned to remaining slots in ascending confirmation timestamp order after all position-matched players. Guest players MUST fill any remaining empty slots in order of signup time. Unoccupied slots MUST display as empty "TBD" circles.
 - **FR-020**: When more than 11 attendees are confirmed, only the first 11 (registered players by confirmation time first, then guests by signup time) are placed on the field; all confirmed attendees appear in the adjacent player table regardless of whether they are on the field.
 - **FR-021**: On desktop (≥768 px), the player table MUST occupy 4 of 12 grid columns alongside the field. Each row shows: jersey number, position abbreviation, full name. Guest rows appear at the bottom, prefixed with "Inv." and no jersey number. On mobile, field and table stack vertically.
-- **FR-022**: When no lineup is set for a game, the Game Sign Up Page MUST NOT render the field visualization; only the player table is displayed.
-- **FR-023**: Formation-to-slot mapping MUST be defined as a static client-side lookup (no server computation required); hovering (desktop) or tapping (mobile) a player circle on the field MUST display the player's full name.
-- **FR-014**: The Game Sign Up Page (`/games/{date}/{opponent}/signup`) MUST include `<meta name="robots" content="noindex,nofollow">` in its `<head>` and MUST NOT appear in any auto-generated sitemap; its URL pattern MUST be disallowed in `robots.txt`.
+- **FR-022**: When no lineup is set for a game, the Game Sign Up Page MUST NOT render the field visualization; only the player table is displayed. The public game detail page (`/games/{slug}`) MUST NOT display the field visualization regardless of whether a lineup is set.
+- **FR-023**: Formation-to-slot mapping MUST be defined as a static client-side lookup (no server computation required). Hovering (desktop) or tapping (mobile) a player circle on the field MUST highlight the corresponding row in the right-side player table; no tooltip is shown on the field itself. The highlight MUST clear when the pointer leaves the circle (desktop) or when another circle is tapped (mobile).
+- **FR-024**: The signup endpoint MUST return HTTP 422 and reject all signup and guest-creation attempts when `game.status` is not `SCHEDULED`.
 
 ### Key Entities
 
-- **GameSignup**: Joins a `Player` to a `Game`; stores `signedUpAt`, plus reference to both.
-- **GuestPlayer**: Lightweight player record with `firstName`, `lastName`, `isGuest: true`, `invitedBy` (Player FK), `status` (active/inactive). No user account, no login credentials.
+- **GameSignup** (semantic alias for `GameParticipant`): No new DB table. A confirmed signup is a `GameParticipant` record with `confirmationStatus: CONFIRMED`. The existing `GameParticipant` model (fields: `gameId`, `playerId`, `confirmationStatus`, `confirmedAt`, per-game stats) is reused.
+- **GuestPlayer** (semantic alias for `Player` with `playerType: GUEST`): No new DB table. Guest players are standard `Player` records with `playerType: GUEST` and an `invitedById` FK. They have no login credentials.
 - **Game** (extended): Gains `maxPlayers` (nullable int), `slug` (unique string), and `lineup` (nullable string — one of the 14 pre-defined formation codes).
 
 ## Success Criteria _(mandatory)_
@@ -187,3 +193,22 @@ The Game Sign Up Page renders a full-size soccer field (SVG or Canvas) on the le
 - Q: When a guest is marked inactive, does it retroactively hide them from existing rosters? → A: No — inactive status is prospective only (Option B). Admin and Editor can additionally *remove* a guest or registered player from a specific game (immediate roster removal). DT can mark guests inactive (prospective) but cannot remove players/guests from games.
 - Q: Is the guest's full name visible on the Game Sign Up Page to the player who added them? → A: Yes — the inviting player sees the guest's full name on the Game Sign Up Page; the name is hidden (shown as "Invitado por {Player Name}") on all public and admin roster pages.
 - Q: What does an authenticated non-player (Admin/Editor/DT) see on the Game Sign Up Page? → A: A privileged read-only view with the full roster including guest full names visible, consistent with their admin-level access; they cannot sign up.
+
+### Analysis Pass 2026-04-09
+
+- C1 (GameSignup vs GameParticipant): `GameSignup` is a conceptual alias for `GameParticipant`; no new table. FR-004 and Key Entities updated accordingly.
+- C2 (null position field placement): Players with `position = null` fill remaining field slots in ascending confirmation timestamp order after all position-matched players.
+- C3 (guest batch capacity atomicity): First-write-wins per guest in submission order; the player's own signup is never rejected for capacity reasons.
+- H1 (null jersey number on field): Registered player circles display initials (e.g., `JG`) when `jerseyNumber` is null; guest circles display `I{n}` (1-based index).
+- H2 (player self-withdrawal scope): Out of scope for this release. Only Admin/Editor can remove a player from a game (FR-014).
+- H3 (guest add timing): One atomic form submission — player confirms attendance and adds guests simultaneously in a single API request.
+- H4 (slug normalization): Lowercase; accented chars transliterated to ASCII; spaces and non-alphanumeric chars → hyphens; consecutive hyphens collapsed.
+- H5 (game status gate): Signup endpoint MUST reject (HTTP 422) when `game.status ≠ SCHEDULED`. Added as FR-024.
+- H6 (hover/tap behavior): Hovering or tapping a field circle highlights the corresponding player row in the right-side table. No tooltip on the field itself.
+- H7 (when field shows): Field is shown to all authenticated visitors as long as a lineup is set, regardless of whether they have confirmed attendance.
+- M1 (DT lineup whitelist): DT users can set/modify `lineup` via PATCH; added to the DT-allowed field whitelist in FR-017. US-5 AC-1 updated to include DT.
+- M2 (public game detail page route): Route is `/games/{slug}`. Lineup field visualization is exclusive to the Game Sign Up Page; not shown on the public game detail page (FR-022). US-4 AC-4 added.
+- M3 (capacity re-opens on removal): Removal by Admin/Editor decrements the confirmed attendee count, re-opening that capacity slot (FR-014).
+- M4 (FR-013 split): Separated into FR-013a (status management) and FR-013b (remove-from-game privilege) for independent testability.
+- L1 (FR numbering): Renumbered to sequential order: FR-014 (remove-from-game, with M3), FR-015 (SEO noindex).
+- L2 (wording drift): `public pages` replaced by `game detail pages and general roster pages` in US-3 AC-2.
