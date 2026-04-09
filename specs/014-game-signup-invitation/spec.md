@@ -22,6 +22,8 @@ An Admin, Editor or DT user opens a game in the admin panel, sets a maximum play
 3. **Given** a game exists, **When** the admin views the game detail page, **Then** a "Copiar link de convocatoria" button is visible that copies `games/{date}/{opponent}/signup`.
 4. **Given** the old URL `/games/{GUID}` is accessed, **When** a browser or crawler follows it, **Then** a permanent redirect (301) leads to `/games/{date}/{opponent}`.
 5. **Given** a search engine crawler visits the signup URL, **When** the Game Sign Up Page is rendered, **Then** a `<meta name="robots" content="noindex,nofollow">` tag is present in the `<head>` and the URL is excluded from any auto-generated sitemap.
+6. **Given** a game row in `/admin/games` has `status = SCHEDULED` and `signedUpCount < maxPlayers` (or `maxPlayers` is null), **When** an Admin, Editor, or DT user views the table, **Then** a share-signup link for `{baseUrl}/games/{slug}/signup` is displayed in that row; clicking it copies the URL to clipboard AND triggers the native share dialog on supporting devices.
+7. **Given** a game row in `/admin/games` has `status = COMPLETED`, **When** an Admin, Editor, or DT user views the table, **Then** a share-detail link for `{baseUrl}/games/{slug}` is displayed in that row; clicking it copies the URL to clipboard AND triggers the native share dialog on supporting devices.
 
 ---
 
@@ -78,6 +80,8 @@ The public game detail page is served at the SEO-friendly URL and shows the rost
 2. **Given** the public homepage, **When** the schedule renders, **Then** game links use the `games/{date}/{opponent}` format.
 3. **Given** the public player roster page, **When** it renders, **Then** guest players do NOT appear in the general roster listing.
 4. **Given** a game with a lineup set, **When** an anonymous user visits the public game detail page at `/games/{slug}`, **Then** the lineup field visualization is NOT displayed; the page shows only game info and the player roster table.
+5. **Given** the public homepage renders the "next games" section, **When** games are fetched, **Then** only games with `status = SCHEDULED` appear; all other statuses are excluded.
+6. **Given** the public homepage renders the "past games" section, **When** games are fetched, **Then** only games with `status = COMPLETED` appear; games with `status = CANCELLED` or `status = IN_PROGRESS` are not shown in any homepage section.
 
 ---
 
@@ -116,6 +120,24 @@ The Game Sign Up Page renders a full-size soccer field (SVG or Canvas) on the le
 
 ---
 
+### User Story 7 — Game Status Auto-Transition to COMPLETED (Priority: P1)
+
+The system automatically transitions any game from `SCHEDULED` to `COMPLETED` one day after its scheduled date, preventing further signups and moving the game to the "past games" section of the public homepage.
+
+**Why this priority**: Ensures system state accurately reflects past games without manual admin intervention and gates all time-sensitive behaviors — signup eligibility, homepage display, and admin share links.
+
+**Independent Test**: Create a game with `date = now − 25 hours` and `status = SCHEDULED`; run the scheduled transition job; verify `game.status = COMPLETED`, the Game Sign Up Page returns 422, and the game appears in the "past games" homepage section.
+
+**Acceptance Scenarios**:
+
+1. **Given** a game with `status = SCHEDULED` and `date < now − 24 hours`, **When** the scheduled transition job runs, **Then** `game.status` is updated to `COMPLETED`.
+2. **Given** a game with `status = SCHEDULED` and `date >= now − 24 hours`, **When** the scheduled transition job runs, **Then** the game's status is NOT changed.
+3. **Given** a game has transitioned to `COMPLETED`, **When** any user attempts to sign up via the Game Sign Up Page, **Then** the signup endpoint returns HTTP 422 with the message "El juego ya no está disponible para inscripciones".
+4. **Given** a game has transitioned to `COMPLETED`, **When** an Admin, Editor, or DT user views the game in the admin panel, **Then** they can see all game details and the full list of signed-up players in read-only mode.
+5. **Given** a game has `status = COMPLETED`, **When** an ADMIN user edits the game, **Then** they can still modify the `lineup` field and add participants via admin override; Editor and DT users attempting to modify lineup or add participants for a COMPLETED game receive HTTP 403.
+
+---
+
 ### Edge Cases
 
 - Two games with the same date and opponent: the slug auto-appends an incrementing numeric suffix (e.g., `2026-04-09-atletico-2`) to remain unique; uniqueness is enforced at the database level. The numeric suffix has no enforced upper bound in this release; duplicate games on the same date and opponent are considered highly unlikely in practice.
@@ -129,6 +151,9 @@ The Game Sign Up Page renders a full-size soccer field (SVG or Canvas) on the le
 - A registered player with `position = null`: placed in the next available field slot in ascending confirmation timestamp order after all position-matched players have been assigned.
 - Capacity conflict during individual registration: each confirm action (self, guest, or proxy) is fully independent; capacity is checked at the time of each confirm. If capacity is full when confirm is clicked, that single action fails with a capacity-exceeded message; all previously confirmed registrations are unaffected.
 - Concurrent signups for the last slot: capacity enforcement MUST be atomic at the database level (unique constraint + transaction); when two or more requests race for the last available slot, exactly one succeeds and the others receive HTTP 422 with a capacity-exceeded message; no partial state is persisted.
+- Game date passes but the scheduled job has not yet run: the game remains `SCHEDULED` until the next job execution; in the interim, the existing date-past check in `ParticipationService` still blocks signups as a secondary guard until the cron fires.
+- `maxPlayers` is null and game is `SCHEDULED`: the share-signup-link (FR-027) MUST still appear in `/admin/games` since there is no capacity ceiling — the game is always open for more signups.
+- Admin has the game edit form open when the cron transitions status to `COMPLETED`: on form submit, the PATCH endpoint checks the current `game.status` and returns HTTP 403 to non-ADMIN users; ADMIN continues to save normally.
 - Player self-withdrawal from a game is out of scope for this release; only Admin and Editor users can remove a player or guest from a game (FR-014).
 
 ## Requirements _(mandatory)_
@@ -152,7 +177,7 @@ The Game Sign Up Page renders a full-size soccer field (SVG or Canvas) on the le
 - **FR-014**: When a player or guest is explicitly removed from a game by an Admin or Editor, they MUST be removed from that game's roster immediately without affecting their overall player record or other games; their removal MUST decrement the confirmed attendee count, re-opening that capacity slot for new signups.
 - **FR-015**: The Game Sign Up Page (`/games/{date}/{opponent}/signup`) MUST include `<meta name="robots" content="noindex,nofollow">` in its `<head>` and MUST NOT appear in any auto-generated sitemap; `robots.txt` MUST include `Disallow: /games/*/signup` to disallow all signup URLs regardless of game slug.
 - **FR-016**: The `Game` entity MUST include an optional `lineup` field (nullable string, formation code); when null, no formation is set and the field visualization is hidden.
-- **FR-017**: The admin game edit page MUST include a "Formación" `<select>` pre-filled with the following 14 formations: `4-4-2`, `4-3-3`, `4-2-3-1`, `4-5-1`, `4-1-4-1`, `4-3-2-1`, `4-4-1-1`, `3-4-3`, `3-5-2`, `3-4-2-1`, `5-3-2`, `5-4-1`, `5-2-3`, `4-2-4`; plus a blank "Sin formación" option (value: null). DT users MUST be permitted to set and modify the `lineup` field via the game PATCH endpoint (adds `lineup` to the DT-allowed field whitelist).
+- **FR-017**: The admin game edit page MUST include a "Formación" `<select>` pre-filled with the following 14 formations: `4-4-2`, `4-3-3`, `4-2-3-1`, `4-5-1`, `4-1-4-1`, `4-3-2-1`, `4-4-1-1`, `3-4-3`, `3-5-2`, `3-4-2-1`, `5-3-2`, `5-4-1`, `5-2-3`, `4-2-4`; plus a blank "Sin formación" option (value: null). For games with `status = SCHEDULED`, DT users MUST be permitted to set and modify the `lineup` field via the game PATCH endpoint (adds `lineup` to the DT-allowed field whitelist). For games with `status = COMPLETED`, ONLY ADMIN users MAY modify the `lineup` field or add new participants; any attempt by Editor or DT to modify lineup or add participants to a COMPLETED game MUST be rejected with HTTP 403.
 - **FR-018**: When a lineup is set, the Game Sign Up Page MUST render a soccer field using SVG or Canvas occupying 8 of 12 grid columns, visible to all authenticated visitors regardless of whether they have confirmed attendance. The field displays 11 position slot circles according to the selected formation; circles for registered players show their jersey number, or initials (e.g., `JG`) if jersey number is null; guest circles show `I{n}` (1-based index, e.g., `I1`, `I2`); empty slots show `TBD`.
 - **FR-019**: Confirmed registered players MUST be assigned to the field slots whose position type best matches their stored `position` field. Players with `position = null` are assigned to remaining slots in ascending confirmation timestamp order after all position-matched players. Guest players MUST fill any remaining empty slots in order of signup time. Unoccupied slots MUST display as empty "TBD" circles.
 - **FR-020**: When more than 11 attendees are confirmed, field slot assignment prioritizes: (1) registered players by confirmation timestamp, then (2) guests by signup timestamp; only the first 11 by this priority order are placed on the field. All confirmed attendees appear in the adjacent player table in registration timestamp order, regardless of player type or whether they are placed on the field.
@@ -161,6 +186,10 @@ The Game Sign Up Page renders a full-size soccer field (SVG or Canvas) on the le
 - **FR-023**: Formation-to-slot mapping MUST be defined as a static client-side lookup (no server computation required). Hovering (desktop) or tapping (mobile) a player circle on the field MUST highlight the corresponding row in the right-side player table; no tooltip is shown on the field itself. The highlight MUST clear when the pointer leaves the circle (desktop) or when another circle is tapped (mobile).
 - **FR-024**: The signup endpoint MUST return HTTP 422 and reject all signup and guest-creation attempts when `game.status` is not `SCHEDULED`. The 422 response body MUST include an explanatory message (e.g., "El juego ya no está disponible para inscripciones"). Upon receiving this 422, the frontend MUST display the message inline and disable the confirm button without requiring a page refresh.
 - **FR-025**: A signed-up player MUST be able to register another existing active `REGISTERED` player who is not yet confirmed for the game by selecting them from the `DropdownAddMore` (filtered to show only players where `playerType = REGISTERED`, `status = ACTIVE`, and `confirmationStatus ≠ CONFIRMED` for this specific game) and clicking the confirm button. If two players concurrently attempt to proxy-register the same target player, the second request MUST return HTTP 409 with the message "Este jugador ya fue registrado. Refresca el navegador para visualizar los cambios". The resulting `GameParticipant` record MUST set `confirmedById` to the inviting player's ID. The proxy-registered player appears in the player table with "Agregado por: {Inviting Player Name}" displayed below their name in a smaller font size.
+- **FR-026**: The system MUST include a scheduled job that runs at least once daily and sets `game.status` to `COMPLETED` for every game where `status = SCHEDULED` AND `date < NOW − 24 hours`. The job MUST be idempotent and MUST NOT affect games in `COMPLETED`, `IN_PROGRESS`, or `CANCELLED` status.
+- **FR-027**: The `/admin/games` table MUST render a shareable signup link for each row where `game.status = SCHEDULED` AND (`signedUpCount < maxPlayers` OR `maxPlayers IS NULL`). The link URL MUST be `{baseUrl}/games/{slug}/signup`. Clicking it MUST copy the URL to the clipboard AND invoke `navigator.share` on devices that support the Web Share API; on unsupported devices, clipboard copy alone is acceptable with a confirmation toast.
+- **FR-028**: The `/admin/games` table MUST render a shareable game detail link for each row where `game.status = COMPLETED`. The link URL MUST be `{baseUrl}/games/{slug}`. Clicking it MUST copy the URL to the clipboard AND invoke `navigator.share` on supporting devices.
+- **FR-029**: The public homepage game sections MUST be filtered strictly by status: the "next games" section MUST show ONLY `status = SCHEDULED` games; the "past games" section MUST show ONLY `status = COMPLETED` games; games with `status = CANCELLED` or `status = IN_PROGRESS` MUST NOT appear in any homepage section.
 
 ### Key Entities
 
@@ -239,3 +268,12 @@ The Game Sign Up Page renders a full-size soccer field (SVG or Canvas) on the le
 - L1 (slug suffix bound): Numeric dedup suffix has no upper bound in this release. Added note to Edge Cases.
 - L2 (game.status enum): Valid values are `SCHEDULED` and `COMPLETED`; this spec gates on `SCHEDULED` only. Added to Assumptions.
 - L3 (dual-role user): Users with `PLAYER` role can sign up regardless of any additional admin roles held. Added to Assumptions.
+
+### Extension Pass 2026-04-09
+
+- E1 (auto-transition timing): "1 day after game date" means `game.date + 24h` has passed at job execution time. A daily cron is sufficient — the job does not need to fire exactly at `game.date + 24h`. `IN_PROGRESS` and `CANCELLED` statuses are untouched. Added as FR-026; US-7 added.
+- E2 (COMPLETED lineup restriction): When `game.status = COMPLETED`, only ADMIN may modify `lineup` or add participants. DT and Editor are read-only for COMPLETED games. Updated FR-017; added to US-7 AC-5.
+- E3 (admin/games table share links): SCHEDULED + under capacity → show signup link with clipboard + native share (`navigator.share`). COMPLETED → show game detail link with clipboard + native share. Added as FR-027, FR-028; US-1 ACs 6–7 added.
+- E4 (homepage status filtering): Next games = SCHEDULED only; past games = COMPLETED only; CANCELLED and IN‑PROGRESS excluded from all homepage sections. Added as FR-029; US-4 ACs 5–6 added.
+- E5 (share link when maxPlayers is null): No capacity ceiling → share-signup-link always visible when `status = SCHEDULED` and `maxPlayers IS NULL`. Clarified in FR-027 and Edge Cases.
+- E6 (IN_PROGRESS on homepage): Games with `status = IN_PROGRESS` are excluded from the public homepage (neither upcoming nor past). Covered by FR-029.
