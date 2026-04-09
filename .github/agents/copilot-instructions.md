@@ -1,8 +1,10 @@
 # ministrosfc Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-08
+Auto-generated from all feature plans. Last updated: 2026-04-09
 
 ## Active Technologies
+- TypeScript 5.x stric + Nuxt 3 (SSR), Express 4, Prisma 5 (PostgreSQL), Pinia 2, Zod (chore/014-game-signup-invitation)
+- PostgreSQL via Prisma (chore/014-game-signup-invitation)
 
 - TypeScript (Node 18+, Nuxt 4/Vue 3) + Express, Prisma, Zod, google-auth-library, Pinia (009-user-registration)
 - TypeScript 5.x, Vue 3 (Nuxt 3 app, ESM) + Nuxt, Vue, Tailwind CSS, Pinia, Vitest, @vue/test-utils (012-dropdown-add-more)
@@ -115,10 +117,10 @@ npx prisma studio                  # Open Prisma Studio GUI
 - **Guest Players**: playerType=GUEST, linked to inviting player via invitedById
 
 ## Recent Changes
+- chore/014-game-signup-invitation: Added TypeScript 5.x stric + Nuxt 3 (SSR), Express 4, Prisma 5 (PostgreSQL), Pinia 2, Zod
+- chore/014-game-signup-invitation: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 
 - chore/013-dropdown-add-more: `vue-select@beta` (v4.x) added as dropdown engine in `packages/frontend`; `DropdownAddMore.vue` wraps it with `list-footer` slot for inline creation; CSS imported globally in `nuxt.config.ts`
-- chore/012-playground-entity: Added TypeScript 5, Node.js 20 (CMS), Vue 3 / Nuxt 4 (frontend) + Express 4 (CMS router), `$fetch` / Vitest (frontend), Nominatim public API (address data)
-- 012-playground-entity: Added TypeScript (Node 18+ LTS, Nuxt 4 / Vue 3) + Express + Prisma (CMS), Nuxt 4 + Pinia (frontend), Zod (request validation), `@ministrosfc/shared` (type contracts)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
