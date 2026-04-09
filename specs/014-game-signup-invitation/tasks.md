@@ -73,11 +73,11 @@
 
 ---
 
-## Phase 5: User Story 2 + User Story 3 — Player Signup Flow (Priority: P1)
+## Phase 5: User Story 2 — Player Signs Up via the Link (Priority: P1)
 
-**Goal**: Authenticated players can sign up (self, guest, proxy) via the Game Sign Up Page at `/games/{slug}/signup`; each confirm action is atomic with capacity and duplicate enforcement.
+**Goal**: Authenticated players can confirm their attendance via the signup-page API; capacity and duplicate constraints are enforced atomically; admins can remove participants.
 
-**Independent Test**: Visit signup URL as authenticated player → see DropdownAddMore pre-filled with own name → click confirm → verify self appears in roster. Then add a guest (firstName + lastName) → verify inline with "Invitado por {name}". Then proxy-register another active player → verify "Agregado por: {name}" attribution. Attempt signup on full-capacity game → see "El cupo está completo".
+**Independent Test**: Call `GET /api/v1/games/:gameId/signup-page` → receive `GameSignupPageDTO`. POST `signup` as authenticated player → 201 with `RosterEntry`. POST again (duplicate) → 409 `SIGNUP_DUPLICATE`. Sign up to full-capacity game → 422 `GAME_CAPACITY_EXCEEDED`. Proxy-register another player → 201 with `confirmedById` set.
 
 ### Implementation
 
@@ -85,17 +85,30 @@
 - [ ] T019 [US2] Implement `ParticipationService.signupParticipant(gameId, requestingUserId, dto: SignupRequestDTO)` in `packages/cms/src/services/ParticipationService.ts` — inside `prisma.$transaction`: (1) verify `game.status = SCHEDULED` → else throw `GAME_NOT_SCHEDULED`; (2) count confirmed participants vs `maxPlayers` → else throw `GAME_CAPACITY_EXCEEDED`; (3) dispatch by `dto.mode`: self → create/upsert `GameParticipant`; guest → create `Player(GUEST, invitedById, position: dto.position ?? null)` + `GameParticipant`; proxy → verify target is REGISTERED+ACTIVE, create `GameParticipant(confirmedById=requestingUser)`; returns normalized `RosterEntry`
 - [ ] T020 [US2] Create `POST /api/v1/games/:gameId/participants/signup` in `packages/cms/src/routes/participants.ts` — validate `SignupRequestDTO` body with Zod (tagged union), require PLAYER role; call `ParticipationService.signupParticipant`; return 201 with `{ entry: RosterEntry, confirmedCount, isFull }`; map Prisma P2002 in a **mode-aware** way: `mode = 'proxy'` → HTTP 409 `PROXY_CONFLICT`; `mode = 'self' | 'guest'` → HTTP 409 `SIGNUP_DUPLICATE`; map `GAME_CAPACITY_EXCEEDED` / `GAME_NOT_SCHEDULED` → HTTP 422 with error message
 - [ ] T021 [P] [US2] Implement `ParticipationService.removeParticipant(gameId, participantId, requestingUserId, role)` in `packages/cms/src/services/ParticipationService.ts` + register `DELETE /api/v1/games/:gameId/participants/:participantId` in `packages/cms/src/routes/participants.ts` — enforce FR-013b: Admin+Editor allowed on SCHEDULED; ADMIN-only on IN_PROGRESS/COMPLETED; DT always 403; hard-delete `GameParticipant` record (decrements capacity); **reuse the status-guard middleware/helper introduced in T017** rather than re-implementing a separate guard; depends on T017
+
+**Checkpoint**: US-2 complete — backend signup API (self/guest/proxy) and remove-participant endpoint are fully functional with capacity and duplicate guards
+
+---
+
+## Phase 6: User Story 3 — DropdownAddMore Trimodal Signup (Priority: P1)
+
+**Goal**: Game Sign Up Page at `/games/{slug}/signup` renders the trimodal `DropdownAddMore` for self, guest (with optional position + × dismiss), and proxy signup; each confirm triggers an independent atomic request; page updates reactively.
+
+**Independent Test**: As signed-in unconfirmed player, visit Game Sign Up Page: (1) click confirm on pre-filled self-signup row → row appears in roster; (2) select "Agregar invitado", type name, (optionally) select position, confirm → guest row with "Inv." prefix and position abbreviation appears; (3) click "Agregar invitado" then × → `DropdownAddMore` returns to default state, no record created; (4) proxy-register another active player → row appears with "Agregado por" label. Verify all steps complete without page refresh.
+
+### Implementation
+
 - [ ] T022 [P] [US3] Create `packages/frontend/src/pages/games/[slug]/signup.vue` — Game Sign Up Page skeleton: route `/games/[slug]/signup`, apply `auth` middleware (redirect to `/login?redirect=...` if unauthenticated), **`useHead` MUST include `<meta name="robots" content="noindex,nofollow">`** (non-optional, FR-015); page layout with game header (rival, date, playground, `confirmedCount` / `maxPlayers`)
 - [ ] T023 [P] [US3] Create `packages/frontend/src/composables/useGameSignup.ts` — reactive state: `game`, `roster`, `confirmedCount`, `isFull`, `currentPlayerStatus`, `error`; methods: `signupSelf()`, `signupGuest(firstName, lastName, position?: string | null)`, `signupProxy(targetPlayerId)`; on each success update `roster` and counts from server response without page refresh; handle 422 (set `error` message, disable confirm button); handle 409 (set conflict message)
 - [ ] T024 [US3] Implement trimodal `DropdownAddMore` integration in `signup.vue` player table (depends on T022, T023) — self mode: pre-fill own player name when `currentPlayerStatus = not_signed_up`; guest mode: show "Agregar invitado" option → firstName + lastName inputs **+ optional position `<select>` (all `Position` enum values plus "Sin posición" blank option) + an × dismiss button that clears the form and restores the `DropdownAddMore` to its default dropdown state without submitting**; proxy mode: searchable dropdown filtered to `playerType = REGISTERED`, `status = ACTIVE`, not confirmed for this game; each row has an adjacent confirm button wired to the appropriate `useGameSignup` method
 - [ ] T025 [US3] Implement capacity-full UI state in `signup.vue` (depends on T024) — when `isFull` is true on load or becomes true after a signup, replace the `DropdownAddMore` row with "El cupo está completo" message immediately; no additional request needed
 - [ ] T026 [US3] Render player table in `signup.vue` (depends on T022) — list all confirmed attendees in `confirmedAt ASC` order (registered and guests intermixed); registered players: jersey number + position abbreviation + full name; guests inline at signup position: "Inv." prefix + **position abbreviation (or "—" if none)** + "Invitado por {Player Name}" (guest's own name visible to inviting player and admin/editor/dt in read-only view); proxy-registered players: "Agregado por: {Inviting Player Name}" in smaller font below name
 
-**Checkpoint**: US-2 + US-3 complete — full trimodal signup flow works end-to-end; capacity and duplicate enforcement verified
+**Checkpoint**: US-3 complete — full trimodal signup flow works end-to-end on the frontend; guest form dismiss and position assignment verified
 
 ---
 
-## Phase 6: User Story 4 — Updated Public Game Detail Page (Priority: P2)
+## Phase 7: User Story 4 — Updated Public Game Detail Page (Priority: P2)
 
 **Goal**: Public game routes use slug URLs; UUID URLs 301-redirect; homepage filters by status; public roster hides guest last names.
 
@@ -113,7 +126,7 @@
 
 ---
 
-## Phase 7: User Story 5 — Admin Sets Game Lineup (Priority: P2)
+## Phase 8: User Story 5 — Admin Sets Game Lineup (Priority: P2)
 
 **Goal**: Admin/Editor/DT can select a tactical formation for a game; formation stored as lineup code; DT whitelist updated to allow lineup changes.
 
@@ -128,7 +141,7 @@
 
 ---
 
-## Phase 8: User Story 6 — Game Sign Up Page Visual Lineup Display (Priority: P2)
+## Phase 9: User Story 6 — Game Sign Up Page Visual Lineup Display (Priority: P2)
 
 **Goal**: SVG soccer field renders on Game Sign Up Page when lineup is set; 11 position circles show player assignments; hover/tap highlights player table row.
 
@@ -146,17 +159,17 @@
 
 ---
 
-## Phase 9: Polish & Cross-Cutting Concerns
+## Phase 10: Polish & Cross-Cutting Concerns
 
 **Purpose**: SEO/robots, guest badges in admin, E2E validation
 
 - [ ] T039 [P] Create `packages/frontend/server/routes/robots.txt.ts` — return static text response with `User-agent: *`, `Disallow: /admin`, `Disallow: /games/*/signup` (FR-015); no `@nuxtjs/robots` module
-- [ ] T041 [P] Add "Invitado" badge to guest player entries in admin players list `packages/frontend/src/pages/admin/players/index.vue` (or equivalent) — show badge when `player.playerType = GUEST`; badge is not editable (FR-010)
-- [ ] T042 [P] Add "Invitante eliminado" warning pill in admin players list for guest players whose `invitedById` references a soft-deleted player — detect via `invitedByName = null AND invitedById IS NOT NULL`; display a warning pill next to the guest entry (FR-010 edge case)
-- [ ] T043 Write Playwright E2E test `packages/frontend/tests/e2e/game-signup.spec.ts` — cover: (1) full self-signup flow (link → unauthenticated redirect → login → self-confirm → appear in roster), asserting total flow completes within 60 s (SC-001); (2) guest signup (firstName + lastName + position → guest row with "Invitado por" label and position abbreviation), asserting form-open-to-roster-update completes within 30 s (SC-002); (3) guest row dismiss (click × → `DropdownAddMore` returns to default state, no record created); (4) capacity full rejection → "El cupo está completo"; (5) UUID → 301 → slug redirect in single hop (SC-003)
-- [ ] T044 [P] Update `GET /api/v1/games` list endpoint in `packages/cms/src/routes/games.ts` to include `_count: { select: { participants: { where: { confirmationStatus: 'CONFIRMED' } } } }` in the Prisma query; expose result as `confirmedCount` in the response so the admin games table can evaluate `signedUpCount < maxPlayers` for the share-signup-link visibility condition (FR-027, M2 fix)
-- [ ] T045 [P] Update `GET /api/v1/games/:id` public game endpoint response serialization in `packages/cms/src/routes/games.ts` to set `lastName = null` (or omit) for all roster entries where `player.playerType = 'GUEST'`; authenticated endpoints (`GET /api/v1/games/:gameId/signup-page`) continue returning guest `lastName` in full (FR-012, M5 fix)
-- [ ] T046 [P] Update the player PATCH endpoint (`packages/cms/src/routes/players.ts` or equivalent) to add `status` to the DT-allowed field whitelist **when the target player has `playerType = 'GUEST'`**; DT setting `status = INACTIVE` on a guest player MUST succeed (HTTP 200); DT setting `status` on a `REGISTERED` player MUST remain rejected (HTTP 403) (FR-013a, M1 fix)
+- [ ] T040 [P] Add "Invitado" badge to guest player entries in admin players list `packages/frontend/src/pages/admin/players/index.vue` (or equivalent) — show badge when `player.playerType = GUEST`; badge is not editable (FR-010)
+- [ ] T041 [P] Add "Invitante eliminado" warning pill in admin players list for guest players whose `invitedById` references a soft-deleted player — detect via `invitedByName = null AND invitedById IS NOT NULL`; display a warning pill next to the guest entry (FR-010 edge case)
+- [ ] T042 Write Playwright E2E test `packages/frontend/tests/e2e/game-signup.spec.ts` — cover: (1) full self-signup flow (link → unauthenticated redirect → login → self-confirm → appear in roster), asserting total flow completes within 60 s (SC-001); (2) guest signup (firstName + lastName + position → guest row with "Invitado por" label and position abbreviation), asserting form-open-to-roster-update completes within 30 s (SC-002); (3) guest row dismiss (click × → `DropdownAddMore` returns to default state, no record created); (4) capacity full rejection → "El cupo está completo"; (5) UUID → 301 → slug redirect in single hop (SC-003)
+- [ ] T043 [P] Update `GET /api/v1/games` list endpoint in `packages/cms/src/routes/games.ts` to include `_count: { select: { participants: { where: { confirmationStatus: 'CONFIRMED' } } } }` in the Prisma query; expose result as `confirmedCount` in the response so the admin games table can evaluate `signedUpCount < maxPlayers` for the share-signup-link visibility condition (FR-027, M2 fix)
+- [ ] T044 [P] Update `GET /api/v1/games/:id` public game endpoint response serialization in `packages/cms/src/routes/games.ts` to set `lastName = null` (or omit) for all roster entries where `player.playerType = 'GUEST'`; authenticated endpoints (`GET /api/v1/games/:gameId/signup-page`) continue returning guest `lastName` in full (FR-012, M5 fix)
+- [ ] T045 [P] Update the player PATCH endpoint (`packages/cms/src/routes/players.ts` or equivalent) to add `status` to the DT-allowed field whitelist **when the target player has `playerType = 'GUEST'`**; DT setting `status = INACTIVE` on a guest player MUST succeed (HTTP 200); DT setting `status` on a `REGISTERED` player MUST remain rejected (HTTP 403) (FR-013a, M1 fix)
 
 ---
 
@@ -164,26 +177,28 @@
 
 ### Phase Dependencies
 
-- **Phase 1 (Setup)**: No dependencies — start immediately; T003 and T004 can run in parallel after T001
+- **Phase 1 (Setup)**: No dependencies — start immediately; T003 and T004 can run in parallel after T001; **T003 depends on T007** (backfill script requires slug utility — run T003 after T007 is implemented even though it is listed in Phase 1)
 - **Phase 2 (Foundational)**: Depends on Phase 1 — T005 and T006 can run in parallel; **BLOCKS all user story phases**
-- **Phase 3 (US-1)**: Depends on Phase 2 — T007 must precede T008; T008 and T009 can overlap; T010–T013 are frontend tasks parallelizable after Phase 2; **T003 also depends on T007** (backfill script requires the slug utility to exist — T003 should be run after T007 is implemented even though it is listed in Phase 1)
-- **Phase 4 (US-7)**: Depends on Phase 2 — T014 and T016 can run in parallel (**exception: T016 depends on T008** — both modify `GameService.updateGame`; implement T008 first to establish the endDate compute baseline, then T016 extends it with IN_PROGRESS revert logic); T015 depends on T014
-- **Phase 5 (US-2+US-3)**: Depends on Phase 2, and T009 (signup-page endpoint shares `games.ts`) — T018+T021 and T022+T023 can run in parallel per layer
-- **Phase 6 (US-4)**: Depends on Phase 2 and T027 (rename) — T028, T029, T031 can run in parallel after T027
-- **Phase 7 (US-5)**: Depends on Phase 2 — T032 and T033 fully parallel
-- **Phase 8 (US-6)**: Depends on Phase 5 (signup.vue) and Phase 7 (lineup in DB) — T034 first; T035 + T036 parallel after T034
-- **Phase 9 (Polish)**: Depends on all previous phases — T039–T042 fully parallel; T043 depends on all
+- **Phase 3 (US-1)**: Depends on Phase 2 — T007 must precede T008; T008 and T009 can overlap after T007; T010–T013 are frontend tasks parallelizable after Phase 2
+- **Phase 4 (US-7)**: Depends on Phase 2 — T014 → T015 sequential; **T016 depends on T008** (both modify `GameService.updateGame`; implement T008 first, then T016 extends it with IN_PROGRESS revert logic); T017 parallelizable after Phase 2
+- **Phase 5 (US-2)**: Depends on Phase 2 AND T017 (status guards must exist before signup endpoint references them) — T018 and T021 can run in parallel; T019 → T020 sequential
+- **Phase 6 (US-3)**: Depends on Phase 5 (signup API contract must exist for composable) — T022 and T023 can start in parallel from Phase 2; T024 depends on T022 + T023; T025 → T026 sequential after T024
+- **Phase 7 (US-4)**: Depends on Phase 3 (slug exists in DB) and T027 (rename) — T028, T029, T031 parallelizable after T027
+- **Phase 8 (US-5)**: Depends on Phase 2 — T032 and T033 fully parallel
+- **Phase 9 (US-6)**: Depends on Phase 6 (signup.vue) and Phase 8 (lineup in DB) — T034 first; T035 + T036 parallel after T034; T037 → T038 sequential
+- **Phase 10 (Polish)**: Depends on all previous phases — T039–T044 fully parallel; T042 (E2E) depends on all
 
 ### User Story Dependencies
 
-| Story          | Depends on                                       | Can parallelize with             |
-| -------------- | ------------------------------------------------ | -------------------------------- |
-| US-1 (P1)      | Phase 2                                          | US-7 (different files)           |
-| US-7 (P1)      | Phase 2                                          | US-1 (different files)           |
-| US-2+US-3 (P1) | Phase 2, US-7 (for status guards)                | US-4 frontend if slugs available |
-| US-4 (P2)      | Phase 2, US-1 (slug generation must exist)       | US-5, US-6                       |
-| US-5 (P2)      | Phase 2                                          | US-4, US-6 backend               |
-| US-6 (P2)      | Phase 5 (signup.vue exists), US-5 (lineup in DB) | —                                |
+| Story          | Depends on                                              | Can parallelize with             |
+| -------------- | ------------------------------------------------------- | -------------------------------- |
+| US-1 (P1)      | Phase 2                                                 | US-7 (different files)           |
+| US-7 (P1)      | Phase 2                                                 | US-1 (different files)           |
+| US-2 (P1)      | Phase 2, T017 (status guards)                           | US-4 frontend after Phase 3      |
+| US-3 (P1)      | Phase 5 (US-2 API contract available)                   | US-4 after slug routing ready    |
+| US-4 (P2)      | Phase 3 (slug generation must exist)                    | US-5, US-7                       |
+| US-5 (P2)      | Phase 2                                                 | US-4, US-6 backend               |
+| US-6 (P2)      | Phase 6 (signup.vue exists), Phase 8 (lineup in DB)     | —                                |
 
 ### Within Each User Story
 
@@ -229,23 +244,29 @@ Sequential:
   T017 (status guards — relates to T014 job outputs, but route code independent)
 ```
 
-### Phase 5 (US-2+US-3)
+### Phase 5 (US-2)
 
 ```
-CMS layer:
-  T018 [P] — signup-page endpoint (games.ts)
-  T019 → T020 — signupParticipant + route (sequential)
-  T021 [P] — removeParticipant + DELETE route
+Parallel:
+  T018 — GET signup-page endpoint (games.ts)
+  T021 — removeParticipant + DELETE route
 
-Frontend layer (can start after Phase 2):
-  T022 [P] — signup.vue skeleton
-  T023 [P] — useGameSignup.ts composable
-
-  Then:
-  T024 → T025 → T026 (sequential — build on T022+T023)
+Sequential:
+  T019 → T020 — signupParticipant service + route
 ```
 
-### Phase 8 (US-6)
+### Phase 6 (US-3)
+
+```
+Parallel first:
+  T022 — signup.vue skeleton
+  T023 — useGameSignup.ts composable
+
+Then sequential:
+  T024 → T025 → T026
+```
+
+### Phase 9 (US-6)
 
 ```
 T034 (formations.ts) →
@@ -272,12 +293,13 @@ Then:
 
 1. **Setup + Foundational** → DB schema migrated, shared types exported
 2. **US-1** → maxPlayers + slugs + admin share links (P1 MVP)
-3. **US-7** → auto-transition job + status guards (P1; unblocks signup page eligibility)
-4. **US-2+US-3** → full trimodal signup flow at `/games/{slug}/signup` (P1 complete)
-5. **US-4** → slug routing on public pages, homepage filtering (P2)
-6. **US-5** → lineup dropdown in admin (P2)
-7. **US-6** → SVG field visualization (P2)
-8. **Polish** → robots.txt, badges, E2E
+3. **US-7** → auto-transition job + status guards (P1; unblocks signup eligibility)
+4. **US-2** → signup API endpoints — self/guest/proxy + remove-participant (P1 backend)
+5. **US-3** → Game Sign Up Page trimodal flow + guest position/dismiss (P1 frontend complete)
+6. **US-4** → slug routing on public pages, homepage filtering (P2)
+7. **US-5** → lineup dropdown in admin (P2)
+8. **US-6** → SVG field visualization (P2)
+9. **Polish** → robots.txt, confirmedCount, guest lastName redaction, DT guest status whitelist, badges, E2E
 
 ### Suggested MVP Scope
 
