@@ -77,12 +77,50 @@ The public game detail page is served at the SEO-friendly URL and shows the rost
 
 ---
 
+### User Story 5 — Admin Sets Game Lineup (Priority: P2)
+
+An Admin, Editor or DT user selects a tactical formation for the game from the admin game edit page using a pre-filled drop-down of standard formations. The chosen lineup determines how confirmed players are positioned on the visual field on the Game Sign Up Page.
+
+**Why this priority**: Enhances Game Sign Up Page presentation but does not block player registration.
+
+**Independent Test**: Select "4-3-3" from the lineup dropdown on a game's admin page, save, then visit the Game Sign Up Page and verify the field shows 1 GK, 3 defenders, 3 midfielders, and 3 forwards.
+
+**Acceptance Scenarios**:
+
+1. **Given** an Admin is on a game's admin edit page, **When** they view the game form, **Then** a "Formación" select element is visible with at least 14 pre-defined formation options (4-4-2, 4-3-3, 4-2-3-1, 4-5-1, 4-1-4-1, 4-3-2-1, 4-4-1-1, 3-4-3, 3-5-2, 3-4-2-1, 5-3-2, 5-4-1, 5-2-3, 4-2-4) plus a "Sin formación" empty option.
+2. **Given** a formation is selected and saved, **When** the game is persisted, **Then** the formation string is stored on the game record.
+3. **Given** an Admin changes the lineup after players have already signed up, **When** the Game Sign Up Page is refreshed, **Then** the field re-renders with players repositioned according to the new formation.
+4. **Given** no lineup is set, **When** the Game Sign Up Page loads, **Then** the field visualization is hidden and only the player table is shown.
+
+---
+
+### User Story 6 — Game Sign Up Page Visual Lineup Display (Priority: P2)
+
+The Game Sign Up Page renders a full-size soccer field (SVG or Canvas) on the left side (8 of 12 grid columns) with 11 player position circles laid out according to the selected formation, and a player table on the right (4 of 12 columns). Registered players fill positions first, then guests fill any remaining slots.
+
+**Why this priority**: Provides an engaging visual overview of confirmed attendees and the tactical shape, but does not affect signup logic.
+
+**Independent Test**: With 8 registered players and 2 guests confirmed for a 4-3-3 game, visit the Game Sign Up Page and verify: 8 registered players appear in closest-matching positions, 2 guests fill the next 2 empty slots with "Inv." label, 1 remaining slot shows an empty "TBD" circle.
+
+**Acceptance Scenarios**:
+
+1. **Given** a game with a lineup set and 11+ confirmed attendees, **When** the Game Sign Up Page renders, **Then** an SVG or Canvas soccer field occupies 8 of 12 grid columns and displays exactly 11 filled player circles, each showing the player's jersey number, positioned according to the formation.
+2. **Given** fewer than 11 registered players are confirmed, **When** the field renders, **Then** guest players (as black circles labelled "Inv.") fill the next available slots in signup order; remaining unfilled slots display an empty "TBD" circle.
+3. **Given** a player's stored position matches a formation slot, **When** the field renders, **Then** that player is placed in the best-matching slot; where multiple players match the same slot type, the best fit by position hierarchy is chosen deterministically.
+4. **Given** the page is viewed on a screen narrower than 768 px, **When** the layout renders, **Then** the field and table stack vertically (field full-width on top, table below) with no horizontal overflow.
+5. **Given** the right-hand player table (4 of 12 columns on desktop), **When** it renders, **Then** it lists each confirmed attendee with jersey number, position abbreviation, and full name; guests appear at the bottom with an "Inv." prefix and no jersey number.
+
+---
+
 ### Edge Cases
 
 - Two games with the same date and opponent: the slug auto-appends an incrementing numeric suffix (e.g., `2026-04-09-atletico-2`) to remain unique; uniqueness is enforced at the database level.
 - `maxPlayers` is null: signup is unlimited with no capacity block.
 - The inviting player account is deleted after inviting guests: guests retain a fallback attribution label (e.g., "Invitado" without a name).
 - An existing guest with the same name: show the existing record as a selectable option in `DropdownAddMore` to avoid duplicates.
+- More than 11 confirmed attendees: only the first 11 (registered by confirmation time, then guests by signup time) appear on the field; all appear in the adjacent player table.
+- No registered players at all: first 11 guests fill all field slots in signup order.
+- Multiple players tied for the same formation slot (identical position): placement is deterministic — ordered by confirmation timestamp ascending.
 
 ## Requirements _(mandatory)_
 
@@ -102,13 +140,21 @@ The public game detail page is served at the SEO-friendly URL and shows the rost
 - **FR-012**: On game detail pages (public and admin roster views), guests MUST appear as "Invitado por {Player Name}" without revealing the guest's name, listed after all registered players with a visual separator. On the Game Sign Up Page, the inviting player MUST see the guest's full name in their own guest list; Admin/Editor/DT in read-only mode MUST also see guest full names.
 - **FR-013**: Guest players MUST default to active status. Admins and Editors MUST be able to set a guest's status to inactive (prospective: existing game rosters are unaffected) AND explicitly remove a guest or registered player from a specific game. DT users MUST be able to set a guest's status to inactive (prospective only) but MUST NOT be able to remove players or guests from games.
 - **FR-015**: When a player or guest is explicitly removed from a game by an Admin or Editor, they MUST be removed from that game's roster immediately without affecting their overall player record or other games.
+- **FR-016**: The `Game` entity MUST include an optional `lineup` field (nullable string, formation code); when null, no formation is set and the field visualization is hidden.
+- **FR-017**: The admin game edit page MUST include a "Formación" `<select>` pre-filled with the following 14 formations: `4-4-2`, `4-3-3`, `4-2-3-1`, `4-5-1`, `4-1-4-1`, `4-3-2-1`, `4-4-1-1`, `3-4-3`, `3-5-2`, `3-4-2-1`, `5-3-2`, `5-4-1`, `5-2-3`, `4-2-4`; plus a blank "Sin formación" option (value: null).
+- **FR-018**: When a lineup is set, the Game Sign Up Page MUST render a soccer field using SVG or Canvas occupying 8 of 12 grid columns, with 11 position slot circles laid out according to the selected formation; each circle displays the player's jersey number as a black filled circle.
+- **FR-019**: Confirmed registered players MUST be assigned to the field slots whose position type best matches their stored `position` field. Guest players MUST fill any remaining empty slots in order of signup time. Unoccupied slots MUST display as empty "TBD" circles.
+- **FR-020**: When more than 11 attendees are confirmed, only the first 11 (registered players by confirmation time first, then guests by signup time) are placed on the field; all confirmed attendees appear in the adjacent player table regardless of whether they are on the field.
+- **FR-021**: On desktop (≥768 px), the player table MUST occupy 4 of 12 grid columns alongside the field. Each row shows: jersey number, position abbreviation, full name. Guest rows appear at the bottom, prefixed with "Inv." and no jersey number. On mobile, field and table stack vertically.
+- **FR-022**: When no lineup is set for a game, the Game Sign Up Page MUST NOT render the field visualization; only the player table is displayed.
+- **FR-023**: Formation-to-slot mapping MUST be defined as a static client-side lookup (no server computation required); hovering (desktop) or tapping (mobile) a player circle on the field MUST display the player's full name.
 - **FR-014**: The Game Sign Up Page (`/games/{date}/{opponent}/signup`) MUST include `<meta name="robots" content="noindex,nofollow">` in its `<head>` and MUST NOT appear in any auto-generated sitemap; its URL pattern MUST be disallowed in `robots.txt`.
 
 ### Key Entities
 
 - **GameSignup**: Joins a `Player` to a `Game`; stores `signedUpAt`, plus reference to both.
 - **GuestPlayer**: Lightweight player record with `firstName`, `lastName`, `isGuest: true`, `invitedBy` (Player FK), `status` (active/inactive). No user account, no login credentials.
-- **Game** (extended): Gains `maxPlayers` (nullable int) and `slug` (unique string).
+- **Game** (extended): Gains `maxPlayers` (nullable int), `slug` (unique string), and `lineup` (nullable string — one of the 14 pre-defined formation codes).
 
 ## Success Criteria _(mandatory)_
 
@@ -119,6 +165,7 @@ The public game detail page is served at the SEO-friendly URL and shows the rost
 - **SC-003**: The old `/games/{GUID}` URL returns 301 and the browser lands on the correct new URL in a single redirect with no additional hops.
 - **SC-004**: A game at full capacity rejects a signup request within one round-trip — no partial state is persisted.
 - **SC-005**: Player and guest roster data is consistent between the public game detail page and the admin panel for the same game.
+- **SC-006**: The soccer field renders and positions all players within 1 second of the roster data loading, with no visible layout shift after initial paint.
 
 ## Assumptions
 
@@ -127,6 +174,8 @@ The public game detail page is served at the SEO-friendly URL and shows the rost
 - Slug uniqueness is enforced at the database level.
 - Existing auth-redirect middleware (spec 005) handles the `redirect` param post-login.
 - The Game Sign Up Page is intentionally not linked from any public navigation or sitemap; distribution is via direct link only.
+- Formation-to-position-slot mapping (e.g., which field positions map to GK, DEF, MID, FWD slots for each formation string) is defined as a static lookup table in the frontend — no server computation is required.
+- The field visualization is entirely client-side rendered; server only provides the `lineup` string and roster data.
 
 ## Clarifications
 
