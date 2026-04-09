@@ -1,6 +1,6 @@
 # Feature Specification: Game Signup Invitation
 
-**Feature Branch**: `014-game-signup-invitation`
+**Feature Branch**: `chore/014-game-signup-invitation`
 **Created**: 2026-04-09
 **Status**: Draft
 **Input**: User description: "Implement a feature to allow Admin, Editor & DT users to invite players to sign up for the next game through a link."
@@ -21,6 +21,7 @@ An Admin, Editor or DT user opens a game in the admin panel, sets a maximum play
 2. **Given** `maxPlayers` is set and saved, **When** the game is persisted, **Then** the value is stored on the game record.
 3. **Given** a game exists, **When** the admin views the game detail page, **Then** a "Copiar link de convocatoria" button is visible that copies `games/{date}/{opponent}/signup`.
 4. **Given** the old URL `/games/{GUID}` is accessed, **When** a browser or crawler follows it, **Then** a permanent redirect (301) leads to `/games/{date}/{opponent}`.
+5. **Given** a search engine crawler visits the signup URL, **When** the Game Sign Up Page is rendered, **Then** a `<meta name="robots" content="noindex,nofollow">` tag is present in the `<head>` and the URL is excluded from any auto-generated sitemap.
 
 ---
 
@@ -53,7 +54,7 @@ After confirming their own attendance, a player can add an unlimited number of g
 
 **Acceptance Scenarios**:
 
-1. **Given** a signed-up player is on the signup page, **When** they open the guest section, **Then** a `DropdownAddMore` component is shown to create or search guest names.
+1. **Given** a signed-up player is on the Game Sign Up Page, **When** they open the guest section, **Then** a `DropdownAddMore` component is shown to create or search guest names.
 2. **Given** a player creates a new guest using the inline form, **When** they submit, **Then** the guest record is created with at least first and last name, linked to the inviting player, and appears at the bottom of the game roster as "Invitado por {Player Name}" (guest's own name is hidden on public pages).
 3. **Given** the game roster is rendered, **When** guests are present, **Then** registered players (with number, position, name) are listed first; guests appear after a visual separator as "Invitado por {Player Name}" only.
 4. **Given** an Admin views `/admin/players`, **When** guest records exist, **Then** each guest shows an "Invitado" badge and a visible reference to the registered player who invited them.
@@ -78,7 +79,7 @@ The public game detail page is served at the SEO-friendly URL and shows the rost
 
 ### Edge Cases
 
-- Two games with the same date and opponent: the slug must include a disambiguator (e.g., a short GUID suffix) to remain unique.
+- Two games with the same date and opponent: the slug auto-appends an incrementing numeric suffix (e.g., `2026-04-09-atletico-2`) to remain unique; uniqueness is enforced at the database level.
 - `maxPlayers` is null: signup is unlimited with no capacity block.
 - The inviting player account is deleted after inviting guests: guests retain a fallback attribution label (e.g., "Invitado" without a name).
 - An existing guest with the same name: show the existing record as a selectable option in `DropdownAddMore` to avoid duplicates.
@@ -92,14 +93,16 @@ The public game detail page is served at the SEO-friendly URL and shows the rost
 - **FR-003**: Admin, Editor and DT users MUST be able to view and copy the signup link from the game admin page.
 - **FR-004**: System MUST provide a signup endpoint (authenticated, player-role only) that records a `GameSignup` entry.
 - **FR-005**: System MUST prevent duplicate signups — a player MUST NOT be registered for the same game more than once.
-- **FR-006**: System MUST reject signups when confirmed attendee count ≥ `maxPlayers`.
+- **FR-006**: System MUST reject signups when total attendee count (registered players + guests) ≥ `maxPlayers`; guests count as full capacity slots.
 - **FR-007**: Unauthenticated users visiting the signup URL MUST be redirected to login with a `redirect` param pointing back to the signup URL.
-- **FR-008**: Authenticated non-player users MUST see the signup page in read-only mode and MUST NOT be able to sign up.
+- **FR-008**: Authenticated non-player users (Admin/Editor/DT) MUST see the Game Sign Up Page in read-only mode with the full roster including guest full names visible; they MUST NOT be able to sign up.
 - **FR-009**: A signed-up player MUST be able to add any number of guest players; each guest MUST store a reference to the inviting player.
 - **FR-010**: Guest players MUST have an `isGuest: true` flag and a `invitedBy` FK to the registering player; they MUST appear in `/admin/players` with an "Invitado" badge.
 - **FR-011**: Guest players MUST NOT appear in the public player roster (homepage or general roster pages).
-- **FR-012**: On game detail pages, guests MUST appear as "Invitado por {Player Name}" without revealing the guest's name, listed after all registered players with a visual separator.
-- **FR-013**: Guest players MUST default to active status; Admins, Editors and DT users MUST be able to change their status in the admin panel.
+- **FR-012**: On game detail pages (public and admin roster views), guests MUST appear as "Invitado por {Player Name}" without revealing the guest's name, listed after all registered players with a visual separator. On the Game Sign Up Page, the inviting player MUST see the guest's full name in their own guest list; Admin/Editor/DT in read-only mode MUST also see guest full names.
+- **FR-013**: Guest players MUST default to active status. Admins and Editors MUST be able to set a guest's status to inactive (prospective: existing game rosters are unaffected) AND explicitly remove a guest or registered player from a specific game. DT users MUST be able to set a guest's status to inactive (prospective only) but MUST NOT be able to remove players or guests from games.
+- **FR-015**: When a player or guest is explicitly removed from a game by an Admin or Editor, they MUST be removed from that game's roster immediately without affecting their overall player record or other games.
+- **FR-014**: The Game Sign Up Page (`/games/{date}/{opponent}/signup`) MUST include `<meta name="robots" content="noindex,nofollow">` in its `<head>` and MUST NOT appear in any auto-generated sitemap; its URL pattern MUST be disallowed in `robots.txt`.
 
 ### Key Entities
 
@@ -123,3 +126,15 @@ The public game detail page is served at the SEO-friendly URL and shows the rost
 - The `DropdownAddMore` component (spec 013) is the UI primitive for guest entry.
 - Slug uniqueness is enforced at the database level.
 - Existing auth-redirect middleware (spec 005) handles the `redirect` param post-login.
+- The Game Sign Up Page is intentionally not linked from any public navigation or sitemap; distribution is via direct link only.
+
+## Clarifications
+
+### Session 2026-04-09
+
+- Q: Should the Game Sign Up Page be hidden from SEO crawlers and public web discovery? → A: Yes — the signup URL must set `noindex,nofollow` meta robots tag, be disallowed in `robots.txt`, and be excluded from any auto-generated sitemap. Distribution is via direct link only.
+- Q: Do guests count toward the `maxPlayers` capacity? → A: Yes — each guest occupies one slot in the total `maxPlayers` count alongside registered player signups.
+- Q: How should slug collisions (same date + opponent) be resolved? → A: Auto-append an incrementing numeric suffix (e.g., `2026-04-09-atletico-2`); collision is considered highly unlikely in practice.
+- Q: When a guest is marked inactive, does it retroactively hide them from existing rosters? → A: No — inactive status is prospective only (Option B). Admin and Editor can additionally *remove* a guest or registered player from a specific game (immediate roster removal). DT can mark guests inactive (prospective) but cannot remove players/guests from games.
+- Q: Is the guest's full name visible on the Game Sign Up Page to the player who added them? → A: Yes — the inviting player sees the guest's full name on the Game Sign Up Page; the name is hidden (shown as "Invitado por {Player Name}") on all public and admin roster pages.
+- Q: What does an authenticated non-player (Admin/Editor/DT) see on the Game Sign Up Page? → A: A privileged read-only view with the full roster including guest full names visible, consistent with their admin-level access; they cannot sign up.
