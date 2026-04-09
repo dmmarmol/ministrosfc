@@ -26,11 +26,8 @@ model Game {
 **Migration strategy:**
 
 - `maxPlayers`, `lineup`, and `endDate` are added as nullable — no backfill required.
-- `endDate` will be null for existing records; the transition job's 24h fallback handles legacy rows. A backfill script (`backfill-game-end-dates.ts`) can optionally populate `endDate = date + 100 minutes` for all existing games in a follow-up migration.
-- `slug` is added as nullable, then backfilled for existing records via a migration script, then a `@unique` partial index is applied. This is a 3-step migration:
-  1. Add `slug String?` (no unique yet)
-  2. Run `prisma db seed` / custom script to backfill slugs from `date + opponentTeam.name`
-  3. Apply `@unique` constraint via `ALTER TABLE "Game" ADD CONSTRAINT "Game_slug_key" UNIQUE ("slug")`
+- `endDate` will be null for existing records; the transition job's 24h fallback handles legacy rows.
+- `slug` uses a **single migration** with `@unique` already set: PostgreSQL treats NULL values as distinct, so multiple existing rows with `slug = NULL` do not conflict with the UNIQUE constraint. After the migration runs, the `backfill-game-slugs.ts` script populates slugs for all existing rows (all existing games will get unique non-NULL slugs).
 
 ---
 

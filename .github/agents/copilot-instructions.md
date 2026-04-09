@@ -118,9 +118,9 @@ npx prisma studio                  # Open Prisma Studio GUI
 
 ## Recent Changes
 - chore/014-game-signup-invitation: Added TypeScript 5.x stric + Nuxt 3 (SSR), Express 4, Prisma 5 (PostgreSQL), Pinia 2, Zod
+- chore/014-game-signup-invitation: Added TypeScript 5.x stric + Nuxt 3 (SSR), Express 4, Prisma 5 (PostgreSQL), Pinia 2, Zod
 - chore/014-game-signup-invitation: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 
-- chore/013-dropdown-add-more: `vue-select@beta` (v4.x) added as dropdown engine in `packages/frontend`; `DropdownAddMore.vue` wraps it with `list-footer` slot for inline creation; CSS imported globally in `nuxt.config.ts`
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
