@@ -31,33 +31,36 @@ A player opens the signup link, reviews game details and the current roster, and
 
 **Why this priority**: The player signup action is the core deliverable; all other stories are additive.
 
-**Independent Test**: Visit the signup URL as an authenticated player, press "Confirmar asistencia", and verify the player appears in the game roster.
+**Independent Test**: Visit the signup URL as an authenticated unconfirmed player, click the confirm button on the pre-filled `DropdownAddMore` row, and verify the player appears as a confirmed row in the game roster.
 
 **Acceptance Scenarios**:
 
 1. **Given** an unauthenticated user visits the signup URL, **When** the page loads, **Then** they are redirected to login with a `redirect` param pointing back to the signup URL.
-2. **Given** an authenticated player visits the signup URL for an open game, **When** the page loads, **Then** they see rival, date, playground, confirmed player count vs. max, player list, and a "Confirmar asistencia" button.
-3. **Given** a player clicks "Confirmar asistencia", **When** the request completes, **Then** their name appears in the confirmed roster and the count increases.
-4. **Given** a player who already signed up visits the URL again, **When** the page loads, **Then** the button shows "Ya estás anotado" and re-signup is blocked.
+2. **Given** an authenticated player who has not yet signed up visits the signup URL for an open game, **When** the page loads, **Then** they see rival, date, playground, confirmed player count vs. max, the player table with confirmed attendees, and a `DropdownAddMore` in the next empty table row pre-filled with their own player name alongside an adjacent confirm button.
+3. **Given** the player's own name is pre-filled in the `DropdownAddMore` and they click the confirm button, **When** the request completes, **Then** their row becomes a permanent confirmed entry in the player table and the count increases.
+4. **Given** a player who is already signed up visits the URL again, **When** the page loads, **Then** the `DropdownAddMore` is NOT pre-filled with their own name; only guests and unconfirmed existing players are available as addable options in the dropdown.
 5. **Given** a game at full capacity (`signedUp >= maxPlayers`), **When** any player visits the signup URL, **Then** the form shows "El cupo está completo" and no registration is accepted.
 6. **Given** an authenticated non-player user (Admin/Editor/DT) visits the signup URL, **When** they attempt to sign up, **Then** the system rejects the action and explains that only registered players can sign up.
 
 ---
 
-### User Story 3 — Player Adds Guest Players (Priority: P2)
+### User Story 3 — Player Registers Attendees via DropdownAddMore (Priority: P1)
 
-After confirming their own attendance, a player can add an unlimited number of guest participants (people without accounts). Each guest is linked back to the inviting player.
+A signed-in player uses a `DropdownAddMore` component embedded in the next empty row of the player table to register attendees one at a time: themselves, new guest players, or other existing active registered players.
 
-**Why this priority**: Guest tracking handles a real-world scenario (bringing friends) but does not block the core signup flow.
+**Why this priority**: This is the primary signup interaction on the Game Sign Up Page — all three registration modes (self, guest, proxy) share the same component. Self-signup no longer uses a separate button.
 
-**Independent Test**: Sign up as a player, add one guest using the inline form, submit, and verify the guest appears as "Invitado por {Player Name}" at the end of the game roster.
+**Independent Test**: As a signed-in unconfirmed player, visit the Game Sign Up Page for an open game: (1) click confirm on the pre-filled self-signup row; (2) select "Agregar invitado", type a guest name, confirm; (3) select another existing active player from the dropdown, confirm. Verify three new rows appear in the player table and the field visualization updates accordingly.
 
 **Acceptance Scenarios**:
 
-1. **Given** an authenticated player on the Game Sign Up Page has NOT yet confirmed attendance, **When** they view the signup form, **Then** an optional guest section with a `DropdownAddMore` component is shown below the "Confirmar asistencia" button to create or search guest names before submitting.
-2. **Given** a player fills in the form with optional guests and submits, **When** the single atomic request completes, **Then** the player's signup and all guest records (each with at least first and last name, linked to the inviting player) are created simultaneously; guests appear at the bottom of the game roster as "Invitado por {Player Name}" (guests' own names are hidden on game detail pages and general roster pages).
-3. **Given** the game roster is rendered, **When** guests are present, **Then** registered players (with number, position, name) are listed first; guests appear after a visual separator as "Invitado por {Player Name}" only.
-4. **Given** an Admin views `/admin/players`, **When** guest records exist, **Then** each guest shows an "Invitado" badge and a visible reference to the registered player who invited them.
+1. **Given** an authenticated unconfirmed player visits the Game Sign Up Page, **When** the page loads, **Then** the `DropdownAddMore` in the next empty table row is pre-filled with their own player name; a confirm button is visible in the same row adjacent to the dropdown.
+2. **Given** the player's own name is pre-filled and they click the confirm button, **When** the request completes, **Then** a `GameParticipant` record with `confirmationStatus: CONFIRMED` is created, their row becomes a permanent confirmed entry in the table, and the `DropdownAddMore` advances to the next empty row.
+3. **Given** a signed-up player selects "Agregar invitado" in the `DropdownAddMore`, types a guest name (first and last name), and clicks confirm, **When** the request completes, **Then** a new `Player` with `playerType: GUEST` linked to the inviting player and a `GameParticipant` record are created; the guest appears at the bottom of the table as "Invitado por {Player Name}" (guest's name hidden on game detail pages and general roster pages).
+4. **Given** a signed-up player selects an existing active registered player from the `DropdownAddMore` (filtered to show only unconfirmed players) and clicks confirm, **When** the request completes, **Then** a `GameParticipant` record for the selected player is created with `confirmationStatus: CONFIRMED` and `confirmedById` set to the inviting player's ID; the selected player appears in the table as a standard registered player row.
+5. **Given** a player who is already signed up visits the Game Sign Up Page again, **When** the page loads, **Then** the `DropdownAddMore` is NOT pre-filled with their own name; only new guests and unconfirmed existing registered players are available as selectable options.
+6. **Given** the game roster is rendered, **When** guests are present, **Then** registered players (with number, position, name) are listed first; guests appear after a visual separator as "Invitado por {Player Name}" only.
+7. **Given** an Admin views `/admin/players`, **When** guest records exist, **Then** each guest shows an "Invitado" badge and a visible reference to the registered player who invited them.
 
 ---
 
@@ -123,7 +126,7 @@ The Game Sign Up Page renders a full-size soccer field (SVG or Canvas) on the le
 - No registered players at all: first 11 guests fill all field slots in signup order.
 - Multiple players tied for the same formation slot (identical position): placement is deterministic — ordered by confirmation timestamp ascending.
 - A registered player with `position = null`: placed in the next available field slot in ascending confirmation timestamp order after all position-matched players have been assigned.
-- Guest batch capacity conflict: if a player submits multiple guests but insufficient capacity remains for all, guests are accepted in submission order (first-write-wins) until capacity is reached; remaining guests in the same request are rejected with a capacity-exceeded error. The player's own signup is never rejected for this reason.
+- Capacity conflict during individual registration: each confirm action (self, guest, or proxy) is fully independent; capacity is checked at the time of each confirm. If capacity is full when confirm is clicked, that single action fails with a capacity-exceeded message; all previously confirmed registrations are unaffected.
 - Player self-withdrawal from a game is out of scope for this release; only Admin and Editor users can remove a player or guest from a game (FR-014).
 
 ## Requirements _(mandatory)_
@@ -138,7 +141,7 @@ The Game Sign Up Page renders a full-size soccer field (SVG or Canvas) on the le
 - **FR-006**: System MUST reject signups when total attendee count (registered players + guests) ≥ `maxPlayers`; guests count as full capacity slots.
 - **FR-007**: Unauthenticated users visiting the signup URL MUST be redirected to login with a `redirect` param pointing back to the signup URL.
 - **FR-008**: Authenticated non-player users (Admin/Editor/DT) MUST see the Game Sign Up Page in read-only mode with the full roster including guest full names visible; they MUST NOT be able to sign up.
-- **FR-009**: Player signup and guest additions MUST be submitted as a single atomic request; upon successful confirmation the player's `GameParticipant` record and all submitted guest `Player` records are created simultaneously. Each guest MUST store a reference to the inviting player. If confirming all guests would exceed `maxPlayers`, guests are accepted in submission order until capacity is reached; remaining guests in the same request are rejected with a capacity-exceeded error without rolling back the player's own signup.
+- **FR-009**: Attendee registration (self, guest, or existing player proxy) MUST be performed one at a time via the `DropdownAddMore` embedded in the next empty row of the player table; each confirm button press triggers an independent atomic request. Self-signup creates a `GameParticipant` for the current user. Guest signup creates a `Player` with `playerType: GUEST` and a linked `GameParticipant`; each guest MUST store a reference to the inviting player (`invitedById`). Proxy signup (FR-025) creates a `GameParticipant` for the selected existing player.
 - **FR-010**: Guest players MUST have an `isGuest: true` flag and a `invitedBy` FK to the registering player; they MUST appear in `/admin/players` with an "Invitado" badge.
 - **FR-011**: Guest players MUST NOT appear in the public player roster (homepage or general roster pages).
 - **FR-012**: On game detail pages (public and admin roster views), guests MUST appear as "Invitado por {Player Name}" without revealing the guest's name, listed after all registered players with a visual separator. On the Game Sign Up Page, the inviting player MUST see the guest's full name in their own guest list; Admin/Editor/DT in read-only mode MUST also see guest full names.
@@ -155,6 +158,7 @@ The Game Sign Up Page renders a full-size soccer field (SVG or Canvas) on the le
 - **FR-022**: When no lineup is set for a game, the Game Sign Up Page MUST NOT render the field visualization; only the player table is displayed. The public game detail page (`/games/{slug}`) MUST NOT display the field visualization regardless of whether a lineup is set.
 - **FR-023**: Formation-to-slot mapping MUST be defined as a static client-side lookup (no server computation required). Hovering (desktop) or tapping (mobile) a player circle on the field MUST highlight the corresponding row in the right-side player table; no tooltip is shown on the field itself. The highlight MUST clear when the pointer leaves the circle (desktop) or when another circle is tapped (mobile).
 - **FR-024**: The signup endpoint MUST return HTTP 422 and reject all signup and guest-creation attempts when `game.status` is not `SCHEDULED`.
+- **FR-025**: A signed-up player MUST be able to register another existing active `REGISTERED` player who is not yet confirmed for the game by selecting them from the `DropdownAddMore` (filtered to show only active, unconfirmed registered players) and clicking the confirm button. The resulting `GameParticipant` record MUST set `confirmedById` to the inviting player's ID. The proxy-registered player appears in the player table as a standard registered player row.
 
 ### Key Entities
 
@@ -201,7 +205,7 @@ The Game Sign Up Page renders a full-size soccer field (SVG or Canvas) on the le
 - C3 (guest batch capacity atomicity): First-write-wins per guest in submission order; the player's own signup is never rejected for capacity reasons.
 - H1 (null jersey number on field): Registered player circles display initials (e.g., `JG`) when `jerseyNumber` is null; guest circles display `I{n}` (1-based index).
 - H2 (player self-withdrawal scope): Out of scope for this release. Only Admin/Editor can remove a player from a game (FR-014).
-- H3 (guest add timing): One atomic form submission — player confirms attendance and adds guests simultaneously in a single API request.
+- H3 (guest add timing — revised): Per-item confirm model. Each addition (self-signup, guest creation, or proxy signup of an existing player) is a separate atomic action triggered by a confirm button adjacent to the `DropdownAddMore` in the next empty row of the player table. The `DropdownAddMore` is pre-filled with the player's own name for not-yet-confirmed visitors. Three modes share the same component: (1) self-signup via pre-fill, (2) guest creation via "Agregar invitado", (3) proxy signup by selecting an existing unconfirmed player.
 - H4 (slug normalization): Lowercase; accented chars transliterated to ASCII; spaces and non-alphanumeric chars → hyphens; consecutive hyphens collapsed.
 - H5 (game status gate): Signup endpoint MUST reject (HTTP 422) when `game.status ≠ SCHEDULED`. Added as FR-024.
 - H6 (hover/tap behavior): Hovering or tapping a field circle highlights the corresponding player row in the right-side table. No tooltip on the field itself.
