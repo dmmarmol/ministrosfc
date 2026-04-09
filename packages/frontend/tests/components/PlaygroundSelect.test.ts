@@ -1,5 +1,9 @@
 /**
- * Unit tests for PlaygroundSelect component (T034)
+ * Unit tests for PlaygroundSelect component (thin adapter over DropdownAddMore)
+ *
+ * These tests verify the adapter behaviour only: composable wiring, option
+ * mapping, v-model forwarding, and the inline-create slot calling createPlayground.
+ * Deep DropdownAddMore logic is covered in DropdownAddMore.test.ts.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
@@ -7,6 +11,7 @@ import { ref } from "vue";
 
 const mockFetchPlaygrounds = vi.fn();
 const mockCreatePlayground = vi.fn();
+const mockLoading = ref(false);
 
 const mockPlaygroundList = ref([
   { id: "pg-1", name: "Alpha Cancha", address: "Av. Alpha 1" },
@@ -16,6 +21,7 @@ const mockPlaygroundList = ref([
 vi.mock("~/composables/usePlaygrounds", () => ({
   usePlaygrounds: () => ({
     playgrounds: mockPlaygroundList,
+    loading: mockLoading,
     fetchPlaygrounds: mockFetchPlaygrounds,
     createPlayground: mockCreatePlayground,
   }),
@@ -24,6 +30,40 @@ vi.mock("~/composables/usePlaygrounds", () => ({
 vi.mock("nuxt/app", () => ({
   useRuntimeConfig: () => ({ public: { apiBaseUrl: "http://localhost:5102" } }),
 }));
+
+// Mock vue-select exactly as in DropdownAddMore.test.ts so the stub renders
+// list-footer and no-options slots inline (no teleport / dropdown state needed).
+vi.mock("vue-select", async () => {
+  const { defineComponent, h } = await import("vue");
+  return {
+    default: defineComponent({
+      name: "VSelect",
+      props: [
+        "modelValue",
+        "options",
+        "loading",
+        "searchable",
+        "disabled",
+        "placeholder",
+        "clearable",
+        "deselectFromDropdown",
+        "appendToBody",
+        "label",
+        "reduce",
+      ],
+      emits: ["option:selected", "update:modelValue"],
+      setup(_props, { slots }) {
+        return () =>
+          h("div", { class: "v-select-stub" }, [
+            slots["no-options"]?.({ search: "" }) ?? null,
+            slots["list-footer"]?.() ?? null,
+          ]);
+      },
+    }),
+  };
+});
+
+import VSelect from "vue-select";
 
 vi.stubGlobal("definePageMeta", vi.fn());
 
@@ -41,67 +81,58 @@ describe("PlaygroundSelect", () => {
     });
   });
 
-  it("renders all playground options from the composable", async () => {
-    const wrapper = mount(PlaygroundSelect, { props: { modelValue: null } });
+  it("calls fetchPlaygrounds on mount", async () => {
+    mount(PlaygroundSelect, { props: { modelValue: null } });
     await flushPromises();
-
-    const options = wrapper.findAll("option");
-    const labels = options.map((o) => o.text());
-    expect(labels.some((l) => l.includes("Alpha Cancha"))).toBe(true);
-    expect(labels.some((l) => l.includes("Zeta Cancha"))).toBe(true);
+    expect(mockFetchPlaygrounds).toHaveBeenCalledOnce();
   });
 
-  it("emits update:modelValue when an option is selected", async () => {
+  it("maps playgrounds to DropdownOption[] with label = 'name — address'", async () => {
     const wrapper = mount(PlaygroundSelect, { props: { modelValue: null } });
     await flushPromises();
 
-    const select = wrapper.find("select");
-    await select.setValue("pg-1");
+    const opts = wrapper.findComponent(VSelect).props("options") as Array<{
+      id: string;
+      label: string;
+    }>;
+    expect(opts.some((o) => o.label === "Alpha Cancha — Av. Alpha 1")).toBe(
+      true,
+    );
+    expect(opts.some((o) => o.label === "Zeta Cancha — Av. Zeta 9")).toBe(true);
+  });
 
-    expect(wrapper.emitted("update:modelValue")).toBeTruthy();
+  it("re-emits update:modelValue when VSelect fires option:selected", async () => {
+    const wrapper = mount(PlaygroundSelect, { props: { modelValue: null } });
+    await flushPromises();
+
+    await wrapper.findComponent(VSelect).vm.$emit("option:selected", {
+      id: "pg-1",
+      label: "Alpha Cancha — Av. Alpha 1",
+    });
+
     expect(wrapper.emitted("update:modelValue")![0]).toEqual(["pg-1"]);
   });
 
-  it("emits null when the empty option is selected", async () => {
-    const wrapper = mount(PlaygroundSelect, { props: { modelValue: "pg-1" } });
-    await flushPromises();
-
-    const select = wrapper.find("select");
-    await select.setValue("");
-
-    expect(wrapper.emitted("update:modelValue")![0]).toEqual([null]);
-  });
-
-  it("shows '--' placeholder option when the list is empty", async () => {
-    // The '-- Sin cancha --' placeholder always exists
-    const wrapper = mount(PlaygroundSelect, { props: { modelValue: null } });
-    await flushPromises();
-    const options = wrapper.findAll("option");
-    expect(options.some((o) => o.text().includes("--"))).toBe(true);
-  });
-
-  it("reveals the inline mini-form when 'Agregar nueva…' option is selected", async () => {
+  it("renders the inline-create form after clicking the add-new button", async () => {
     const wrapper = mount(PlaygroundSelect, { props: { modelValue: null } });
     await flushPromises();
 
-    const select = wrapper.find("select");
-    await select.setValue("__add_new__");
+    await wrapper.find(".vs__add-new-btn").trigger("click");
 
-    expect(wrapper.find("[data-testid='inline-form']").exists()).toBe(true);
+    expect(wrapper.find("input[placeholder='Nombre']").exists()).toBe(true);
+    expect(wrapper.find("input[placeholder='Dirección']").exists()).toBe(true);
   });
 
-  it("calls createPlayground on mini-form submit and emits the new playground id", async () => {
+  it("calls createPlayground with name and address on form submit", async () => {
     const wrapper = mount(PlaygroundSelect, { props: { modelValue: null } });
     await flushPromises();
 
-    // Open inline form
-    const select = wrapper.find("select");
-    await select.setValue("__add_new__");
+    await wrapper.find(".vs__add-new-btn").trigger("click");
 
-    // Fill in the form
-    const inputs = wrapper.findAll("input");
-    await inputs[0]!.setValue("Nueva cancha");
-    await inputs[1]!.setValue("Calle 99 Nueva");
+    await wrapper.find("input[placeholder='Nombre']").setValue("Nueva cancha");
+    await wrapper
+      .find("input[placeholder='Dirección']")
+      .setValue("Calle 99 Nueva");
 
     await wrapper.find("form").trigger("submit");
     await flushPromises();
@@ -110,7 +141,18 @@ describe("PlaygroundSelect", () => {
       name: "Nueva cancha",
       address: "Calle 99 Nueva",
     });
-    // Emits the newly created id
+  });
+
+  it("emits the new playground id after successful create", async () => {
+    const wrapper = mount(PlaygroundSelect, { props: { modelValue: null } });
+    await flushPromises();
+
+    await wrapper.find(".vs__add-new-btn").trigger("click");
+    await wrapper.find("input[placeholder='Nombre']").setValue("Nueva");
+    await wrapper.find("input[placeholder='Dirección']").setValue("Calle 99");
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+
     const emitted = wrapper.emitted("update:modelValue");
     expect(emitted?.at(-1)).toEqual(["pg-new"]);
   });

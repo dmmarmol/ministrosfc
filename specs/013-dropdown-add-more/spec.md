@@ -1,6 +1,6 @@
 # Feature Specification: Dropdown with Inline Add-More
 
-**Feature Branch**: `feat/013-dropdown-add-more`
+**Feature Branch**: `chore/013-dropdown-add-more`
 **Created**: 2026-03-25
 **Status**: Draft
 **Input**: User description: "Create a UI component for the frontend to be a dropdown with the capacity of inserting a new entry. This dropdown should be able to fetch a list of values and also to trigger the addition by clicking 'Add more' as the fixed last option. Deletion is not allowed through the dropdown"
@@ -49,12 +49,14 @@ A user opens the dropdown and sees many options. They start typing in a search f
 
 **Why this priority**: Filtering is important for usability when the option list grows beyond a handful of items, but the component is functional without it.
 
+**Implementation note**: Search/filter is provided natively by `vue-select` via its `searchable`/`filterable` props and the `filter`/`filterBy` callbacks. No custom filtering logic is required in the wrapper component.
+
 **Independent Test**: Can be tested by opening the dropdown, typing a search term, and verifying only matching options are displayed.
 
 **Acceptance Scenarios**:
 
 1. **Given** the dropdown is open, **When** the component is configured to show search and the user types in the search field, **Then** the option list is filtered to show only options whose label contains the typed text (case-insensitive).
-2. **Given** the user has typed a search term, **When** no options match, **Then** the dropdown shows "Sin resultados" (No results) but the "Agregar nueva…" option remains visible.
+2. **Given** the user has typed a search term, **When** no options match, **Then** the dropdown shows "Sin resultados" (No results) but the "Agregar nueva…" footer option remains visible.
 3. **Given** the user has typed a search term, **When** they clear the search field, **Then** all options are shown again.
 
 ---
@@ -65,11 +67,13 @@ The dropdown gracefully handles scenarios where there are no options or options 
 
 **Why this priority**: These states ensure the component doesn't break or confuse the user in edge cases.
 
+**Implementation note**: The loading spinner and empty-state slot are provided natively by `vue-select` (`loading` prop and `no-options` slot). The wrapper component passes through the `loading` prop and customises the `no-options` slot with the Spanish message.
+
 **Independent Test**: Can be tested by rendering the component with an empty options list and verifying it shows a helpful placeholder and the "Add new" action.
 
 **Acceptance Scenarios**:
 
-1. **Given** a dropdown with no options loaded, **When** the user opens the dropdown, **Then** a message "Sin opciones disponibles" (No options available) is shown, and the "Agregar nueva…" option is still available.
+1. **Given** a dropdown with no options loaded, **When** the user opens the dropdown, **Then** a message "Sin opciones disponibles" (No options available) is shown, and the "Agregar nueva…" footer option is still available.
 2. **Given** a dropdown where options are being fetched, **When** the user opens the dropdown, **Then** a loading indicator is shown until options arrive.
 3. **Given** a dropdown where the data fetch fails, **When** the user opens the dropdown, **Then** an error message is shown with a "Reintentar" (Retry) option.
 
@@ -77,24 +81,24 @@ The dropdown gracefully handles scenarios where there are no options or options 
 
 ### Edge Cases
 
-- What happens when the user rapidly opens and closes the dropdown? → The component debounces open/close to prevent visual flickering.
+- What happens when the user rapidly opens and closes the dropdown? → vue-select handles open/close state internally; no additional debounce is required in the wrapper.
 - What happens when the "Add new" creation succeeds but the options list fails to refresh? → The newly created entry is added to the local options list optimistically; a background re-fetch syncs the full list.
 - What happens when the selected value is removed from the data source (externally, not via this dropdown)? → The dropdown displays the selected value as a "missing" entry with a visual indicator, allowing the user to select a different option.
-- What happens when the dropdown is inside a modal or a scrollable container? → The dropdown panel positions itself to remain visible (standard dropdown positioning behavior).
-- Deletion is explicitly not supported through this component — there is no delete action in the dropdown.
+- What happens when the dropdown is inside a modal or a scrollable container? → vue-select's `appendToBody` prop is enabled by default in the wrapper, using the Floating UI / absolute positioning strategy to keep the dropdown visible above overflow-hidden containers.
+- Deletion is explicitly not supported through this component — there is no delete action in the dropdown. vue-select's `clearable` prop and `deselectFromDropdown` prop are both set to `false` in the wrapper defaults.
 
 ## Requirements _(mandatory)_
 
 ### Functional Requirements
 
 - **FR-001**: The component MUST display a list of selectable options provided by the parent form.
-- **FR-002**: The component MUST support fetching options from a data source (via a configurable fetch function provided by the parent).
+- **FR-002**: The component MUST support fetching options from a data source (via a configurable fetch function provided by the parent). _Implementation note: in the vue-select-based implementation the parent fetches externally and passes the ready `options` array as a prop; a `fetchOptions` callback is NOT part of the component API (Research Decision 9)._
 - **FR-003**: The component MUST display "Agregar nueva…" as a fixed last option, visually separated from the regular options list.
 - **FR-004**: Clicking "Agregar nueva…" MUST trigger an inline creation flow (the form fields are defined by the parent component).
 - **FR-005**: After successful inline creation, the new entry MUST be automatically selected and the dropdown MUST close.
 - **FR-006**: The component MUST NOT support deletion of entries through the dropdown interface.
 - **FR-007**: The component MUST emit a selection event when the user selects an option, providing the selected value.
-- **FR-008**: The component MUST emit a creation event when a new entry is created inline, providing the created entry's data.
+- **FR-008**: The component MUST emit a creation event when a new entry is created inline, providing the created entry's data. _Implementation note: the `select` emit (FR-007) also fires after inline creation, carrying the new `DropdownOption` as the full object. This serves as the creation notification; no separate `create` emit is added. The `onCreate` callback return value is the canonical source for domain-level post-creation logic._
 - **FR-009**: The component MUST support an optional search/filter input to narrow the options list.
 - **FR-010**: The component MUST handle empty states (no options) by showing the exact default message "Sin opciones disponibles" while keeping "Agregar nueva…" accessible.
 - **FR-011**: The component MUST handle loading states with a visual indicator.
@@ -118,14 +122,18 @@ The dropdown gracefully handles scenarios where there are no options or options 
 - The UI language is Spanish (Argentine dialect). Default labels are in Spanish but can be overridden by the parent component.
 - The component is a presentational/UI component — it does not directly call any backend endpoint. Data fetching and creation logic are provided by the parent form via callback functions or events.
 - The inline creation form supports a simple layout (1-3 fields). Complex multi-step creation flows should navigate to a dedicated page instead.
-- The component follows the existing Tailwind CSS styling patterns used throughout the application.
-- Keyboard accessibility (arrow keys, Enter, Escape) is a nice-to-have for this iteration, not a hard requirement.
+- The component is a thin wrapper over [`vue-select`](https://vue-select.org). The stable v3.x release supports Vue 2 only; Vue 3 / Nuxt 4 requires `vue-select@beta` (v4.x). The beta is used for this project. This is a known trade-off — the v4 API is stable enough for production use but carries a small upgrade risk when v4 is formally released.
+- `vue-select` ships its own CSS (`vue-select/dist/vue-select.css`), which must be imported globally. The wrapper component may override individual CSS custom properties to align with the project's Tailwind palette without replacing the full stylesheet.
+- Keyboard accessibility (arrow keys, Enter, Escape) is provided out of the box by vue-select and is no longer a nice-to-have — it is included by default.
+- vue-select's `clearable` and `deselectFromDropdown` props are set to `false` in the wrapper defaults to enforce FR-006 (no deletion through the dropdown).
+- The fixed "Agregar nueva…" footer is implemented via vue-select's `list-footer` slot, which renders a sticky element at the bottom of the dropdown list regardless of search state or scroll position.
 
 ## Out of Scope
 
 - Deletion of entries through the dropdown
 - Multi-select functionality (selecting multiple options at once)
 - Drag-and-drop reordering of options
-- Server-side search / autocomplete (all filtering is client-side on already-fetched data)
+- Server-side search / autocomplete (all filtering is client-side on already-fetched data; vue-select supports AJAX but that feature is deferred)
 - Virtualized rendering for lists with thousands of items
-- Keyboard accessibility beyond basic Tab and Escape support
+- Customising the vue-select SCSS variables or replacing its default components (Deselect, OpenIndicator) in this iteration
+- Upgrading from `vue-select@beta` to the stable v4 release (tracked as follow-up work when v4 is published)
