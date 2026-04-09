@@ -7,6 +7,22 @@ Versioning follows [Semantic Versioning](https://semver.org/) at the project lev
 
 ---
 
+## [0.7.1] — 2026-04-09
+
+### Added — Spec 013: DropdownAddMore Component
+
+- **`DropdownAddMore.vue`**: New generic reusable dropdown component wrapping `vue-select@beta` with an `inline-create` scoped slot. Supports option selection, inline entry creation, loading/empty/error states, and searchable filtering.
+- **`PlaygroundSelect.vue` refactored**: Hand-rolled `<select>` + inline form replaced by a thin adapter over `DropdownAddMore`. Public API unchanged — both game create/edit pages continue to work without modification.
+- **CSS alignment**: vue-select visual theme overridden via CSS custom properties (`--vs-border-color`, `--vs-border-radius`, `--vs-font-size`, `--vs-dropdown-box-shadow`) to match the Tailwind design system.
+- **24 unit tests** for `DropdownAddMore` covering all four user stories (select, inline create, search, loading/empty/error states).
+- **6 unit tests** for the `PlaygroundSelect` adapter (composable wiring, option mapping, v-model, inline creation).
+
+### Fixed
+
+- `ProfileEditForm.test.ts`: Added functional stubs for `JerseyNumberInput` and `AddressAutocompleteInput` to prevent timer leaks and `useRuntimeConfig` errors in the test runner.
+
+---
+
 ## [0.7.0] — 2026-04-07
 
 ### Added — Spec 012: Playground Entity (Game Locations)
