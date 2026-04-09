@@ -39,3 +39,44 @@
 - Alternatives considered:
   - Manual checks only: rejected as insufficient for regression safety.
   - E2E-only coverage: rejected because component contract semantics are best protected with unit tests.
+
+## Decision 6: Use vue-select@beta as the underlying dropdown engine
+
+- Decision: `DropdownAddMore.vue` wraps `vue-select@beta` (v4.x) rather than being built from scratch.
+- Rationale: vue-select provides all base dropdown behaviours (open/close, outside-click, keyboard navigation, search/filter, loading state, empty-state slot, modal positioning via `appendToBody`) for free, reducing implementation scope from ~30 tasks to ~15. It has zero dependencies, MIT licence, and ~20 KB.
+- Alternatives considered:
+  - Build from scratch: rejected — unjustified complexity given a well-maintained library covers the exact requirements.
+  - `vue-select` stable v3.x: rejected — Vue 2 only; incompatible with Nuxt 4 / Vue 3.
+  - Headless UI / Radix Vue: rejected — opinionated styling overhead; vue-select's default CSS is easier to override with Tailwind custom properties.
+
+## Decision 7: Installation and CSS import strategy
+
+- Decision: Install `vue-select@beta` in `packages/frontend`. Import `vue-select/dist/vue-select.css` globally via the `css` array in `nuxt.config.ts`. Register `VueSelect` as a component locally inside `DropdownAddMore.vue` (not as a global Nuxt plugin).
+- Rationale: Local registration keeps the bundle split clean and makes the dependency visible at the usage site. Global CSS import is consistent with the Leaflet pattern already used.
+- Alternatives considered:
+  - Nuxt plugin registration: rejected — no benefit when used in a single wrapper component.
+  - SCSS import instead of compiled CSS: rejected — extra build configuration without clear gain.
+
+## Decision 8: "Agregar nueva…" footer via list-footer slot
+
+- Decision: Render the fixed "Agregar nueva…" button and inline creation mini-form inside vue-select's `list-footer` slot.
+- Rationale: `list-footer` is always visible regardless of search state or scroll position, and is visually sticky at the bottom of the dropdown panel — exactly what the spec requires. The slot receives no props, keeping the implementation simple.
+- Alternatives considered:
+  - Inject footer as a fake option (`{ id: '__add_new__', label: '...' }`): rejected — requires special-casing in `onSelect`, pollutes option type, and disappears when search filters it out.
+  - Portal-based separate overlay: rejected — unnecessary complexity; `appendToBody` + vue-select's own positioning is sufficient.
+
+## Decision 9: Inline creation success handshake
+
+- Decision: The `list-footer` slot renders a local `open_create` boolean (reactive ref in the wrapper). On submit, the wrapper calls the parent's creation handler (passed as a prop callback `onCreate: (payload) => Promise<DropdownOption>`), awaits the result, appends the `DropdownOption` to the internal working copy of `options`, and sets `modelValue` to the new option's `id`. The dropdown then closes.
+- Rationale: Keeps the parent in control of domain logic (entity creation, API call) while the wrapper handles the selection side-effect automatically. This is the clearest separation of concerns.
+- Alternatives considered:
+  - Emit `submit-create` and wait for parent to set `modelValue` externally: rejected — creates a race condition where the dropdown may not close cleanly if the parent delays.
+  - Two-way sync via shared reactive store: rejected — over-engineered for a UI component.
+
+## Decision 10: Integration target — replace PlaygroundSelect.vue
+
+- Decision: Replace `packages/frontend/src/components/PlaygroundSelect.vue` (a hand-rolled version of the same pattern) with `DropdownAddMore.vue` as the primary real-world integration target. Apply to both `admin/games/create.vue` and `admin/games/[id]/edit.vue`.
+- Rationale: `PlaygroundSelect.vue` is the exact problem this component solves. Replacing it (a) validates re-usability (SC-005), (b) eliminates duplicate code, and (c) provides a real-world usage example for future adopters.
+- Alternatives considered:
+  - Create a new showcase page only: rejected — does not eliminate existing duplication and defers real integration risk.
+  - Keep PlaygroundSelect.vue as-is: rejected — leaves technical debt and misses validation opportunity.

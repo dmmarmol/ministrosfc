@@ -8,6 +8,42 @@ vi.stubGlobal("$fetch", vi.fn());
 
 import ProfileEditForm from "../../src/components/profile/ProfileEditForm.vue";
 
+// Minimal functional stubs that prevent child-component network calls and leak
+// timers from hanging the test runner (AddressAutocompleteInput calls
+// useRuntimeConfig at setup time and has an uncleaned debounce timer).
+const stubJerseyNumber = {
+  props: ["modelValue", "takenNumbers", "disabled"],
+  emits: ["update:modelValue"],
+  template: `
+    <div>
+      <input
+        id="jerseyNumberInput"
+        :value="modelValue ?? ''"
+        type="number"
+        @input="$emit('update:modelValue', $event.target.value === '' ? null : Number($event.target.value))"
+      />
+      <p v-if="takenNumbers && takenNumbers.includes(modelValue)" data-testid="jersey-taken-error">
+        Este número ya está ocupado
+      </p>
+      <p v-else-if="takenNumbers && takenNumbers.length > 0" data-testid="jersey-available-hint">
+        Disponibles
+      </p>
+    </div>
+  `,
+};
+
+const stubIsPlayerCheckbox = {
+  props: ["modelValue", "id", "label", "description"],
+  emits: ["update:modelValue"],
+  template: `<input :id="id" type="checkbox" :checked="modelValue" @change="$emit('update:modelValue', $event.target.checked)" />`,
+};
+
+const stubAddressAutocomplete = {
+  props: ["modelValue", "id", "placeholder", "required"],
+  emits: ["update:modelValue", "select"],
+  template: `<input :id="id" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" />`,
+};
+
 describe("ProfileEditForm", () => {
   /** @TODO reuse an existing interface to type defaultProfile */
   const defaultProfile = {
@@ -32,6 +68,13 @@ describe("ProfileEditForm", () => {
         loading: false,
         error: "",
         ...props,
+      },
+      global: {
+        stubs: {
+          JerseyNumberInput: stubJerseyNumber,
+          IsPlayerCheckbox: stubIsPlayerCheckbox,
+          AddressAutocompleteInput: stubAddressAutocomplete,
+        },
       },
     });
 
@@ -104,5 +147,113 @@ describe("ProfileEditForm", () => {
     await wrapper.find("form").trigger("submit.prevent");
     const emitted = wrapper.emitted("save")![0][0] as any;
     expect(emitted.status).toBe("INACTIVE");
+  });
+
+  // EC-1: deep watch on profile prop re-syncs form fields after mount
+  it("re-syncs form fields when profile prop changes after mount", async () => {
+    const wrapper = mountForm();
+    await wrapper.setProps({
+      profile: { ...defaultProfile, firstName: "Carlos", nickname: "Carlitos" },
+    });
+    expect(
+      (wrapper.find("#profile-firstName").element as HTMLInputElement).value,
+    ).toBe("Carlos");
+    expect(
+      (wrapper.find("#profile-nickname").element as HTMLInputElement).value,
+    ).toBe("Carlitos");
+  });
+
+  // EC-2: submit button disabled when the jersey number is already taken
+  it("disables submit button when selected jersey is taken", () => {
+    const wrapper = mountForm({
+      profile: { ...defaultProfile, jerseyNumber: 3 },
+      takenJerseys: [3, 7],
+    });
+    const button = wrapper.find('button[type="submit"]');
+    expect(button.attributes("disabled")).toBeDefined();
+  });
+
+  // EC-3: empty position string is submitted as null
+  it("emits save with position null when no position is selected", async () => {
+    const wrapper = mountForm({
+      profile: { ...defaultProfile, position: "" },
+    });
+    await wrapper.find("form").trigger("submit.prevent");
+    const emitted = wrapper.emitted("save")![0][0] as any;
+    expect(emitted.position).toBeNull();
+  });
+
+  // EC-4: lastNameChange emit fires on last name input events
+  it("emits lastNameChange when last name input changes", async () => {
+    const wrapper = mountForm();
+    await wrapper.find("#profile-lastName").setValue("López");
+    expect(wrapper.emitted("lastNameChange")).toBeTruthy();
+    expect(wrapper.emitted("lastNameChange")![0][0]).toBe("López");
+  });
+
+  // EC-5: inactive warning banner visibility tracks status
+  it("shows inactive warning when status is INACTIVE", async () => {
+    const wrapper = mountForm();
+    await wrapper.find("#profileStatus").setValue(false);
+    expect(wrapper.find(".border-yellow-300").exists()).toBe(true);
+  });
+
+  it("hides inactive warning when status is ACTIVE", () => {
+    const wrapper = mountForm();
+    expect(wrapper.find(".border-yellow-300").exists()).toBe(false);
+  });
+
+  // EC-6: no error element rendered when error prop is empty
+  it("does not render error element when error prop is empty string", () => {
+    const wrapper = mountForm({ error: "" });
+    expect(wrapper.find(".text-red-600").exists()).toBe(false);
+  });
+
+  // NC-1: jerseyChange emit fires when jersey number changes
+  it("emits jerseyChange when jersey number is updated", async () => {
+    const wrapper = mountForm();
+    const jerseyInput = wrapper.find("#jerseyNumberInput");
+    await jerseyInput.setValue(9);
+    expect(wrapper.emitted("jerseyChange")).toBeTruthy();
+  });
+
+  // NC-2: button label text is "Guardando…" when loading is true
+  it("shows 'Guardando…' label on submit button when loading", () => {
+    const wrapper = mountForm({ loading: true });
+    const button = wrapper.find('button[type="submit"]');
+    expect(button.text()).toBe("Guardando…");
+  });
+
+  // NC-3: null jerseyNumber does NOT disable the submit button
+  it("does not disable submit button when jerseyNumber is null", () => {
+    const wrapper = mountForm({
+      profile: { ...defaultProfile, jerseyNumber: null },
+    });
+    const button = wrapper.find('button[type="submit"]');
+    expect(button.attributes("disabled")).toBeUndefined();
+  });
+
+  // NC-4: null optional fields initialise as empty string in the form
+  it("initialises null optional fields as empty strings", () => {
+    const wrapper = mountForm({
+      profile: {
+        ...defaultProfile,
+        nickname: null as any,
+        address: null as any,
+        phone: null as any,
+        whatsapp: null as any,
+        emergencyContact: null as any,
+      },
+    });
+    expect(
+      (wrapper.find("#profile-nickname").element as HTMLInputElement).value,
+    ).toBe("");
+    expect(
+      (wrapper.find("#profile-phone").element as HTMLInputElement).value,
+    ).toBe("");
+    expect(
+      (wrapper.find("#profile-emergencyContact").element as HTMLInputElement)
+        .value,
+    ).toBe("");
   });
 });

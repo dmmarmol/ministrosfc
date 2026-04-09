@@ -1,103 +1,139 @@
 # Implementation Plan: Dropdown with Inline Add-More
 
-**Branch**: `feat/012-dropdown-add-more` | **Date**: 2026-03-30 | **Spec**: `/specs/012-dropdown-add-more/spec.md`
-**Input**: Feature specification from `/specs/012-dropdown-add-more/spec.md`
+**Branch**: `chore/013-dropdown-add-more` | **Date**: 2026-04-08 | **Spec**: [`/specs/013-dropdown-add-more/spec.md`](/specs/013-dropdown-add-more/spec.md)
+**Input**: Feature specification from `/specs/013-dropdown-add-more/spec.md`
 
 ## Summary
 
-Build a reusable frontend dropdown component that supports selecting existing options and launching an inline creation flow from a fixed last entry, while enforcing no-delete behavior. The component will be generic (entity-agnostic), use configurable labels with Spanish defaults, support loading/empty/error states, and be integrated first in game create/edit location inputs.
+Build a reusable `DropdownAddMore.vue` component for `packages/frontend` that wraps `vue-select@beta` (v4.x) and extends it with a fixed "Agregar nueva…" footer (via vue-select's `list-footer` slot) and an inline creation flow. Replace the existing hand-rolled `PlaygroundSelect.vue` with this wrapper as the primary real-world integration target, applied to both game form pages (`admin/games/create.vue` and `admin/games/[id]/edit.vue`). No CMS changes. No new shared types (`DropdownOption` / `DropdownLabels` are frontend-only).
 
 ## Technical Context
 
-**Language/Version**: TypeScript 5.x, Vue 3 (Nuxt 3 app, ESM)
-**Primary Dependencies**: Nuxt, Vue, Tailwind CSS, Pinia, Vitest, @vue/test-utils
-**Storage**: N/A (UI component; parent owns data-fetch and persistence)
-**Testing**: Vitest unit tests in `packages/frontend/tests/components` and targeted manual validation in playground + admin pages
-**Target Platform**: Web browsers (desktop + mobile responsive layouts)
-**Project Type**: Web application frontend component
-**Performance Goals**: Option rendering within 500ms after data availability; search filtering responsive for typical list sizes
-**Constraints**: Must keep "Agregar nueva..." as fixed last option; no delete affordance/events/callbacks; all labels configurable with Spanish defaults; close on outside click; entity-agnostic API
-**Scale/Scope**: One reusable component, one type contract module, one playground page, two initial page integrations (admin game create/edit)
+**Language/Version**: TypeScript 5.x (strict mode)
+**Primary Dependencies**: Vue 3, Nuxt 4, `vue-select@beta` (v4.x, Vue 3 build)
+**Storage**: N/A — component is purely UI; parent owns data fetching
+**Testing**: Vitest + Vue Test Utils (unit), Playwright (E2E, no new E2E tests this feature)
+**Target Platform**: Web (modern browser); SSR-compatible (vue-select renders correctly in Nuxt SSR mode with `appendToBody`)
+**Project Type**: Frontend UI component library within a Nuxt 4 monorepo
+**Performance Goals**: Dropdown opens within 1 frame; options render within 500ms of parent passing data (SC-004)
+**Constraints**: Must work inside overflow-hidden containers (modals, sidebars) via `appendToBody: true`
+**Scale/Scope**: One new component, one replaced component, two page integrations
 
 ## Constitution Check
 
-_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
+_Re-checked post-design with all decisions resolved._
 
-- Principle I (Feature-Driven Architecture): PASS. Scope is a discrete UI capability with clear user outcomes.
-- Principle II (Spec-First): PASS. Spec is present and sufficiently detailed with stories/requirements.
-- Principle III (Plan-Driven): PASS. This plan defines architecture, data model, contracts, and rollout.
-- Principle IV (TDD Non-Negotiable): PASS WITH ACTION. Plan defines unit tests as required for all testable behaviors; implementation must execute tests before completion.
-- Principle V (Component Isolation/Reusability): PASS. Component API is typed and entity-agnostic.
-- Principle VI (Data Flow/State Management): PASS. Parent remains source of truth for async data and creation outcomes.
+- [x] **Principle II (Spec-First)**: Spec approved and fully resolved before implementation.
+- [x] **Principle III (Plan-Driven)**: This plan document.
+- [x] **Principle IV (TDD)**: Unit tests for `DropdownAddMore.vue` are written before the component (red-green-refactor per task list). Coverage target ≥ 80% for new component.
+- [x] **Principle V (Component Isolation)**: `DropdownAddMore` is single-responsibility (dropdown + inline create). `PlaygroundSelect.vue` becomes a thin adapter.
+- [x] **Principle VI (Data Flow)**: Parent owns fetch and creation API call; component owns selection and open/close UI state only.
+- [x] **Principle VII (Shared Types)**: `DropdownOption` and `DropdownLabels` are consumed by `packages/frontend` only — no CMS usage. They do NOT need to go to `@ministrosfc/shared`. ✅ No violation.
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/012-dropdown-add-more/
-├── plan.md
-├── research.md
-├── data-model.md
-├── quickstart.md
+specs/013-dropdown-add-more/
+├── plan.md              ← this file
+├── research.md          ← Decisions 1–10 (vue-select approach finalised)
+├── data-model.md        ← DropdownOption, DropdownLabels, ComponentState (wrapper-level only)
+├── quickstart.md        ← install, dev commands, manual checklist
 ├── contracts/
-│   └── dropdown-add-more.contract.md
-└── tasks.md
+│   └── dropdown-add-more.contract.md  ← props/emits/slots/behavioural contract
+└── tasks.md             ← generated by /speckit.tasks
 ```
 
-### Source Code (repository root)
+### Source Code
 
 ```text
 packages/frontend/
+├── nuxt.config.ts                        ← add vue-select CSS to css[] array
+├── package.json                          ← add vue-select@beta dependency
 ├── src/
-│   ├── components/
-│   │   └── ui/
-│   │       └── DropdownAddMore.vue
-│   ├── pages/
-│   │   ├── admin/games/create.vue
-│   │   ├── admin/games/[id]/edit.vue
-│   │   └── playground-dropdown-playground.vue
-│   └── types/
-│       └── dropdown-add-more.ts
+│   └── components/
+│       ├── ui/
+│       │   └── DropdownAddMore.vue       ← NEW: main component (wraps vue-select)
+│       └── PlaygroundSelect.vue          ← REPLACE internals to use DropdownAddMore
+├── pages/
+│   └── admin/
+│       └── games/
+│           ├── create.vue                ← INTEGRATE: playground dropdown field
+│           └── [id]/
+│               └── edit.vue              ← INTEGRATE: playground dropdown field
 └── tests/
     └── components/
-        └── DropdownAddMore.test.ts
+        └── DropdownAddMore.test.ts       ← NEW: unit tests (written first)
 ```
 
-**Structure Decision**: Use existing web-application frontend structure under `packages/frontend`, keeping reusable UI in `src/components/ui`, contracts/types in `src/types`, and component tests in `tests/components` to align with current repository testing patterns.
+## Phase 0: Research Summary
 
-## Phase 0: Research Outcomes
+Research complete; all decisions documented in `research.md`. Key resolved unknowns:
 
-- Resolved component contract shape (props/emits/slots + optional fetch callback) and Spanish default-label strategy.
-- Resolved state behavior for loading, empty, error, retry, and outside-click close.
-- Resolved integration pattern for create/edit game pages and a dedicated playground route.
-- Captured testing approach and required behavior coverage.
+| Unknown                           | Resolution                                                     |
+| --------------------------------- | -------------------------------------------------------------- |
+| Search/filter implementation      | vue-select's `searchable` + `filterable` props (built-in)      |
+| Dropdown positioning in modals    | vue-select's `appendToBody: true` (constant)                   |
+| "Agregar nueva…" sticky footer    | vue-select's `list-footer` slot (always mounted when open)     |
+| Inline creation success handshake | `onCreate` async callback prop; wrapper appends + auto-selects |
+| Open/close debounce               | Not needed; vue-select handles internally                      |
+| Real-world integration target     | `PlaygroundSelect.vue` replaced by `DropdownAddMore`           |
+| Keyboard accessibility            | Built-in via vue-select (arrow keys, Enter, Escape)            |
 
-Reference artifact: `/specs/012-dropdown-add-more/research.md`
+## Phase 1: Design Decisions
 
-## Phase 1: Design Outputs
+### Component Architecture
 
-- Data model for option entities, labels, state machine, and create-flow payloads.
-- Interface contract for reusable component API.
-- Quickstart with implementation and validation steps.
+```
+DropdownAddMore.vue
+  └── <v-select>                    (from vue-select@beta)
+        ├── [default slot]          (option rendering — no custom needed)
+        ├── [no-options slot]       → "Sin opciones disponibles" from labels.empty
+        └── [list-footer slot]
+              ├── "Agregar nueva…" button  (shown when !open_create)
+              └── [inline-create slot]     (provided by parent; shown when open_create)
+                    slot props: { submit, cancel, error, loading }
+```
 
-Reference artifacts:
+### Props → vue-select pass-through mapping
 
-- `/specs/012-dropdown-add-more/data-model.md`
-- `/specs/012-dropdown-add-more/contracts/dropdown-add-more.contract.md`
-- `/specs/012-dropdown-add-more/quickstart.md`
+| Wrapper prop                  | vue-select prop        | Note                                                                     |
+| ----------------------------- | ---------------------- | ------------------------------------------------------------------------ |
+| `options` (mapped `id`→value) | `options`              | `DropdownOption[]` passed as-is; `reduce: (o) => o.id`; `label: "label"` |
+| `modelValue`                  | `modelValue`           | Selected option's `id`                                                   |
+| `loading`                     | `loading`              | Built-in spinner                                                         |
+| `searchable` (default `true`) | `searchable`           |                                                                          |
+| `disabled`                    | `disabled`             |                                                                          |
+| `labels.placeholder`          | `placeholder`          |                                                                          |
+| `true` (constant)             | `appendToBody`         | Required for modal/overflow scenarios                                    |
+| `false` (constant)            | `clearable`            | Enforces FR-006                                                          |
+| `false` (constant)            | `deselectFromDropdown` | Enforces FR-006                                                          |
 
-## Post-Design Constitution Re-Check
+### Inline Creation Flow
 
-- Principle I (Feature-Driven Architecture): PASS
-- Principle II (Spec-First): PASS
-- Principle III (Plan-Driven): PASS
-- Principle IV (TDD Non-Negotiable): PASS (design defines explicit unit test coverage for component contract and critical behaviors)
-- Principle V (Component Isolation/Reusability): PASS
-- Principle VI (Data Flow/State Management): PASS
+```
+list-footer slot rendered (always open)
+  → user clicks "Agregar nueva…"
+  → wrapper sets open_create = true
+  → inline-create scoped slot exposed to parent with { submit, cancel, error, loading }
+  → parent fills form and calls submit(payload)
+  → wrapper calls onCreate(payload)   [loading slot prop = true]
+  → onCreate resolves → DropdownOption
+  → wrapper appends to local options, emits update:modelValue(newOption.id), emits select(newOption)
+  → wrapper sets open_create = false
+  → vue-select closes (modelValue changed)
+  → onCreate rejects → wrapper sets error slot prop, mini-form stays open
+```
 
-No unjustified violations detected.
+### CSS Override Strategy
+
+vue-select exposes CSS custom properties (e.g., `--vs-border-color`, `--vs-dropdown-max-height`). Override in `assets/css/main.css` or scoped in `DropdownAddMore.vue` with `:deep(.vs__)` selectors. Do NOT replace `vue-select.css` entirely.
 
 ## Complexity Tracking
 
-No constitution violations requiring exception handling.
+No constitution violations requiring justification. All design choices are proportional to spec requirements.
+
+## Re-evaluated Constitution Check (post-design)
+
+All checks pass. No shared type violations. TDD enforced by task ordering (tests before implementation). Component is single-responsibility with clear boundary: vue-select owns dropdown UX; wrapper owns creation flow and Spanish defaults.
