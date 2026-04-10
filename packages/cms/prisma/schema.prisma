@@ -245,6 +245,12 @@ model Game {
   fouls         Int?
   notes         String? @db.Text
 
+  // --- FEATURE 014: game signup ---
+  maxPlayers Int?
+  slug       String    @unique @db.VarChar(200)
+  lineup     String?   @db.VarChar(10)
+  endDate    DateTime
+
   participants GameParticipant[] @relation("GameParticipants")
   statistics   Statistics[]      @relation("GameStats")
 
