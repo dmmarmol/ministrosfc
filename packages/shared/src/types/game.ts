@@ -37,6 +37,9 @@ export const FORMATIONS = [
 
 export type FormationCode = (typeof FORMATIONS)[number];
 
+/** Server-computed signup state returned in `GET /api/v1/games` for PLAYER callers only. */
+export type GameSignupState = "available" | "signed_up" | "full";
+
 export interface AdvancedStats {
   possession?: number;
   shotsOnTarget?: number;
@@ -70,6 +73,8 @@ export interface Game {
   slug: string;
   lineup: FormationCode | null;
   endDate: string;
+  /** Server-computed for PLAYER callers; absent for guests and non-PLAYER roles. Never in DTOs. */
+  currentPlayerStatus?: GameSignupState | null;
   createdAt: string;
   updatedAt: string;
 }
