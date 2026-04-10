@@ -1,17 +1,38 @@
 <script setup lang="ts">
 const { $api } = useNuxtApp();
 const route = useRoute();
-const id = route.params.id as string;
+const slug = route.params.slug as string;
+
+// T027: resolve slug → UUID, then fetch full game
+const { data: slugData, error: slugError } = await useAsyncData(
+  `game-slug-${slug}`,
+  () => $api<{ id: string; slug: string }>(`/api/v1/games/slug/${slug}`),
+);
+
+if (slugError.value || !slugData.value?.id) {
+  throw createError({ statusCode: 404, statusMessage: "Game not found" });
+}
+
+const gameId = slugData.value.id;
 
 const [{ data: gameData, pending }, { data: partData }] = await Promise.all([
-  useAsyncData(`game-${id}`, () => $api<{ data: any }>(`/api/v1/games/${id}`)),
-  useAsyncData(`game-participants-${id}`, () =>
-    $api<{ data: any[] }>(`/api/v1/games/${id}/participants`),
+  useAsyncData(`game-${gameId}`, () =>
+    $api<{ data: any }>(`/api/v1/games/${gameId}`),
+  ),
+  useAsyncData(`game-participants-${gameId}`, () =>
+    $api<{ data: any[] }>(`/api/v1/games/${gameId}/participants`),
   ),
 ]);
 
 const game = computed(() => gameData.value?.data ?? null);
-const participants = computed(() => partData.value?.data ?? []);
+// T030: sort by confirmedAt ASC, guests intermixed
+const participants = computed(() =>
+  [...(partData.value?.data ?? [])].sort(
+    (a, b) =>
+      new Date(a.confirmedAt ?? 0).getTime() -
+      new Date(b.confirmedAt ?? 0).getTime(),
+  ),
+);
 
 useHead(() => ({
   title: game.value
@@ -66,7 +87,8 @@ const statusClass = computed(() => {
       <!-- Game header -->
       <div class="bg-gray-900 text-white rounded-2xl p-6 mb-8">
         <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
-          {{ formatDate(game.date) }} · {{ game.playground?.name ?? game.location ?? "TBD" }}
+          {{ formatDate(game.date) }} ·
+          {{ game.playground?.name ?? game.location ?? "TBD" }}
         </p>
         <div class="flex items-center justify-between gap-4">
           <div class="flex items-center gap-3">
@@ -106,7 +128,7 @@ const statusClass = computed(() => {
 
       <!-- Participants -->
       <h2 class="text-lg font-bold text-gray-800 mb-4">
-        Players ({{ participants.length }})
+        Jugadores ({{ participants.length }})
       </h2>
       <div
         v-if="participants.length"
@@ -117,25 +139,50 @@ const statusClass = computed(() => {
           :key="p.id"
           class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0"
         >
+          <span class="text-gray-400 text-xs w-5 text-right">
+            {{ p.player?.jerseyNumber ?? "—" }}
+          </span>
           <span
-            class="text-xs px-2 py-0.5 rounded-full"
+            class="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
             :class="
               p.player?.playerType === 'GUEST'
                 ? 'bg-yellow-100 text-yellow-700'
                 : 'bg-green-100 text-green-700'
             "
           >
-            {{ p.player?.playerType === "GUEST" ? "Guest" : "Registered" }}
+            {{ p.player?.playerType === "GUEST" ? "Inv." : "Reg." }}
           </span>
-          <span class="flex-1 text-sm font-medium text-gray-800">{{
-            p.player ? `${p.player.firstName} ${p.player.lastName}` : ''
-          }}</span>
-          <span class="text-xs text-gray-500 capitalize">{{
+          <span class="text-xs text-gray-500 w-8 flex-shrink-0">
+            {{ p.player?.position ?? "—" }}
+          </span>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-800 truncate">
+              <!-- T030: guest lastName hidden on public page -->
+              {{
+                p.player?.playerType === "GUEST"
+                  ? p.player.firstName
+                  : `${p.player?.firstName} ${p.player?.lastName}`
+              }}
+            </p>
+            <!-- T030: "Invitado por" label for guests -->
+            <p
+              v-if="p.player?.playerType === 'GUEST'"
+              class="text-xs text-gray-400 truncate"
+            >
+              Invitado por
+              {{
+                p.confirmedBy
+                  ? `${p.confirmedBy.firstName} ${p.confirmedBy.lastName}`
+                  : "—"
+              }}
+            </p>
+          </div>
+          <span class="text-xs text-gray-500 capitalize flex-shrink-0">{{
             p.confirmationStatus?.toLowerCase().replace(/_/g, " ")
           }}</span>
         </div>
       </div>
-      <p v-else class="text-gray-500 text-sm">No participants listed yet.</p>
+      <p v-else class="text-gray-500 text-sm">No hay jugadores confirmados.</p>
     </template>
     <div v-else class="text-center py-16 text-gray-500">Game not found.</div>
   </div>
