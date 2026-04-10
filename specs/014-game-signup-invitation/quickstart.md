@@ -150,3 +150,63 @@ curl -H "Authorization: Bearer $TOKEN" \
 | `packages/cms/src/routes/games.ts`                   | `GET /games` — optional auth + PLAYER `currentPlayerStatus` injection |
 | `packages/frontend/src/components/game/GameCard.vue` | Restructured layout + `signupState` prop                              |
 | `packages/frontend/src/pages/index.vue`              | Pass auth header / receive `currentPlayerStatus` per game             |
+
+---
+
+## Wave 3 Quickstart — Session 2026-04-10
+
+### Overview
+
+Wave 3 is **frontend-only**. No DB migrations, no CMS changes, no new API endpoints. Three activities:
+
+1. Remove `max-w-2xl mx-auto` from `signup.vue` outer wrapper
+2. Create `SignupAddPlayer.vue` (new component)
+3. Slim down `SignupRegistrationRow.vue` (remove guest form + proxy section)
+4. Wire `SignupAddPlayer` into `signup.vue`
+5. Delete `SignupProxySearch.vue`
+
+### Dev Start
+
+```bash
+# From repo root
+npm run dev:all
+# Frontend: http://localhost:3000
+# CMS: http://localhost:3001
+```
+
+### Running Frontend Tests
+
+```bash
+cd packages/frontend && npx vitest run
+```
+
+### TDD Workflow
+
+Per task ordering in tasks.md Phase 18: write T078 tests first (they will fail), implement T074 to make them pass.
+
+### Key files modified for Wave 3
+
+| File | Change |
+|---|---|
+| `packages/frontend/src/pages/games/[slug]/signup.vue` | Remove `max-w-2xl`, add `SignupAddPlayer`, wire proxy loading props |
+| `packages/frontend/src/components/pages/games/signup/SignupAddPlayer.vue` | **NEW** — v-if/v-else: dropdown mode vs guest form mode |
+| `packages/frontend/src/components/pages/games/signup/SignupRegistrationRow.vue` | Remove guest form markup + `SignupProxySearch` + related refs/emits |
+| `packages/frontend/src/components/pages/games/signup/SignupProxySearch.vue` | **DELETE** |
+
+### SignupAddPlayer component contract (summary)
+
+```ts
+// Props
+confirmedPlayerIds: string[]   // filter dropdown
+proxyLoading: boolean          // disable dropdown during in-flight call
+proxyError: string | null      // show inline error
+isFull: boolean                // hide widget when at capacity
+
+// Emits
+signup-proxy(playerId: string)
+signup-guest(firstName: string, lastName: string, position: string | null)
+```
+
+### No shared types changes required
+
+`DropdownOption` (frontend-only), `PlayerPublic` (already in shared), `GuestSignupDTO`, `ProxySignupDTO`, `CurrentPlayerStatus` (all already exported from `@ministrosfc/shared`) — no new shared types needed for Wave 3.

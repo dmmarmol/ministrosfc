@@ -280,3 +280,105 @@ POST /api/v1/games/:gameId/signup-page/signup
   → mode: 'guest' → create Player(GUEST, invitedById=self) + GameParticipant(confirmedById=self)
   → mode: 'proxy' → create GameParticipant(playerId=target, confirmedById=self, status=CONFIRMED)
 ```
+
+---
+
+## Wave 3 Component Model — Session 2026-04-10
+
+No new DB entities or API endpoints. Wave 3 is a **pure frontend refactor + new component**.
+
+### New Component: `SignupAddPlayer.vue`
+
+**Location**: `packages/frontend/src/components/pages/games/signup/SignupAddPlayer.vue`
+
+**Props**
+
+| Prop | Type | Description |
+|---|---|---|
+| `confirmedPlayerIds` | `string[]` | IDs of players already confirmed for this game; used to filter dropdown |
+| `proxyLoading` | `boolean` | True while parent's proxy API call is in-flight; disables dropdown |
+| `proxyError` | `string \| null` | Inline error message to display on proxy API failure |
+| `isFull` | `boolean` | When true, hide the widget entirely (capacity reached) |
+
+**Emits**
+
+| Event | Payload | Description |
+|---|---|---|
+| `signup-proxy` | `playerId: string` | User selected a registered player; parent fires API call |
+| `signup-guest` | `firstName: string, lastName: string, position: string \| null` | User submitted guest form; parent fires API call |
+
+**Internal state**
+
+| Ref | Type | Purpose |
+|---|---|---|
+| `mode` | `'dropdown' \| 'guest'` | Controls v-if branch: dropdown mode or guest form mode |
+| `allPlayers` | `PlayerPublic[]` | Full catalogue fetched once on mount from `GET /api/v1/players?status=ACTIVE&playerType=REGISTERED` |
+| `fetchLoading` | `boolean` | True while player catalogue is loading on mount |
+| `fetchError` | `string \| null` | Error if player catalogue fetch fails |
+| `guestFirst` | `string` | Guest first name (required) |
+| `guestLast` | `string` | Guest last name (required) |
+| `guestPosition` | `string` | Guest position (optional; empty = null on submit) |
+| `guestError` | `string \| null` | Validation error shown before emit |
+
+**Computed**
+
+| Computed | Derivation |
+|---|---|
+| `dropdownOptions` | `allPlayers.filter(p => !confirmedPlayerIds.includes(p.id))` mapped to `DropdownOption[]` |
+
+**Visibility rule** (enforced in `signup.vue`):
+
+```
+show SignupAddPlayer when:
+  game.status === 'SCHEDULED'
+  AND currentPlayerStatus === 'signed_up'
+  AND user.role === 'PLAYER' (or dual-role)
+  AND !isFull
+```
+
+### Modified Component: `SignupRegistrationRow.vue`
+
+Remove all guest-form and proxy-search logic. Retain:
+- Props: `currentPlayerStatus`, `isFull`
+- Emits: `signup-self`, `cancel-self`, `dismiss`
+- Template: self-signup block (`not_signed_up`), cancel-self block (`signed_up`), full-capacity message
+
+Props removed: `confirmedPlayerIds` (no longer needed)
+Emits removed: `signup-guest`, `signup-proxy`
+Imports removed: `SignupProxySearch`, all guest-form refs
+
+### Modified Page: `signup.vue`
+
+**Outer container**: remove `class="max-w-2xl mx-auto"` — replace with `class="w-full"` (or no wrapper class — let Tailwind's default width apply).
+
+**New state** (for proxy loading isolation):
+```ts
+const proxyLoading = ref(false)
+const proxyError = ref<string | null>(null)
+```
+
+**Updated `handleSignupProxy`**:
+```ts
+async function handleSignupProxy(targetPlayerId: string) {
+  proxyLoading.value = true
+  proxyError.value = null
+  try {
+    await signupProxy(targetPlayerId)
+  } catch (e: any) {
+    proxyError.value = e?.data?.message ?? e?.message ?? 'Error al agregar jugador'
+  } finally {
+    proxyLoading.value = false
+  }
+}
+```
+
+**New import**: `SignupAddPlayer`
+
+**Right panel order** (below the 12-col grid):
+1. `SignupRegistrationRow` (game SCHEDULED only, PLAYER role only)
+2. `SignupAddPlayer` (game SCHEDULED + signed_up PLAYER + !isFull)
+3. `SignupPlayerTable`
+
+### Deleted Component: `SignupProxySearch.vue`
+
+Delete after confirming zero imports in codebase.

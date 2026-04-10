@@ -24,3 +24,7 @@
 - [x] User scenarios cover primary flows
 - [x] Feature meets measurable outcomes defined in Success Criteria
 - [x] No implementation details leak into specification
+
+## Notes
+
+- Wave 3 amendment (2026-04-28): US-10, US-11, FR-036–FR-041 added. All checklist items re-verified — no NEEDS CLARIFICATION markers, no testability regressions, no implementation details introduced. Checklist remains fully green.

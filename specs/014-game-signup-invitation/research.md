@@ -217,3 +217,41 @@ New error codes to add to `packages/cms/src/utils/error-codes.ts`:
 | DropdownAddMore — new component?   | Existing `components/ui/DropdownAddMore.vue` — reuse         |
 | Lineup field — existing component? | No — new `GameLineupField.vue`                               |
 | Auth middleware redirect param     | Already implemented in `middleware/auth.ts` via `?redirect=` |
+
+---
+
+## Wave 3 Research — Session 2026-04-10
+
+**Scope**: Frontend-only. No DB migrations, no CMS changes, no new API endpoints.
+
+---
+
+### Decision: DropdownAddMore slot vs. v-if/v-else for guest mode switch
+
+- **Decision**: `SignupAddPlayer` manages two entirely separate template branches with `v-if`/`v-else` — `DropdownAddMore` in one branch, a standalone guest form in the other.
+- **Rationale**: `DropdownAddMore`'s `inline-create` slot renders inside `#list-footer`, which is a `<li>` node appended at the bottom of the VSelect dropdown panel. It cannot replace the VSelect trigger. Wave 3 requires the entire box to switch: VSelect is gone, the guest form takes its place, and the × button lives at the far top-right of the outer container. `open_create` is also an internal, non-exposed ref.
+- **Alternatives considered**: Using the `inline-create` slot — rejected because it is scoped inside VSelect's floating dropdown, not a root-level replacement. Exposing `open_create` via `defineExpose` — rejected because VSelect trigger remains visible; still cannot achieve the full-replace UX.
+
+---
+
+### Decision: Player list fetch timing in SignupAddPlayer
+
+- **Decision**: Fetch eagerly at `SignupAddPlayer` component `onMounted`, called from within the component. Endpoint: `GET /api/v1/players?status=ACTIVE&playerType=REGISTERED`.
+- **Rationale**: `signup.vue` calls `useGameSignup` for the game/roster data — a separate concern from the player catalogue. Keeping the player-list fetch inside `SignupAddPlayer` makes the component self-contained. The catalogue is small and stable for the session.
+- **Alternatives considered**: Lazy (on dropdown open) — rejected; vue-select has no built-in async loader without search-as-you-type. Passed as prop from parent — rejected; it leaks a responsibility (`signup.vue` has no business fetching all active registered players).
+
+---
+
+### Decision: DropdownOption shape and type location
+
+- **Decision**: Map `PlayerPublic` → `DropdownOption` inline inside `SignupAddPlayer.vue`. `PlayerPublic` uses `firstName` + `lastName` (separate fields). Mapping: `{ id: player.id, label: \`${player.firstName} ${player.lastName}\` }`. No new shared type needed.
+- **Rationale**: `DropdownOption` is explicitly declared "Frontend-only type — does not go to `@ministrosfc/shared`" in `DropdownAddMore.vue`. The mapping is a pure UI concern.
+- **Alternatives considered**: `PlayerDropdownOption` in `@ministrosfc/shared` — rejected; the shape is driven entirely by the UI contract, not the domain model.
+
+---
+
+### Decision: Loading/error state contract (parent → SignupAddPlayer)
+
+- **Decision**: Parent passes `proxyLoading: boolean` and `proxyError: string | null` as props to `SignupAddPlayer`. Parent owns state via a dedicated `proxyLoading` ref (`const proxyLoading = ref(false)`) and `proxyError` ref in `signup.vue`, separate from `useGameSignup`'s shared `loading` ref.
+- **Rationale**: `useGameSignup.loading` is shared across all operations (self-signup, guest, proxy, remove). Passing it raw would trigger the spinner during unrelated calls. A dedicated `proxyLoading`/`proxyError` pair in `signup.vue`'s `handleSignupProxy` isolates the proxy operation cleanly.
+- **Alternatives considered**: Child manages its own loading/error after emitting — rejected; duplicates state already owned by the parent, risks desync with the shared error banner. Passing `useGameSignup.error`/`loading` directly — rejected for the shared-state bleed reason above.

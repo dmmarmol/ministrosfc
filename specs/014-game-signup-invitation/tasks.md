@@ -531,3 +531,75 @@ T065 → T068                        (selfUnregister endpoint before frontend ca
 ### Suggested MVP Scope (Wave 2)
 
 **Phase 13 → Phase 15** (T060–T064) deliver the layout and lineup improvements — independently deployable with no backend changes. Deploy first, then roll out US-9 unregistration (Phase 16) in a follow-up once T065 is merged.
+
+---
+
+## Phase 18: Wave 3 — UX Overhaul (SignupAddPlayer + Full-Width Layout)
+
+**Purpose**: Introduce `SignupAddPlayer.vue`, remove the inline proxy-search from `SignupRegistrationRow`, and apply a full-width page layout to the Game Sign Up Page. Covers US-10, US-11, FR-036–FR-041.
+
+- [x] T072 [P] — Extend `specs/014-game-signup-invitation/spec.md` with Wave 3 amendment: add US-10, US-11 and FR-036–FR-041 (done in session 2026-04-28)
+
+### TDD step (write failing tests first)
+
+- [x] T078 [P] — Write Vitest unit tests for `SignupAddPlayer.vue` covering: (1) dropdown renders only non-confirmed registered active players (excluding the current user's own ID); (2) selecting a player emits `signup-proxy` with the selected player's ID; (3) clicking "Agregar invitado" button renders the guest form and hides the player-selection dropdown (v-else branch); (4) × closes the guest form without emitting, restoring the dropdown (v-if branch); (5) valid guest form submission emits `signup-guest(firstName, lastName, position)`; (6) widget is hidden when `game.status ≠ SCHEDULED`; **(7) widget is hidden when `isFull = true` and `game.status = 'SCHEDULED'` and `currentPlayerStatus = 'signed_up'`** — U1 fix; player-selection dropdown and guest form are NEVER both visible simultaneously
+
+### Implementation
+
+- [x] T073 [P] — In `packages/frontend/src/pages/games/[slug]/signup.vue`: remove `max-w-2xl mx-auto` from the outer container div. **Do not touch column widths** — the 6/6 split (`md:col-span-6` on both field and table columns) was already set by T063 and must not be changed (D1 fix). Verify there is no horizontal overflow at ≥1280 px viewport width (FR-036)
+- [x] T074 [P] — Create `packages/frontend/src/components/pages/games/signup/SignupAddPlayer.vue` using **`v-if mode === 'dropdown'` / `v-else` (mode === 'guest')** architecture — NOT the `inline-create` slot (C1 fix; slot renders inside VSelect's list-footer and cannot satisfy FR-039's full-replace + × placement requirement):
+  - **Dropdown branch** (`mode === 'dropdown'`): render `<DropdownAddMore>` with `options=dropdownOptions` (fetched from `GET /api/v1/players?status=ACTIVE&playerType=REGISTERED`, filtered client-side to exclude `confirmedPlayerIds` and the current user's own ID); `:disabled="proxyLoading || fetchLoading"`; `:loading="fetchLoading"`; pass a no-op `onCreate` prop if required by `DropdownAddMore` (check props declaration — if required, use `() => Promise.reject()`); pass `labels.addNew = ''` to suppress VSelect's built-in footer button (A1 fix); on player `@select` → immediately emit `signup-proxy(option.id)` (no extra confirm step); render a separate `<button @click="mode = 'guest'">`"Agregar invitado"`button **below**`<DropdownAddMore>`(outside VSelect entirely); show`proxyError` inline below the button (FR-038)
+  - **Guest branch** (`mode === 'guest'`): render an inline guest form with: `<button @click="cancelGuest"` class positioned `absolute top-3 right-3` of the container (× dismiss, FR-039); firstName required text input; lastName required text input; optional position `<select>` (all `Position` enum values + blank "Sin posición" option); submit button; `guestError` inline display
+  - **Props**: `confirmedPlayerIds: string[]`, `proxyLoading: boolean`, `proxyError: string | null`, `isFull: boolean`
+  - **Emits**: `signup-proxy(playerId: string)`, `signup-guest(firstName: string, lastName: string, position: string | null)`
+  - **Internal state**: `mode: Ref<'dropdown' | 'guest'>` (default `'dropdown'`); `fetchLoading`, `dropdownOptions`, `guestFirst`, `guestLast`, `guestPosition`, `guestError`
+  - On successful proxy signup (parent confirms via prop change): reset `mode` to `'dropdown'`
+  - Implement to make T078 pass (FR-037, FR-038, FR-039)
+- [x] T075 [P] — In `SignupRegistrationRow.vue`: remove all guest-form markup and `SignupProxySearch` usage; remove `signup-guest` and `signup-proxy` from the component's emits; retain only `signup-self`, `cancel-self`, and `dismiss` (FR-040)
+- [x] T076 [P] — In `signup.vue` right panel: mount `<SignupAddPlayer>` between `<SignupRegistrationRow>` and `<SignupPlayerTable>` with the following wiring:
+  - **v-if condition (I2 fix)**: `game?.status === GameStatus.SCHEDULED && currentPlayerStatus === 'signed_up' && authStore.user?.role === UserRole.PLAYER && !isFull` — all four guards required (missing `!isFull` would show widget on full games; missing role guard would show it to Admin/Editor)
+  - **Dedicated loading/error refs (I1 fix)**: add `const proxyLoading = ref(false)` and `const proxyError = ref<string | null>(null)` in `signup.vue`; wrap `useGameSignup.signupProxy()` call: `proxyLoading.value = true; proxyError.value = null; try { await signupProxy(id) } catch (e) { proxyError.value = errorMessage(e) } finally { proxyLoading.value = false }` — do NOT pass `useGameSignup.loading` directly (would cause spinner bleed from unrelated operations)
+  - **Props**: `:confirmed-player-ids="confirmedPlayerIds"` (computed: `computed(() => roster.value.map(r => r.player?.id).filter(Boolean))`); `:proxy-loading="proxyLoading"`; `:proxy-error="proxyError"`; `:is-full="isFull"`
+  - **Emits**: `@signup-proxy="handleSignupProxy"` (calls wrapped proxy call above, resets `proxyLoading`/`proxyError` on success); `@signup-guest="handleSignupGuest"` (delegates to `useGameSignup.signupGuest`)
+  - (FR-036, FR-037, FR-038)
+- [x] T077 — Delete `packages/frontend/src/components/pages/games/signup/SignupProxySearch.vue` after confirming no remaining imports in the codebase (FR-041)
+- [ ] T079 [P] — Make guest last name optional in `SignupGuestForm.vue` and `SignupAddPlayer.vue`: (1) remove `lastName` from the guard in `submit()`/`submitGuest()` (keep only `firstName` required); (2) change the submit button `:disabled` binding to only check `guestFirst`; (3) update the label from "Apellido \*" to "Apellido"; (4) when submitting pass `guestLast.trim() || ""` (empty string, not null) as the `lastName` argument to the `signup-guest` emit / `onSubmit` callback; (5) update the `onSubmit` prop type signature and emit type so `lastName` is `string` (not `string | null`) — empty string is the contract for "not provided"
+
+**Checkpoint**: Wave 3 complete — full-width layout renders without overflow; `SignupAddPlayer` handles proxy and guest signups; `SignupRegistrationRow` contains only self-signup / cancel-self; `SignupProxySearch` deleted; all Vitest tests pass green
+
+---
+
+## Task Count Summary (Grand Total)
+
+| Phase                         | Story        | Tasks                     | [P] tasks  |
+| ----------------------------- | ------------ | ------------------------- | ---------- |
+| Phase 1: Setup                | —            | T001–T004 (4)             | 2          |
+| Phase 2: Foundational         | —            | T005–T006 (2)             | 2          |
+| Phase 3                       | US-1         | T007–T013 (7)             | 3          |
+| Phase 4                       | US-7         | T014–T017 (4)             | 2          |
+| Phase 5                       | US-2         | T018–T021 (4)             | 2          |
+| Phase 6                       | US-3         | T051–T053 + T022–T026 (8) | 5          |
+| Phase 7                       | US-4         | T027–T031 (5)             | 3          |
+| Phase 8                       | US-5         | T032–T033 (2)             | 2          |
+| Phase 9                       | US-6         | T034–T038 (5)             | 2          |
+| Phase 10: Polish              | —            | T039–T045 (7)             | 5          |
+| Phase 11                      | US-8         | T046–T050 (5)             | 3          |
+| Phase 12: Unit Tests (Wave 1) | —            | T054–T059 (6)             | 6          |
+| Phase 13: Wave 2 Setup        | —            | T060–T061 (2)             | 1          |
+| Phase 14                      | US-5↑        | T062 (1)                  | 1          |
+| Phase 15                      | US-6↑        | T063–T064 (2)             | 2          |
+| Phase 16                      | US-9         | T065–T069 + T070–T071 (7) | 4          |
+| Phase 17: Tests (Wave 2)      | —            | (T070, T071 moved here)   | 2          |
+| Phase 18: Wave 3              | US-10, US-11 | T072–T079 (8)             | 7          |
+| **Grand Total**               |              | **79 tasks**              | **52 [P]** |
+
+### Wave 3 Parallel Execution
+
+```
+T078 (write first) → T074             (TDD: red tests before green implementation)
+T073                                   (independent — only touches signup.vue layout)
+T075                                   (independent — simplify SignupRegistrationRow)
+T074 → T076                           (component must exist before signup.vue mounts it)
+T075 → T076                           (simplified emits must be in place before wiring)
+T076 → T077                           (SignupProxySearch deleted only after it has no imports)
+```
