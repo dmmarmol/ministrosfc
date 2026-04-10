@@ -406,63 +406,128 @@ All parallel, each paired with its implementation task (TDD):
 | Phase 10: Polish      | —     | T039–T045 (7)             | 5          |
 | Phase 11              | US-8  | T046–T050 (5)             | 3          |
 | Phase 12: Unit Tests  | —     | T054–T059 (6)             | 6          |
-| **Total**             |       | **59 tasks**              | **37 [P]** |
+| **Wave 1 Total**      |       | **59 tasks**              | **37 [P]** |
 
 ---
 
-## Phase 13: Amendment Wave 2 (Analysis Pass 2026-04-10)
+## Amendment Wave 2 (Analysis Pass 2026-04-10)
 
-**Purpose**: Implement requirements from spec amendment 2026-04-10: lineup non-nullable/default, 6/6 layout, formation label, self-unregistration, DT removal fix.
+> **Context**: T001–T059 are fully implemented. These phases cover only the new requirements
+> from the 2026-04-10 spec amendment: FR-016 (lineup non-nullable), FR-017 (no "Sin formación"),
+> FR-018/FR-021 (6/6 column layout), FR-034 (formation label), FR-035 (player self-unregistration),
+> and FR-013b amendment (DT can unregister from SCHEDULED games).
 
 **⚠️ CRITICAL (TDD)**: T070 and T071 MUST be written as failing tests BEFORE T065–T066 and T067 respectively.
 
-### Phase A — Schema & CMS Defaults
+---
 
-- [ ] T060 Update `packages/cms/prisma/schema.prisma` — change `lineup String? @db.VarChar(10)` → `lineup String @default("4-4-2") @db.VarChar(10)`; generate migration `lineup_non_nullable_default` with SQL: SET DEFAULT, UPDATE NULL→"4-4-2", ADD NOT NULL; run `prisma generate`
-- [ ] T061 [P] Update `packages/cms/src/routes/games.ts` — in `gameCreateSchema` (Zod): change `lineup` from `.nullable().optional()` to `.optional().default("4-4-2")`; in `gameUpdateSchema`: remove `.nullable()` so lineup cannot be set to null via API (depends on T060 for prisma client regeneration)
+## Phase 13: Wave 2 Setup (Lineup Non-Nullable)
 
-### Phase B — Admin Form
+**Purpose**: Prisma schema migration making `lineup` non-nullable with default `"4-4-2"`; update CMS Zod schemas accordingly. Prerequisite for all Wave 2 user story work.
 
-- [ ] T062 [P] Update `packages/frontend/src/pages/admin/games/[id]/edit.vue` — (1) change `reactive({..., lineup: null as string | null})` → `lineup: "4-4-2" as string`; (2) change `form.lineup = g.lineup ?? null` → `form.lineup = g.lineup ?? "4-4-2"` in watch; (3) remove `<option :value="null">Sin formación</option>` from the lineup select; (4) change `lineup: form.lineup ?? null` → `lineup: form.lineup ?? "4-4-2"` in submit body
+**⚠️ CRITICAL**: Run `prisma generate` after T060 before starting T061; all Wave 2 tasks that involve CMS compilation depend on the regenerated Prisma client.
 
-### Phase C — Signup Page Layout + Formation Label
+- [ ] T060 Update `packages/cms/prisma/schema.prisma` — change `lineup String? @db.VarChar(10)` → `lineup String @default("4-4-2") @db.VarChar(10)`; generate migration `lineup_non_nullable_default` with three SQL steps: `ALTER TABLE games ALTER COLUMN lineup SET DEFAULT '4-4-2'`, `UPDATE games SET lineup = '4-4-2' WHERE lineup IS NULL`, `ALTER TABLE games ALTER COLUMN lineup SET NOT NULL`; run `prisma generate`
+- [ ] T061 [P] Update `packages/cms/src/routes/games.ts` — in `gameCreateSchema` (Zod): change `lineup` from `.nullable().optional()` to `.optional().default("4-4-2")`; in `gameUpdateSchema`: remove `.nullable()` so lineup cannot be set to null via API (depends on T060 prisma client regeneration)
 
-- [ ] T063 [P] Update `packages/frontend/src/pages/games/[slug]/signup.vue` — layout changes: add `const effectiveLineup = computed(() => game.value?.lineup ?? "4-4-2")`; remove conditional `:class="game?.lineup ? 'md:grid...' : ''"` → always apply `class="mt-6 md:grid md:grid-cols-12 md:gap-6"`; remove `v-if="game?.lineup"` from field column div; change `md:col-span-8` → `md:col-span-6`; change `:class="game?.lineup ? 'md:col-span-4' : ''"` → `class="md:col-span-6"`; change `:lineup="game.lineup"` → `:lineup="effectiveLineup"`
-- [ ] T064 [P] Add formation label in `packages/frontend/src/pages/games/[slug]/signup.vue` — inside the field column div, before `<GameLineupField>`: `<p class="text-xs font-medium text-gray-500 mb-2">Formación: {{ effectiveLineup }}</p>`
+**Checkpoint**: Schema migrated and Prisma client regenerated — all Wave 2 tasks can now proceed in parallel
 
-### Phase D — Self-Unregistration Backend
+---
 
-- [ ] T065 Add `selfUnregister(gameId: string, requestingUserId: string): Promise<void>` to `packages/cms/src/services/ParticipationService.ts` — verify `game.status === GameStatus.SCHEDULED` (422 GAME_NOT_SCHEDULED); get user's `playerId` (422 if null); `prisma.gameParticipant.deleteMany({ where: { gameId, playerId } })` (idempotent); register `DELETE /api/v1/games/:gameId/participants/self` in `packages/cms/src/routes/participants.ts` — PLAYER role, calls selfUnregister, returns 204
+## Phase 14: User Story 5 Amendment — Admin Form Lineup Default (Priority: P2)
 
-### Phase E — DT Role Removal Fix
+**Goal**: Remove the "Sin formación" null option from the admin game form; default to `"4-4-2"` for new games and for any existing game with a null lineup.
 
-- [ ] T066 [P] Update `ParticipationService.removeParticipant` in `packages/cms/src/services/ParticipationService.ts` — remove blanket `if (role === "DT") throw 403`; add `if (role === "DT" && game.status !== GameStatus.SCHEDULED) throw 403` (DT permitted to remove from SCHEDULED games only)
+**Independent Test**: Open admin game edit page for a new game → "Formación" select shows `4-4-2` pre-selected with no blank option. Open edit page for an existing game with `lineup = null` → form shows `4-4-2` as current value. Save → verify `lineup = "4-4-2"` persisted in DB.
 
-### Phase F — Self-Unregistration Frontend
+### Implementation
 
-- [ ] T067 [P] Add `unregisterSelf()` to `packages/frontend/src/composables/useGameSignup.ts` — calls `DELETE /api/v1/games/{gameId}/participants/self`; on success: remove player entry from roster by matching playerId, decrement confirmedCount, set isFull=false; on 422: set error message
-- [ ] T068 Update `packages/frontend/src/components/pages/games/signup/SignupRegistrationRow.vue` — when `currentPlayerStatus === "signed_up"`: render `<button @click="$emit('cancel-self')">Cancelar inscripción</button>` instead of the DropdownAddMore form; add `cancel-self` to defineEmits; wire in signup.vue: `@cancel-self="handleCancelSelf"` → `useGameSignup().unregisterSelf()`
+- [ ] T062 [P] [US5] Update `packages/frontend/src/pages/admin/games/[id]/edit.vue` — (1) change `reactive({ ..., lineup: null as string | null })` → `lineup: "4-4-2" as string`; (2) change `form.lineup = g.lineup ?? null` → `form.lineup = g.lineup ?? "4-4-2"` in `watch(game, ...)`; (3) remove `<option :value="null">Sin formación</option>` from the lineup `<select>` so `4-4-2` is always the first option; (4) change `lineup: form.lineup ?? null` → `lineup: form.lineup ?? "4-4-2"` in the `submit()` payload
 
-### Phase G — Admin/Editor/DT Row Unregister Frontend
+**Checkpoint**: US-5 amendment complete — admin form never sends null lineup; blank option removed; `4-4-2` is the guaranteed default
 
-- [ ] T069 Update `packages/frontend/src/components/pages/games/signup/SignupPlayerTable.vue` — add `canManageRoster?: boolean` prop (default false); when true, append `×` button to each row emitting `unregister(participantId)`; wire in signup.vue: compute `canManageRoster = ['ADMIN','EDITOR','DT'].includes(authStore.user?.role)`; bind `@unregister="handleUnregister"` → calls `DELETE /games/:gameId/participants/:participantId` and removes row from roster on success
+---
 
-### Phase H — Tests (TDD)
+## Phase 15: User Story 6 Amendment — 6/6 Layout + Formation Label (Priority: P2)
 
-- [ ] T070 [P] Update `packages/cms/tests/unit/ParticipationService.test.ts` — change "DT removes → 403" to: (a) "DT removes SCHEDULED → succeeds"; (b) "DT removes COMPLETED → 403"; add selfUnregister test group: SCHEDULED+linked player → deleteMany called; non-SCHEDULED → 422; no playerId → 422; no record → no error (idempotent)
-- [ ] T071 [P] Update `packages/frontend/src/composables/__tests__/useGameSignup.test.ts` — add: `unregisterSelf()` calls DELETE and removes entry from roster, decrements confirmedCount, resets isFull; `unregisterSelf()` with 422 response sets error message
+**Goal**: Signup page always renders the soccer field in a symmetric 6/6 column split (no conditional hiding); a formation label is visible above the field.
 
-### Amendment Wave 2 — Task Count
+**Independent Test**: Visit signup page for a game that previously had `lineup = null` (now treated as `"4-4-2"`): field renders in left 6 columns, player table in right 6 columns; label "Formación: 4-4-2" is visible above the field. Resize below 768 px → field and table stack vertically.
 
-| Phase                     | Story       | Tasks        | [P] tasks |
-| ------------------------- | ----------- | ------------ | --------- |
-| Phase A: Schema & Defaults | —          | T060–T061 (2) | 1        |
-| Phase B: Admin Form       | FR-016/017  | T062 (1)     | 1         |
-| Phase C: Signup Layout    | FR-018/021/034 | T063–T064 (2) | 2      |
-| Phase D: Self-Unreg BE    | FR-035      | T065 (1)     | 0         |
-| Phase E: DT Fix           | FR-013b     | T066 (1)     | 1         |
-| Phase F: Self-Unreg FE    | FR-035      | T067–T068 (2) | 1        |
-| Phase G: Admin Unreg FE   | FR-035      | T069 (1)     | 0         |
-| Phase H: Unit Tests       | —           | T070–T071 (2) | 2        |
-| **Wave 2 Total**          |             | **12 tasks** | **8 [P]** |
-| **Grand Total**           |             | **71 tasks** | **45 [P]** |
+### Implementation
+
+- [ ] T063 [P] [US6] Update layout in `packages/frontend/src/pages/games/[slug]/signup.vue` — add `const effectiveLineup = computed(() => game.value?.lineup ?? "4-4-2")`; replace `:class="game?.lineup ? 'md:grid md:grid-cols-12 md:gap-6' : ''"` → static `class="mt-6 md:grid md:grid-cols-12 md:gap-6"` (always apply grid); remove `v-if="game?.lineup"` guard from the field column `<div>` (field always renders); change `md:col-span-8` → `md:col-span-6` on field column; change `:class="game?.lineup ? 'md:col-span-4' : ''"` → static `class="md:col-span-6"` on table column; change `:lineup="game.lineup"` → `:lineup="effectiveLineup"` on `<GameLineupField>`
+- [ ] T064 [P] [US6] Add formation label in `packages/frontend/src/pages/games/[slug]/signup.vue` — inside the field column `<div>`, directly above `<GameLineupField>`, insert `<p class="text-xs font-medium text-gray-500 mb-2">Formación: {{ effectiveLineup }}</p>`; label is always visible to all authenticated roles (FR-034)
+
+**Checkpoint**: US-6 amendment complete — field renders unconditionally in 6 columns; formation label visible; `effectiveLineup` fallback handles legacy null records
+
+---
+
+## Phase 16: User Story 9 — Unregistration (Self and Admin) (Priority: P2)
+
+**Goal**: Authenticated PLAYERs can self-unregister from SCHEDULED games; Admin/Editor/DT can remove any roster entry from SCHEDULED games (DT previously blocked — FR-013b fix).
+
+**Independent Test**: (1) Log in as a PLAYER signed up for a SCHEDULED game → "Cancelar inscripción" button visible → click → row disappears, count decrements, `DropdownAddMore` reappears pre-filled. (2) Log in as DT → view SCHEDULED game signup page → `×` button visible per row → click → row removed reactively. (3) Attempt DT remove on IN_PROGRESS game → 403.
+
+**⚠️ CRITICAL (TDD)**: Write T070 BEFORE implementing T065–T066; write T071 BEFORE implementing T067.
+
+### Implementation
+
+- [ ] T070 [P] Update `packages/cms/tests/unit/ParticipationService.test.ts` — **write these failing tests first (TDD red)**: change existing "DT removes → 403" test to two cases: (a) "DT removes from SCHEDULED game → `deleteMany` called (succeeds)"; (b) "DT removes from COMPLETED game → throws 403"; add `selfUnregister` test group: (1) game SCHEDULED + user has linked playerId → `deleteMany` called with `{ gameId, playerId }`; (2) game not SCHEDULED → throws 422 `GAME_NOT_SCHEDULED`; (3) user has no linked playerId → throws 422; (4) `deleteMany` finds no records → no error (idempotent)
+- [ ] T065 [US9] Add `ParticipationService.selfUnregister(gameId: string, requestingUserId: string): Promise<void>` in `packages/cms/src/services/ParticipationService.ts` — fetch game; verify `status === GameStatus.SCHEDULED` → else throw 422 `GAME_NOT_SCHEDULED`; fetch user `playerId` via `prisma.user.findUnique({ select: { playerId: true } })` → if null throw 422; call `prisma.gameParticipant.deleteMany({ where: { gameId, playerId } })` (idempotent); register `DELETE /api/v1/games/:gameId/participants/self` in `packages/cms/src/routes/participants.ts` — `authenticate` + PLAYER role; return 204 (depends on T070 failing test)
+- [ ] T066 [P] [US9] Fix `ParticipationService.removeParticipant` in `packages/cms/src/services/ParticipationService.ts` — remove blanket `if (role === "DT") throw 403`; replace with `if (role === "DT" && game.status !== GameStatus.SCHEDULED) throw 403`; net result: DT permitted to remove from SCHEDULED games only — same permission as EDITOR (depends on T070 failing test)
+- [ ] T071 [P] Update `packages/frontend/src/composables/__tests__/useGameSignup.test.ts` — **write these failing tests first (TDD red)**: (1) `unregisterSelf()` calls DELETE `/participants/self`, removes matching roster entry by playerId, decrements `confirmedCount`, sets `isFull = false`; (2) `unregisterSelf()` when server returns 422 → sets `error` message, roster unchanged
+- [ ] T067 [P] [US9] Add `unregisterSelf()` to `packages/frontend/src/composables/useGameSignup.ts` — calls `DELETE /api/v1/games/:gameId/participants/self`; on 204: remove current player's entry from `roster` (match by `playerId`), decrement `confirmedCount`, set `isFull = false`, reset `currentPlayerStatus` to `"available"`; on 422: set `error` message; on 404: silent no-op (idempotent) (depends on T071 failing test)
+- [ ] T068 [US9] Update `packages/frontend/src/components/pages/games/signup/SignupRegistrationRow.vue` — when `currentPlayerStatus === "signed_up"`: render `<button @click="$emit('cancel-self')" class="...">Cancelar inscripción</button>` replacing the `DropdownAddMore` form; add `"cancel-self"` to `defineEmits`; wire in `packages/frontend/src/pages/games/[slug]/signup.vue`: bind `@cancel-self="handleCancelSelf"` where `handleCancelSelf` calls `useGameSignup().unregisterSelf()` (depends on T067)
+- [ ] T069 [US9] Update `packages/frontend/src/components/pages/games/signup/SignupPlayerTable.vue` — add optional `canManageRoster?: boolean` prop (default `false`); when `true`, append a `<button @click="$emit('unregister', entry.participantId)" class="text-red-400 hover:text-red-600 ml-2">×</button>` to each confirmed attendee row; add `"unregister"` to `defineEmits`; wire in `signup.vue`: compute `canManageRoster` from `['ADMIN','EDITOR','DT'].includes(authStore.user?.role ?? '')`; bind `@unregister="handleUnregister"` where `handleUnregister(participantId)` calls `DELETE /api/v1/games/:gameId/participants/:participantId` and removes the row from `roster` on 204
+
+**Checkpoint**: US-9 complete — PLAYER self-cancellation and admin/DT roster removal both work reactively; DT unblocked for SCHEDULED games; TDD tests pass green
+
+---
+
+## Phase 17: Wave 2 Unit Tests
+
+**Purpose**: All Wave 2 test tasks verified green after implementation.
+
+- [x] T070 [P] (written in Phase 16 TDD step — move to ✅ when all cases pass)
+- [x] T071 [P] (written in Phase 16 TDD step — move to ✅ when all cases pass)
+
+---
+
+## Task Count Summary (Grand Total)
+
+| Phase                        | Story | Tasks                     | [P] tasks  |
+| ---------------------------- | ----- | ------------------------- | ---------- |
+| Phase 1: Setup               | —     | T001–T004 (4)             | 2          |
+| Phase 2: Foundational        | —     | T005–T006 (2)             | 2          |
+| Phase 3                      | US-1  | T007–T013 (7)             | 3          |
+| Phase 4                      | US-7  | T014–T017 (4)             | 2          |
+| Phase 5                      | US-2  | T018–T021 (4)             | 2          |
+| Phase 6                      | US-3  | T051–T053 + T022–T026 (8) | 5          |
+| Phase 7                      | US-4  | T027–T031 (5)             | 3          |
+| Phase 8                      | US-5  | T032–T033 (2)             | 2          |
+| Phase 9                      | US-6  | T034–T038 (5)             | 2          |
+| Phase 10: Polish             | —     | T039–T045 (7)             | 5          |
+| Phase 11                     | US-8  | T046–T050 (5)             | 3          |
+| Phase 12: Unit Tests (Wave 1) | —    | T054–T059 (6)             | 6          |
+| Phase 13: Wave 2 Setup       | —     | T060–T061 (2)             | 1          |
+| Phase 14                     | US-5↑ | T062 (1)                 | 1          |
+| Phase 15                     | US-6↑ | T063–T064 (2)            | 2          |
+| Phase 16                     | US-9  | T065–T069 + T070–T071 (7) | 4         |
+| Phase 17: Tests (Wave 2)     | —     | (T070, T071 moved here)   | 2          |
+| **Grand Total**              |       | **71 tasks**              | **45 [P]** |
+
+### Wave 2 Parallel Execution
+
+```
+T060 → T061                        (schema must regenerate before route Zod update)
+T062, T063, T064, T069             (fully independent — different files, no CMS dep)
+T070 (write first) → T065, T066   (TDD: red test before green implementation)
+T071 (write first) → T067         (TDD: red test before green implementation)
+T067 → T068                        (composable method before component wires it)
+T065 → T068                        (selfUnregister endpoint before frontend calls it)
+```
+
+### Suggested MVP Scope (Wave 2)
+
+**Phase 13 → Phase 15** (T060–T064) deliver the layout and lineup improvements — independently deployable with no backend changes. Deploy first, then roll out US-9 unregistration (Phase 16) in a follow-up once T065 is merged.
