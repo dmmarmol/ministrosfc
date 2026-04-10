@@ -117,15 +117,18 @@ describe("GameService", () => {
   describe("searchGames", () => {
     it("returns games with pagination", async () => {
       const expected = {
-        data: [{ id: "g1", status: "SCHEDULED" }],
-        pagination: { total: 1, page: 1, limit: 20 },
+        results: [{ id: "g1", status: "SCHEDULED" }],
+        total: 1,
+        page: 1,
+        limit: 20,
+        totalPages: 1,
       };
       (GameModel.findMany as jest.Mock).mockResolvedValue(expected);
 
       const result = await GameService.searchGames({
         status: "SCHEDULED",
       } as any);
-      expect(result.data).toHaveLength(1);
+      expect(result.results).toHaveLength(1);
       expect(GameModel.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ status: "SCHEDULED" }),
       );
