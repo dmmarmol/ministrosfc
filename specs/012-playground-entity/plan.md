@@ -146,7 +146,7 @@ Deliver the full CRUD backend for `Playground`.
 Extend the game resource to accept and return playground data.
 
 1. `GameModel.ts` — include `playground` relation expansion in `findAll`/`findById`.
-2. `games.ts` route — add `playgroundId: z.string().uuid().optional()` to create/update Zod schemas.
+2. `games.ts` route — add `playgroundId: z.uuid().optional()` to create/update Zod schemas.
 3. `GameService.ts` — forward `playgroundId` in create/update payloads.
 4. Run `tsc --noEmit` and `npm test` in `packages/cms`.
 

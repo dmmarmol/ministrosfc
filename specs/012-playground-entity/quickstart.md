@@ -168,7 +168,7 @@ app.use("/api/v1/playgrounds", playgroundsRouter);
 **Extend game integration**:
 
 - `packages/cms/src/models/GameModel.ts` — include `playground` relation expansion in `findAll`/`findById` queries
-- `packages/cms/src/routes/games.ts` — add `playgroundId: z.string().uuid().optional()` to `gameCreateSchema` and `gameUpdateSchema`
+- `packages/cms/src/routes/games.ts` — add `playgroundId: z.uuid().optional()` to `gameCreateSchema` and `gameUpdateSchema`
 - `packages/cms/src/services/GameService.ts` — pass `playgroundId` through create/update payloads
 
 **Verify**:

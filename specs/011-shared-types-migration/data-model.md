@@ -85,7 +85,7 @@ export interface UpdatePlayerProfilePayload {
 }
 ```
 
-**Note on `position`**: Changed from `string` to `Position | null` to align with the shared `Position` enum already in `shared/src/types/player.ts`. The Zod schema in the CMS route validates against `z.nativeEnum(Position)` — this is now consistent. No additional import needed in shared since `Position` is already in the same package.
+**Note on `position`**: Changed from `string` to `Position | null` to align with the shared `Position` enum already in `shared/src/types/player.ts`. The Zod schema in the CMS route validates against `z.enum(Position)` — this is now consistent. No additional import needed in shared since `Position` is already in the same package.
 
 **Replaces**: Inline anonymous `data` parameter type in `ProfileService.updateProfile` and `Record<string, unknown>` in `useProfile.ts`
 

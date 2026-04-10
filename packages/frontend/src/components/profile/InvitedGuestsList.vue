@@ -39,7 +39,7 @@ defineProps<{
         </div>
         <NuxtLink
           v-if="guest.game"
-          :to="`/games/${guest.game.id}`"
+          :to="guest.game.slug ? `/games/${guest.game.slug}` : `/games/${guest.game.id}`"
           class="text-xs text-brand hover:underline"
         >
           Ver partido

@@ -1,24 +1,24 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.5.0 → 1.6.0 (MINOR — Principle VII: Shared Types added)
+Version change: 1.6.0 → 1.7.0 (MINOR — Principle V amended: Page Component Decomposition added)
 Ratified: 2026-03-17
-Last Amended: 2026-04-06
+Last Amended: 2026-04-09
 
-Amendment: New principle added: "VII. Shared Types and Cross-Package Contracts".
-Formalizes that @ministrosfc/shared is the single source of truth for all types
-used by more than one workspace package. Resolves @TODO debt in ProfileService.ts
-and useProfile.ts.
+Amendment: Principle V (Component Isolation and Reusability) extended with a mandatory
+"Page Component Decomposition" sub-rule. Pages in `pages/` are now defined as routing
+entry points only. Feature blocks exceeding ~30 lines of template MUST be extracted to
+`components/pages/<feature-path>/`. This mirrors the `pages/` path hierarchy.
+Applied immediately to Feature 014 pages (signup, public game detail, admin game detail).
 
-Added sections:
-  ✅ Principle VII — Shared Types and Cross-Package Contracts
-  ✅ Code Review Standards — new gate: shared type placement check
-
-Templates / agents updated:
-  ✅ plan-template.md — Constitution Check bullet added for shared types gate
-  ✅ tasks-template.md — Phase 1 setup bullet added for shared type definitions
+Modified sections:
+  ✅ Principle V — added "Page Component Decomposition" sub-rule
+  ✅ File Organization — added components/pages/ to frontend layout
+  ✅ Code Review Standards — new gate: page component decomposition check
+  ✅ plan-template.md — Constitution Check bullet added for page decomposition gate
 
 Prior amendments (preserved):
+  ✅ v1.6.0 — Principle VII: Shared Types and Cross-Package Contracts
   ✅ v1.5.0 — Branch naming convention updated
   ✅ v1.4.0 — Package version bump prompt
   ✅ v1.3.0 — Speckit Workflow Continuity mandate
@@ -28,11 +28,13 @@ Follow-up TODOs:
     into @ministrosfc/shared as the canonical profile response type
   - Replace inline data param type in ProfileService.updateProfile with a
     named type exported from @ministrosfc/shared
+  - Gradually backfill existing pages (schedule.vue, roster.vue, etc.) with
+    page-scoped sub-components on their next touch
 -->
 
 # Ministros FC Constitution
 
-**Version**: 1.6.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-06
+**Version**: 1.7.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-09
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -129,14 +131,37 @@ This constitution establishes the architectural principles, development workflow
 - No circular dependencies; dependency direction flows from leaf components upward
 - Component naming is descriptive and matches behavior (not generic names like "Container" or "Manager")
 
-**Context:** Clear component boundaries reduce bugs, enable team parallelism, and lower mental overhead.
+#### Page Component Decomposition (NON-NEGOTIABLE)
+
+**MUST NOT** write large template blocks directly inside `pages/` files.
+
+- A `pages/` file is a **routing entry point only**: it handles `definePageMeta`,
+  top-level `useAsyncData` / `await`, `useHead`, high-level layout wiring, and
+  composable injection. It MUST NOT double as a component tree.
+- Any template block that represents a named feature area **OR** exceeds ~30 lines
+  MUST be extracted to a dedicated sub-component.
+- Page-scoped sub-components live under `components/pages/<feature-path>/`
+  (mirroring the `pages/` directory hierarchy). They are not required to be
+  reusable outside their page context—cohesion over premature generalization.
+- State that is local to a sub-component (e.g., form toggle flags, search results)
+  MUST live inside that component; only cross-component state belongs on the page.
+- Examples of mandatory extractions: game header card, signup form, inline search
+  panel, participant table, roster section.
+
+**Context:** Over-loaded page files conflate routing concerns with UI rendering.
+Extracting feature blocks improves readability, enables isolated unit tests per
+block, and makes the page file a scannable table-of-contents for the feature.
 
 **Examples:**
 
+- ✅ Good: `pages/games/[slug]/signup.vue` contains only setup + composable injection;
+  feature blocks live in `components/pages/games/signup/SignupGuestForm.vue`, etc.
+- ❌ Bad: `pages/games/[slug]/signup.vue` with 400+ lines of mixed template + logic
 - ✅ Good: `PlayerCard.tsx` (single player display), `RosterForm.tsx` (add/edit multiple players)
 - ❌ Bad: `PlayerStuff.tsx`, `Utils.tsx` (too generic), bidirectional imports
 
-**Enforcement:** ESLint rules (import analysis), code review checks, TypeScript strict mode
+**Enforcement:** ESLint rules (import analysis), code review checks, TypeScript strict mode,
+page-decomposition gate in plan-template.md Constitution Check
 
 ---
 
@@ -227,6 +252,28 @@ ministrosfc/
 ├── public/              # Static assets
 ├── docs/                # Documentation
 └── .specify/            # Speckit templates and governance
+```
+
+For `packages/frontend` (Nuxt 3, `srcDir: "src/"`):
+
+```
+packages/frontend/
+├── src/
+│   ├── pages/           # Routing entry points only (definePageMeta, useAsyncData, useHead)
+│   ├── components/
+│   │   ├── pages/       # Page-scoped sub-components (mirrors pages/ hierarchy)
+│   │   │   ├── games/   # Sub-components for pages/games/
+│   │   │   │   └── signup/   # Sub-components for pages/games/[slug]/signup.vue
+│   │   │   └── admin/   # Sub-components for pages/admin/
+│   │   ├── game/        # Reusable game display components
+│   │   ├── player/      # Reusable player display components
+│   │   ├── common/      # Layout chrome (Header, Footer, Navigation)
+│   │   └── ui/          # Generic UI primitives
+│   ├── composables/     # Reactive state + API wrappers
+│   └── utils/           # Pure functions and constants
+└── server/              # Nuxt server routes and middleware (outside srcDir)
+    ├── middleware/
+    └── routes/
 ```
 
 ### Naming Conventions
@@ -409,6 +456,7 @@ chore(deps): upgrade typescript to 5.x
 - [ ] Breaking changes are documented
 - [ ] CHANGELOG updated if user-facing
 - [ ] Types used by more than one package are defined in `@ministrosfc/shared`, not duplicated locally
+- [ ] **Page decomposition (Principle V)**: No `pages/` file contains inline template blocks exceeding ~30 lines; feature areas extracted to `components/pages/<feature-path>/`
 
 **Review focus areas:**
 
