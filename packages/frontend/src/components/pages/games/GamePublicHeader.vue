@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { GameStatus } from "@ministrosfc/shared";
 import { formatDate } from "~/utils/formatDate";
 const props = defineProps<{
   game: {
@@ -48,7 +49,10 @@ function initials(name?: string | null): string {
         <span class="text-xl font-bold">Ministros FC</span>
       </div>
       <div class="text-center">
-        <p v-if="game.status === 'COMPLETED'" class="text-4xl font-bold">
+        <p
+          v-if="game.status === GameStatus.COMPLETED"
+          class="text-4xl font-bold"
+        >
           {{ game.homeTeamScore }} – {{ game.awayTeamScore }}
         </p>
         <p v-else class="text-lg text-gray-400">vs</p>

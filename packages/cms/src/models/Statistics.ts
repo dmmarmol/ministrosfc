@@ -10,13 +10,14 @@
  *  - `aggregateForTournament(tournamentId)` — all players' stats within a tournament.
  */
 import { prisma } from "../config/database";
+import { GameStatus } from "@prisma/client";
 
 const StatisticsModel = {
   async aggregateForPlayer(playerId: string, tournamentId?: string) {
     // Sum from GameParticipant records for completed games
     const where: any = {
       playerId,
-      game: { status: "COMPLETED" },
+      game: { status: GameStatus.COMPLETED },
     };
     if (tournamentId) where.game.tournamentId = tournamentId;
 
@@ -52,7 +53,7 @@ const StatisticsModel = {
   },
 
   async getTopScorers(tournamentId?: string, limit = 10) {
-    const gameWhere: any = { status: "COMPLETED" };
+    const gameWhere: any = { status: GameStatus.COMPLETED };
     if (tournamentId) gameWhere.tournamentId = tournamentId;
 
     const results = await prisma.gameParticipant.groupBy({
@@ -92,7 +93,7 @@ const StatisticsModel = {
   async aggregateForTournament(tournamentId: string) {
     const results = await prisma.gameParticipant.groupBy({
       by: ["playerId"],
-      where: { game: { tournamentId, status: "COMPLETED" } },
+      where: { game: { tournamentId, status: GameStatus.COMPLETED } },
       _sum: {
         goalsScored: true,
         assists: true,

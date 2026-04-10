@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { useNuxtApp, useAsyncData, useHead } from "nuxt/app";
+import { GameStatus } from "@ministrosfc/shared";
 import { formatDate } from "~/utils/formatDate";
 definePageMeta({
   layout: "admin",
@@ -82,7 +83,7 @@ function baseUrl() {
 
 function canShareSignup(g: any): boolean {
   return (
-    g.status === "SCHEDULED" &&
+    g.status === GameStatus.SCHEDULED &&
     !!g.slug &&
     (g.maxPlayers == null || (g.confirmedCount ?? 0) < g.maxPlayers)
   );
@@ -117,9 +118,9 @@ function canShareSignup(g: any): boolean {
         class="border border-gray-300 rounded-lg px-3 py-2 text-sm"
       >
         <option value="">Todos los estados</option>
-        <option value="SCHEDULED">Programado</option>
-        <option value="COMPLETED">Completado</option>
-        <option value="CANCELLED">Cancelado</option>
+        <option :value="GameStatus.SCHEDULED">Programado</option>
+        <option :value="GameStatus.COMPLETED">Completado</option>
+        <option :value="GameStatus.CANCELLED">Cancelado</option>
       </select>
       <select
         v-model="opponentFilter"
@@ -181,7 +182,7 @@ function canShareSignup(g: any): boolean {
             </td>
             <td class="px-4 py-3 text-right text-gray-700 hidden sm:table-cell">
               {{
-                g.status === "COMPLETED"
+                g.status === GameStatus.COMPLETED
                   ? `${g.homeTeamScore ?? 0}–${g.awayTeamScore ?? 0}`
                   : "—"
               }}

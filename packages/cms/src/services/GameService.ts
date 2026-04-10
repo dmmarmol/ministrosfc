@@ -4,7 +4,7 @@ import { ErrorCode } from "../utils/error-codes";
 import { generateGameSlug } from "../utils/slug";
 import { getRedisClient } from "../config/redis";
 import { prisma } from "../config/database";
-import type { GameStatus, Role } from "@prisma/client";
+import { type Role, GameStatus } from "@prisma/client";
 
 /** Elapsed milliseconds for one game (100 minutes). */
 const GAME_DURATION_MS = 100 * 60 * 1000;
@@ -156,10 +156,9 @@ const GameService = {
       data.endDate = new Date(newDate.getTime() + GAME_DURATION_MS);
 
       // T016: ADMIN updating date on IN_PROGRESS game to a future date → revert to SCHEDULED
-      /** @TODO use enum from shared package */
       if (
         requestingRole === "ADMIN" &&
-        currentGame.status === "IN_PROGRESS" &&
+        currentGame.status === GameStatus.IN_PROGRESS &&
         newDate > new Date()
       ) {
         const result = await prisma.$transaction(async (tx) => {
@@ -168,7 +167,7 @@ const GameService = {
             data: {
               date: newDate,
               endDate: new Date(newDate.getTime() + GAME_DURATION_MS),
-              status: "SCHEDULED",
+              status: GameStatus.SCHEDULED,
             },
           });
         });
@@ -199,7 +198,7 @@ const GameService = {
 
     // If result recorded, update player statistics
     if (
-      dto.status === "COMPLETED" &&
+      dto.status === GameStatus.COMPLETED &&
       dto.homeTeamScore !== undefined &&
       dto.awayTeamScore !== undefined
     ) {

@@ -1,5 +1,6 @@
 import { prisma } from "../config/database";
 import { logger } from "../utils/logger";
+import { GameStatus } from "@ministrosfc/shared";
 
 /**
  * Background job that auto-transitions game statuses:
@@ -9,27 +10,23 @@ import { logger } from "../utils/logger";
 export async function runTransitions(): Promise<void> {
   try {
     const now = new Date();
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
     // Step 1: SCHEDULED → IN_PROGRESS
     const toInProgress = await prisma.game.updateMany({
       where: {
-        status: "SCHEDULED",
+        status: GameStatus.SCHEDULED,
         date: { lte: now },
       },
-      data: { status: "IN_PROGRESS" },
+      data: { status: GameStatus.IN_PROGRESS },
     });
 
     // Step 2: IN_PROGRESS → COMPLETED
     const toCompleted = await prisma.game.updateMany({
       where: {
-        status: "IN_PROGRESS",
-        OR: [
-          { endDate: { not: null, lte: now } },
-          { endDate: null, date: { lt: oneDayAgo } },
-        ],
+        status: GameStatus.IN_PROGRESS,
+        endDate: { lte: now },
       },
-      data: { status: "COMPLETED" },
+      data: { status: GameStatus.COMPLETED },
     });
 
     if (toInProgress.count > 0 || toCompleted.count > 0) {

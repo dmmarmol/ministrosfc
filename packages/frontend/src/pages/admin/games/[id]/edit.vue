@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useAuthStore } from "~/stores/auth";
 import PlaygroundSelect from "~/components/PlaygroundSelect.vue";
-import { FORMATIONS } from "@ministrosfc/shared";
+import { FORMATIONS, GameStatus } from "@ministrosfc/shared";
 
 definePageMeta({
   layout: "admin",
@@ -28,7 +28,7 @@ const form = reactive({
   notes: "",
   homeTeamScore: null as number | null,
   awayTeamScore: null as number | null,
-  status: "SCHEDULED",
+  status: GameStatus.SCHEDULED as string,
   maxPlayers: null as number | null,
   lineup: null as string | null,
 });
@@ -43,7 +43,7 @@ watch(
     form.notes = g.notes ?? "";
     form.homeTeamScore = g.homeTeamScore ?? null;
     form.awayTeamScore = g.awayTeamScore ?? null;
-    form.status = g.status ?? "SCHEDULED";
+    form.status = g.status ?? GameStatus.SCHEDULED;
     form.maxPlayers = g.maxPlayers ?? null;
     form.lineup = g.lineup ?? null;
   },
@@ -233,10 +233,10 @@ async function submit() {
               v-model="form.status"
               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
             >
-              <option value="SCHEDULED">Programado</option>
-              <option value="IN_PROGRESS">En curso</option>
-              <option value="COMPLETED">Completado</option>
-              <option value="CANCELLED">Cancelado</option>
+              <option :value="GameStatus.SCHEDULED">Programado</option>
+              <option :value="GameStatus.IN_PROGRESS">En curso</option>
+              <option :value="GameStatus.COMPLETED">Completado</option>
+              <option :value="GameStatus.CANCELLED">Cancelado</option>
             </select>
           </div>
         </div>

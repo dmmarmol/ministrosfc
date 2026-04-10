@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useNuxtApp, useRoute, useAsyncData, useHead } from "nuxt/app";
+import { GameStatus } from "@ministrosfc/shared";
 import { formatDate } from "~/utils/formatDate";
 definePageMeta({
   layout: "admin",
@@ -71,7 +72,7 @@ async function copySignupLink() {
       <div v-if="game" class="flex items-center gap-3">
         <!-- T011: share-signup link — SCHEDULED only + slug present -->
         <button
-          v-if="game.status === 'SCHEDULED' && game.slug"
+          v-if="game.status === GameStatus.SCHEDULED && game.slug"
           class="text-sm text-emerald-600 hover:text-emerald-800 font-medium transition-colors"
           @click="copySignupLink"
         >
@@ -109,17 +110,24 @@ async function copySignupLink() {
         <div class="flex items-center justify-between gap-4">
           <span class="text-xl font-bold">Ministros FC</span>
           <div class="text-center">
-            <p v-if="game.status === 'COMPLETED'" class="text-3xl font-bold">
+            <p
+              v-if="game.status === GameStatus.COMPLETED"
+              class="text-3xl font-bold"
+            >
               {{ game.homeTeamScore ?? 0 }} – {{ game.awayTeamScore ?? 0 }}
             </p>
             <p v-else class="text-lg text-gray-400">vs</p>
             <span
               class="text-xs px-2 py-0.5 rounded-full font-semibold mt-1 inline-block"
               :class="{
-                'bg-blue-500/20 text-blue-300': game.status === 'SCHEDULED',
-                'bg-green-500/20 text-green-300': game.status === 'IN_PROGRESS',
-                'bg-gray-500/20 text-gray-300': game.status === 'COMPLETED',
-                'bg-red-500/20 text-red-300': game.status === 'CANCELLED',
+                'bg-blue-500/20 text-blue-300':
+                  game.status === GameStatus.SCHEDULED,
+                'bg-green-500/20 text-green-300':
+                  game.status === GameStatus.IN_PROGRESS,
+                'bg-gray-500/20 text-gray-300':
+                  game.status === GameStatus.COMPLETED,
+                'bg-red-500/20 text-red-300':
+                  game.status === GameStatus.CANCELLED,
               }"
             >
               {{

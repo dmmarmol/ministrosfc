@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { GameStatus } from "@ministrosfc/shared";
+definePageMeta({ public: true });
 useHead({ title: "Schedule – Ministros FC" });
 
 const { $api } = useNuxtApp();
@@ -16,7 +18,10 @@ const { data: teamsData } = await useAsyncData("schedule-teams", () =>
 const teams = computed(() => teamsData.value?.data ?? []);
 
 const query = computed(() => ({
-  status: activeTab.value === "upcoming" ? "SCHEDULED" : "COMPLETED",
+  status:
+    activeTab.value === "upcoming"
+      ? GameStatus.SCHEDULED
+      : GameStatus.COMPLETED,
   ...(opponentFilter.value ? { opponentTeamId: opponentFilter.value } : {}),
   limit: 50,
 }));

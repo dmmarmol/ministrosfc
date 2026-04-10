@@ -3,7 +3,7 @@ import { GameParticipantModel } from "../models/GameParticipant";
 import { PlayerModel } from "../models/Player";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
-import type { ConfirmationStatus, Role } from "@prisma/client";
+import { type ConfirmationStatus, type Role, GameStatus } from "@prisma/client";
 import type {
   SignupRequestDTO,
   RosterEntry,
@@ -63,7 +63,7 @@ const ParticipationService = {
       throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
 
     // Cannot confirm for past or completed games
-    if (game.status === "COMPLETED" || game.status === "CANCELLED") {
+    if (game.status === GameStatus.COMPLETED || game.status === GameStatus.CANCELLED) {
       throw createError(
         "Cannot add participants to completed or cancelled games",
         400,
@@ -151,7 +151,7 @@ const ParticipationService = {
     });
     if (!game)
       throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
-    if (game.status === "COMPLETED") {
+    if (game.status === GameStatus.COMPLETED) {
       throw createError(
         "Cannot modify participants for completed games",
         400,
@@ -289,7 +289,7 @@ const ParticipationService = {
       });
       if (!game)
         throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
-      if (game.status !== "SCHEDULED")
+      if (game.status !== GameStatus.SCHEDULED)
         throw createError(
           "Game is not open for signup",
           422,
@@ -445,7 +445,7 @@ const ParticipationService = {
     if (!game)
       throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
 
-    if (role === "EDITOR" && game.status !== "SCHEDULED") {
+    if (role === "EDITOR" && game.status !== GameStatus.SCHEDULED) {
       throw createError(
         "Editors can only remove participants from scheduled games",
         403,

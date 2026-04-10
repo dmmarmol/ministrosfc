@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { GameStatus } from "@ministrosfc/shared";
 import { formatDate } from "~/utils/formatDate";
 definePageMeta({
   layout: "admin",
@@ -19,12 +20,12 @@ const [{ data: playersData }, { data: gamesData }, { data: recentData }] =
     ),
     useAsyncData("dash-upcoming", () =>
       $api<{ data: any[] }>("/api/v1/games", {
-        query: { status: "SCHEDULED", limit: 1 },
+        query: { status: GameStatus.SCHEDULED, limit: 1 },
       }),
     ),
     useAsyncData("dash-recent", () =>
       $api<{ data: any[] }>("/api/v1/games", {
-        query: { status: "COMPLETED", limit: 5 },
+        query: { status: GameStatus.COMPLETED, limit: 5 },
       }),
     ),
   ]);
