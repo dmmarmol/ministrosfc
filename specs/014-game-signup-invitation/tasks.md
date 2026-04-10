@@ -475,11 +475,11 @@ All parallel, each paired with its implementation task (TDD):
 
 - [ ] T070 [P] Update `packages/cms/tests/unit/ParticipationService.test.ts` — **write these failing tests first (TDD red)**: change existing "DT removes → 403" test to two cases: (a) "DT removes from SCHEDULED game → `deleteMany` called (succeeds)"; (b) "DT removes from COMPLETED game → throws 403"; add `selfUnregister` test group: (1) game SCHEDULED + user has linked playerId → `deleteMany` called with `{ gameId, playerId }`; (2) game not SCHEDULED → throws 422 `GAME_NOT_SCHEDULED`; (3) user has no linked playerId → throws 422; (4) `deleteMany` finds no records → no error (idempotent)
 - [ ] T065 [US9] Add `ParticipationService.selfUnregister(gameId: string, requestingUserId: string): Promise<void>` in `packages/cms/src/services/ParticipationService.ts` — fetch game; verify `status === GameStatus.SCHEDULED` → else throw 422 `GAME_NOT_SCHEDULED`; fetch user `playerId` via `prisma.user.findUnique({ select: { playerId: true } })` → if null throw 422; call `prisma.gameParticipant.deleteMany({ where: { gameId, playerId } })` (idempotent); register `DELETE /api/v1/games/:gameId/participants/self` in `packages/cms/src/routes/participants.ts` — `authenticate` + PLAYER role; return 204 (depends on T070 failing test)
-- [ ] T066 [P] [US9] Fix `ParticipationService.removeParticipant` in `packages/cms/src/services/ParticipationService.ts` — remove blanket `if (role === "DT") throw 403`; replace with `if (role === "DT" && game.status !== GameStatus.SCHEDULED) throw 403`; net result: DT permitted to remove from SCHEDULED games only — same permission as EDITOR (depends on T070 failing test)
+- [x] T066 [P] [US9] Fix `ParticipationService.removeParticipant` in `packages/cms/src/services/ParticipationService.ts` — remove blanket `if (role === "DT") throw 403`; replace with `if (role === "DT" && game.status !== GameStatus.SCHEDULED) throw 403`; net result: DT permitted to remove from SCHEDULED games only — same permission as EDITOR (depends on T070 failing test)
 - [ ] T071 [P] Update `packages/frontend/src/composables/__tests__/useGameSignup.test.ts` — **write these failing tests first (TDD red)**: (1) `unregisterSelf()` calls DELETE `/participants/self`, removes matching roster entry by playerId, decrements `confirmedCount`, sets `isFull = false`; (2) `unregisterSelf()` when server returns 422 → sets `error` message, roster unchanged
 - [ ] T067 [P] [US9] Add `unregisterSelf()` to `packages/frontend/src/composables/useGameSignup.ts` — calls `DELETE /api/v1/games/:gameId/participants/self`; on 204: remove current player's entry from `roster` (match by `playerId`), decrement `confirmedCount`, set `isFull = false`, reset `currentPlayerStatus` to `"available"`; on 422: set `error` message; on 404: silent no-op (idempotent) (depends on T071 failing test)
 - [ ] T068 [US9] Update `packages/frontend/src/components/pages/games/signup/SignupRegistrationRow.vue` — when `currentPlayerStatus === "signed_up"`: render `<button @click="$emit('cancel-self')" class="...">Cancelar inscripción</button>` replacing the `DropdownAddMore` form; add `"cancel-self"` to `defineEmits`; wire in `packages/frontend/src/pages/games/[slug]/signup.vue`: bind `@cancel-self="handleCancelSelf"` where `handleCancelSelf` calls `useGameSignup().unregisterSelf()` (depends on T067)
-- [ ] T069 [US9] Update `packages/frontend/src/components/pages/games/signup/SignupPlayerTable.vue` — add optional `canManageRoster?: boolean` prop (default `false`); when `true`, append a `<button @click="$emit('unregister', entry.participantId)" class="text-red-400 hover:text-red-600 ml-2">×</button>` to each confirmed attendee row; add `"unregister"` to `defineEmits`; wire in `signup.vue`: compute `canManageRoster` from `['ADMIN','EDITOR','DT'].includes(authStore.user?.role ?? '')`; bind `@unregister="handleUnregister"` where `handleUnregister(participantId)` calls `DELETE /api/v1/games/:gameId/participants/:participantId` and removes the row from `roster` on 204
+- [x] T069 [US9] Update `packages/frontend/src/components/pages/games/signup/SignupPlayerTable.vue` — add optional `canManageRoster?: boolean` prop (default `false`); when `true`, append a `<button @click="$emit('unregister', entry.participantId)" class="text-red-400 hover:text-red-600 ml-2">×</button>` to each confirmed attendee row; add `"unregister"` to `defineEmits`; wire in `signup.vue`: compute `canManageRoster` from `['ADMIN','EDITOR','DT'].includes(authStore.user?.role ?? '')`; bind `@unregister="handleUnregister"` where `handleUnregister(participantId)` calls `DELETE /api/v1/games/:gameId/participants/:participantId` and removes the row from `roster` on 204
 
 **Checkpoint**: US-9 complete — PLAYER self-cancellation and admin/DT roster removal both work reactively; DT unblocked for SCHEDULED games; TDD tests pass green
 
@@ -496,26 +496,26 @@ All parallel, each paired with its implementation task (TDD):
 
 ## Task Count Summary (Grand Total)
 
-| Phase                        | Story | Tasks                     | [P] tasks  |
-| ---------------------------- | ----- | ------------------------- | ---------- |
-| Phase 1: Setup               | —     | T001–T004 (4)             | 2          |
-| Phase 2: Foundational        | —     | T005–T006 (2)             | 2          |
-| Phase 3                      | US-1  | T007–T013 (7)             | 3          |
-| Phase 4                      | US-7  | T014–T017 (4)             | 2          |
-| Phase 5                      | US-2  | T018–T021 (4)             | 2          |
-| Phase 6                      | US-3  | T051–T053 + T022–T026 (8) | 5          |
-| Phase 7                      | US-4  | T027–T031 (5)             | 3          |
-| Phase 8                      | US-5  | T032–T033 (2)             | 2          |
-| Phase 9                      | US-6  | T034–T038 (5)             | 2          |
-| Phase 10: Polish             | —     | T039–T045 (7)             | 5          |
-| Phase 11                     | US-8  | T046–T050 (5)             | 3          |
-| Phase 12: Unit Tests (Wave 1) | —    | T054–T059 (6)             | 6          |
-| Phase 13: Wave 2 Setup       | —     | T060–T061 (2)             | 1          |
-| Phase 14                     | US-5↑ | T062 (1)                 | 1          |
-| Phase 15                     | US-6↑ | T063–T064 (2)            | 2          |
-| Phase 16                     | US-9  | T065–T069 + T070–T071 (7) | 4         |
-| Phase 17: Tests (Wave 2)     | —     | (T070, T071 moved here)   | 2          |
-| **Grand Total**              |       | **71 tasks**              | **45 [P]** |
+| Phase                         | Story | Tasks                     | [P] tasks  |
+| ----------------------------- | ----- | ------------------------- | ---------- |
+| Phase 1: Setup                | —     | T001–T004 (4)             | 2          |
+| Phase 2: Foundational         | —     | T005–T006 (2)             | 2          |
+| Phase 3                       | US-1  | T007–T013 (7)             | 3          |
+| Phase 4                       | US-7  | T014–T017 (4)             | 2          |
+| Phase 5                       | US-2  | T018–T021 (4)             | 2          |
+| Phase 6                       | US-3  | T051–T053 + T022–T026 (8) | 5          |
+| Phase 7                       | US-4  | T027–T031 (5)             | 3          |
+| Phase 8                       | US-5  | T032–T033 (2)             | 2          |
+| Phase 9                       | US-6  | T034–T038 (5)             | 2          |
+| Phase 10: Polish              | —     | T039–T045 (7)             | 5          |
+| Phase 11                      | US-8  | T046–T050 (5)             | 3          |
+| Phase 12: Unit Tests (Wave 1) | —     | T054–T059 (6)             | 6          |
+| Phase 13: Wave 2 Setup        | —     | T060–T061 (2)             | 1          |
+| Phase 14                      | US-5↑ | T062 (1)                  | 1          |
+| Phase 15                      | US-6↑ | T063–T064 (2)             | 2          |
+| Phase 16                      | US-9  | T065–T069 + T070–T071 (7) | 4          |
+| Phase 17: Tests (Wave 2)      | —     | (T070, T071 moved here)   | 2          |
+| **Grand Total**               |       | **71 tasks**              | **45 [P]** |
 
 ### Wave 2 Parallel Execution
 

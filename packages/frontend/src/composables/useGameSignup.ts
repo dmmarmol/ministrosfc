@@ -118,6 +118,33 @@ export function useGameSignup(gameId: Ref<string>) {
     }
   }
 
+  async function removeParticipant(participantId: string) {
+    error.value = null;
+    try {
+      await $api(
+        `/api/v1/games/${gameId.value}/participants/${participantId}`,
+        { method: "DELETE" },
+      );
+      if (!data.value) return;
+      const idx = data.value.roster.findIndex(
+        (r) => r.participantId === participantId,
+      );
+      if (idx >= 0) {
+        const removed = data.value.roster[idx];
+        data.value.roster.splice(idx, 1);
+        data.value.confirmedCount = Math.max(0, data.value.confirmedCount - 1);
+        data.value.isFull = false;
+        if (removed.player.id === currentPlayerId.value) {
+          data.value.currentPlayerStatus = "not_signed_up";
+        }
+      }
+    } catch (e: any) {
+      error.value =
+        e?.data?.message ?? e?.message ?? "Error al eliminar al jugador";
+      throw e;
+    }
+  }
+
   return {
     data,
     loading,
@@ -132,5 +159,6 @@ export function useGameSignup(gameId: Ref<string>) {
     signupSelf,
     signupGuest,
     signupProxy,
+    removeParticipant,
   };
 }

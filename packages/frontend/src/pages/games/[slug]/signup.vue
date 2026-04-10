@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import {
   useNuxtApp,
   useRoute,
@@ -48,12 +48,19 @@ const {
   confirmedCount,
   isFull,
   currentPlayerStatus,
+  currentPlayerId,
   game,
   load,
   signupSelf,
   signupGuest,
   signupProxy,
+  removeParticipant,
 } = useGameSignup(gameId);
+
+// T069: ADMIN/EDITOR/DT can remove any row; PLAYER sees button only on their own row
+const canManageRoster = computed(() =>
+  ["ADMIN", "EDITOR", "DT"].includes(authStore.user?.role ?? ""),
+);
 
 useHead(() => ({
   title: game.value
@@ -91,6 +98,14 @@ async function handleSignupGuest(
 
 async function handleSignupProxy(targetPlayerId: string) {
   await signupProxy(targetPlayerId);
+}
+
+async function handleRemoveParticipant(participantId: string) {
+  try {
+    await removeParticipant(participantId);
+  } catch {
+    // error handled by composable
+  }
 }
 </script>
 
@@ -150,8 +165,11 @@ async function handleSignupProxy(targetPlayerId: string) {
         <SignupPlayerTable
           :roster="roster"
           :highlighted-participant-id="hoveredParticipantId"
+          :can-manage-roster="canManageRoster"
+          :current-player-id="currentPlayerId"
           @row-highlight="hoveredParticipantId = $event"
           @row-unhighlight="hoveredParticipantId = null"
+          @row-removePlayer="handleRemoveParticipant"
         />
       </div>
     </div>

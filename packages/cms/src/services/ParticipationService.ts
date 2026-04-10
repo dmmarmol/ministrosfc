@@ -425,13 +425,6 @@ const ParticipationService = {
     _requestingUserId: string,
     role: Role,
   ): Promise<void> {
-    if (role === "DT")
-      throw createError(
-        "DT role cannot remove participants",
-        403,
-        ErrorCode.FORBIDDEN,
-      );
-
     const participant = await prisma.gameParticipant.findFirst({
       where: { id: participantId, gameId },
     });
@@ -445,9 +438,13 @@ const ParticipationService = {
     if (!game)
       throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
 
-    if (role === "EDITOR" && game.status !== GameStatus.SCHEDULED) {
+    // T066: DT has same permission as EDITOR — SCHEDULED games only
+    if (
+      (role === "EDITOR" || role === "DT") &&
+      game.status !== GameStatus.SCHEDULED
+    ) {
       throw createError(
-        "Editors can only remove participants from scheduled games",
+        "Editors and DT can only remove participants from scheduled games",
         403,
         ErrorCode.FORBIDDEN,
       );
