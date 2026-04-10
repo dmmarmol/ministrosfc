@@ -153,9 +153,7 @@ export function useGameSignup(gameId: Ref<string>) {
       });
       if (!data.value) return;
       const playerId = currentPlayerId.value;
-      const idx = data.value.roster.findIndex(
-        (r) => r.player.id === playerId,
-      );
+      const idx = data.value.roster.findIndex((r) => r.player.id === playerId);
       if (idx >= 0) {
         data.value.roster.splice(idx, 1);
         data.value.confirmedCount = Math.max(0, data.value.confirmedCount - 1);

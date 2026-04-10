@@ -457,7 +457,10 @@ const ParticipationService = {
   },
 
   /** T065: Player self-unregisters from a SCHEDULED game (idempotent) */
-  async selfUnregister(gameId: string, requestingUserId: string): Promise<void> {
+  async selfUnregister(
+    gameId: string,
+    requestingUserId: string,
+  ): Promise<void> {
     const game = await prisma.game.findUnique({
       where: { id: gameId },
       select: { status: true },
