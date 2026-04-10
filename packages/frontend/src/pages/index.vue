@@ -1,22 +1,39 @@
 <script setup lang="ts">
+import { onMounted } from "vue";
+import { GameStatus, type Game } from "@ministrosfc/shared";
+import { useAuthStore } from "~/stores/auth";
+
+definePageMeta({ public: true });
+
 const { $api } = useNuxtApp();
+const authStore = useAuthStore();
 
 // Upcoming games (next 3, scheduled)
-const { data: upcomingData, pending: upcomingLoading } = await useAsyncData(
-  "home-upcoming",
-  () =>
-    $api<{ data: any[] }>("/api/v1/games", {
-      query: { status: "SCHEDULED", limit: 3 },
-    }),
+const {
+  data: upcomingData,
+  pending: upcomingLoading,
+  refresh: refreshUpcoming,
+} = await useAsyncData("home-upcoming", () =>
+  $api<{ data: Game[] }>("/api/v1/games", {
+    query: { status: GameStatus.SCHEDULED, limit: 3 },
+  }),
 );
 const upcomingGames = computed(() => upcomingData.value?.data ?? []);
+
+// On mount: PLAYER users re-fetch upcoming games so the auth header is included
+// (token lives in sessionStorage — unavailable during SSR)
+onMounted(async () => {
+  if (authStore.user?.role === "PLAYER") {
+    await refreshUpcoming();
+  }
+});
 
 // Recent results (last 3 completed)
 const { data: recentData, pending: recentLoading } = await useAsyncData(
   "home-recent",
   () =>
     $api<{ data: any[] }>("/api/v1/games", {
-      query: { status: "COMPLETED", limit: 3 },
+      query: { status: GameStatus.COMPLETED, limit: 3 },
     }),
 );
 const recentGames = computed(() => recentData.value?.data ?? []);
@@ -72,7 +89,12 @@ const topScorers = computed(() => scorersData.value?.data ?? []);
           />
         </div>
         <div v-else-if="upcomingGames.length" class="space-y-3">
-          <GameCard v-for="game in upcomingGames" :key="game.id" :game="game" />
+          <GameCard
+            v-for="game in upcomingGames"
+            :key="game.id"
+            :game="game"
+            :signup-state="game.currentPlayerStatus ?? undefined"
+          />
         </div>
         <p v-else class="text-gray-500 text-sm">
           Sin partidos próximos programados.

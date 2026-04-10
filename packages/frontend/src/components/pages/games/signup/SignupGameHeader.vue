@@ -1,15 +1,12 @@
 <script setup lang="ts">
 import { formatDate } from "~/utils/formatDate";
-const props = defineProps<{
-  game: {
-    date: string;
-    playground?: { name: string } | null;
-    opponentTeam?: { name: string } | null;
-    maxPlayers?: number | null;
-  };
-  confirmedCount: number;
-}>();
+import type { GameSignupPageDTO } from "@ministrosfc/shared";
 
+const props = defineProps<{
+  game: GameSignupPageDTO["game"];
+  confirmedCount: number;
+  maxPlayers: number | null;
+}>();
 </script>
 
 <template>

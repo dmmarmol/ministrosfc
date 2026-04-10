@@ -7,7 +7,10 @@ import {
   createError,
   useHead,
 } from "nuxt/app";
+import { GameStatus } from "@ministrosfc/shared";
 import { formatDate } from "~/utils/formatDate";
+
+definePageMeta({ public: true });
 const { $api } = useNuxtApp();
 const route = useRoute();
 const slug = route.params.slug as string;
@@ -109,7 +112,10 @@ const statusClass = computed(() => {
             <span class="text-xl font-bold">Ministros FC</span>
           </div>
           <div class="text-center">
-            <p v-if="game.status === 'COMPLETED'" class="text-4xl font-bold">
+            <p
+              v-if="game.status === GameStatus.COMPLETED"
+              class="text-4xl font-bold"
+            >
               {{ game.homeTeamScore }} – {{ game.awayTeamScore }}
             </p>
             <p v-else class="text-lg text-gray-400">vs</p>
