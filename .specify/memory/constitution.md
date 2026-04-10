@@ -1,23 +1,23 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.6.0 → 1.7.0 (MINOR — Principle V amended: Page Component Decomposition added)
+Version change: 1.7.0 → 1.8.0 (MINOR — Principle V extended: definePageMeta mandatory on every Nuxt page)
 Ratified: 2026-03-17
-Last Amended: 2026-04-09
+Last Amended: 2026-04-10
 
 Amendment: Principle V (Component Isolation and Reusability) extended with a mandatory
-"Page Component Decomposition" sub-rule. Pages in `pages/` are now defined as routing
-entry points only. Feature blocks exceeding ~30 lines of template MUST be extracted to
-`components/pages/<feature-path>/`. This mirrors the `pages/` path hierarchy.
-Applied immediately to Feature 014 pages (signup, public game detail, admin game detail).
+"Page Meta Declaration" sub-rule. Every file in `pages/` MUST contain a `definePageMeta`
+call declaring visibility (public/auth-required/auth-page) and any applicable middleware
+options. Pages that are freely public MUST still declare `definePageMeta({ public: true })`
+to make intent explicit and prevent future middleware accidental-blocking.
 
 Modified sections:
-  ✅ Principle V — added "Page Component Decomposition" sub-rule
-  ✅ File Organization — added components/pages/ to frontend layout
-  ✅ Code Review Standards — new gate: page component decomposition check
-  ✅ plan-template.md — Constitution Check bullet added for page decomposition gate
+  ✅ Principle V — added "Page Meta Declaration" sub-rule
+  ✅ Code Review Standards — new gate: definePageMeta presence check
+  ✅ plan-template.md — Constitution Check bullet added for definePageMeta gate
 
 Prior amendments (preserved):
+  ✅ v1.7.0 — Principle V: Page Component Decomposition sub-rule
   ✅ v1.6.0 — Principle VII: Shared Types and Cross-Package Contracts
   ✅ v1.5.0 — Branch naming convention updated
   ✅ v1.4.0 — Package version bump prompt
@@ -34,7 +34,7 @@ Follow-up TODOs:
 
 # Ministros FC Constitution
 
-**Version**: 1.7.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-09
+**Version**: 1.8.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-10
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -162,6 +162,46 @@ block, and makes the page file a scannable table-of-contents for the feature.
 
 **Enforcement:** ESLint rules (import analysis), code review checks, TypeScript strict mode,
 page-decomposition gate in plan-template.md Constitution Check
+
+#### Page Meta Declaration (NON-NEGOTIABLE)
+
+**MUST** call `definePageMeta(...)` in every file under `pages/`, with no exceptions.
+
+- Every page MUST declare its visibility and access policy in `definePageMeta`. The
+  auth middleware (`src/middleware/auth.ts`) relies on per-page meta options to enforce
+  access control; a missing declaration is treated as a policy gap, not a sensible default.
+- The required `definePageMeta` shape depends on the page's access category:
+
+  | Category | Required fields |
+  |---|---|
+  | **Public** (no sign-in needed) | `definePageMeta({ public: true })` |
+  | **Authenticated** (any signed-in user) | `definePageMeta({ middleware: "auth", requiresAuth: true })` |
+  | **Editor+** (EDITOR or ADMIN) | `definePageMeta({ layout: "admin", middleware: "auth", requiresAuth: true, requiresRole: "editor" })` |
+  | **Admin only** | `definePageMeta({ layout: "admin", middleware: "auth", requiresAuth: true, requiresRole: "admin" })` |
+  | **Auth pages** (login/register — redirect if already authenticated) | `definePageMeta({ layout: false, middleware: "auth", authPage: true })` |
+  | **Onboarding page** | `definePageMeta({ middleware: "auth", requiresAuth: true, onboardingPage: true })` |
+
+- `public: true` pages bypass the auth redirect but MUST still declare `definePageMeta`
+  so intent is explicit and searchable. Omitting it entirely is forbidden even for public
+  pages — "no declaration" and "explicitly public" are not the same thing.
+- Any additional `useHead` SEO/title metadata MUST be set via `useHead(...)`, not inside
+  `definePageMeta`, keeping the concerns separate: `definePageMeta` = access policy,
+  `useHead` = document metadata.
+
+**Context:** Implicit public access creates a maintenance hazard: a future middleware
+addition could silently block pages that were never audited. Making access intent
+explicit in every file provides a searchable, reviewable record of the full visibility
+surface of the application.
+
+**Examples:**
+
+- ✅ Good: `pages/schedule.vue` — `definePageMeta({ public: true })` at the top of `<script setup>`
+- ✅ Good: `pages/admin/dashboard.vue` — `definePageMeta({ layout: "admin", middleware: "auth", requiresAuth: true, requiresRole: "editor" })`
+- ❌ Bad: `pages/roster.vue` with no `definePageMeta` call at all
+- ❌ Bad: Setting `title` inside `definePageMeta` instead of `useHead`
+
+**Enforcement:** Code review gate (see Code Review Standards), `definePageMeta`
+presence check in plan-template.md Constitution Check
 
 ---
 
@@ -457,6 +497,7 @@ chore(deps): upgrade typescript to 5.x
 - [ ] CHANGELOG updated if user-facing
 - [ ] Types used by more than one package are defined in `@ministrosfc/shared`, not duplicated locally
 - [ ] **Page decomposition (Principle V)**: No `pages/` file contains inline template blocks exceeding ~30 lines; feature areas extracted to `components/pages/<feature-path>/`
+- [ ] **Page meta declaration (Principle V)**: Every `pages/` file has a `definePageMeta` call with explicit visibility; public pages use `definePageMeta({ public: true })`
 
 **Review focus areas:**
 
