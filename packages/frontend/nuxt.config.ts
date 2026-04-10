@@ -32,6 +32,13 @@ export default defineNuxtConfig({
   devServer: {
     host: process.env.NUXT_HOST ?? "localhost",
     port: parseInt(process.env.NUXT_PORT ?? "5103", 10),
+    https:
+      process.env.NUXT_HTTPS === "true"
+        ? {
+            key: "./.certs/localhost.ministrosfc.com+2-key.pem",
+            cert: "./.certs/localhost.ministrosfc.com+2.pem",
+          }
+        : false,
   },
 
   // Vite 6+ blocks requests from non-localhost hostnames by default.
