@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { ref, computed } from "vue";
+import { useNuxtApp, useRoute, useAsyncData, useHead } from "nuxt/app";
+import { formatDate } from "~/utils/formatDate";
 definePageMeta({
   layout: "admin",
   middleware: "auth",
@@ -20,15 +23,6 @@ useHead(() => ({
     ? `vs ${game.value.opponentTeam?.name} – Admin`
     : "Game Detail",
 }));
-
-function formatDate(d: string): string {
-  return new Date(d).toLocaleDateString("es-AR", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 const toastMessage = ref("");
 let toastTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -100,7 +94,14 @@ async function copySignupLink() {
       <!-- Game header card -->
       <div class="bg-gray-900 text-white rounded-2xl p-6 mb-6">
         <p class="text-xs text-gray-400 uppercase tracking-wider mb-2">
-          {{ formatDate(game.date) }}
+          {{
+            formatDate(game.date, {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })
+          }}
           <span v-if="game.playground?.name">
             · {{ game.playground.name }}</span
           >

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { formatDate } from "~/utils/formatDate";
 
 const props = defineProps<{
   game: {
@@ -22,14 +23,6 @@ function initials(name?: string | null): string {
     .join("")
     .slice(0, 2)
     .toUpperCase();
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("es-AR", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 
 const resultLabel = computed(() => {
@@ -93,7 +86,11 @@ const statusClass = computed(() => {
       </p>
       <p class="text-xs text-gray-500 mt-0.5">
         {{ formatDate(game.date)
-        }}{{ (game.playground?.name ?? game.location) ? ` · ${game.playground?.name ?? game.location}` : "" }}
+        }}{{
+          (game.playground?.name ?? game.location)
+            ? ` · ${game.playground?.name ?? game.location}`
+            : ""
+        }}
       </p>
     </div>
     <!-- Score / Status -->

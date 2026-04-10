@@ -1,4 +1,13 @@
 <script setup lang="ts">
+import { computed } from "vue";
+import {
+  useNuxtApp,
+  useRoute,
+  useAsyncData,
+  createError,
+  useHead,
+} from "nuxt/app";
+import { formatDate } from "~/utils/formatDate";
 const { $api } = useNuxtApp();
 const route = useRoute();
 const slug = route.params.slug as string;
@@ -6,14 +15,15 @@ const slug = route.params.slug as string;
 // T027: resolve slug → UUID, then fetch full game
 const { data: slugData, error: slugError } = await useAsyncData(
   `game-slug-${slug}`,
-  () => $api<{ id: string; slug: string }>(`/api/v1/games/slug/${slug}`),
+  () =>
+    $api<{ data: { id: string; slug: string } }>(`/api/v1/games/slug/${slug}`),
 );
 
-if (slugError.value || !slugData.value?.id) {
+if (slugError.value || !slugData.value?.data?.id) {
   throw createError({ statusCode: 404, statusMessage: "Game not found" });
 }
 
-const gameId = slugData.value.id;
+const gameId = slugData.value.data.id;
 
 const [{ data: gameData, pending }, { data: partData }] = await Promise.all([
   useAsyncData(`game-${gameId}`, () =>
@@ -39,14 +49,6 @@ useHead(() => ({
     ? `vs ${game.value.opponentTeam?.name} – Ministros FC`
     : "Game",
 }));
-
-function formatDate(d: string): string {
-  return new Date(d).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 function initials(name?: string | null): string {
   if (!name) return "?";
@@ -87,7 +89,14 @@ const statusClass = computed(() => {
       <!-- Game header -->
       <div class="bg-gray-900 text-white rounded-2xl p-6 mb-8">
         <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
-          {{ formatDate(game.date) }} ·
+          {{
+            formatDate(
+              game.date,
+              { month: "long", day: "numeric", year: "numeric" },
+              "en-US",
+            )
+          }}
+          ·
           {{ game.playground?.name ?? game.location ?? "TBD" }}
         </p>
         <div class="flex items-center justify-between gap-4">

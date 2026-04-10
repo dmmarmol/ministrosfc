@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatDate } from "~/utils/formatDate";
 const props = defineProps<{
   game: {
     date: string;
@@ -15,20 +16,12 @@ const emit = defineEmits<{
   "copy-signup-link": [];
 }>();
 
-function formatDate(d: string): string {
-  return new Date(d).toLocaleDateString("es-AR", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 </script>
 
 <template>
   <div class="bg-gray-900 text-white rounded-2xl p-6 mb-6">
     <p class="text-xs text-gray-400 uppercase tracking-wider mb-2">
-      {{ formatDate(game.date) }}
+      {{ formatDate(game.date, { weekday: "long", month: "long", day: "numeric", year: "numeric" }) }}
       <span v-if="game.playground?.name"> · {{ game.playground.name }}</span>
     </p>
     <div class="flex items-center justify-between gap-4">

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatDate } from "~/utils/formatDate";
 const props = defineProps<{
   game: {
     date: string;
@@ -22,20 +23,19 @@ function initials(name?: string | null): string {
     .slice(0, 2)
     .toUpperCase();
 }
-
-function formatDate(d: string): string {
-  return new Date(d).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 </script>
 
 <template>
   <div class="bg-gray-900 text-white rounded-2xl p-6 mb-8">
     <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
-      {{ formatDate(game.date) }} ·
+      {{
+        formatDate(
+          game.date,
+          { month: "long", day: "numeric", year: "numeric" },
+          "en-US",
+        )
+      }}
+      ·
       {{ game.playground?.name ?? game.location ?? "TBD" }}
     </p>
     <div class="flex items-center justify-between gap-4">
@@ -55,7 +55,8 @@ function formatDate(d: string): string {
         <span
           :class="statusClass"
           class="text-xs font-semibold px-2 py-0.5 rounded-full mt-1 inline-block"
-        >{{ statusLabel }}</span>
+          >{{ statusLabel }}</span
+        >
       </div>
       <div class="flex items-center gap-3 flex-row-reverse">
         <div

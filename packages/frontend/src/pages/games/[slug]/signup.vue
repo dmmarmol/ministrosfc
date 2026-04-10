@@ -1,7 +1,17 @@
 <script setup lang="ts">
+import { ref, onMounted } from "vue";
+import {
+  useNuxtApp,
+  useRoute,
+  useAsyncData,
+  createError,
+  useHead,
+  navigateTo,
+} from "nuxt/app";
 import { Position, PositionDisplayName } from "@ministrosfc/shared";
 import { useGameSignup } from "~/composables/useGameSignup";
 import { useAuthStore } from "~/stores/auth";
+import { formatDate } from "~/utils/formatDate";
 import GameLineupField from "~/components/game/GameLineupField.vue";
 
 // T022: auth guard — redirect unauthenticated to /login?redirect=...
@@ -50,14 +60,6 @@ useHead(() => ({
     ? `Convocatoria vs ${game.value.opponentTeam?.name} – Ministros FC`
     : "Convocatoria",
 }));
-
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString("es-AR", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-}
 
 // --- Guest form (T024) ---
 const guestMode = ref(false);
@@ -175,7 +177,13 @@ onMounted(async () => {
     <!-- Game header -->
     <div v-if="game" class="bg-gray-900 text-white rounded-2xl p-6 mb-6">
       <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
-        {{ formatDate(game.date) }}
+        {{
+          formatDate(game.date, {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+          })
+        }}
         <span v-if="game.playground?.name"> · {{ game.playground.name }}</span>
       </p>
       <div class="flex items-center justify-between gap-2">

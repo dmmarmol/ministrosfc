@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { ref, computed, watch } from "vue";
+import { useNuxtApp, useAsyncData, useHead } from "nuxt/app";
+import { formatDate } from "~/utils/formatDate";
 definePageMeta({
   layout: "admin",
   middleware: "auth",
@@ -28,13 +31,6 @@ const { data, pending, refresh } = await useAsyncData("admin-games", () =>
 watch([statusFilter, opponentFilter], () => refresh());
 const games = computed(() => data.value?.data ?? []);
 
-function formatDate(d: string): string {
-  return new Date(d).toLocaleDateString("es-AR", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 function statusClass(s: string): string {
   const map: Record<string, string> = {
     SCHEDULED: "bg-blue-100 text-blue-700",
