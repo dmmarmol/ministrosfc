@@ -1,4 +1,5 @@
-import { ref, computed } from "vue";
+import { ref, computed, type Ref } from "vue";
+import { useNuxtApp } from "nuxt/app";
 import type { GameSignupPageDTO, RosterEntry } from "@ministrosfc/shared";
 
 export function useGameSignup(gameId: Ref<string>) {
@@ -85,7 +86,12 @@ export function useGameSignup(gameId: Ref<string>) {
         data: { entry: RosterEntry; confirmedCount: number; isFull: boolean };
       }>(`/api/v1/games/${gameId.value}/participants/signup`, {
         method: "POST",
-        body: { mode: "guest", firstName, lastName, position: position ?? null },
+        body: {
+          mode: "guest",
+          firstName,
+          lastName,
+          position: position ?? null,
+        },
       });
       applyResult(res.data);
     } catch (e: any) {

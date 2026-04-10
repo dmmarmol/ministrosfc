@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { ref } from "vue";
+import { useNuxtApp } from "nuxt/app";
+import type { ApiResponse, PlayerPublic } from "@ministrosfc/shared";
+import { PlayerStatus, PlayerType } from "@ministrosfc/shared";
 const props = defineProps<{
   confirmedPlayerIds: string[];
 }>();
@@ -11,7 +15,7 @@ const { $api } = useNuxtApp();
 
 const proxySearch = ref("");
 const proxyLoading = ref(false);
-const proxyPlayers = ref<any[]>([]);
+const proxyPlayers = ref<PlayerPublic[]>([]);
 const proxyError = ref<string | null>(null);
 
 async function search() {
@@ -19,16 +23,16 @@ async function search() {
   proxyLoading.value = true;
   proxyError.value = null;
   try {
-    const res = await $api<{ data: any[] }>("/api/v1/players", {
+    const res = await $api<ApiResponse<PlayerPublic[]>>("/api/v1/players", {
       query: {
-        status: "ACTIVE",
-        playerType: "REGISTERED",
+        status: PlayerStatus.ACTIVE,
+        playerType: PlayerType.REGISTERED,
         search: proxySearch.value.trim(),
         limit: 10,
       },
     });
     const confirmed = new Set(props.confirmedPlayerIds);
-    proxyPlayers.value = (res.data ?? []).filter((p: any) => !confirmed.has(p.id));
+    proxyPlayers.value = (res.data ?? []).filter((p: PlayerPublic) => !confirmed.has(p.id));
   } catch (e: any) {
     proxyError.value = e?.message ?? "Error al buscar";
   } finally {

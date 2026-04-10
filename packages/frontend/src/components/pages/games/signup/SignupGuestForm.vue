@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import { Position, PositionDisplayName } from "@ministrosfc/shared";
 
 const props = defineProps<{

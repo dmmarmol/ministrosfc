@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import GameLineupField from "~/components/game/GameLineupField.vue";
 
 const props = defineProps<{
