@@ -96,7 +96,10 @@ async function handleSubmit() {
     });
     // Update store so the middleware stops treating this user as needing onboarding
     if (authStore.user) {
-      authStore.user = { ...authStore.user, onboardingCompletedAt: result.user.onboardingCompletedAt };
+      authStore.user = {
+        ...authStore.user,
+        onboardingCompletedAt: result.user.onboardingCompletedAt,
+      };
     }
     await navigateAfterOnboarding();
   } catch {

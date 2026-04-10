@@ -1,4 +1,5 @@
 <script setup lang="ts">
+definePageMeta({ public: true });
 useHead({ title: "Roster – Ministros FC" });
 
 const { $api } = useNuxtApp();

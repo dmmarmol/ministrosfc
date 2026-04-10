@@ -1,4 +1,5 @@
 <script setup lang="ts">
+definePageMeta({ public: true });
 const { $api } = useNuxtApp();
 const route = useRoute();
 const id = route.params.id as string;
