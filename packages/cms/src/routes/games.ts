@@ -4,7 +4,7 @@ import {
   type Response,
   type NextFunction,
 } from "express";
-import { authenticate } from "../middleware/auth";
+import { authenticate, optionalAuthenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/rbac";
 import {
   validate,
@@ -14,11 +14,12 @@ import {
 import { GameService } from "../services/GameService";
 import { ParticipationService } from "../services/ParticipationService";
 import { GameModel } from "../models/Game";
+import { prisma } from "../config/database";
 import { z } from "zod";
 import { GameStatus } from "@prisma/client";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
-import { FORMATIONS } from "@ministrosfc/shared";
+import { FORMATIONS, type GameSignupState } from "@ministrosfc/shared";
 
 const router = Router();
 
@@ -142,7 +143,7 @@ async function assertNonAdminMutationAllowed(
   const game = await GameModel.findById(gameId);
   if (!game) throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
 
-  if (game.status === "IN_PROGRESS") {
+  if (game.status === GameStatus.IN_PROGRESS) {
     throw createError(
       "Non-admin users cannot modify games that are in progress",
       403,
@@ -150,7 +151,7 @@ async function assertNonAdminMutationAllowed(
     );
   }
 
-  if (game.status === "COMPLETED") {
+  if (game.status === GameStatus.COMPLETED) {
     if (
       mutationType === "lineup" ||
       mutationType === "participants" ||
@@ -167,30 +168,86 @@ async function assertNonAdminMutationAllowed(
   return game;
 }
 
-// GET /api/v1/games - Public
-router.get("/", async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const query = gameFilterSchema.parse(req.query);
-    const result = await GameService.searchGames(query);
-    // Map _count.participants → confirmedCount (T043)
-    const games = result.results.map((g: any) => {
-      const { _count, ...rest } = g;
-      return { ...rest, confirmedCount: _count?.participants ?? 0 };
-    });
-    res.setHeader("Cache-Control", "public, max-age=300");
-    res.json({
-      data: games,
-      meta: {
-        total: result.total,
-        page: result.page,
-        limit: result.limit,
-        totalPages: result.totalPages,
-      },
-    });
-  } catch (err) {
-    next(err);
-  }
-});
+// GET /api/v1/games - Public (optionally authenticated for PLAYER currentPlayerStatus)
+router.get(
+  "/",
+  optionalAuthenticate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = gameFilterSchema.parse(req.query);
+      const result = await GameService.searchGames(query);
+      // Map _count.participants → confirmedCount (T043)
+      const games = result.results.map((g: any) => {
+        const { _count, ...rest } = g;
+        return { ...rest, confirmedCount: _count?.participants ?? 0 };
+      });
+
+      // T048: PLAYER-specific currentPlayerStatus — skip cache for authenticated players
+      if (req.user?.role === "PLAYER") {
+        const gameIds = games.map((g: any) => g.id as string);
+        const [userRecord, participantRows] = await Promise.all([
+          prisma.user.findUnique({
+            where: { id: req.user.userId },
+            select: { playerId: true },
+          }),
+          prisma.gameParticipant.findMany({
+            where: {
+              gameId: { in: gameIds },
+              confirmationStatus: "CONFIRMED",
+            },
+            select: { gameId: true, playerId: true },
+          }),
+        ]);
+
+        const signedUpGameIds = new Set(
+          participantRows
+            .filter((p) => p.playerId === userRecord?.playerId)
+            .map((p) => p.gameId),
+        );
+
+        const gamesWithStatus = games.map((g: any) => {
+          let currentPlayerStatus: GameSignupState | null = null;
+          if (g.status === GameStatus.SCHEDULED) {
+            if (signedUpGameIds.has(g.id)) {
+              currentPlayerStatus = "signed_up";
+            } else if (
+              g.maxPlayers !== null &&
+              g.confirmedCount >= g.maxPlayers
+            ) {
+              currentPlayerStatus = "full";
+            } else {
+              currentPlayerStatus = "available";
+            }
+          }
+          return { ...g, currentPlayerStatus };
+        });
+
+        return res.json({
+          data: gamesWithStatus,
+          meta: {
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
+            totalPages: result.totalPages,
+          },
+        });
+      }
+
+      res.setHeader("Cache-Control", "public, max-age=300");
+      res.json({
+        data: games,
+        meta: {
+          total: result.total,
+          page: result.page,
+          limit: result.limit,
+          totalPages: result.totalPages,
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 // GET /api/v1/games/slug/:slug - Public (must be before /:id)
 router.get(
