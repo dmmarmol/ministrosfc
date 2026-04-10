@@ -16,6 +16,7 @@ import GameLineupField from "~/components/game/GameLineupField.vue";
 import SignupGameHeader from "~/components/pages/games/signup/SignupGameHeader.vue";
 import SignupPlayerTable from "~/components/pages/games/signup/SignupPlayerTable.vue";
 import SignupRegistrationRow from "~/components/pages/games/signup/SignupRegistrationRow.vue";
+import SignupAddPlayer from "~/components/pages/games/signup/SignupAddPlayer.vue";
 
 // T022: auth guard — redirect unauthenticated to /login?redirect=...
 definePageMeta({ middleware: "auth", requiresAuth: true });
@@ -79,6 +80,10 @@ useHead(() => ({
 // T038: hover highlight state for field/table correlation
 const hoveredParticipantId = ref<string | null>(null);
 
+// T076: proxy loading/error state owned by page
+const proxyLoading = ref(false);
+const proxyError = ref<string | null>(null);
+
 // Auth check + load on client mount — token is available here, not during SSR
 onMounted(async () => {
   if (!authStore.isAuthenticated) {
@@ -105,7 +110,16 @@ async function handleSignupGuest(
 }
 
 async function handleSignupProxy(targetPlayerId: string) {
-  await signupProxy(targetPlayerId);
+  proxyLoading.value = true;
+  proxyError.value = null;
+  try {
+    await signupProxy(targetPlayerId);
+  } catch (e: any) {
+    proxyError.value =
+      e?.data?.message ?? e?.message ?? "Error al agregar jugador";
+  } finally {
+    proxyLoading.value = false;
+  }
 }
 
 async function handleRemoveParticipant(participantId: string) {
@@ -122,7 +136,7 @@ async function handleCancelSelf() {
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto">
+  <div class="mx-auto max-w-4xl">
     <!-- T051: Game header sub-component -->
     <SignupGameHeader
       v-if="game"
@@ -139,17 +153,30 @@ async function handleCancelSelf() {
       {{ error }}
     </div>
 
-    <!-- T053: Registration row (self + guest + proxy + isFull) -->
+    <!-- T053: Registration row (self + isFull) -->
     <SignupRegistrationRow
       v-if="game?.status === GameStatus.SCHEDULED"
       :current-player-status="currentPlayerStatus"
       :is-full="isFull"
-      :confirmed-player-ids="roster.map((r) => r.player.id)"
       @signup-self="handleSignupSelf"
-      @signup-guest="handleSignupGuest"
-      @signup-proxy="handleSignupProxy"
       @dismiss="() => {}"
       @cancel-self="handleCancelSelf"
+    />
+
+    <!-- T076: Player-only add player widget (proxy + guest) -->
+    <SignupAddPlayer
+      v-if="
+        game?.status === GameStatus.SCHEDULED &&
+        currentPlayerStatus === 'signed_up' &&
+        authStore.user?.role === UserRole.PLAYER &&
+        !isFull
+      "
+      :confirmed-player-ids="roster.map((r) => r.player?.id).filter(Boolean)"
+      :proxy-loading="proxyLoading"
+      :proxy-error="proxyError"
+      :is-full="isFull"
+      @signup-proxy="handleSignupProxy"
+      @signup-guest="handleSignupGuest"
     />
 
     <!-- T037: responsive layout — field + table side by side ≥768px, stacked on mobile -->
