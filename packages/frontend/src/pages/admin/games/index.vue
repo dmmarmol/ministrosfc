@@ -1,5 +1,10 @@
 <script setup lang="ts">
-definePageMeta({ layout: "admin", middleware: "auth" });
+definePageMeta({
+  layout: "admin",
+  middleware: "auth",
+  requiresAuth: true,
+  requiresRole: "editor",
+});
 useHead({ title: "Games – Admin" });
 
 const { $api } = useNuxtApp();
@@ -49,10 +54,57 @@ async function deleteGame(id: string) {
     alert(e?.message ?? "Failed to delete game.");
   }
 }
+
+const toastMessage = ref("");
+let toastTimeout: ReturnType<typeof setTimeout> | null = null;
+
+function showToast(msg: string) {
+  toastMessage.value = msg;
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toastMessage.value = "";
+  }, 2500);
+}
+
+async function shareLink(url: string, label: string) {
+  if (navigator.share) {
+    try {
+      await navigator.share({ url, title: label });
+      return;
+    } catch {
+      // Fall through to clipboard
+    }
+  }
+  await navigator.clipboard.writeText(url);
+  showToast("¡Link copiado al portapapeles!");
+}
+
+function baseUrl() {
+  if (typeof window !== "undefined") return window.location.origin;
+  return "";
+}
+
+function canShareSignup(g: any): boolean {
+  return (
+    g.status === "SCHEDULED" &&
+    !!g.slug &&
+    (g.maxPlayers == null || (g.confirmedCount ?? 0) < g.maxPlayers)
+  );
+}
 </script>
 
 <template>
   <div>
+    <!-- Toast -->
+    <transition name="fade">
+      <div
+        v-if="toastMessage"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-50"
+      >
+        {{ toastMessage }}
+      </div>
+    </transition>
+
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-base font-semibold text-gray-700">Partidos</h2>
       <NuxtLink
@@ -138,18 +190,43 @@ async function deleteGame(id: string) {
                   : "—"
               }}
             </td>
-            <td class="px-4 py-3 text-right space-x-3">
-              <NuxtLink
-                :to="`/admin/games/${g.id}/edit`"
-                class="text-xs text-brand hover:underline"
-                >Editar</NuxtLink
-              >
-              <button
-                class="text-xs text-red-400 hover:text-red-600 transition-colors"
-                @click="deleteGame(g.id)"
-              >
-                Eliminar
-              </button>
+            <td class="px-4 py-3 text-right">
+              <div class="flex items-center justify-end gap-2 flex-wrap">
+                <!-- T012: share-signup link (SCHEDULED + not full) -->
+                <button
+                  v-if="canShareSignup(g)"
+                  class="text-xs text-emerald-600 hover:text-emerald-800 transition-colors"
+                  :title="'Copiar link de convocatoria'"
+                  @click="
+                    shareLink(
+                      `${baseUrl()}/games/${g.slug}/signup`,
+                      'Convocatoria',
+                    )
+                  "
+                >
+                  📋 Conv.
+                </button>
+                <!-- T013: share-detail link (all statuses with slug) -->
+                <button
+                  v-if="g.slug"
+                  class="text-xs text-blue-500 hover:text-blue-700 transition-colors"
+                  :title="'Copiar link del partido'"
+                  @click="shareLink(`${baseUrl()}/games/${g.slug}`, 'Partido')"
+                >
+                  🔗 Link
+                </button>
+                <NuxtLink
+                  :to="`/admin/games/${g.id}/edit`"
+                  class="text-xs text-brand hover:underline"
+                  >Editar</NuxtLink
+                >
+                <button
+                  class="text-xs text-red-400 hover:text-red-600 transition-colors"
+                  @click="deleteGame(g.id)"
+                >
+                  Eliminar
+                </button>
+              </div>
             </td>
           </tr>
           <tr v-if="!games.length">

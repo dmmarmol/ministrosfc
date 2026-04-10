@@ -7,7 +7,12 @@ import { useJerseyAvailability } from "~/composables/useJerseyAvailability";
 import JerseyNumberInput from "~/components/ui/JerseyNumberInput.vue";
 import IsPlayerCheckbox from "~/components/ui/IsPlayerCheckbox.vue";
 
-definePageMeta({ layout: false });
+definePageMeta({
+  layout: false,
+  middleware: "auth",
+  requiresAuth: true,
+  onboardingPage: true,
+});
 
 const router = useRouter();
 const authStore = useAuthStore();

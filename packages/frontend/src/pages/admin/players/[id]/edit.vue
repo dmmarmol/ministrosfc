@@ -2,7 +2,12 @@
 import { useAuthStore } from "~/stores/auth";
 import PlayerDeleteModal from "~/components/player/PlayerDeleteModal.vue";
 
-definePageMeta({ layout: "admin", middleware: "auth" });
+definePageMeta({
+  layout: "admin",
+  middleware: "auth",
+  requiresAuth: true,
+  requiresRole: "editor",
+});
 
 const { $api } = useNuxtApp();
 const authStore = useAuthStore();

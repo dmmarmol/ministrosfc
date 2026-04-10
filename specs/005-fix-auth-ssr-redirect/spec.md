@@ -2,8 +2,9 @@
 
 **Feature Branch**: `fix/005-auth-ssr-redirect`
 **Created**: 2026-03-25
-**Status**: Draft
-**Type**: Bug Fix
+**Updated**: 2026-04-10
+**Status**: Implemented
+**Type**: Bug Fix + Architecture Improvement
 
 ## Root Cause
 
@@ -23,7 +24,9 @@ The core issue is that auth state is persisted in `localStorage` — a client-on
 | **A — Skip on server**          | Return early from middleware when running server-side (`import.meta.server`)                    | Simplest fix. SSR renders the page shell; middleware re-runs client-side with restored state. Zero security regression: protected data is still behind authenticated API calls.          |
 | **B — httpOnly cookie session** | Migrate token storage to a server-readable httpOnly cookie; middleware reads cookie server-side | Fully SSR-safe and more secure. Requires API changes (`Set-Cookie` on login/refresh, CSRF protection). Significantly larger scope — better suited as a dedicated auth hardening feature. |
 
-**Decision: Option A.** The application is a private team management tool, not a public-facing product. The API enforces auth on every data-returning endpoint regardless of SSR. Option A fixes the UX regression immediately with minimal risk. Option B is deferred to a future auth hardening spec.
+**Decision: Option A, extended with per-page meta policy.** The application is a private team management tool, not a public-facing product. The API enforces auth on every data-returning endpoint regardless of SSR. Option A fixes the UX regression immediately with minimal risk. Option B is deferred to a future auth hardening spec.
+
+During implementation, the middleware was further evolved from a path-prefix approach to a **per-page meta policy** system (see ADR below) to eliminate the tight coupling between the middleware and the page file structure.
 
 ---
 
@@ -65,7 +68,8 @@ A user who lands on `/login?redirect=/admin/games` after following a direct link
 
 - An already-expired token is stored in `localStorage`: middleware skips on server (Option A), client restores user into Pinia, first API call returns 401, `$api` plugin triggers `authStore.refresh()`, which fetches a new access token using the stored refresh token. If the refresh token is also expired, the user is logged out and redirected to `/login`.
 - `localStorage` is cleared mid-session (private browsing, manual clear): on the next hard refresh, `loadFromStorage()` finds nothing, `isAuthenticated` is `false` on the client re-evaluation after hydration, and the middleware correctly redirects to `/login`.
-- A PLAYER-role user navigates to `/admin/**`: the middleware (now running client-side on first load) correctly redirects to `/` due to the `isEditor` check.
+- A PLAYER-role user navigates to `/admin/**`: the middleware (now running client-side on first load) correctly redirects to `/` due to the `requiresRole: "editor"` meta check.
+- A page that declares no auth meta at all (e.g. public game detail page) is passed through unconditionally by the middleware.
 
 ---
 
@@ -75,9 +79,21 @@ A user who lands on `/login?redirect=/admin/games` after following a direct link
 
 - **FR-001**: The `auth` middleware MUST skip all redirect logic when executing in a server-side rendering context, allowing the page to be delivered to the browser.
 - **FR-002**: The `auth` middleware MUST continue to enforce access control on client-side navigation (Vue Router transitions).
-- **FR-003**: The `auth-init.client.ts` plugin MUST restore `user` and `refreshToken` from `localStorage` before the middleware re-evaluates on the client after hydration.
+- **FR-003**: The `auth-init.client.ts` plugin MUST restore `user` and `refreshToken` from `sessionStorage` before the middleware re-evaluates on the client after hydration.
 - **FR-004**: Unauthenticated direct-URL access MUST still redirect to `/login` with the `redirect` query parameter preserved (client-side enforcement).
 - **FR-005**: The fix MUST NOT remove or weaken any existing role-based access checks (`isEditor`, `isAdmin`).
+- **FR-006**: Each page MUST declare its own auth policy via `definePageMeta` using the meta keys defined below. The middleware MUST read policy exclusively from page meta — no path-prefix pattern matching.
+- **FR-007**: A TypeScript declaration file MUST extend Nuxt's `PageMeta` interface so that all custom meta keys are type-checked at compile time.
+
+### Page Meta Keys
+
+| Key | Type | Meaning |
+|-----|------|---------|
+| `requiresAuth` | `boolean` | Any authenticated user can access this page |
+| `requiresRole` | `"editor" \| "admin"` | Only users with the specified role can access |
+| `authPage` | `boolean` | Login/register pages — redirect away if already authenticated |
+| `onboardingPage` | `boolean` | Onboarding page — skips the incomplete-profile redirect |
+| `skipOnboardingCheck` | `boolean` | Bypass the incomplete-profile redirect for pages like `/profile/player` |
 
 ---
 

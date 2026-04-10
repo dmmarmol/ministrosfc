@@ -5,7 +5,7 @@ import LoginForm from "~/components/auth/LoginForm.vue";
 import RegisterForm from "~/components/auth/RegisterForm.vue";
 import GoogleSignInButton from "~/components/auth/GoogleSignInButton.vue";
 
-definePageMeta({ layout: false });
+definePageMeta({ layout: false, middleware: "auth", authPage: true });
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -50,11 +50,13 @@ async function handleLogin(payload: { email: string; password: string }) {
   try {
     await authStore.login(payload.email, payload.password);
     await navigateAfterAuth();
+    // Navigation succeeded — keep loading=true so the form doesn't
+    // re-render while Vue swaps the page component.
+    return;
   } catch (e: any) {
     error.value = e?.message ?? "Email o contraseña incorrectos.";
-  } finally {
-    loading.value = false;
   }
+  loading.value = false;
 }
 
 async function handleRegister(payload: {

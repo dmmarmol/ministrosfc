@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import { useAuthStore } from "~/stores/auth";
 import PlaygroundSelect from "~/components/PlaygroundSelect.vue";
+import { FORMATIONS } from "@ministrosfc/shared";
 
-definePageMeta({ layout: "admin", middleware: "auth" });
+definePageMeta({
+  layout: "admin",
+  middleware: "auth",
+  requiresAuth: true,
+  requiresRole: "editor",
+});
 
 const { $api } = useNuxtApp();
 const router = useRouter();
@@ -23,6 +29,8 @@ const form = reactive({
   homeTeamScore: null as number | null,
   awayTeamScore: null as number | null,
   status: "SCHEDULED",
+  maxPlayers: null as number | null,
+  lineup: null as string | null,
 });
 
 watch(
@@ -36,6 +44,8 @@ watch(
     form.homeTeamScore = g.homeTeamScore ?? null;
     form.awayTeamScore = g.awayTeamScore ?? null;
     form.status = g.status ?? "SCHEDULED";
+    form.maxPlayers = g.maxPlayers ?? null;
+    form.lineup = g.lineup ?? null;
   },
   { immediate: true },
 );
@@ -57,6 +67,8 @@ async function submit() {
       date: form.date,
       notes: form.notes,
       playgroundId: form.playgroundId ?? null,
+      maxPlayers: form.maxPlayers ?? null,
+      lineup: form.lineup ?? null,
     };
     if (form.time) body.time = form.time;
     if (authStore.isAdmin) {
@@ -133,10 +145,43 @@ async function submit() {
         >
         <PlaygroundSelect v-model="form.playgroundId" />
         <!-- Legacy location text shown read-only if present and no playground assigned -->
-        <p v-if="game.location && !form.playgroundId" class="mt-1 text-xs text-gray-400">
+        <p
+          v-if="game.location && !form.playgroundId"
+          class="mt-1 text-xs text-gray-400"
+        >
           Legado: {{ game.location }}
         </p>
       </div>
+
+      <!-- T010: maxPlayers, T032: lineup -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1"
+            >Cupo máximo</label
+          >
+          <input
+            v-model.number="form.maxPlayers"
+            type="number"
+            min="1"
+            step="1"
+            placeholder="Sin límite"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1"
+            >Formación</label
+          >
+          <select
+            v-model="form.lineup"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          >
+            <option :value="null">Sin formación</option>
+            <option v-for="f in FORMATIONS" :key="f" :value="f">{{ f }}</option>
+          </select>
+        </div>
+      </div>
+
       <div>
         <label class="block text-xs font-medium text-gray-700 mb-1"
           >Notas</label

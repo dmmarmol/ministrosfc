@@ -1,5 +1,10 @@
 <script setup lang="ts">
-definePageMeta({ layout: "admin", middleware: "auth" });
+definePageMeta({
+  layout: "admin",
+  middleware: "auth",
+  requiresAuth: true,
+  requiresRole: "editor",
+});
 useHead({ title: "Tournaments – Admin" });
 
 const { $api } = useNuxtApp();

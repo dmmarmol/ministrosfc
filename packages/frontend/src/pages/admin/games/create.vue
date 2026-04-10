@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import PlaygroundSelect from "~/components/PlaygroundSelect.vue";
 
-definePageMeta({ layout: "admin", middleware: "auth" });
+definePageMeta({
+  layout: "admin",
+  middleware: "auth",
+  requiresAuth: true,
+  requiresRole: "editor",
+});
 useHead({ title: "Schedule Game – Admin" });
 
 const { $api } = useNuxtApp();

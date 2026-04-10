@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import UserRoleManager from "~/components/admin/UserRoleManager.vue";
 
-definePageMeta({ layout: "admin", middleware: "auth" });
+definePageMeta({
+  layout: "admin",
+  middleware: "auth",
+  requiresAuth: true,
+  requiresRole: "editor",
+});
 </script>
 
 <template>
