@@ -60,7 +60,7 @@ const gameCreateSchema = z
         message: "Invalid formation code",
       })
       .optional()
-      .nullable(),
+      .default("4-4-2"),
     // Strip server-generated fields silently
     endDate: z.any().optional(),
     slug: z.any().optional(),
@@ -113,8 +113,7 @@ const gameUpdateSchema = z
       .refine((v) => FORMATIONS_ENUM.includes(v), {
         message: "Invalid formation code",
       })
-      .optional()
-      .nullable(),
+      .optional(),
     // Strip server-generated fields silently
     endDate: z.any().optional(),
     slug: z.any().optional(),

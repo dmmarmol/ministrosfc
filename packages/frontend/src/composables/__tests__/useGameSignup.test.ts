@@ -189,4 +189,80 @@ describe("useGameSignup", () => {
       }),
     );
   });
+
+  it("unregisterSelf() calls DELETE /participants/self, removes own roster entry and decrements count", async () => {
+    const rosterEntry = {
+      participantId: "p-self",
+      confirmationStatus: "CONFIRMED" as const,
+      confirmedById: "player-1",
+      confirmedByName: null,
+      confirmedAt: new Date().toISOString(),
+      player: {
+        id: "player-1",
+        firstName: "Carlos",
+        lastName: "Gomez",
+        jerseyNumber: 10,
+        position: "CF",
+        playerType: "REGISTERED" as const,
+        invitedById: null,
+        invitedByName: null,
+      },
+    };
+    const dto = makeDTO({
+      roster: [rosterEntry],
+      confirmedCount: 1,
+      currentPlayerStatus: "signed_up",
+      currentPlayerId: "player-1",
+    });
+    mockApi.mockResolvedValueOnce({ data: dto }); // load
+    mockApi.mockResolvedValueOnce(undefined); // DELETE /self → 204
+
+    const { load, unregisterSelf, roster, confirmedCount, currentPlayerStatus } =
+      useGameSignup(ref("game-1"));
+    await load();
+    await unregisterSelf();
+
+    expect(mockApi).toHaveBeenLastCalledWith(
+      expect.stringContaining("/participants/self"),
+      expect.objectContaining({ method: "DELETE" }),
+    );
+    expect(roster.value).toHaveLength(0);
+    expect(confirmedCount.value).toBe(0);
+    expect(currentPlayerStatus.value).toBe("available");
+  });
+
+  it("unregisterSelf() on 422 sets error and leaves roster unchanged", async () => {
+    const rosterEntry = {
+      participantId: "p-self",
+      confirmationStatus: "CONFIRMED" as const,
+      confirmedById: "player-1",
+      confirmedByName: null,
+      confirmedAt: new Date().toISOString(),
+      player: {
+        id: "player-1",
+        firstName: "Carlos",
+        lastName: "Gomez",
+        jerseyNumber: 10,
+        position: "CF",
+        playerType: "REGISTERED" as const,
+        invitedById: null,
+        invitedByName: null,
+      },
+    };
+    const dto = makeDTO({
+      roster: [rosterEntry],
+      confirmedCount: 1,
+      currentPlayerStatus: "signed_up",
+      currentPlayerId: "player-1",
+    });
+    mockApi.mockResolvedValueOnce({ data: dto }); // load
+    mockApi.mockRejectedValueOnce({ statusCode: 422, message: "Game is not open for unregistration" });
+
+    const { load, unregisterSelf, roster, error } = useGameSignup(ref("game-1"));
+    await load();
+    await unregisterSelf();
+
+    expect(error.value).toBeTruthy();
+    expect(roster.value).toHaveLength(1);
+  });
 });

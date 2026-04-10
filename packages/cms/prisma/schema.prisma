@@ -248,7 +248,7 @@ model Game {
   // --- FEATURE 014: game signup ---
   maxPlayers Int?
   slug       String    @unique @db.VarChar(200)
-  lineup     String?   @db.VarChar(10)
+  lineup     String    @default("4-4-2") @db.VarChar(10)
   endDate    DateTime
 
   participants GameParticipant[] @relation("GameParticipants")

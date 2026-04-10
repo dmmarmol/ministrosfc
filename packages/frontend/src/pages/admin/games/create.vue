@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useAsyncData, useHead, useNuxtApp, useRouter } from "nuxt/app";
+import { computed, reactive, ref } from "vue";
 import PlaygroundSelect from "~/components/PlaygroundSelect.vue";
 
 definePageMeta({

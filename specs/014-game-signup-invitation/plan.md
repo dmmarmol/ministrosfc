@@ -35,16 +35,16 @@ No new entities, no new pages, no new shared types beyond what was introduced in
 _GATE: All gates evaluated below. No violations._
 
 - [x] **Shared types gate (Principle VII)**: No new shared types needed. All required types
-  (`RosterEntry`, `GameSignupPageDTO`, `GameSignupState`, `SignupRequestDTO`) already live in
-  `@ministrosfc/shared`. `GameSignupState` already covers the "signed_up" state used to drive
-  the self-unregistration UI. No new cross-package types required.
+      (`RosterEntry`, `GameSignupPageDTO`, `GameSignupState`, `SignupRequestDTO`) already live in
+      `@ministrosfc/shared`. `GameSignupState` already covers the "signed_up" state used to drive
+      the self-unregistration UI. No new cross-package types required.
 - [x] **Page decomposition gate (Principle V)**: No new `pages/` files introduced. The
-  "Cancelar inscripción" button is added to the already-extracted `SignupRegistrationRow.vue`.
-  The admin row-level unregister action is added to the already-extracted `SignupPlayerTable.vue`.
-  Both components live under `components/pages/games/signup/` — no decomposition required beyond
-  what T051–T053 already established.
+      "Cancelar inscripción" button is added to the already-extracted `SignupRegistrationRow.vue`.
+      The admin row-level unregister action is added to the already-extracted `SignupPlayerTable.vue`.
+      Both components live under `components/pages/games/signup/` — no decomposition required beyond
+      what T051–T053 already established.
 - [x] **Page meta declaration gate (Principle V)**: No new pages introduced. All existing pages
-  already have `definePageMeta` declarations from the T001–T059 implementation.
+      already have `definePageMeta` declarations from the T001–T059 implementation.
 
 ## Project Structure
 
@@ -100,26 +100,31 @@ packages/frontend/src/
 ### Decision Log (inline)
 
 **D1 — DB migration strategy for lineup non-nullable**
+
 - **Decision**: Single migration: `ALTER TABLE games ALTER COLUMN lineup SET DEFAULT '4-4-2'; UPDATE games SET lineup = '4-4-2' WHERE lineup IS NULL; ALTER TABLE games ALTER COLUMN lineup SET NOT NULL;` — expressed as a Prisma migration.
 - **Rationale**: All existing records with `lineup = null` are set to `4-4-2` in the same migration. No separate backfill script needed (unlike slug, which required opponentTeam lookups). The default ensures future INSERT statements that omit `lineup` get `4-4-2` automatically from the DB level.
 - **Alternatives considered**: Keeping nullable and only defaulting in the service layer — rejected because it leaves schema and service state inconsistent; also breaks the guarantee that the frontend never needs a null-lineup fallback.
 
 **D2 — Self-unregistration endpoint design**
+
 - **Decision**: `DELETE /api/v1/games/:gameId/participants/self` — no body, PLAYER-only. Server resolves the authenticated user → linked `playerId` → `GameParticipant` for this game. Returns 404 if no such record, 422 if game is not SCHEDULED.
 - **Rationale**: A dedicated `/self` route avoids a privilege check mismatch (player calling the existing `/participants/:participantId` Admin route). It also clarifies intent at the API layer.
 - **Alternatives considered**: Reusing `DELETE /participants/:participantId` with a "caller-is-owner" check — rejected because it couples the admin removal and self-removal paths, complicating the role guard logic.
 
 **D3 — Formation label placement (FR-034)**
+
 - **Decision**: A `<p class="text-xs font-medium text-gray-600 mb-2">Formación: {{ effectiveLineup }}</p>` element is added in `signup.vue` directly above `<GameLineupField>`, using the same `effectiveLineup` computed (`game.lineup ?? "4-4-2"`).
 - **Rationale**: Keeps `GameLineupField.vue` a pure SVG renderer with no label coupling. The label is trivial and does not justify a new sub-component.
 - **Alternatives considered**: Embedding the label inside `GameLineupField.vue` as a prop — rejected (over-coupling SVG component with text UI).
 
 **D4 — "Cancelar inscripción" button placement**
+
 - **Decision**: Added to `SignupRegistrationRow.vue` as a conditional block shown when `currentPlayerStatus === "signed_up"`. The button replaces the `DropdownAddMore` form (since the player is already signed up). A `cancel-self` emit is added and wired to `useGameSignup.unregisterSelf()` in `signup.vue`.
 - **Rationale**: `SignupRegistrationRow.vue` already holds all signup interaction logic for the current player — adding self-unregistration there keeps related actions co-located.
 - **Alternatives considered**: Adding the button to `SignupPlayerTable.vue` rows — rejected because it mixes the in-table row management (admin action) with the current-player action (which belongs in the registration row area).
 
 **D5 — Admin/Editor/DT row-level unregister action**
+
 - **Decision**: `SignupPlayerTable.vue` gains an optional `canManageRoster: boolean` prop (default `false`). When `true`, each row renders a small `×` button that emits `unregister(participantId)`. In `signup.vue`, `canManageRoster` is set to `true` when `currentPlayerStatus === "no_player_linked"` OR when the auth store indicates the user holds a management role (ADMIN/EDITOR/DT). `signup.vue` handles the `unregister` emit by calling the existing `DELETE /participants/:participantId` endpoint.
 - **Rationale**: Prop-driven approach keeps `SignupPlayerTable.vue` decoupled from auth concerns. The existing admin DELETE endpoint is reused; only the DT role guard is relaxed for SCHEDULED games.
 
@@ -134,6 +139,7 @@ See [data-model.md](./data-model.md) — updated section: **lineup non-nullable 
 Key change: `lineup String? @db.VarChar(10)` → `lineup String @default("4-4-2") @db.VarChar(10)`
 
 The Prisma schema migration must:
+
 1. Set `DEFAULT '4-4-2'` on the column
 2. Backfill all existing `NULL` rows to `'4-4-2'`
 3. Add `NOT NULL` constraint
@@ -153,7 +159,7 @@ See [quickstart.md](./quickstart.md) — updated: run new migration after pullin
 ### Phase A — Schema & CMS Defaults (Lineup Non-Nullable)
 
 - [ ] **T060** Create Prisma migration for `lineup` non-nullable with default `"4-4-2"`:
-  update `packages/cms/prisma/schema.prisma` — change `lineup String? @db.VarChar(10)` → `lineup String @default("4-4-2") @db.VarChar(10)`; generate migration SQL with three steps: `SET DEFAULT '4-4-2'`, `UPDATE games SET lineup = '4-4-2' WHERE lineup IS NULL`, add `NOT NULL`; run `prisma generate` to update the client.
+      update `packages/cms/prisma/schema.prisma` — change `lineup String? @db.VarChar(10)` → `lineup String @default("4-4-2") @db.VarChar(10)`; generate migration SQL with three steps: `SET DEFAULT '4-4-2'`, `UPDATE games SET lineup = '4-4-2' WHERE lineup IS NULL`, add `NOT NULL`; run `prisma generate` to update the client.
 
 - [ ] **T061** Update `packages/cms/src/routes/games.ts` — in `gameCreateSchema` (Zod): change `lineup` from `.nullable().optional()` to `.optional().default("4-4-2")`; in `gameUpdateSchema`: keep optional but ensure it cannot be set to null (use `.optional()` without `.nullable()`); no other changes needed (T033 already added `lineup` to `NON_ADMIN_ALLOWED_FIELDS`).
 
@@ -168,7 +174,7 @@ See [quickstart.md](./quickstart.md) — updated: run new migration after pullin
 ### Phase C — Signup Page Layout + Formation Label
 
 - [ ] **T063** Update `packages/frontend/src/pages/games/[slug]/signup.vue` — layout changes:
-  - Add computed `effectiveLineup = computed(() => game.value?.lineup ?? "4-4-2")` 
+  - Add computed `effectiveLineup = computed(() => game.value?.lineup ?? "4-4-2")`
   - Remove conditional `v-if="game?.lineup"` from the outer grid wrapper — always apply `md:grid md:grid-cols-12 md:gap-6` when roster section renders
   - Remove `v-if="game?.lineup"` guard on the field column — field always renders
   - Change `md:col-span-8` → `md:col-span-6` on the field column
@@ -201,7 +207,7 @@ See [quickstart.md](./quickstart.md) — updated: run new migration after pullin
 
 - [ ] **T068** Update `packages/frontend/src/components/pages/games/signup/SignupRegistrationRow.vue` — add a "Cancelar inscripción" conditional block:
   - When `currentPlayerStatus === "signed_up"` AND NOT `isFull`: render `<button @click="$emit('cancel-self')" …>Cancelar inscripción</button>` instead of the `DropdownAddMore` form (the player is already registered; showing the form would be misleading)
-  - Add `cancel-self` emit to the component's `defineEmits` 
+  - Add `cancel-self` emit to the component's `defineEmits`
   - Wire in `packages/frontend/src/pages/games/[slug]/signup.vue`: bind `@cancel-self="handleCancelSelf"` where `handleCancelSelf` calls `useGameSignup().unregisterSelf()`.
 
 ### Phase G — Admin/Editor/DT Row Unregister (Frontend)
@@ -238,16 +244,16 @@ T071          (run alongside T067 — TDD: write failing test, then implement)
 
 ### Parallel Groups
 
-| Can run in parallel                          | Blocked until         |
-| -------------------------------------------- | --------------------- |
-| T060 + T065 + T067 init                      | —                     |
-| T061 (after T060 prisma regenerated)         | T060 complete         |
-| T062, T063, T064                             | —                     |
-| T066                                         | T065 complete         |
-| T068 (after T067 composable is implemented)  | T067 complete         |
-| T069                                         | —                     |
-| T070 (TDD pair with T065–T066)               | Write before T065     |
-| T071 (TDD pair with T067)                    | Write before T067     |
+| Can run in parallel                         | Blocked until     |
+| ------------------------------------------- | ----------------- |
+| T060 + T065 + T067 init                     | —                 |
+| T061 (after T060 prisma regenerated)        | T060 complete     |
+| T062, T063, T064                            | —                 |
+| T066                                        | T065 complete     |
+| T068 (after T067 composable is implemented) | T067 complete     |
+| T069                                        | —                 |
+| T070 (TDD pair with T065–T066)              | Write before T065 |
+| T071 (TDD pair with T067)                   | Write before T067 |
 
 ---
 

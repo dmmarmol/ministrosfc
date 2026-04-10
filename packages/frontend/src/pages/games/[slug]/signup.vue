@@ -7,8 +7,9 @@ import {
   createError,
   useHead,
   navigateTo,
+  useRuntimeConfig,
 } from "nuxt/app";
-import { GameStatus } from "@ministrosfc/shared";
+import { GameStatus, UserRole } from "@ministrosfc/shared";
 import { useGameSignup } from "~/composables/useGameSignup";
 import { useAuthStore } from "~/stores/auth";
 import GameLineupField from "~/components/game/GameLineupField.vue";
@@ -27,6 +28,7 @@ useHead({
 const { $api } = useNuxtApp();
 const route = useRoute();
 const authStore = useAuthStore();
+const config = useRuntimeConfig();
 const slug = route.params.slug as string;
 
 // Resolve slug → gameId
@@ -55,16 +57,22 @@ const {
   signupGuest,
   signupProxy,
   removeParticipant,
+  unregisterSelf,
 } = useGameSignup(gameId);
+
+// T063: lineup always has a value now; fall back to default if somehow missing
+const effectiveLineup = computed(() => game.value?.lineup ?? "4-4-2");
 
 // T069: ADMIN/EDITOR/DT can remove any row; PLAYER sees button only on their own row
 const canManageRoster = computed(() =>
-  ["ADMIN", "EDITOR", "DT"].includes(authStore.user?.role ?? ""),
+  [UserRole.ADMIN, UserRole.EDITOR, UserRole.DT].includes(
+    authStore.user?.role ?? "",
+  ),
 );
 
 useHead(() => ({
   title: game.value
-    ? `Convocatoria vs ${game.value.opponentTeam?.name} – Ministros FC`
+    ? `Convocatoria vs ${game.value.opponentTeam?.name} – ${config.public.siteName}`
     : "Convocatoria",
 }));
 
@@ -107,6 +115,10 @@ async function handleRemoveParticipant(participantId: string) {
     // error handled by composable
   }
 }
+
+async function handleCancelSelf() {
+  await unregisterSelf();
+}
 </script>
 
 <template>
@@ -137,26 +149,27 @@ async function handleRemoveParticipant(participantId: string) {
       @signup-guest="handleSignupGuest"
       @signup-proxy="handleSignupProxy"
       @dismiss="() => {}"
+      @cancel-self="handleCancelSelf"
     />
 
     <!-- T037: responsive layout — field + table side by side ≥768px, stacked on mobile -->
-    <div
-      v-if="roster.length"
-      class="mt-6"
-      :class="game?.lineup ? 'md:grid md:grid-cols-12 md:gap-6' : ''"
-    >
-      <!-- T037: Field (8/12 cols on md+, full-width on mobile) -->
-      <div v-if="game?.lineup" class="md:col-span-8 mb-6 md:mb-0">
+    <div v-if="roster.length" class="mt-6 md:grid md:grid-cols-12 md:gap-6">
+      <!-- T037: Field (6/12 cols on md+, full-width on mobile) -->
+      <div class="md:col-span-6 mb-6 md:mb-0">
+        <!-- T064: formation label -->
+        <p class="text-xs font-medium text-gray-500 mb-2">
+          Formación: {{ effectiveLineup }}
+        </p>
         <GameLineupField
-          :lineup="game.lineup"
+          :lineup="effectiveLineup"
           :roster="roster"
           @circle-hover="hoveredParticipantId = $event"
           @circle-unhover="hoveredParticipantId = null"
         />
       </div>
 
-      <!-- T026+T052: Player table (4/12 cols with field, full-width without) -->
-      <div :class="game?.lineup ? 'md:col-span-4' : ''">
+      <!-- T026+T052: Player table (6/12 cols) -->
+      <div class="md:col-span-6">
         <h3 class="text-sm font-semibold text-gray-700 mb-3">
           Confirmados ({{ confirmedCount
           }}<span v-if="game?.maxPlayers"> / {{ game.maxPlayers }}</span

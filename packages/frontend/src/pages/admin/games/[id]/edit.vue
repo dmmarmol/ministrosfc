@@ -30,7 +30,7 @@ const form = reactive({
   awayTeamScore: null as number | null,
   status: GameStatus.SCHEDULED as string,
   maxPlayers: null as number | null,
-  lineup: null as string | null,
+  lineup: "4-4-2" as string,
 });
 
 watch(
@@ -45,7 +45,7 @@ watch(
     form.awayTeamScore = g.awayTeamScore ?? null;
     form.status = g.status ?? GameStatus.SCHEDULED;
     form.maxPlayers = g.maxPlayers ?? null;
-    form.lineup = g.lineup ?? null;
+    form.lineup = g.lineup ?? "4-4-2";
   },
   { immediate: true },
 );
@@ -68,7 +68,7 @@ async function submit() {
       notes: form.notes,
       playgroundId: form.playgroundId ?? null,
       maxPlayers: form.maxPlayers ?? null,
-      lineup: form.lineup ?? null,
+      lineup: form.lineup ?? "4-4-2",
     };
     if (form.time) body.time = form.time;
     if (authStore.isAdmin) {
@@ -176,7 +176,6 @@ async function submit() {
             v-model="form.lineup"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
           >
-            <option :value="null">Sin formación</option>
             <option v-for="f in FORMATIONS" :key="f" :value="f">{{ f }}</option>
           </select>
         </div>

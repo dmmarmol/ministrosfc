@@ -48,6 +48,7 @@ jest.mock("../../src/config/database", () => ({
     gameParticipant: {
       findFirst: jest.fn(),
       delete: jest.fn(),
+      deleteMany: jest.fn(),
       count: jest.fn(),
     },
     user: { findUnique: jest.fn() },
@@ -62,8 +63,12 @@ jest.mock("../../src/models/Player");
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockDb = prisma as any;
 const mockPrismaGameFindUnique: jest.Mock = mockDb.game.findUnique;
-const mockPrismaGameParticipantFindFirst: jest.Mock = mockDb.gameParticipant.findFirst;
-const mockPrismaGameParticipantDelete: jest.Mock = mockDb.gameParticipant.delete;
+const mockPrismaGameParticipantFindFirst: jest.Mock =
+  mockDb.gameParticipant.findFirst;
+const mockPrismaGameParticipantDelete: jest.Mock =
+  mockDb.gameParticipant.delete;
+const mockPrismaGameParticipantDeleteMany: jest.Mock =
+  mockDb.gameParticipant.deleteMany;
 const mockPrismaUserFindUnique: jest.Mock = mockDb.user.findUnique;
 const mockPrismaTransaction: jest.Mock = mockDb.$transaction;
 
@@ -74,42 +79,92 @@ const mockPrismaTransaction: jest.Mock = mockDb.$transaction;
 describe("ParticipationService.removeParticipant", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockPrismaGameParticipantFindFirst.mockResolvedValue({ id: "participant-1", gameId: "game-1", playerId: "player-1" });
+    mockPrismaGameParticipantFindFirst.mockResolvedValue({
+      id: "participant-1",
+      gameId: "game-1",
+      playerId: "player-1",
+    });
     mockPrismaGameFindUnique.mockResolvedValue(makeGameRow());
     mockPrismaGameParticipantDelete.mockResolvedValue({});
   });
 
-  it("throws 403 when role is DT", async () => {
+  it("DT removes from SCHEDULED game → succeeds", async () => {
     await expect(
-      ParticipationService.removeParticipant("game-1", "participant-1", "user-1", "DT"),
+      ParticipationService.removeParticipant(
+        "game-1",
+        "participant-1",
+        "user-1",
+        "DT",
+      ),
+    ).resolves.toBeUndefined();
+    expect(mockPrismaGameParticipantDelete).toHaveBeenCalledWith({
+      where: { id: "participant-1" },
+    });
+  });
+
+  it("DT removes from COMPLETED game → throws 403", async () => {
+    mockPrismaGameFindUnique.mockResolvedValue(
+      makeGameRow({ status: "COMPLETED" }),
+    );
+    await expect(
+      ParticipationService.removeParticipant(
+        "game-1",
+        "participant-1",
+        "user-1",
+        "DT",
+      ),
     ).rejects.toMatchObject({ statusCode: 403 });
   });
 
   it("throws 404 when participant is not found", async () => {
     mockPrismaGameParticipantFindFirst.mockResolvedValue(null);
     await expect(
-      ParticipationService.removeParticipant("game-1", "missing-id", "user-1", "ADMIN"),
+      ParticipationService.removeParticipant(
+        "game-1",
+        "missing-id",
+        "user-1",
+        "ADMIN",
+      ),
     ).rejects.toMatchObject({ statusCode: 404 });
   });
 
   it("throws 404 when game is not found", async () => {
     mockPrismaGameFindUnique.mockResolvedValue(null);
     await expect(
-      ParticipationService.removeParticipant("game-1", "participant-1", "user-1", "ADMIN"),
+      ParticipationService.removeParticipant(
+        "game-1",
+        "participant-1",
+        "user-1",
+        "ADMIN",
+      ),
     ).rejects.toMatchObject({ statusCode: 404 });
   });
 
   it("throws 403 when EDITOR tries to remove from non-SCHEDULED game", async () => {
-    mockPrismaGameFindUnique.mockResolvedValue(makeGameRow({ status: "COMPLETED" }));
+    mockPrismaGameFindUnique.mockResolvedValue(
+      makeGameRow({ status: "COMPLETED" }),
+    );
     await expect(
-      ParticipationService.removeParticipant("game-1", "participant-1", "user-1", "EDITOR"),
+      ParticipationService.removeParticipant(
+        "game-1",
+        "participant-1",
+        "user-1",
+        "EDITOR",
+      ),
     ).rejects.toMatchObject({ statusCode: 403 });
   });
 
   it("successfully deletes participant as ADMIN from any status", async () => {
-    mockPrismaGameFindUnique.mockResolvedValue(makeGameRow({ status: "COMPLETED" }));
+    mockPrismaGameFindUnique.mockResolvedValue(
+      makeGameRow({ status: "COMPLETED" }),
+    );
     await expect(
-      ParticipationService.removeParticipant("game-1", "participant-1", "user-1", "ADMIN"),
+      ParticipationService.removeParticipant(
+        "game-1",
+        "participant-1",
+        "user-1",
+        "ADMIN",
+      ),
     ).resolves.toBeUndefined();
     expect(mockPrismaGameParticipantDelete).toHaveBeenCalledWith({
       where: { id: "participant-1" },
@@ -118,7 +173,57 @@ describe("ParticipationService.removeParticipant", () => {
 
   it("EDITOR can remove from SCHEDULED game", async () => {
     await expect(
-      ParticipationService.removeParticipant("game-1", "participant-1", "user-1", "EDITOR"),
+      ParticipationService.removeParticipant(
+        "game-1",
+        "participant-1",
+        "user-1",
+        "EDITOR",
+      ),
+    ).resolves.toBeUndefined();
+  });
+});
+
+// ------------------------------------------------------------------
+// selfUnregister tests
+// ------------------------------------------------------------------
+
+describe("ParticipationService.selfUnregister", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockPrismaGameFindUnique.mockResolvedValue(makeGameRow());
+    mockPrismaUserFindUnique.mockResolvedValue({ playerId: "player-1" });
+    mockPrismaGameParticipantDeleteMany.mockResolvedValue({ count: 1 });
+  });
+
+  it("SCHEDULED game + linked playerId → deleteMany called", async () => {
+    await expect(
+      ParticipationService.selfUnregister("game-1", "user-1"),
+    ).resolves.toBeUndefined();
+    expect(mockPrismaGameParticipantDeleteMany).toHaveBeenCalledWith({
+      where: { gameId: "game-1", playerId: "player-1" },
+    });
+  });
+
+  it("game not SCHEDULED → throws 422", async () => {
+    mockPrismaGameFindUnique.mockResolvedValue(
+      makeGameRow({ status: "COMPLETED" }),
+    );
+    await expect(
+      ParticipationService.selfUnregister("game-1", "user-1"),
+    ).rejects.toMatchObject({ statusCode: 422 });
+  });
+
+  it("user has no linked playerId → throws 422", async () => {
+    mockPrismaUserFindUnique.mockResolvedValue({ playerId: null });
+    await expect(
+      ParticipationService.selfUnregister("game-1", "user-1"),
+    ).rejects.toMatchObject({ statusCode: 422 });
+  });
+
+  it("deleteMany finds no records → resolves (idempotent)", async () => {
+    mockPrismaGameParticipantDeleteMany.mockResolvedValue({ count: 0 });
+    await expect(
+      ParticipationService.selfUnregister("game-1", "user-1"),
     ).resolves.toBeUndefined();
   });
 });
@@ -173,7 +278,9 @@ describe("ParticipationService.signupParticipant", () => {
     mockPrismaTransaction.mockImplementation(async (cb: any) => {
       const tx = {
         game: { findUnique: jest.fn().mockResolvedValue(null) },
-        user: { findUnique: jest.fn().mockResolvedValue({ playerId: "player-1" }) },
+        user: {
+          findUnique: jest.fn().mockResolvedValue({ playerId: "player-1" }),
+        },
         gameParticipant: {
           findFirst: jest.fn().mockResolvedValue(null),
           create: jest.fn(),
@@ -195,11 +302,13 @@ describe("ParticipationService.signupParticipant", () => {
     mockPrismaTransaction.mockImplementation(async (cb: any) => {
       const tx = {
         game: {
-          findUnique: jest.fn().mockResolvedValue(
-            makeGameRow({ maxPlayers: 1 }),
-          ),
+          findUnique: jest
+            .fn()
+            .mockResolvedValue(makeGameRow({ maxPlayers: 1 })),
         },
-        user: { findUnique: jest.fn().mockResolvedValue({ playerId: "player-1" }) },
+        user: {
+          findUnique: jest.fn().mockResolvedValue({ playerId: "player-1" }),
+        },
         gameParticipant: {
           findFirst: jest.fn().mockResolvedValue(null),
           create: jest.fn(),

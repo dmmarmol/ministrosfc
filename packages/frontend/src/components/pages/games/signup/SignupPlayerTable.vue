@@ -85,23 +85,24 @@ function onMouseLeave() {
           Agregado por {{ entry.confirmedByName }}
         </p>
       </div>
-      <div>
+      <div class="self-center">
         <button
           v-if="
             hoverParticipantId === entry.participantId &&
             (props.canManageRoster || entry.player.id === props.currentPlayerId)
           "
-          class="p-0.5 text-gray-400 hover:text-red-500 transition-colors"
+          class="p-0.5 text-gray-400 hover:text-red-500 transition-colors flex items-center gap-0.5"
           title="Eliminar del equipo"
           @click="$emit('row-removePlayer', entry.participantId)"
         >
+          <span>Remover</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             stroke-width="1.5"
             stroke="currentColor"
-            class="w-4 h-4"
+            class="w-5 h-5"
           >
             <path
               stroke-linecap="round"

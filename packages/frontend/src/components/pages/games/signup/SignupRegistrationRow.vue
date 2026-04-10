@@ -24,6 +24,7 @@ const emit = defineEmits<{
   ];
   "signup-proxy": [targetPlayerId: string];
   dismiss: [];
+  "cancel-self": [];
 }>();
 
 const { $api } = useNuxtApp();
@@ -150,9 +151,17 @@ function confirmProxy(playerId: string) {
     </div>
     <div
       v-else-if="props.currentPlayerStatus === 'signed_up'"
-      class="bg-green-50 border border-green-200 rounded-xl p-4 mb-4 text-sm text-green-700 font-medium"
+      class="bg-green-50 border border-green-200 rounded-xl p-4 mb-4 flex items-center justify-between"
     >
-      ✓ Ya estás confirmado para este partido.
+      <span class="text-sm text-green-700 font-medium"
+        >✓ Ya estás confirmado para este partido.</span
+      >
+      <button
+        class="text-sm text-red-500 hover:text-red-700 font-medium ml-4"
+        @click="$emit('cancel-self')"
+      >
+        Cancelar inscripción
+      </button>
     </div>
 
     <!-- Guest form -->

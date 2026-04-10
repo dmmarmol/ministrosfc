@@ -145,6 +145,29 @@ export function useGameSignup(gameId: Ref<string>) {
     }
   }
 
+  async function unregisterSelf() {
+    error.value = null;
+    try {
+      await $api(`/api/v1/games/${gameId.value}/participants/self`, {
+        method: "DELETE",
+      });
+      if (!data.value) return;
+      const playerId = currentPlayerId.value;
+      const idx = data.value.roster.findIndex(
+        (r) => r.player.id === playerId,
+      );
+      if (idx >= 0) {
+        data.value.roster.splice(idx, 1);
+        data.value.confirmedCount = Math.max(0, data.value.confirmedCount - 1);
+        data.value.isFull = false;
+        data.value.currentPlayerStatus = "available";
+      }
+    } catch (e: any) {
+      error.value =
+        e?.data?.message ?? e?.message ?? "Error al cancelar inscripción";
+    }
+  }
+
   return {
     data,
     loading,
@@ -160,5 +183,6 @@ export function useGameSignup(gameId: Ref<string>) {
     signupGuest,
     signupProxy,
     removeParticipant,
+    unregisterSelf,
   };
 }

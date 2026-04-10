@@ -63,7 +63,10 @@ const ParticipationService = {
       throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
 
     // Cannot confirm for past or completed games
-    if (game.status === GameStatus.COMPLETED || game.status === GameStatus.CANCELLED) {
+    if (
+      game.status === GameStatus.COMPLETED ||
+      game.status === GameStatus.CANCELLED
+    ) {
       throw createError(
         "Cannot add participants to completed or cancelled games",
         400,
@@ -451,6 +454,37 @@ const ParticipationService = {
     }
 
     await prisma.gameParticipant.delete({ where: { id: participantId } });
+  },
+
+  /** T065: Player self-unregisters from a SCHEDULED game (idempotent) */
+  async selfUnregister(gameId: string, requestingUserId: string): Promise<void> {
+    const game = await prisma.game.findUnique({
+      where: { id: gameId },
+      select: { status: true },
+    });
+    if (!game)
+      throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
+    if (game.status !== GameStatus.SCHEDULED)
+      throw createError(
+        "Game is not open for unregistration",
+        422,
+        ErrorCode.GAME_NOT_SCHEDULED,
+      );
+
+    const user = await prisma.user.findUnique({
+      where: { id: requestingUserId },
+      select: { playerId: true },
+    });
+    if (!user?.playerId)
+      throw createError(
+        "No player linked to this account",
+        422,
+        ErrorCode.PLAYER_NOT_FOUND,
+      );
+
+    await prisma.gameParticipant.deleteMany({
+      where: { gameId, playerId: user.playerId },
+    });
   },
 };
 

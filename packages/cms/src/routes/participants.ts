@@ -129,6 +129,26 @@ router.post(
   },
 );
 
+// DELETE /api/v1/games/:gameId/participants/self - PLAYER self-unregistration (T065)
+// MUST be registered BEFORE /:participantId to avoid Express matching "self" as participantId
+router.delete(
+  "/self",
+  authenticate,
+  requireRole("PLAYER"),
+  validate(z.object({ gameId: z.uuid() }), "params"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await ParticipationService.selfUnregister(
+        req.params.gameId!,
+        req.user!.userId,
+      );
+      res.status(204).end();
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 // DELETE /api/v1/games/:gameId/participants/:participantId - Admin/Editor (T021)
 router.delete(
   "/:participantId",
