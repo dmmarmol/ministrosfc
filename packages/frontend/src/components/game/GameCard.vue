@@ -4,6 +4,7 @@ import { computed } from "vue";
 const props = defineProps<{
   game: {
     id: string;
+    slug?: string | null;
     date: string;
     location: string | null;
     status: string;
@@ -68,7 +69,7 @@ const statusClass = computed(() => {
 
 <template>
   <NuxtLink
-    :to="`/games/${game.id}`"
+    :to="game.slug ? `/games/${game.slug}` : `/games/${game.id}`"
     class="group bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-4 flex items-center gap-4"
   >
     <!-- Opponent logo -->

@@ -21,14 +21,14 @@ const updateProfileSchema = z.object({
   firstName: z.string().min(1).max(255).trim().optional(),
   lastName: z.string().min(1).max(255).trim().optional(),
   nickname: z.string().max(100).optional(),
-  position: z.nativeEnum(Position).optional(),
+  position: z.enum(Position).optional(),
   jerseyNumber: z.number().int().positive().optional().nullable(),
   dateOfBirth: z.string().optional().nullable(),
   address: z.string().max(500).optional().nullable(),
   phone: z.string().max(255).optional().nullable(),
   whatsapp: z.string().max(255).optional().nullable(),
   emergencyContact: z.string().max(255).optional().nullable(),
-  status: z.nativeEnum(PlayerStatus).optional(),
+  status: z.enum(PlayerStatus).optional(),
 });
 
 // GET /api/v1/profile — user-only profile (no player required)

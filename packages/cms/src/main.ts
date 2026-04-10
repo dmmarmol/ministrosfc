@@ -1,11 +1,18 @@
 import "dotenv/config";
 import { createApp, API_PORT } from "./config/server";
 import { connectDatabase, disconnectDatabase } from "./config/database";
+import { runTransitions } from "./jobs/GameStatusTransitionJob";
 import { logger } from "./utils/logger";
+
+const JOB_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 async function bootstrap(): Promise<void> {
   await connectDatabase();
   logger.info("Database connected");
+
+  // Run game status transitions on startup and every 5 minutes
+  await runTransitions();
+  const jobInterval = setInterval(runTransitions, JOB_INTERVAL_MS);
 
   const app = createApp();
 
@@ -21,6 +28,7 @@ async function bootstrap(): Promise<void> {
 
   const shutdown = async (signal: string): Promise<void> => {
     logger.info({ signal }, "Shutting down...");
+    clearInterval(jobInterval);
     server.close(async () => {
       await disconnectDatabase();
       logger.info("Graceful shutdown complete");

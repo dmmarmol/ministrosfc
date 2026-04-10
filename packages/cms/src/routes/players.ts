@@ -27,7 +27,7 @@ const playerCreateSchema = z.object({
   firstName: z.string().min(1).max(255),
   lastName: z.string().min(1).max(255),
   nickname: z.string().max(100).optional(),
-  playerType: z.nativeEnum(PlayerType).optional(),
+  playerType: z.enum(PlayerType).optional(),
   position: z
     .enum([
       "GK",
@@ -55,7 +55,7 @@ const playerCreateSchema = z.object({
   height: z.coerce.number().int().min(100).max(250).optional(),
   dominantFoot: z.enum(["LEFT", "RIGHT", "AMBIDEXTROUS"]).optional(),
   nationalId: z.string().max(50).optional(),
-  invitedById: z.string().uuid().optional(),
+  invitedById: z.uuid().optional(),
   "contact.phone": z.string().optional(),
   "contact.whatsapp": z.string().optional(),
   "contact.emergencyContact": z.string().optional(),
@@ -64,14 +64,14 @@ const playerCreateSchema = z.object({
 const playerUpdateSchema = playerCreateSchema.partial();
 
 const playerStatusSchema = z.object({
-  status: z.nativeEnum(PlayerStatus),
+  status: z.enum(PlayerStatus),
 });
 
 const playerFilterSchema = paginationSchema.extend({
-  status: z.nativeEnum(PlayerStatus).optional(),
+  status: z.enum(PlayerStatus).optional(),
   position: z.string().optional(),
   search: z.string().optional(),
-  playerType: z.nativeEnum(PlayerType).optional(),
+  playerType: z.enum(PlayerType).optional(),
 });
 
 // GET /api/v1/players - Public
@@ -177,16 +177,31 @@ router.patch(
   },
 );
 
-// PATCH /api/v1/players/:id/status - Editor or Admin
+// PATCH /api/v1/players/:id/status - Editor or Admin (DT allowed for GUEST players)
 router.patch(
   "/:id/status",
   authenticate,
-  requireRole("EDITOR"),
+  requireRole("DT"),
   validate(uuidSchema, "params"),
   validate(playerStatusSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const role = req.user!.role;
       const { status } = req.body as { status: PlayerStatus };
+
+      // T045: DT can only set status on GUEST players
+      if (role === "DT") {
+        const target = await PlayerService.getPlayerById(req.params.id!);
+        if (target.playerType !== "GUEST") {
+          res.status(403).json({
+            code: "FORBIDDEN",
+            message: "DT role can only change status of guest players",
+            statusCode: 403,
+          });
+          return;
+        }
+      }
+
       const player =
         status === PlayerStatus.INACTIVE
           ? await PlayerService.deactivatePlayer(req.params.id!)

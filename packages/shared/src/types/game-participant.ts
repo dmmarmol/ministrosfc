@@ -36,3 +36,74 @@ export interface ParticipantStatsUpdateDTO {
   redCards?: number;
   minutesPlayed?: number;
 }
+
+// --- Feature 014: trimodal signup types ---
+
+export interface SelfSignupDTO {
+  mode: "self";
+}
+
+export interface GuestSignupDTO {
+  mode: "guest";
+  firstName: string;
+  lastName: string;
+  position?: string | null;
+}
+
+export interface ProxySignupDTO {
+  mode: "proxy";
+  targetPlayerId: string;
+}
+
+export type SignupRequestDTO = SelfSignupDTO | GuestSignupDTO | ProxySignupDTO;
+
+export interface RosterEntry {
+  participantId: string;
+  confirmationStatus: ConfirmationStatus;
+  confirmedById: string | null;
+  confirmedByName: string | null;
+  confirmedAt: string | null;
+  player: {
+    id: string;
+    firstName: string;
+    lastName: string | null;
+    jerseyNumber: number | null;
+    position: string | null;
+    /** @TODO transform this into an enum and reuse it across the codebase */
+    playerType: "REGISTERED" | "GUEST";
+    invitedById: string | null;
+    invitedByName: string | null;
+  };
+}
+
+export type CurrentPlayerStatus =
+  | "not_signed_up"
+  | "signed_up"
+  | "no_player_linked"
+  | "not_player_role";
+
+export interface GameSignupPageDTO {
+  game: {
+    id: string;
+    slug: string | null;
+    date: string;
+    location: string | null;
+    status: string;
+    maxPlayers: number | null;
+    lineup: string | null;
+    opponentTeam: {
+      id: string;
+      name: string;
+    };
+    playground?: {
+      id: string;
+      name: string;
+      address: string;
+    } | null;
+  };
+  roster: RosterEntry[];
+  confirmedCount: number;
+  isFull: boolean;
+  currentPlayerStatus: CurrentPlayerStatus;
+  currentPlayerId: string | null;
+}

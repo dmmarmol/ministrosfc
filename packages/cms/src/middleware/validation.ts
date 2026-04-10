@@ -35,7 +35,7 @@ export function validate(schema: ZodSchema, target: ValidationTarget = "body") {
 
 // Common reusable schemas
 export const uuidSchema = z.object({
-  id: z.string().uuid("Invalid ID format"),
+  id: z.uuid("Invalid ID format"),
 });
 
 export const paginationSchema = z.object({
