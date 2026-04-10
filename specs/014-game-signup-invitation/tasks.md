@@ -407,3 +407,62 @@ All parallel, each paired with its implementation task (TDD):
 | Phase 11              | US-8  | T046–T050 (5)             | 3          |
 | Phase 12: Unit Tests  | —     | T054–T059 (6)             | 6          |
 | **Total**             |       | **59 tasks**              | **37 [P]** |
+
+---
+
+## Phase 13: Amendment Wave 2 (Analysis Pass 2026-04-10)
+
+**Purpose**: Implement requirements from spec amendment 2026-04-10: lineup non-nullable/default, 6/6 layout, formation label, self-unregistration, DT removal fix.
+
+**⚠️ CRITICAL (TDD)**: T070 and T071 MUST be written as failing tests BEFORE T065–T066 and T067 respectively.
+
+### Phase A — Schema & CMS Defaults
+
+- [ ] T060 Update `packages/cms/prisma/schema.prisma` — change `lineup String? @db.VarChar(10)` → `lineup String @default("4-4-2") @db.VarChar(10)`; generate migration `lineup_non_nullable_default` with SQL: SET DEFAULT, UPDATE NULL→"4-4-2", ADD NOT NULL; run `prisma generate`
+- [ ] T061 [P] Update `packages/cms/src/routes/games.ts` — in `gameCreateSchema` (Zod): change `lineup` from `.nullable().optional()` to `.optional().default("4-4-2")`; in `gameUpdateSchema`: remove `.nullable()` so lineup cannot be set to null via API (depends on T060 for prisma client regeneration)
+
+### Phase B — Admin Form
+
+- [ ] T062 [P] Update `packages/frontend/src/pages/admin/games/[id]/edit.vue` — (1) change `reactive({..., lineup: null as string | null})` → `lineup: "4-4-2" as string`; (2) change `form.lineup = g.lineup ?? null` → `form.lineup = g.lineup ?? "4-4-2"` in watch; (3) remove `<option :value="null">Sin formación</option>` from the lineup select; (4) change `lineup: form.lineup ?? null` → `lineup: form.lineup ?? "4-4-2"` in submit body
+
+### Phase C — Signup Page Layout + Formation Label
+
+- [ ] T063 [P] Update `packages/frontend/src/pages/games/[slug]/signup.vue` — layout changes: add `const effectiveLineup = computed(() => game.value?.lineup ?? "4-4-2")`; remove conditional `:class="game?.lineup ? 'md:grid...' : ''"` → always apply `class="mt-6 md:grid md:grid-cols-12 md:gap-6"`; remove `v-if="game?.lineup"` from field column div; change `md:col-span-8` → `md:col-span-6`; change `:class="game?.lineup ? 'md:col-span-4' : ''"` → `class="md:col-span-6"`; change `:lineup="game.lineup"` → `:lineup="effectiveLineup"`
+- [ ] T064 [P] Add formation label in `packages/frontend/src/pages/games/[slug]/signup.vue` — inside the field column div, before `<GameLineupField>`: `<p class="text-xs font-medium text-gray-500 mb-2">Formación: {{ effectiveLineup }}</p>`
+
+### Phase D — Self-Unregistration Backend
+
+- [ ] T065 Add `selfUnregister(gameId: string, requestingUserId: string): Promise<void>` to `packages/cms/src/services/ParticipationService.ts` — verify `game.status === GameStatus.SCHEDULED` (422 GAME_NOT_SCHEDULED); get user's `playerId` (422 if null); `prisma.gameParticipant.deleteMany({ where: { gameId, playerId } })` (idempotent); register `DELETE /api/v1/games/:gameId/participants/self` in `packages/cms/src/routes/participants.ts` — PLAYER role, calls selfUnregister, returns 204
+
+### Phase E — DT Role Removal Fix
+
+- [ ] T066 [P] Update `ParticipationService.removeParticipant` in `packages/cms/src/services/ParticipationService.ts` — remove blanket `if (role === "DT") throw 403`; add `if (role === "DT" && game.status !== GameStatus.SCHEDULED) throw 403` (DT permitted to remove from SCHEDULED games only)
+
+### Phase F — Self-Unregistration Frontend
+
+- [ ] T067 [P] Add `unregisterSelf()` to `packages/frontend/src/composables/useGameSignup.ts` — calls `DELETE /api/v1/games/{gameId}/participants/self`; on success: remove player entry from roster by matching playerId, decrement confirmedCount, set isFull=false; on 422: set error message
+- [ ] T068 Update `packages/frontend/src/components/pages/games/signup/SignupRegistrationRow.vue` — when `currentPlayerStatus === "signed_up"`: render `<button @click="$emit('cancel-self')">Cancelar inscripción</button>` instead of the DropdownAddMore form; add `cancel-self` to defineEmits; wire in signup.vue: `@cancel-self="handleCancelSelf"` → `useGameSignup().unregisterSelf()`
+
+### Phase G — Admin/Editor/DT Row Unregister Frontend
+
+- [ ] T069 Update `packages/frontend/src/components/pages/games/signup/SignupPlayerTable.vue` — add `canManageRoster?: boolean` prop (default false); when true, append `×` button to each row emitting `unregister(participantId)`; wire in signup.vue: compute `canManageRoster = ['ADMIN','EDITOR','DT'].includes(authStore.user?.role)`; bind `@unregister="handleUnregister"` → calls `DELETE /games/:gameId/participants/:participantId` and removes row from roster on success
+
+### Phase H — Tests (TDD)
+
+- [ ] T070 [P] Update `packages/cms/tests/unit/ParticipationService.test.ts` — change "DT removes → 403" to: (a) "DT removes SCHEDULED → succeeds"; (b) "DT removes COMPLETED → 403"; add selfUnregister test group: SCHEDULED+linked player → deleteMany called; non-SCHEDULED → 422; no playerId → 422; no record → no error (idempotent)
+- [ ] T071 [P] Update `packages/frontend/src/composables/__tests__/useGameSignup.test.ts` — add: `unregisterSelf()` calls DELETE and removes entry from roster, decrements confirmedCount, resets isFull; `unregisterSelf()` with 422 response sets error message
+
+### Amendment Wave 2 — Task Count
+
+| Phase                     | Story       | Tasks        | [P] tasks |
+| ------------------------- | ----------- | ------------ | --------- |
+| Phase A: Schema & Defaults | —          | T060–T061 (2) | 1        |
+| Phase B: Admin Form       | FR-016/017  | T062 (1)     | 1         |
+| Phase C: Signup Layout    | FR-018/021/034 | T063–T064 (2) | 2      |
+| Phase D: Self-Unreg BE    | FR-035      | T065 (1)     | 0         |
+| Phase E: DT Fix           | FR-013b     | T066 (1)     | 1         |
+| Phase F: Self-Unreg FE    | FR-035      | T067–T068 (2) | 1        |
+| Phase G: Admin Unreg FE   | FR-035      | T069 (1)     | 0         |
+| Phase H: Unit Tests       | —           | T070–T071 (2) | 2        |
+| **Wave 2 Total**          |             | **12 tasks** | **8 [P]** |
+| **Grand Total**           |             | **71 tasks** | **45 [P]** |

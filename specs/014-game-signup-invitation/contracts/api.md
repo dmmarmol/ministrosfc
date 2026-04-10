@@ -193,10 +193,10 @@ Trimodal per-item signup endpoint. One call per attendee registration.
 
 ### DELETE `/games/:gameId/participants/:participantId`
 
-Remove a participant from a game (Admin/Editor only).
+Remove a participant from a game (Admin, Editor, or DT — scope depends on game status).
 
 **Auth**: Required  
-**Role gate**: `EDITOR` minimum (Admin or Editor; DT cannot remove)
+**Role gate**: `EDITOR` minimum for SCHEDULED games; `ADMIN` only for IN_PROGRESS/COMPLETED games; DT permitted on SCHEDULED games only (amended 2026-04-10, FR-013b)
 
 **Path params**:
 
@@ -214,8 +214,43 @@ Remove a participant from a game (Admin/Editor only).
 }
 ```
 
-**Response `403`**: DT or PLAYER attempting removal.  
+**Response `403`**: DT or Editor attempting removal from IN_PROGRESS/COMPLETED game, or PLAYER attempting admin removal.  
 **Response `404`**: Participant not found in this game.
+
+---
+
+### DELETE `/games/:gameId/participants/self`
+
+Player self-unregistration — authenticated PLAYER cancels their own attendance. (New — FR-035)
+
+**Auth**: Required  
+**Role gate**: `PLAYER` only
+
+**Path params**:
+
+- `gameId` — UUID
+
+**Response `204`**: No content — participant record deleted.
+
+**Response `422`** — game is not SCHEDULED:
+
+```json
+{
+  "error": "No es posible cancelar la inscripción de un partido que no está programado",
+  "code": "GAME_NOT_SCHEDULED"
+}
+```
+
+**Response `422`** — authenticated user has no linked player record:
+
+```json
+{
+  "error": "Tu cuenta no tiene un jugador asociado",
+  "code": "NO_PLAYER_LINKED"
+}
+```
+
+**Response `404`**: The calling player is not registered for this game (idempotent — can be treated as a no-op by the frontend).
 
 ---
 

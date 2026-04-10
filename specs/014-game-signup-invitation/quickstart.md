@@ -20,15 +20,23 @@ npm run dev:all
 - CMS runs on `http://localhost:5102`
 - Frontend runs on `http://localhost:5103`
 
-### 2. Apply the database migration
+### 2. Apply the database migrations
 
-After generating the Prisma migration (see tasks.md):
+Two migrations must be applied (in order):
 
 ```bash
 cd packages/cms
+# Wave 1 (original feature-014 fields)
 npx prisma migrate dev --name add_game_signup_fields
+
+# Wave 2 (lineup non-nullable — amendment 2026-04-10)
+npx prisma migrate dev --name lineup_non_nullable_default
+
 npx prisma generate
 ```
+
+> **Note**: The Wave 2 migration backfills all existing `lineup = NULL` rows to `"4-4-2"`
+> automatically as part of the migration SQL. No separate backfill script is needed.
 
 ### 3. Backfill slugs for existing games
 

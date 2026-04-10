@@ -13,21 +13,29 @@
 model Game {
   // ... existing fields ...
 
-  // --- FEATURE 014 ---
-  maxPlayers Int?    // nullable — null means unlimited capacity
-  slug       String? @unique @db.VarChar(200)  // YYYY-MM-DD-{opponent}, nullable during migration
-  lineup     String? @db.VarChar(10)  // one of 14 formation codes, e.g. "4-3-3"
-  endDate    DateTime?  // auto-computed server-side: date + 100 min; NOT editable in admin UI
+  // --- FEATURE 014 (amended 2026-04-10) ---
+  maxPlayers Int?
+  slug       String    @unique @db.VarChar(200)
+  lineup     String    @default("4-4-2") @db.VarChar(10)  // non-nullable; legacy NULL rows migrated
+  endDate    DateTime
 
   // ... existing relations ...
 }
 ```
 
-**Migration strategy:**
+**Migration strategy (amendment 2026-04-10 — T060):**
 
-- `maxPlayers`, `lineup`, and `endDate` are added as nullable — no backfill required.
-- `endDate` will be null for existing records; the transition job's 24h fallback handles legacy rows.
-- `slug` uses a **single migration** with `@unique` already set: PostgreSQL treats NULL values as distinct, so multiple existing rows with `slug = NULL` do not conflict with the UNIQUE constraint. After the migration runs, the `backfill-game-slugs.ts` script populates slugs for all existing rows (all existing games will get unique non-NULL slugs).
+`lineup` was previously nullable (`String?`). A single migration sets the default, backfills
+all existing `NULL` rows to `"4-4-2"`, then drops nullability:
+
+```sql
+ALTER TABLE "Game" ALTER COLUMN "lineup" SET DEFAULT '4-4-2';
+UPDATE "Game" SET "lineup" = '4-4-2' WHERE "lineup" IS NULL;
+ALTER TABLE "Game" ALTER COLUMN "lineup" SET NOT NULL;
+```
+
+This is expressed as a Prisma migration — `prisma migrate dev --name lineup_non_nullable_default`.
+No separate backfill script is needed (unlike `slug` which required opponentTeam name lookups).
 
 ---
 
@@ -46,7 +54,7 @@ model Game {
 Game (extended)
  ├── maxPlayers: Int?            ← new: capacity gate
  ├── slug: String @unique        ← new: URL routing
- ├── lineup: String?             ← new: formation code
+ ├── lineup: String @default("4-4-2")  ← non-nullable (amended 2026-04-10); was String?
  ├── endDate: DateTime?          ← new: auto-computed (date + 100 min); not user-editable
  └── participants: GameParticipant[]
 
