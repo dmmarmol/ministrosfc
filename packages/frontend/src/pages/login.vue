@@ -34,7 +34,8 @@ function toggleMode() {
 async function navigateAfterAuth() {
   const redirect = route.query.redirect as string | undefined;
   if (authStore.needsOnboarding) {
-    await router.push("/auth/onboarding");
+    const dest = redirect ?? (authStore.isEditor ? "/admin/dashboard" : "/");
+    await router.push(`/auth/onboarding?redirect=${encodeURIComponent(dest)}`);
   } else if (redirect) {
     await router.push(redirect);
   } else if (authStore.isEditor) {

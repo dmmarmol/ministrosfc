@@ -53,7 +53,7 @@ export default defineNuxtRouteMiddleware((to) => {
     !meta.onboardingPage &&
     !meta.skipOnboardingCheck
   ) {
-    return navigateTo("/auth/onboarding");
+    return navigateTo(`/auth/onboarding?redirect=${encodeURIComponent(to.fullPath)}`);
   }
 
   // Role check

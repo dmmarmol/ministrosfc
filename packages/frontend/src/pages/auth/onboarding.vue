@@ -15,6 +15,7 @@ definePageMeta({
 });
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 const { loading, error, fetchStatus, completeOnboarding } = useOnboarding();
 
@@ -76,7 +77,10 @@ onMounted(async () => {
 });
 
 async function navigateAfterOnboarding() {
-  if (authStore.isEditor) {
+  const redirect = route.query.redirect as string | undefined;
+  if (redirect) {
+    await router.push(redirect);
+  } else if (authStore.isEditor) {
     await router.push("/admin/dashboard");
   } else {
     await router.push("/");
@@ -85,11 +89,15 @@ async function navigateAfterOnboarding() {
 
 async function handleSubmit() {
   try {
-    await completeOnboarding({
+    const result = await completeOnboarding({
       isPlayer: isPlayer.value,
       jerseyNumber: isPlayer.value ? jerseyNumber.value : null,
       position: isPlayer.value ? position.value : null,
     });
+    // Update store so the middleware stops treating this user as needing onboarding
+    if (authStore.user) {
+      authStore.user = { ...authStore.user, onboardingCompletedAt: result.user.onboardingCompletedAt };
+    }
     await navigateAfterOnboarding();
   } catch {
     // error is handled by composable
