@@ -155,6 +155,54 @@ New error codes to add to `packages/cms/src/utils/error-codes.ts`:
 
 ---
 
+## US-8 Research (added 2026-04-10 — FR-031, FR-032, FR-033)
+
+### US-8-R1. JWT Payload Has No `playerId`
+
+**Finding**: `packages/cms/src/middleware/auth.ts` — `JwtPayload` contains `{ userId, role }` only. `playerId` is not in the token.
+
+**Resolution**: To compute `currentPlayerStatus` for a PLAYER caller, derive `playerId` via `prisma.user.findUnique({ where: { id: userId }, select: { playerId: true } })` — same pattern already used in `ParticipationService.ts` (line 82-86). Parallelize this lookup with the `GameParticipant` query.
+
+### US-8-R2. No `optionalAuthenticate` Middleware Exists
+
+**Finding**: The existing `authenticate` function blocks unauthenticated with 401. `GET /api/v1/games` is public.
+
+**Resolution**: Add `optionalAuthenticate` to `packages/cms/src/middleware/auth.ts`. If no token or invalid/expired token → silently call `next()` without populating `req.user`. Valid token → populate `req.user` as usual.
+
+### US-8-R3. Redis Cache Cannot Serve Player-Specific Responses
+
+**Finding**: `GameService.searchGames` serializes filter options as the cache key. The same cache entry would be returned to all callers of the same query shape, regardless of who the PLAYER is.
+
+**Resolution**: Skip Redis cache for PLAYER-authenticated requests. Compute `currentPlayerStatus` live. Non-PLAYER and anonymous requests continue using the existing 5-min cache unchanged.
+
+### US-8-R4. `_count.participants` Not Included in `GameModel.findMany`
+
+**Finding**: `GET /api/v1/games` route maps `_count?.participants` → `confirmedCount` (line ~175 in games.ts), but `GameModel.findMany` does not include `_count` in its `include` clause — so `confirmedCount` is always `0` for list responses today.
+
+**Resolution**: Add `_count: { select: { participants: true } }` to `GameModel.findMany`'s Prisma `include` block. This is a pre-existing bug that must be fixed to support both the existing feature and FR-031 capacity checks.
+
+### US-8-R5. `GameSignupState` Type Is New — Goes in `@ministrosfc/shared`
+
+**Finding**: `CurrentPlayerStatus` in `game-participant.ts` is for the per-game signup page detail view (`"not_signed_up" | "signed_up" | "no_player_linked" | "not_player_role"`). FR-031/FR-032 need a different, narrower type for the games list card signal.
+
+**Resolution**: Add `GameSignupState = "available" | "signed_up" | "full"` to `packages/shared/src/types/game.ts`. Export from `@ministrosfc/shared`. Referenced by both the CMS response shape and the frontend `GameCard.vue` prop.
+
+### US-8-R6. `GameCard.vue` Is a Single `<NuxtLink>` Wrapper
+
+**Finding**: `GameCard.vue` uses `<NuxtLink :to="...">` as the outermost element wrapping all card content (opponent logo, game info, score/badge). Adding another `<NuxtLink>` for "Anotarse" inside would create nested `<a>` elements — invalid HTML.
+
+**Resolution (FR-033)**: Replace the outer `<NuxtLink>` with a `<div class="group ...">` or `<article>`. Move the detail navigation to an inner `<NuxtLink>` wrapping the content columns. Append a conditional CTA section (separate `<NuxtLink>` or non-interactive `<span>`) in the right-side action area. The `group` Tailwind class on the container preserves group-hover behaviour.
+
+### US-8-R7. Frontend `$api` Plugin Auth Header Injection
+
+**Finding**: `useGameSignup.ts` calls `/api/v1/games/:id/signup-page` (an authenticated endpoint) without explicitly passing `Authorization` headers — suggesting the `$api` plugin auto-injects the token from the auth store.
+
+**Resolution**: Before implementing, read `packages/frontend/src/plugins/api.ts` (or equivalent) to confirm. If the plugin injects the header automatically for all calls, `GET /api/v1/games` will already receive the token for PLAYER callers. The CMS-side `optionalAuthenticate` middleware handles the rest. No change to `index.vue` may be needed.
+
+**Action**: Verify `$api` plugin — resolve before tasks are generated in `/speckit.tasks`.
+
+---
+
 ## Resolved Unknowns
 
 | Unknown                            | Resolution                                                   |

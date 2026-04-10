@@ -1,69 +1,44 @@
-# Implementation Plan: Game Signup & Invitation (014)
+# Implementation Plan: Game Signup Invitation
 
-**Branch**: `chore/014-game-signup-invitation` | **Date**: 2026-04-09 | **Spec**: [./spec.md](./spec.md)  
+**Branch**: `chore/014-game-signup-invitation` | **Date**: 2026-04-10 | **Spec**: [spec.md](./spec.md)  
 **Input**: Feature specification from `/specs/014-game-signup-invitation/spec.md`
-
----
 
 ## Summary
 
-Add a self-service game signup system with three modes (self / guest / proxy), an SVG formation field visualiser, slug-based public game pages (301 redirect from UUID URLs), admin share-link actions, homepage game filtering (SCHEDULED = upcoming, COMPLETED = past), and a background job that auto-transitions game status `SCHEDULED → IN_PROGRESS → COMPLETED` based on `game.date` and `game.endDate` (auto-computed as `date + exactly 100 min`, server-side only, not editable).
+Allow Admin/Editor/DT users to share a game signup link, and enable PLAYER users to register themselves, guests, and proxy-register other players for a game through a trimodal `DropdownAddMore` interaction. The feature also adds automatic game status transitions (SCHEDULED → IN_PROGRESS → COMPLETED) via a scheduled job, an SVG tactical field visualization, and a "Anotarse" CTA directly on public game cards for authenticated players (US-8, FR-031–FR-033).
 
-Existing entities cover all new concepts:
-
-- `GameParticipant` (with `confirmationStatus: CONFIRMED`) is the signup record — no new table.
-- `Player` with `playerType: GUEST` is the guest player record — no new table.
-
-New Prisma fields on `Game`: `maxPlayers Int?`, `slug String? @unique`, `lineup String?`, `endDate DateTime?`.
-
----
+**Technical approach**: Extend the existing `GameParticipant` model (no new DB tables) with a per-item atomic signup endpoint. Add `maxPlayers`, `slug`, `lineup`, and `endDate` to the `Game` model. Expose an optional-auth games list endpoint that embeds per-player signup state. Add `GameSignupState` to the shared package; restructure `GameCard.vue` to support nested actions without nested `<a>` elements.
 
 ## Technical Context
 
-**Language/Version**: TypeScript 5.x strict  
-**Primary Dependencies**: Nuxt 3 (SSR), Express 4, Prisma 5 (PostgreSQL), Pinia 2, Zod  
-**Storage**: PostgreSQL via Prisma  
-**Testing**: Vitest (frontend unit), Jest (CMS unit), Playwright (E2E)  
-**Target Platform**: Node.js 20 (CMS) + Nuxt SSR (frontend), Docker / Fly.io  
-**Project Type**: Monorepo web application (CMS API + Nuxt frontend + shared types)  
-**Performance Goals**: Capacity check must be atomic (no race condition under concurrent signups)  
-**Constraints**:
+**Language/Version**: TypeScript 5.x (Node.js 20 LTS)  
+**Primary Dependencies**:
 
-- No new major npm dependencies
-- No `@nuxtjs/robots` module — use `server/routes/robots.txt.ts` instead
-- Slug normalization uses a manual char map (no `slugify` package)
-- endDate is never sent to the client as an editable field; payloads containing it are stripped silently
-
----
+- CMS: Express 4, Prisma 5 (PostgreSQL), Zod, jsonwebtoken, node-cron (new dependency for US-7 scheduled job), ioredis
+- Frontend: Nuxt 3 (SSR), Vue 3, Pinia, Tailwind CSS 3, Vitest, Vue Test Utils
+- Shared: `@ministrosfc/shared` — TypeScript type/constants package used by both CMS and Frontend  
+  **Storage**: PostgreSQL 16 (Prisma ORM); Redis (response cache)  
+  **Testing**: CMS — Jest + Supertest; Frontend — Vitest + Vue Test Utils  
+  **Target Platform**: Linux server (Fly.io); HTTPS  
+  **Project Type**: Web application (monorepo — CMS API + Nuxt SSO frontend)  
+  **Performance Goals**: Signup round-trip < 500ms p95; games list < 300ms p95  
+  **Constraints**: Auth is client-only (sessionStorage); SSR homepage fetches games without user context; Progressive enhancement for PLAYER-specific CTA  
+  **Scale/Scope**: ~30 active players; ~2 games/month; single-club deployment
 
 ## Constitution Check
 
-_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
+- [x] **Shared types gate (Principle VII)**: New types crossing package boundaries:
+  - `GameSignupState` → `packages/shared/src/types/game.ts` ✓ (resolved in data-model.md)
+  - `FormationCode`, `FORMATIONS` → already added to `packages/shared/src/types/game.ts` ✓
+  - `SignupRequestDTO`, `RosterEntry`, `GameSignupPageDTO` → `packages/shared/src/types/game-participant.ts` ✓
+  - All new cross-package types are in `@ministrosfc/shared`. Gate PASSES.
 
-- [x] **Shared types gate (Principle VII)**: New types cross `packages/cms` ↔ `packages/frontend`. The following types MUST be added to `packages/shared/src/types/` and exported from `@ministrosfc/shared` **before** any implementation task begins:
-  - `game.ts`: `FORMATIONS` const array, `FormationCode` type, `Game` extended (+`maxPlayers`, `slug`, `lineup`, `endDate` read-only), `GameCreateDTO` (+`maxPlayers`, `lineup`; no `endDate`), `GameUpdateDTO` (+`maxPlayers`, `lineup`; no `endDate`)
-  - `game-participant.ts` (new): `SelfSignupDTO`, `GuestSignupDTO`, `ProxySignupDTO`, `SignupRequestDTO` tagged union, `RosterEntry`, `GameSignupPageDTO`
+- [x] **Page decomposition gate (Principle V)**: New pages and their template block extractions:
+  - `pages/games/[slug].vue` — routing entry point only; content blocks → existing `components/pages/games/`
+  - `pages/games/[slug]/signup.vue` — routing entry point only; feature blocks → `components/pages/games/signup/` (already established pattern: `SignupGameHeader`, `SignupProxySearch`, etc.)
+  - No violations — existing convention is followed. Gate PASSES.
 
-**Post-design re-check**: ✅ All new shared types are catalogued in `data-model.md`. No violations. No complexity tracking entry required.
-
----
-
-## Architectural Decisions
-
-| Decision                 | Choice                                                                                          | Rationale                                                                                            |
-| ------------------------ | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `GameSignup` entity      | Alias for `GameParticipant` (`confirmationStatus: CONFIRMED`)                                   | `@@unique([gameId,playerId])` already enforces FR-005; no new table                                  |
-| `GuestPlayer` entity     | `Player` with `playerType: GUEST`                                                               | `invitedById` FK + `PlayerType.GUEST` already exist; no new table                                    |
-| Slug normalization       | Manual char map (no third-party library)                                                        | Spanish characters are predictable; zero new runtime dep                                             |
-| Field visualisation      | SVG (not Canvas)                                                                                | Native hover events, Vue reactivity, full accessibility                                              |
-| `robots.txt`             | `server/routes/robots.txt.ts` in Nuxt                                                           | No `@nuxtjs/robots` module needed                                                                    |
-| Capacity atomicity       | `prisma.$transaction` + `@@unique` constraint                                                   | PostgreSQL prevents races; no optimistic UI                                                          |
-| endDate computation      | `date + exactly 100 min`, server-side only                                                      | Not user-editable; computed on create and every date update                                          |
-| Admin IN_PROGRESS revert | ADMIN changing `date` to future atomically reverts status to `SCHEDULED` + recomputes `endDate` | FR-030                                                                                               |
-| Status job frequency     | Every 5 minutes                                                                                 | Acceptable real-time approximation; double-transition allowed (zero IN_PROGRESS duration observable) |
-| Slug migration           | Single migration with `@unique` on `slug` (PostgreSQL treats NULLs as distinct, so the constraint is safe before backfill) + backfill script | Simpler than 3-step; safe — multiple NULL values never conflict in a UNIQUE column |
-
----
+**Re-check post-design**: Constitution check passes. No new violations introduced by US-8 additions (FR-031–FR-033). `GameCard.vue` is a UI component, not a page — no decomposition required.
 
 ## Project Structure
 
@@ -71,103 +46,79 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 ```text
 specs/014-game-signup-invitation/
-├── plan.md              ← this file
-├── research.md          ← codebase archaeology + decisions
-├── data-model.md        ← Prisma changes + shared types
-├── quickstart.md        ← dev setup + migration steps
+├── plan.md              # This file (/speckit.plan command output)
+├── research.md          # All unknowns resolved (US-8 additions appended 2026-04-10)
+├── data-model.md        # Schema changes + GameSignupState type (US-8 appended 2026-04-10)
+├── quickstart.md        # Dev workflow including US-8 CTA testing guide
 ├── contracts/
-│   └── api.md           ← new + modified endpoint contracts
-└── tasks.md             ← (Phase 2 — generated by /speckit.tasks)
+│   └── api.md           # All endpoints + FR-031 PLAYER list response (US-8 appended 2026-04-10)
+└── tasks.md             # Phase 2 output (/speckit.tasks command — NOT created by /speckit.plan)
 ```
 
-### Source Code (repository root)
+### Source Code
 
 ```text
+packages/shared/src/types/
+├── game.ts               MODIFY — add GameSignupState, GameSignupState extends Game (US-8)
+│                                   (FormationCode, FORMATIONS, Game extensions already added)
+└── game-participant.ts   MODIFY — SignupRequestDTO, RosterEntry, GameSignupPageDTO (already added)
+
 packages/cms/
-├── prisma/
-│   ├── schema.prisma                              ← Game: +maxPlayers +slug +lineup +endDate
-│   └── migrations/
-│       └── YYYYMMDDHHMMSS_add_game_signup_fields/ ← new migration
-├── src/
-│   ├── scripts/
-│   │   └── backfill-game-slugs.ts                 ← new: one-time backfill
-│   ├── utils/
-│   │   ├── slug.ts                                ← new: slug generation (manual char map)
-│   │   └── error-codes.ts                         ← +GAME_CAPACITY_EXCEEDED, GAME_NOT_SCHEDULED,
-│   │                                                   SIGNUP_DUPLICATE, PROXY_CONFLICT
-│   ├── routes/
-│   │   ├── games.ts                               ← +slug endpoint, +schemas, +NON_ADMIN lineup
-│   │   └── participants.ts                        ← +POST /signup, +DELETE /:participantId
-│   ├── services/
-│   │   ├── GameService.ts                         ← +endDate compute/revert, +status guards
-│   │   └── ParticipationService.ts                ← +signupParticipant() trimodal, +removeParticipant()
-│   └── jobs/
-│       └── GameStatusTransitionJob.ts             ← new: SCHEDULED→IN_PROGRESS→COMPLETED, every 5 min
+├── prisma/schema.prisma  MODIFY — Game: maxPlayers, slug, lineup, endDate (already migrated)
+├── src/middleware/
+│   └── auth.ts           MODIFY — add optionalAuthenticate (US-8 / FR-031)
+├── src/models/
+│   └── Game.ts           MODIFY — add _count.participants to findMany (pre-existing bug fix)
+├── src/routes/
+│   ├── games.ts          MODIFY — GET / with optionalAuthenticate + PLAYER currentPlayerStatus;
+│   │                               GET /slug/:slug; updated create/update schemas
+│   └── participants.ts   MODIFY — POST /:gameId/participants/signup (trimodal);
+│                                   DELETE /:gameId/participants/:participantId
+├── src/services/
+│   ├── GameService.ts    MODIFY — createGame (slug gen), updateGame (endDate, lineup whitelist),
+│   │                               searchGamesWithPlayerStatus (US-8)
+│   └── ParticipationService.ts  MODIFY — signupParticipant (trimodal); getSignupPage
+├── src/utils/
+│   └── slug.ts           NEW — generateGameSlug (char map transliteration, dedup suffix)
+├── src/jobs/
+│   └── gameStatusJob.ts  NEW — scheduled node-cron job (US-7 / FR-026)
+└── src/scripts/
+    └── backfill-game-slugs.ts  NEW — one-time migration script
 
-packages/shared/
-└── src/
-    └── types/
-        ├── game.ts                                ← +FORMATIONS, FormationCode, Game/DTO extensions
-        └── game-participant.ts                    ← +SignupRequestDTO, RosterEntry, GameSignupPageDTO
-
-packages/frontend/
-├── server/
-│   ├── routes/
-│   │   └── robots.txt.ts                         ← new: disallow /admin
-│   └── middleware/
-│       └── game-uuid-redirect.ts                 ← new: 301 /games/:uuid → /games/:slug
-├── src/
-│   ├── pages/
-│   │   └── games/
-│   │       ├── [slug].vue                        ← renamed from [id].vue
-│   │       └── [slug]/
-│   │           └── signup.vue                    ← new: public signup page
-│   ├── pages/admin/games/
-│   │   └── [id]/
-│   │       └── edit.vue                          ← +maxPlayers field, +lineup select (NO endDate)
-│   ├── composables/
-│   │   └── useGameSignup.ts                      ← new: trimodal signup state machine
-│   ├── components/game/
-│   │   └── GameLineupField.vue                   ← new: SVG formation visualiser
-│   └── utils/
-│       └── formations.ts                         ← new: position label helpers
-└── tests/
-    └── e2e/
-        └── game-signup.spec.ts                   ← new: Playwright E2E for signup flow
+packages/frontend/src/
+├── pages/
+│   ├── index.vue                   MODIFY — pass auth header to games list; map currentPlayerStatus
+│   │                                         to signupState prop on GameCard (US-8)
+│   ├── games/
+│   │   ├── [slug].vue              NEW — replaces [id].vue; public game detail page
+│   │   └── [slug]/
+│   │       └── signup.vue          NEW — Game Sign Up Page (authenticated)
+│   └── admin/games/
+│       └── [id]/
+│           ├── index.vue           MODIFY — "Copiar link" button + share link
+│           └── edit.vue (or form)  MODIFY — maxPlayers input + lineup select
+├── components/
+│   ├── game/
+│   │   └── GameCard.vue            MODIFY — FR-032 signupState prop + FR-033 restructure
+│   └── pages/
+│       ├── games/
+│       │   └── signup/             EXISTING — SignupGameHeader, SignupProxySearch, etc.
+│       └── admin/games/            EXISTING — admin game detail/edit blocks
+├── composables/
+│   └── useGameSignup.ts            EXISTING — trimodal signup state machine
+├── utils/
+│   └── formations.ts               NEW — 14-formation slot lookup table
+├── components/game/
+│   └── GameLineupField.vue         NEW — SVG field visualization
+└── server/
+    ├── middleware/
+    │   └── game-uuid-redirect.ts   NEW — UUID → slug 301 redirect
+    └── routes/
+        └── robots.txt.ts           NEW — robots.txt with Disallow: /games/*/signup
 ```
 
-**Structure Decision**: Monorepo Option 2 (CMS backend + Nuxt frontend + shared types package). All three packages are modified. New files follow existing conventions in each package (`src/jobs/`, `src/utils/`, `server/routes/`, `src/composables/`).
+**Structure Decision**: Option 2 (Web application monorepo). The project uses the established `packages/cms` (Express API) + `packages/frontend` (Nuxt 3) + `packages/shared` (types) layout. US-8 does not introduce new packages or layers.
 
----
+## Complexity Tracking
 
-## Status Permission Matrix (Binding — Assumption 8)
-
-| Status        | Editor / DT                                 | ADMIN                                                         |
-| ------------- | ------------------------------------------- | ------------------------------------------------------------- |
-| `SCHEDULED`   | Normal role permissions (whitelist applies) | Full access                                                   |
-| `IN_PROGRESS` | HTTP 403 on all mutations                   | Full access; changing `date` to future reverts to `SCHEDULED` |
-| `COMPLETED`   | HTTP 403 on lineup + participant mutations  | lineup + participants editable                                |
-
----
-
-## Migration Plan (3-Step Slug Strategy)
-
-1. **Migration**: Create a single migration adding all four fields: `maxPlayers Int?`, `slug String? @unique @db.VarChar(200)`, `lineup String? @db.VarChar(10)`, `endDate DateTime?`. PostgreSQL treats NULL values as distinct, so `@unique` on the nullable `slug` column is safe before backfill — all existing rows will have `slug = NULL` and do not conflict with each other.
-2. **Backfill**: Run `backfill-game-slugs.ts` to populate `slug` for all existing rows (`YYYY-MM-DD-{opponent-slug}`). After backfill all rows have a unique non-NULL slug.
-
----
-
-## Key Invariants (Implementation Must Enforce)
-
-| #    | Invariant                                                                                      | Where enforced                                      |
-| ---- | ---------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| I-1  | `endDate = date + exactly 100 min`, UTC; not user-settable                                     | `GameService.createGame` + `updateGame`             |
-| I-2  | Client payloads containing `endDate` are stripped silently                                     | `gameCreateSchema` / `gameUpdateSchema` Zod strip   |
-| I-3  | Signup blocked when `game.status ≠ SCHEDULED` (includes `IN_PROGRESS`)                         | `ParticipationService.signupParticipant` → HTTP 422 |
-| I-4  | Capacity check + insert atomic                                                                 | `prisma.$transaction`                               |
-| I-5  | Slug generated from `date + opponentTeam.name`; unique                                         | `GameService.createGame` (calls `slug.ts`)          |
-| I-6  | DT role may set `lineup` (formation code only); `NON_ADMIN_ALLOWED_FIELDS` updated             | `games.ts` route whitelist                          |
-| I-7  | ADMIN updating `date` on `IN_PROGRESS` game to a future time → status reverts to `SCHEDULED`   | `GameService.updateGame`                            |
-| I-8  | Detail-link share button appears on all statuses in `/admin/games`                             | US-1 FR-028                                         |
-| I-9  | Signup-link share button appears only when `status = SCHEDULED AND capacity not full`          | US-1 FR-027                                         |
-| I-10 | Homepage: `SCHEDULED` → upcoming section; `COMPLETED` → past section; everything else excluded | FR-029                                              |
+No constitution violations. No complexity justification required.

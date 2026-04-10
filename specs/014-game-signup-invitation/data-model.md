@@ -204,6 +204,37 @@ export async function generateGameSlug(
 
 ---
 
+## US-8 Type Additions (added 2026-04-10 — FR-031, FR-032, FR-033)
+
+### `game.ts` — `GameSignupState` (new export)
+
+```typescript
+/**
+ * Per-game signup state for authenticated PLAYER callers viewing the public games list.
+ * Embedded in the GET /api/v1/games list response (FR-031) and consumed by GameCard.vue (FR-032).
+ * Distinct from CurrentPlayerStatus which is for the signup-page detail view.
+ */
+export type GameSignupState = "available" | "signed_up" | "full";
+```
+
+**Placement**: `packages/shared/src/types/game.ts` — exported from `@ministrosfc/shared`.
+
+**Usage**:
+
+- CMS: `GET /api/v1/games` response embeds `currentPlayerStatus?: GameSignupState | null` per game for PLAYER callers
+- Frontend: `GameCard.vue` `signupState?: GameSignupState` prop
+
+### `game.ts` — `Game` interface extension
+
+```typescript
+// Add to Game interface:
+currentPlayerStatus?: GameSignupState | null; // only present for PLAYER-authenticated list responses
+```
+
+**Note**: This field is computed server-side and never stored in the DB. It is omitted from `GameCreateDTO` and `GameUpdateDTO`.
+
+---
+
 ## Validation Rules
 
 | Field                            | Rule                                                                                                                                                                            |

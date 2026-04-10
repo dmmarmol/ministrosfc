@@ -105,3 +105,40 @@ Check `game.status` in the DB. The status gate checks `=== 'SCHEDULED'` exactly;
 
 **Old UUID URL not redirecting**  
 Confirm the Nuxt server middleware `game-uuid-redirect.ts` is in `packages/frontend/server/middleware/`. The UUID regex pattern: `/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i`.
+
+---
+
+## US-8 Development Notes (FR-031, FR-032, FR-033)
+
+### Testing the "Anotarse" CTA on game cards
+
+1. Log in as a PLAYER user, navigate to the homepage `/`
+2. Upcoming (SCHEDULED) game cards should show an **"Anotarse"** link button in the card's right action area
+3. Click **"Anotarse"** → should navigate directly to `/games/:slug/signup`
+4. Visit the signup page and confirm attendance
+5. Return to homepage — the card for that game should now show **"Ya anotado"**
+6. As Admin, fill up the game (sign up all slots to reach `maxPlayers`) — the card should show **"Completo"**
+7. Log out — game cards should show no signup CTA
+
+### Verifying `currentPlayerStatus` in the API
+
+```bash
+# Without auth — no currentPlayerStatus in response
+curl http://localhost:5102/api/v1/games?status=SCHEDULED&limit=3
+
+# With PLAYER auth — currentPlayerStatus per game
+TOKEN="<player-jwt>"
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:5102/api/v1/games?status=SCHEDULED&limit=3
+```
+
+### Key files added / modified for US-8
+
+| File                                                 | Purpose                                                               |
+| ---------------------------------------------------- | --------------------------------------------------------------------- |
+| `packages/shared/src/types/game.ts`                  | `GameSignupState` type export                                         |
+| `packages/cms/src/middleware/auth.ts`                | `optionalAuthenticate` middleware                                     |
+| `packages/cms/src/models/Game.ts`                    | Add `_count: { select: { participants: true } }` to `findMany`        |
+| `packages/cms/src/routes/games.ts`                   | `GET /games` — optional auth + PLAYER `currentPlayerStatus` injection |
+| `packages/frontend/src/components/game/GameCard.vue` | Restructured layout + `signupState` prop                              |
+| `packages/frontend/src/pages/index.vue`              | Pass auth header / receive `currentPlayerStatus` per game             |

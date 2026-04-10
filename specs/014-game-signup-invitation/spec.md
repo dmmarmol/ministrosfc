@@ -143,6 +143,25 @@ The system automatically transitions game status through its lifecycle without m
 
 ---
 
+### User Story 8 — Authenticated Player Sees Signup CTA on Public Game Cards (Priority: P1)
+
+A logged-in Player browsing the public homepage sees an "Anotarse" action link directly on each SCHEDULED game card, enabling navigation to the signup page in one click. Cards reflect the Player's current signup state — already signed up shows "Ya anotado", a full game shows "Completo".
+
+**Why this priority**: Reduces friction to the core signup flow — a Player should not need to navigate to the game detail page first.
+
+**Independent Test**: Log in as a Player, visit the homepage. A SCHEDULED game card shows "Anotarse". Clicking it navigates to `/games/:slug/signup`. A card where the Player is already signed up shows "Ya anotado". A full game shows "Completo". Log out — no signup UI appears on any card.
+
+**Acceptance Scenarios**:
+
+1. **Given** an authenticated Player visits the public homepage, **When** the SCHEDULED games section renders, **Then** each game card shows an "Anotarse" link navigating to `/games/:slug/signup`.
+2. **Given** an authenticated Player is already signed up for a SCHEDULED game, **When** they view that game card, **Then** the card shows "Ya anotado" instead of "Anotarse".
+3. **Given** a SCHEDULED game has reached its `maxPlayers` capacity, **When** an authenticated Player views that game card, **Then** the card shows "Completo" instead of "Anotarse".
+4. **Given** an unauthenticated visitor views the homepage, **When** SCHEDULED game cards render, **Then** no signup CTA is shown on any card.
+5. **Given** a user with role EDITOR, ADMIN, or DT is authenticated, **When** they view the public homepage, **Then** no signup CTA is shown on any game card.
+6. **Given** an authenticated Player views a COMPLETED or CANCELLED game card, **When** the card renders, **Then** no signup CTA is shown.
+
+---
+
 ### Edge Cases
 
 - Two games with the same date and opponent: the slug auto-appends an incrementing numeric suffix (e.g., `2026-04-09-atletico-2`) to remain unique; uniqueness is enforced at the database level. The numeric suffix has no enforced upper bound in this release; duplicate games on the same date and opponent are considered highly unlikely in practice.
@@ -200,6 +219,9 @@ The system automatically transitions game status through its lifecycle without m
 - **FR-028**: The `/admin/games` table MUST render a shareable game detail link for every game row regardless of `game.status` (i.e., shown for `SCHEDULED`, `IN_PROGRESS`, `COMPLETED`, and `CANCELLED` rows). The link URL MUST be `{baseUrl}/games/{slug}`. Clicking it MUST copy the URL to the clipboard AND invoke `navigator.share` on supporting devices; on unsupported devices, clipboard copy alone is acceptable with a confirmation toast.
 - **FR-029**: The public homepage game sections MUST be filtered strictly by status: the "next games" section MUST show ONLY `status = SCHEDULED` games; the "past games" section MUST show ONLY `status = COMPLETED` games; games with `status = CANCELLED` or `status = IN_PROGRESS` MUST NOT appear in any homepage section.
 - **FR-030**: When a game is created or its `date` field is updated (regardless of the game's current `status`), the system MUST automatically compute `game.endDate = date + exactly 100 minutes` server-side. If an ADMIN updates `date` to a future timestamp while the game has `status = IN_PROGRESS`, the CMS MUST atomically revert `game.status` to `SCHEDULED` and recompute `endDate` in the same PATCH transaction. `endDate` MUST NOT be exposed as an editable input in any admin UI form; it is a server-only derived field. Client payloads that include `endDate` MUST be stripped silently at the schema validation layer (no error returned to the client). The `date` field MUST be stored and compared in UTC; the frontend MUST send `date` as an ISO 8601 string with an explicit UTC offset (or `Z` suffix); the CMS MUST reject `date` values lacking a timezone designator with HTTP 422.
+- **FR-031**: The games list endpoint (`GET /api/v1/games`) MUST embed a `currentPlayerStatus` field per game in the response when the authenticated caller has role `PLAYER`. Possible values: `"available"` (game is `SCHEDULED`, not full, and caller has no `CONFIRMED` `GameParticipant` record for this game), `"signed_up"` (caller has a `CONFIRMED` `GameParticipant` record for this game), `"full"` (game has reached `maxPlayers` capacity regardless of caller status). For unauthenticated requests and requests from callers with roles other than `PLAYER`, this field MUST be omitted or `null`. The field MUST be computed server-side in the same query without requiring additional round-trips.
+- **FR-032**: The `GameCard` component MUST accept an optional `signupState` prop typed as `"available" | "signed_up" | "full" | undefined`. When `signupState = "available"` and `game.status = SCHEDULED`, the card MUST display an "Anotarse" action link navigating to `/games/:slug/signup`. When `signupState = "signed_up"`, the card MUST display a "Ya anotado" non-interactive indicator. When `signupState = "full"`, the card MUST display a "Completo" non-interactive indicator. When `signupState` is absent or `undefined`, no signup UI is rendered — preserving existing behaviour for unauthenticated visitors and non-PLAYER roles.
+- **FR-033**: The `GameCard` component MUST be restructured from its current single `<NuxtLink>` wrapper to a container element (e.g., `<div>` or `<article>`) with an inner `<NuxtLink>` for game detail navigation and a separate `<NuxtLink>` for the "Anotarse" signup action. Nested interactive elements are prohibited. The game detail link MUST remain the primary navigation target for the card area; the signup action MUST be visually distinct and positioned in the right-side action area, replacing the "Próximo" status badge for SCHEDULED cards when `signupState` is present.
 
 ### Key Entities
 
@@ -292,3 +314,9 @@ The system automatically transitions game status through its lifecycle without m
 - E9 (IN_PROGRESS editing restrictions): IN_PROGRESS games are read-only for all roles except ADMIN. ADMIN retains full editing rights on IN_PROGRESS games. If ADMIN moves `date` forward on an IN_PROGRESS game, `game.status` reverts to `SCHEDULED` atomically (FR-030). Editor and DT receive HTTP 403 for any mutation on an IN_PROGRESS game (FR-017, FR-013b). Updated US-7 AC-8/AC-9; Assumption 8 updated.
 - E10 (share detail link): Game detail link is visible in `/admin/games` for all game statuses including IN_PROGRESS and CANCELLED — independently of enrollment eligibility. Only the signup invitation link is restricted to SCHEDULED games. Updated FR-028, US-1 AC-7.
 - E11 (guest position and dismissable row): When adding a guest via "Agregar invitado", an optional position dropdown (same `Position` enum values as registered players) MUST appear alongside the name fields, allowing the inviting player to pre-assign a position before confirming. The guest's `position` (if selected) is stored on their `Player` record and used for SVG field slot assignment (treated equivalently to a registered player with that position). The guest entry row is dismissable via an × button, returning `DropdownAddMore` to its default state without creating any record. Updated FR-009, FR-019, FR-021, US-3 AC-3, US-3 AC-8 (new).
+
+### Session 2026-04-10
+
+- Q: When a Player sees a SCHEDULED game card on the public homepage, should the card differentiate between available, already-signed-up, and full states? → A: Yes — "Anotarse" for available, "Ya anotado" when already signed up, "Completo" when at capacity.
+- Q: How should the public homepage obtain per-game signup state for the authenticated Player? → A: Embed `currentPlayerStatus` per game in the existing games list endpoint response when the caller has role PLAYER; omit or null for all other callers — no new endpoint required.
+- Q: Should the "Anotarse" link coexist with the existing card-level game detail navigation, or replace it? → A: Coexist — game detail remains the primary card navigation; "Anotarse" is a distinct secondary action; `GameCard` is restructured from a single `<NuxtLink>` wrapper to avoid nested interactive elements.

@@ -274,6 +274,60 @@ DT can now set `lineup` (previously blocked by `NON_ADMIN_ALLOWED_FIELDS`). `max
 
 ---
 
+## US-8 Contract Additions (added 2026-04-10 — FR-031)
+
+---
+
+### GET `/games` — PLAYER-authenticated response shape (FR-031)
+
+When called with a valid JWT whose `role` is `PLAYER`, each game object in the `data` array gains a `currentPlayerStatus` field:
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "slug": "2026-04-15-atletico",
+      "date": "2026-04-15T18:00:00-03:00",
+      "status": "SCHEDULED",
+      "maxPlayers": 18,
+      "confirmedCount": 12,
+      "opponentTeam": { "id": "uuid", "name": "Atlético", "logoUrl": null },
+      "currentPlayerStatus": "available"
+    },
+    {
+      "...": "...",
+      "currentPlayerStatus": "signed_up"
+    },
+    {
+      "...": "...",
+      "currentPlayerStatus": "full"
+    }
+  ],
+  "meta": { "total": 3, "page": 1, "limit": 20, "totalPages": 1 }
+}
+```
+
+**`currentPlayerStatus` values**:
+
+| Value         | Condition                                                                                                                                       |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `"available"` | Game is `SCHEDULED`, `confirmedCount < maxPlayers` (or `maxPlayers` is null), and the caller has no `CONFIRMED` `GameParticipant` for this game |
+| `"signed_up"` | The caller has a `CONFIRMED` `GameParticipant` record for this game                                                                             |
+| `"full"`      | `confirmedCount >= maxPlayers` regardless of whether the caller is signed up                                                                    |
+
+**Non-PLAYER / unauthenticated callers**: `currentPlayerStatus` is omitted (not present in the JSON — the field is absent, not `null`).
+
+**Performance notes**:
+
+- The Redis cache is bypassed for PLAYER-authenticated requests (per-user state cannot be shared across cached responses).
+- Non-PLAYER and anonymous requests continue to use the existing 5-minute Redis cache unchanged.
+- The `confirmedCount` field in list responses requires `_count: { select: { participants: true } }` in `GameModel.findMany` — this is a pre-existing bug fix bundled into this feature.
+
+**Auth header**: `Authorization: Bearer <token>` (optional — endpoint remains public without it).
+
+---
+
 ## Frontend Routes
 
 | Route                   | Page                                        | Auth           |

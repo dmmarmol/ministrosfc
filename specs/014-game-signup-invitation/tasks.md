@@ -96,15 +96,23 @@
 
 **Independent Test**: As signed-in unconfirmed player, visit Game Sign Up Page: (1) click confirm on pre-filled self-signup row → row appears in roster; (2) select "Agregar invitado", type name, (optionally) select position, confirm → guest row with "Inv." prefix and position abbreviation appears; (3) click "Agregar invitado" then × → `DropdownAddMore` returns to default state, no record created; (4) proxy-register another active player → row appears with "Agregado por" label. Verify all steps complete without page refresh.
 
+### Sub-components (Constitution Principle V — Page Decomposition gate)
+
+**⚠️ CRITICAL**: `signup.vue` is a routing entry point only. All feature template blocks MUST live in `components/pages/games/signup/`. Create sub-components T051–T053 before wiring them in T022–T026.
+
+- [x] T051 [P] [US3] Create `packages/frontend/src/components/pages/games/signup/SignupGameHeader.vue` — accepts props: `game: Game` (opponent name, date, playground name), `confirmedCount: number`, `maxPlayers: number | null`; renders the game header block (rival, date, playground, confirmed/max counter); no signup logic
+- [x] T052 [P] [US3] Create `packages/frontend/src/components/pages/games/signup/SignupPlayerTable.vue` — accepts props: `roster: RosterEntry[]`, `highlightedParticipantId?: string | null`; renders the full confirmed-attendees table in `confirmedAt ASC` order (registered and guests intermixed); registered player rows: jersey number + position abbreviation + full name; guest rows: "Inv." prefix + position abbreviation (or "—") + "Invitado por {Player Name}" (guest name visible only when `currentPlayerStatus` indicates inviting player or admin/editor/dt context); proxy-registered rows: "Agregado por: {Inviting Player Name}" in smaller font below name; emits `row-highlight(participantId)` for hover sync with `GameLineupField`
+- [x] T053 [P] [US3] Create `packages/frontend/src/components/pages/games/signup/SignupRegistrationRow.vue` — accepts props: `currentPlayerStatus: SignupPagePlayerStatus`, `isFull: boolean`, `availablePlayers: Player[]`; contains the trimodal `DropdownAddMore` logic: self mode (pre-fill when `not_signed_up`), guest mode (firstName + lastName inputs + optional position `<select>` with all `Position` enum values + "Sin posición" blank + × dismiss button), proxy mode (searchable dropdown filtered to `REGISTERED` + `ACTIVE` + not already confirmed); each mode has an adjacent confirm button; emits `signup-self()`, `signup-guest(firstName, lastName, position?)`, `signup-proxy(targetPlayerId)`, `dismiss()`; when `isFull` renders "El cupo está completo" instead of the form
+
 ### Implementation
 
-- [x] T022 [P] [US3] Create `packages/frontend/src/pages/games/[slug]/signup.vue` — Game Sign Up Page skeleton: route `/games/[slug]/signup`, apply `auth` middleware (redirect to `/login?redirect=...` if unauthenticated), **`useHead` MUST include `<meta name="robots" content="noindex,nofollow">`** (non-optional, FR-015); page layout with game header (rival, date, playground, `confirmedCount` / `maxPlayers`)
+- [x] T022 [P] [US3] Create `packages/frontend/src/pages/games/[slug]/signup.vue` — Game Sign Up Page routing entry point: apply `auth` middleware (redirect to `/login?redirect=...` if unauthenticated), **`useHead` MUST include `<meta name="robots" content="noindex,nofollow">`** (non-optional, FR-015); inject `useGameSignup()` composable; compose `<SignupGameHeader>`, `<SignupPlayerTable>`, and `<SignupRegistrationRow>` sub-components (T051–T053); wire composable methods to component emits — page file MUST NOT contain inline template feature blocks exceeding ~30 lines
 - [x] T023 [P] [US3] Create `packages/frontend/src/composables/useGameSignup.ts` — reactive state: `game`, `roster`, `confirmedCount`, `isFull`, `currentPlayerStatus`, `error`; methods: `signupSelf()`, `signupGuest(firstName, lastName, position?: string | null)`, `signupProxy(targetPlayerId)`; on each success update `roster` and counts from server response without page refresh; handle 422 (set `error` message, disable confirm button); handle 409 (set conflict message)
-- [x] T024 [US3] Implement trimodal `DropdownAddMore` integration in `signup.vue` player table (depends on T022, T023) — self mode: pre-fill own player name when `currentPlayerStatus = not_signed_up`; guest mode: show "Agregar invitado" option → firstName + lastName inputs **+ optional position `<select>` (all `Position` enum values plus "Sin posición" blank option) + an × dismiss button that clears the form and restores the `DropdownAddMore` to its default dropdown state without submitting**; proxy mode: searchable dropdown filtered to `playerType = REGISTERED`, `status = ACTIVE`, not confirmed for this game; each row has an adjacent confirm button wired to the appropriate `useGameSignup` method
-- [x] T025 [US3] Implement capacity-full UI state in `signup.vue` (depends on T024) — when `isFull` is true on load or becomes true after a signup, replace the `DropdownAddMore` row with "El cupo está completo" message immediately; no additional request needed
-- [x] T026 [US3] Render player table in `signup.vue` (depends on T022) — list all confirmed attendees in `confirmedAt ASC` order (registered and guests intermixed); registered players: jersey number + position abbreviation + full name; guests inline at signup position: "Inv." prefix + **position abbreviation (or "—" if none)** + "Invitado por {Player Name}" (guest's own name visible to inviting player and admin/editor/dt in read-only view); proxy-registered players: "Agregado por: {Inviting Player Name}" in smaller font below name
+- [x] T024 [US3] Wire trimodal signup flow in `signup.vue` (depends on T022, T023, T053) — bind `SignupRegistrationRow` emits to `useGameSignup` methods: `signup-self` → `signupSelf()`, `signup-guest` → `signupGuest(firstName, lastName, position)`, `signup-proxy` → `signupProxy(targetPlayerId)`, `dismiss` → reset composable error state
+- [x] T025 [US3] Implement capacity-full UI state — `SignupRegistrationRow` (T053) handles `isFull` prop: when true renders "El cupo está completo" replacing the form; `signup.vue` passes reactive `isFull` from `useGameSignup` to the sub-component
+- [x] T026 [US3] Wire player table in `signup.vue` (depends on T022, T052) — pass reactive `roster` from `useGameSignup` to `<SignupPlayerTable>`; wire `row-highlight` emit to `highlightedParticipantId` state fed to `GameLineupField` in Phase 9
 
-**Checkpoint**: US-3 complete — full trimodal signup flow works end-to-end on the frontend; guest form dismiss and position assignment verified
+**Checkpoint**: US-3 complete — full trimodal signup flow works end-to-end on the frontend; `signup.vue` is a thin routing entry; guest form dismiss and position assignment verified
 
 ---
 
@@ -161,15 +169,50 @@
 
 ## Phase 10: Polish & Cross-Cutting Concerns
 
-**Purpose**: SEO/robots, guest badges in admin, E2E validation
+**Purpose**: SEO/robots, guest badges in admin, confirmedCount fix, E2E validation
 
 - [x] T039 [P] Create `packages/frontend/server/routes/robots.txt.ts` — return static text response with `User-agent: *`, `Disallow: /admin`, `Disallow: /games/*/signup` (FR-015); no `@nuxtjs/robots` module
 - [x] T040 [P] Add "Invitado" badge to guest player entries in admin players list `packages/frontend/src/pages/admin/players/index.vue` (or equivalent) — show badge when `player.playerType = GUEST`; badge is not editable (FR-010)
 - [x] T041 [P] Add "Invitante eliminado" warning pill in admin players list for guest players whose `invitedById` references a soft-deleted player — detect via `invitedByName = null AND invitedById IS NOT NULL`; display a warning pill next to the guest entry (FR-010 edge case)
 - [x] T042 Write Playwright E2E test `packages/frontend/tests/e2e/game-signup.spec.ts` — cover: (1) full self-signup flow (link → unauthenticated redirect → login → self-confirm → appear in roster), asserting total flow completes within 60 s (SC-001); (2) guest signup (firstName + lastName + position → guest row with "Invitado por" label and position abbreviation), asserting form-open-to-roster-update completes within 30 s (SC-002); (3) guest row dismiss (click × → `DropdownAddMore` returns to default state, no record created); (4) capacity full rejection → "El cupo está completo"; (5) UUID → 301 → slug redirect in single hop (SC-003)
-- [x] T043 [P] Update `GET /api/v1/games` list endpoint in `packages/cms/src/routes/games.ts` to include `_count: { select: { participants: { where: { confirmationStatus: 'CONFIRMED' } } } }` in the Prisma query; expose result as `confirmedCount` in the response so the admin games table can evaluate `signedUpCount < maxPlayers` for the share-signup-link visibility condition (FR-027, M2 fix)
+- [x] T043 [P] Update `GET /api/v1/games` list endpoint in `packages/cms/src/routes/games.ts` to include `_count: { select: { participants: { where: { confirmationStatus: 'CONFIRMED' } } } }` in the Prisma query; expose result as `confirmedCount` in the response so the admin games table can evaluate `signedUpCount < maxPlayers` for the share-signup-link visibility condition (FR-027, M2 fix) — **⚠️ T048 (US-8) depends on this task; complete T043 before beginning T048**
 - [x] T044 [P] Update `GET /api/v1/games/:id` public game endpoint response serialization in `packages/cms/src/routes/games.ts` to set `lastName = null` (or omit) for all roster entries where `player.playerType = 'GUEST'`; authenticated endpoints (`GET /api/v1/games/:gameId/signup-page`) continue returning guest `lastName` in full (FR-012, M5 fix)
 - [x] T045 [P] Update the player PATCH endpoint (`packages/cms/src/routes/players.ts` or equivalent) to add `status` to the DT-allowed field whitelist **when the target player has `playerType = 'GUEST'`**; DT setting `status = INACTIVE` on a guest player MUST succeed (HTTP 200); DT setting `status` on a `REGISTERED` player MUST remain rejected (HTTP 403) (FR-013a, M1 fix)
+
+---
+
+## Phase 11: User Story 8 — Authenticated Player Sees Signup CTA on Game Cards (Priority: P1)
+
+**Goal**: Logged-in PLAYER users see an "Anotarse" / "Ya anotado" / "Completo" action on each SCHEDULED game card on the public homepage. Non-PLAYER and unauthenticated visitors see no signup UI — existing behaviour is fully preserved.
+
+**Independent Test**: Log in as a PLAYER; visit homepage → each SCHEDULED card has an "Anotarse" link. Click it → navigates to `/games/:slug/signup`. Confirm attendance → return to homepage; same card now shows "Ya anotado". As Admin, set the game to full capacity → card shows "Completo". Log out → no CTA on any card.
+
+### Implementation
+
+- [x] T046 [P] Add `GameSignupState = "available" | "signed_up" | "full"` type alias to `packages/shared/src/types/game.ts`; add optional `currentPlayerStatus?: GameSignupState | null` to the `Game` interface (read-only, server-computed for PLAYER callers, never in create/update DTOs); verify the type is exported via the existing `export * from "./types"` chain in `packages/shared/src/index.ts`
+- [x] T047 [P] Add `optionalAuthenticate` function to `packages/cms/src/middleware/auth.ts` — if `Authorization: Bearer <token>` header is absent, invalid, or expired: silently call `next()` without setting `req.user` (never returns 401); if token is valid: populate `req.user` identically to the existing `authenticate` middleware; export the function alongside the existing `authenticate` export
+- [x] T048 [US8] Update `GET /api/v1/games` handler in `packages/cms/src/routes/games.ts` (depends on T043, T046, T047) — prepend `optionalAuthenticate` middleware; when `req.user?.role === "PLAYER"`: skip Redis cache; run the existing `GameModel.findMany(query)` then in `Promise.all` also query `prisma.user.findUnique({ where: { id: req.user.userId }, select: { playerId: true } })` and `prisma.gameParticipant.findMany({ where: { gameId: { in: gameIds }, playerId, confirmationStatus: "CONFIRMED" } })`; build a `Set<string>` of signed-up `gameId`s; for each game set `currentPlayerStatus: GameSignupState` — `"signed_up"` if the game is in the signed-up set, `"full"` if `confirmedCount >= maxPlayers && maxPlayers !== null`, otherwise `"available"`; when caller is not PLAYER or unauthenticated: use existing cache path and omit `currentPlayerStatus` from all game objects
+- [x] T049 [P] [US8] Restructure `packages/frontend/src/components/game/GameCard.vue` (FR-032, FR-033) — replace the outer `<NuxtLink>` wrapper with a `<div class="group bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100">` container; nest an inner `<NuxtLink :to="detailUrl" class="flex items-center gap-4 p-4">` wrapping opponent logo, game info, and score/status columns; add `signupState` optional prop typed `GameSignupState | undefined` (import from `@ministrosfc/shared`); append a conditional right-side action element **outside** the inner `<NuxtLink>`: `signupState === "available" && game.status === "SCHEDULED"` → `<NuxtLink :to="signupUrl" class="...">Anotarse</NuxtLink>`; `signupState === "signed_up"` → non-interactive `<span>Ya anotado</span>`; `signupState === "full"` → non-interactive `<span>Completo</span>`; when `signupState` is absent/undefined render nothing (preserves unauthenticated/non-PLAYER behaviour unchanged); `signupUrl` = `` `/games/${game.slug}/signup` ``; the existing status badge ("Próximo", etc.) is only shown when no CTA is rendered
+- [x] T050 [US8] Update `packages/frontend/src/pages/index.vue` (depends on T049) — read `packages/frontend/src/plugins/api.ts` to confirm whether `$api` auto-injects the `Authorization` header for authenticated users; if yes, no change to the fetch call is needed; map `game.currentPlayerStatus` from the upcoming-games API response to the `signupState` prop on each `<GameCard>` in the SCHEDULED section; type the `upcomingGames` computed value to include the optional `currentPlayerStatus` field from the shared `Game` type (replace `any[]` with `Game[]`)
+
+**Checkpoint**: US-8 complete — PLAYER users see signup CTAs on game cards; card state updates correctly after signup; unauthenticated and non-PLAYER users see no CTA; no nested `<a>` elements in `GameCard.vue`
+
+---
+
+## Phase 12: Unit Tests (Constitution Principle IV — TDD Gate)
+
+**Purpose**: Unit tests for all new CMS services, utilities, jobs, and frontend composables. Constitution Principle IV is NON-NEGOTIABLE: 80% coverage required for new code. Tests are written alongside implementation (red-green-refactor).
+
+**⚠️ CRITICAL**: Each test task MUST be started (failing test written) before its corresponding implementation task is marked done.
+
+- [x] T054 [P] Write Jest unit tests `packages/cms/src/utils/__tests__/slug.test.ts` — test `generateGameSlug`: (1) standard Spanish char transliteration (á→a, é→e, í→i, ó→o, ú→u, ü→u, ñ→n); (2) consecutive hyphens collapsed; (3) empty/all-hyphen result throws validation error; (4) duplicate slug appends `-2`, `-3` suffix via DB conflict check (mock PrismaClient); (5) `existingGameId` excludes own slug from conflict check
+- [x] T055 [P] Write Jest unit tests `packages/cms/src/jobs/__tests__/GameStatusTransitionJob.test.ts` — test `runTransitions()`: (1) SCHEDULED game with `date <= now` → sets `IN_PROGRESS`; (2) SCHEDULED game with `date > now` → unchanged; (3) IN_PROGRESS game with `endDate <= now` → sets `COMPLETED`; (4) IN_PROGRESS legacy game with `endDate = null` and `date < now − 24h` → sets `COMPLETED`; (5) COMPLETED/CANCELLED games → no update; (6) double-transition in one run (date and endDate both past) → SCHEDULED → COMPLETED; mock `prisma.game.updateMany` to verify correct `where` conditions
+- [x] T056 [P] Write Jest unit tests `packages/cms/src/services/__tests__/ParticipationService.test.ts` — test `signupParticipant`: (1) self mode creates `GameParticipant` for requesting user; (2) guest mode creates `Player(GUEST)` + `GameParticipant` with correct `invitedById` and `position`; (3) proxy mode creates `GameParticipant` with `confirmedById` set; (4) `game.status ≠ SCHEDULED` throws `GAME_NOT_SCHEDULED`; (5) `confirmedCount >= maxPlayers` throws `GAME_CAPACITY_EXCEEDED`; (6) Prisma P2002 on self/guest mode throws `SIGNUP_DUPLICATE`; (7) Prisma P2002 on proxy mode throws `PROXY_CONFLICT`; test `removeParticipant`: (8) Admin removes on SCHEDULED → hard-delete succeeds; (9) DT removes → throws 403; (10) Editor removes on COMPLETED → throws 403; mock `prisma.$transaction` and all Prisma calls
+- [x] T057 [P] Write Jest unit tests `packages/cms/src/middleware/__tests__/auth.test.ts` — test `optionalAuthenticate`: (1) missing `Authorization` header → calls `next()` with `req.user` undefined; (2) malformed token (not Bearer) → calls `next()` with `req.user` undefined, no 401; (3) expired token → calls `next()` with `req.user` undefined, no 401; (4) valid token → populates `req.user` with `{ userId, role }` identically to `authenticate`; test `authenticate` boundary: (5) missing token → returns 401; (6) valid token → populates `req.user`; mock `jsonwebtoken.verify`
+- [x] T058 [P] Write Vitest unit tests `packages/frontend/src/utils/__tests__/formations.test.ts` — test player-to-position assignment algorithm (T036): (1) registered player with matching position placed in correct slot type; (2) guest with non-null position treated same as registered for slot matching; (3) players with `position = null` fill remaining slots in `confirmedAt ASC` order; (4) first 11 only placed on field, rest appear in table only; (5) ties on slot type resolved deterministically by `confirmedAt ASC`; (6) all 14 formation codes produce exactly 11 slot entries from `FORMATION_SLOTS`; pure function — no mocking required
+- [x] T059 [P] Write Vitest unit tests `packages/frontend/src/composables/__tests__/useGameSignup.test.ts` (Vitest + `setActivePinia(createTestingPinia({ createSpy: vi.fn }))`) — test `useGameSignup`: (1) `signupSelf()` posts `{ mode: "self" }` and updates `roster` + `confirmedCount` from response without full page reload; (2) `signupGuest(firstName, lastName, position)` posts `{ mode: "guest", ... }` and guest entry appears in `roster`; (3) `signupProxy(targetPlayerId)` posts `{ mode: "proxy", ... }` and proxy row appears with `confirmedByName` set; (4) 422 response sets `error` message and does not update `roster`; (5) 409 response sets conflict message; (6) successful signup that fills capacity sets `isFull = true`; mock `$api` / `useFetch` at the composable boundary
+
+**Checkpoint**: Unit test suite passes — CMS slug utility, transition job, ParticipationService, optionalAuthenticate, formations algorithm, and useGameSignup composable all have ≥80% coverage
 
 ---
 
@@ -182,23 +225,26 @@
 - **Phase 3 (US-1)**: Depends on Phase 2 — T007 must precede T008; T008 and T009 can overlap after T007; T010–T013 are frontend tasks parallelizable after Phase 2
 - **Phase 4 (US-7)**: Depends on Phase 2 — T014 → T015 sequential; **T016 depends on T008** (both modify `GameService.updateGame`; implement T008 first, then T016 extends it with IN_PROGRESS revert logic); T017 parallelizable after Phase 2
 - **Phase 5 (US-2)**: Depends on Phase 2 AND T017 (status guards must exist before signup endpoint references them) — T018 and T021 can run in parallel; T019 → T020 sequential
-- **Phase 6 (US-3)**: Depends on Phase 5 (signup API contract must exist for composable) — T022 and T023 can start in parallel from Phase 2; T024 depends on T022 + T023; T025 → T026 sequential after T024
+- **Phase 6 (US-3)**: T051–T053 (sub-components) can start after Phase 2; T022 and T023 can run in parallel after T051–T053; T024 depends on T022 + T023 + T053; T025 and T026 wire sub-components into page
 - **Phase 7 (US-4)**: Depends on Phase 3 (slug exists in DB) and T027 (rename) — T028, T029, T031 parallelizable after T027
 - **Phase 8 (US-5)**: Depends on Phase 2 — T032 and T033 fully parallel
-- **Phase 9 (US-6)**: Depends on Phase 6 (signup.vue) and Phase 8 (lineup in DB) — T034 first; T035 + T036 parallel after T034; T037 → T038 sequential
-- **Phase 10 (Polish)**: Depends on all previous phases — T039–T044 fully parallel; T042 (E2E) depends on all
+- **Phase 9 (US-6)**: Depends on Phase 6 (signup.vue + T052 SignupPlayerTable) and Phase 8 (lineup in DB) — T034 first; T035 + T036 parallel after T034; T037 → T038 sequential
+- **Phase 10 (Polish)**: Depends on all previous phases — T039–T045 fully parallel; T042 (E2E) depends on all; **T043 MUST be complete before starting T048 (US-8 backend)**
+- **Phase 11 (US-8)**: T046 and T047 have no dependencies (new file/function) — start immediately after Phase 1; **T048 depends on T043 (confirmedCount fix — complete Phase 10 T043 first) + T046 + T047**; T049 is independent (component restructure, no backend dependency); T050 depends on T049
+- **Phase 12 (Unit Tests)**: Each test task runs in parallel with its corresponding implementation task (TDD: write failing test first, then implement)
 
 ### User Story Dependencies
 
-| Story     | Depends on                                          | Can parallelize with          |
-| --------- | --------------------------------------------------- | ----------------------------- |
-| US-1 (P1) | Phase 2                                             | US-7 (different files)        |
-| US-7 (P1) | Phase 2                                             | US-1 (different files)        |
-| US-2 (P1) | Phase 2, T017 (status guards)                       | US-4 frontend after Phase 3   |
-| US-3 (P1) | Phase 5 (US-2 API contract available)               | US-4 after slug routing ready |
-| US-4 (P2) | Phase 3 (slug generation must exist)                | US-5, US-7                    |
-| US-5 (P2) | Phase 2                                             | US-4, US-6 backend            |
-| US-6 (P2) | Phase 6 (signup.vue exists), Phase 8 (lineup in DB) | —                             |
+| Story     | Depends on                                                           | Can parallelize with          |
+| --------- | -------------------------------------------------------------------- | ----------------------------- |
+| US-1 (P1) | Phase 2                                                              | US-7 (different files)        |
+| US-7 (P1) | Phase 2                                                              | US-1 (different files)        |
+| US-2 (P1) | Phase 2, T017 (status guards)                                        | US-4 frontend after Phase 3   |
+| US-3 (P1) | Phase 5 (US-2 API contract available)                                | US-4 after slug routing ready |
+| US-4 (P2) | Phase 3 (slug generation must exist)                                 | US-5, US-7                    |
+| US-5 (P2) | Phase 2                                                              | US-4, US-6 backend            |
+| US-6 (P2) | Phase 6 (signup.vue exists), Phase 8 (lineup in DB)                  | —                             |
+| US-8 (P1) | **T043** (confirmedCount — Phase 10), T046 (type), T047 (middleware) | T049 fully parallel with all  |
 
 ### Within Each User Story
 
@@ -258,12 +304,19 @@ Sequential:
 ### Phase 6 (US-3)
 
 ```
-Parallel first:
-  T022 — signup.vue skeleton
+Parallel first (sub-components — Principle V gate):
+  T051 — SignupGameHeader.vue
+  T052 — SignupPlayerTable.vue
+  T053 — SignupRegistrationRow.vue
+
+Then parallel:
+  T022 — signup.vue skeleton (wires sub-components)
   T023 — useGameSignup.ts composable
 
-Then sequential:
-  T024 → T025 → T026
+Then wire-up:
+  T024 — bind emits in signup.vue
+  T025 — isFull state (already in T053)
+  T026 — wire roster to SignupPlayerTable
 ```
 
 ### Phase 9 (US-6)
@@ -277,13 +330,41 @@ Then:
   T037 → T038 (integration + wire-up in signup.vue)
 ```
 
----
+### Phase 11 (US-8)
 
-## Implementation Strategy
+```
+Prerequisite (from Phase 10 — must be done first):
+  T043 — confirmedCount fix in GET /api/v1/games
+
+Parallel immediately (no other dependencies):
+  T046 — Add GameSignupState to shared/types/game.ts
+  T047 — optionalAuthenticate in middleware/auth.ts
+  T049 — GameCard.vue restructure + signupState prop
+
+Sequential after T043 + T046 + T047:
+  T048 — GET /api/v1/games PLAYER-aware handler
+
+Then:
+  T050 — index.vue mapping currentPlayerStatus → signupState
+```
+
+### Phase 12 (Unit Tests)
+
+```
+All parallel, each paired with its implementation task (TDD):
+  T054 — slug.test.ts (alongside T007)
+  T055 — GameStatusTransitionJob.test.ts (alongside T014)
+  T056 — ParticipationService.test.ts (alongside T019 + T021)
+  T057 — auth.test.ts (alongside T047)
+  T058 — formations.test.ts (alongside T036)
+  T059 — useGameSignup.test.ts (alongside T023)
+```
+
+---
 
 ### MVP First (US-1 only)
 
-1. Complete Phase 1 (Setup)
+1. Complete Phase 1 (Setup) — write T054 (slug tests) alongside T007
 2. Complete Phase 2 (Foundational — Principle VII gate)
 3. Complete Phase 3 (US-1) — admin can set maxPlayers, game has slug, share links in admin panel
 4. **STOP AND VALIDATE**: slug URLs work, maxPlayers persists, share-link copies correct URL
@@ -291,15 +372,17 @@ Then:
 
 ### Incremental Delivery
 
-1. **Setup + Foundational** → DB schema migrated, shared types exported
+1. **Setup + Foundational** → DB schema migrated, shared types exported; T054 (slug tests) written first
 2. **US-1** → maxPlayers + slugs + admin share links (P1 MVP)
-3. **US-7** → auto-transition job + status guards (P1; unblocks signup eligibility)
-4. **US-2** → signup API endpoints — self/guest/proxy + remove-participant (P1 backend)
-5. **US-3** → Game Sign Up Page trimodal flow + guest position/dismiss (P1 frontend complete)
-6. **US-4** → slug routing on public pages, homepage filtering (P2)
-7. **US-5** → lineup dropdown in admin (P2)
-8. **US-6** → SVG field visualization (P2)
-9. **Polish** → robots.txt, confirmedCount, guest lastName redaction, DT guest status whitelist, badges, E2E
+3. **US-7** → auto-transition job + status guards (P1; T055 job tests + T057 auth tests written first)
+4. **US-2** → signup API endpoints — T056 service tests written first; self/guest/proxy + remove-participant (P1 backend)
+5. **US-3** → T051–T053 sub-components first (Principle V); T059 composable tests written first; trimodal flow + guest position/dismiss (P1 frontend complete)
+6. **Polish → T043 confirmedCount fix FIRST** (required blocker for US-8 backend)
+7. **US-8** → T046–T047 + T049 parallel; T048 after T043 ready; T050 last (P1)
+8. **US-4** → slug routing on public pages, homepage filtering (P2)
+9. **US-5** → lineup dropdown in admin (P2)
+10. **US-6** → SVG field visualization (P2; T058 formations tests written first)
+11. **Unit Tests** → all T054–T059 must pass at each phase gate
 
 ### Suggested MVP Scope
 
@@ -309,15 +392,18 @@ Then:
 
 ## Task Count Summary
 
-| Phase                 | Story     | Tasks         | [P] tasks  |
-| --------------------- | --------- | ------------- | ---------- |
-| Phase 1: Setup        | —         | T001–T004 (4) | 2          |
-| Phase 2: Foundational | —         | T005–T006 (2) | 2          |
-| Phase 3               | US-1      | T007–T013 (7) | 3          |
-| Phase 4               | US-7      | T014–T017 (4) | 2          |
-| Phase 5               | US-2+US-3 | T018–T026 (9) | 4          |
-| Phase 6               | US-4      | T027–T031 (5) | 3          |
-| Phase 7               | US-5      | T032–T033 (2) | 2          |
-| Phase 8               | US-6      | T034–T038 (5) | 2          |
-| Phase 9               | Polish    | T039–T043 (5) | 4          |
-| **Total**             |           | **43 tasks**  | **24 [P]** |
+| Phase                 | Story | Tasks                     | [P] tasks  |
+| --------------------- | ----- | ------------------------- | ---------- |
+| Phase 1: Setup        | —     | T001–T004 (4)             | 2          |
+| Phase 2: Foundational | —     | T005–T006 (2)             | 2          |
+| Phase 3               | US-1  | T007–T013 (7)             | 3          |
+| Phase 4               | US-7  | T014–T017 (4)             | 2          |
+| Phase 5               | US-2  | T018–T021 (4)             | 2          |
+| Phase 6               | US-3  | T051–T053 + T022–T026 (8) | 5          |
+| Phase 7               | US-4  | T027–T031 (5)             | 3          |
+| Phase 8               | US-5  | T032–T033 (2)             | 2          |
+| Phase 9               | US-6  | T034–T038 (5)             | 2          |
+| Phase 10: Polish      | —     | T039–T045 (7)             | 5          |
+| Phase 11              | US-8  | T046–T050 (5)             | 3          |
+| Phase 12: Unit Tests  | —     | T054–T059 (6)             | 6          |
+| **Total**             |       | **59 tasks**              | **37 [P]** |
