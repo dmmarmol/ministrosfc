@@ -196,10 +196,14 @@ async function confirmDelete() {
               </div>
             </td>
             <td class="px-4 py-3 text-gray-600 hidden sm:table-cell">
-              {{ p.position ?? "—" }}
+              <UiPositionLabel :position="p.position" />
             </td>
             <td class="px-4 py-3 text-right text-gray-600 hidden sm:table-cell">
-              {{ p.jerseyNumber ?? "—" }}
+              <UiPositionNumber
+                :jersey-number="p.jerseyNumber"
+                :is-guest="p.playerType === 'GUEST'"
+                :is-jersey="true"
+              />
             </td>
             <td class="px-4 py-3 text-center">
               <span

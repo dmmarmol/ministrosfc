@@ -16,6 +16,8 @@ const props = defineProps<{
   proxyLoading: boolean;
   proxyError: string | null;
   isFull: boolean;
+  confirmedCount: number;
+  maxPlayers: number;
 }>();
 
 const emit = defineEmits<{
@@ -62,12 +64,8 @@ function onPlayerSelected(option: DropdownOption) {
   emit("signup-proxy", option.id);
 }
 
-// DropdownAddMore requires an onCreate prop — not used in pure-selector mode
-const noopCreate = () => Promise.reject(new Error("Not used"));
-
 // --- Guest form ---
 const guestFirst = ref("");
-const guestLast = ref("");
 const guestPosition = ref("");
 const guestError = ref<string | null>(null);
 
@@ -78,7 +76,6 @@ const POSITIONS = Object.values(Position).map((p) => ({
 
 function openGuestForm() {
   guestFirst.value = "";
-  guestLast.value = "";
   guestPosition.value = "";
   guestError.value = null;
   mode.value = "guest";
@@ -90,16 +87,15 @@ function cancelGuest() {
 }
 
 function submitGuest() {
-  if (!guestFirst.value.trim() || !guestLast.value.trim()) return;
+  if (!guestFirst.value.trim()) return;
   emit(
     "signup-guest",
     guestFirst.value.trim(),
-    guestLast.value.trim(),
+    "",
     guestPosition.value || null,
   );
   mode.value = "dropdown";
   guestFirst.value = "";
-  guestLast.value = "";
   guestPosition.value = "";
   guestError.value = null;
 }
@@ -108,7 +104,7 @@ function submitGuest() {
 <template>
   <div
     v-if="!isFull"
-    class="relative bg-white border border-gray-200 rounded-xl p-4 mb-4"
+    class="relative bg-white border border-gray-200 rounded-xl p-4 flex-1"
   >
     <!-- GUEST mode: × dismiss at far top-right of container (FR-039) -->
     <button
@@ -123,56 +119,56 @@ function submitGuest() {
 
     <!-- DROPDOWN mode (v-if) -->
     <template v-if="mode === 'dropdown'">
-      <p class="text-sm font-medium text-gray-700 mb-3">Agregar otro jugador</p>
-      <DropdownAddMore
-        :model-value="null"
-        :options="dropdownOptions"
-        :disabled="proxyLoading || fetchLoading"
-        :loading="fetchLoading"
-        :on-create="noopCreate"
-        :labels="{ addNew: '' }"
-        @select="onPlayerSelected"
-      />
-      <!-- "Agregar invitado" trigger — rendered outside DropdownAddMore (plan.md C1 fix) -->
-      <button
-        data-testid="open-guest-form"
-        class="mt-2 text-sm text-brand hover:underline"
-        @click="openGuestForm"
-      >
-        + Agregar invitado
-      </button>
-      <p v-if="proxyError" class="text-xs text-red-600 mt-2">
-        {{ proxyError }}
-      </p>
+      <div class="flex flex-col h-full justify-between">
+        <div class="w-full">
+          <div class="flex justify-between">
+            <p class="text-sm font-medium text-gray-700 mb-3">
+              Agregar otro jugador
+            </p>
+            <p class="text-sm text-gray-700">
+              Confirmados: <strong>{{ confirmedCount }}</strong>
+              <span v-if="maxPlayers"> / {{ maxPlayers }}</span>
+            </p>
+          </div>
+          <DropdownAddMore
+            :model-value="null"
+            :options="dropdownOptions"
+            :disabled="proxyLoading || fetchLoading"
+            :loading="fetchLoading"
+            :labels="{
+              placeholder: 'Seleccionar jugador',
+              addNew: '', // hide internal 'add more' trigger — separate button used instead (plan.md C1 fix)
+            }"
+            @select="onPlayerSelected"
+          />
+        </div>
+        <!-- "Agregar invitado" trigger — rendered outside DropdownAddMore (plan.md C1 fix) -->
+        <button
+          data-testid="open-guest-form"
+          class="mt-2 self-end text-sm text-brand hover:underline"
+          @click="openGuestForm"
+        >
+          + Agregar invitado
+        </button>
+        <p v-if="proxyError" class="text-xs text-red-600 mt-2">
+          {{ proxyError }}
+        </p>
+      </div>
     </template>
 
     <!-- GUEST mode form (v-else) — completely replaces dropdown (FR-039) -->
     <template v-else>
-      <p class="text-sm font-medium text-gray-700 mb-3 pr-6">
-        Agregar invitado
-      </p>
-      <div data-testid="guest-form" class="space-y-3 pr-6">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs text-gray-500 block mb-1">Nombre *</label>
-            <input
-              v-model="guestFirst"
-              data-testid="guest-first"
-              type="text"
-              placeholder="Nombre"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-            />
-          </div>
-          <div>
-            <label class="text-xs text-gray-500 block mb-1">Apellido *</label>
-            <input
-              v-model="guestLast"
-              data-testid="guest-last"
-              type="text"
-              placeholder="Apellido"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-            />
-          </div>
+      <p class="text-sm font-medium text-gray-700 mb-3">Agregar invitado</p>
+      <div data-testid="guest-form" class="space-y-3">
+        <div>
+          <label class="text-xs text-gray-500 block mb-1">Nombre *</label>
+          <input
+            v-model="guestFirst"
+            data-testid="guest-first"
+            type="text"
+            placeholder="Nombre"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          />
         </div>
         <div>
           <label class="text-xs text-gray-500 block mb-1"
@@ -197,7 +193,7 @@ function submitGuest() {
         <button
           data-testid="guest-submit"
           class="w-full bg-brand text-gray-900 font-semibold text-sm py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
-          :disabled="!guestFirst.trim() || !guestLast.trim()"
+          :disabled="!guestFirst.trim()"
           @click="submitGuest"
         >
           Confirmar

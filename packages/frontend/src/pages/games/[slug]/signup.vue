@@ -9,7 +9,7 @@ import {
   navigateTo,
   useRuntimeConfig,
 } from "nuxt/app";
-import { GameStatus, UserRole } from "@ministrosfc/shared";
+import { GameStatus, UserRole, DEFAULT_MAX_PLAYERS } from "@ministrosfc/shared";
 import { useGameSignup } from "~/composables/useGameSignup";
 import { useAuthStore } from "~/stores/auth";
 import GameLineupField from "~/components/game/GameLineupField.vue";
@@ -65,11 +65,14 @@ const {
 const effectiveLineup = computed(() => game.value?.lineup ?? "4-4-2");
 
 // T069: ADMIN/EDITOR/DT can remove any row; PLAYER sees button only on their own row
-const canManageRoster = computed(() =>
-  [UserRole.ADMIN, UserRole.EDITOR, UserRole.DT].includes(
-    authStore.user?.role ?? "",
-  ),
-);
+const canManageRoster = computed(() => {
+  if (!authStore.user) {
+    return false;
+  }
+  return [UserRole.ADMIN, UserRole.EDITOR, UserRole.DT].includes(
+    authStore.user.role,
+  );
+});
 
 useHead(() => ({
   title: game.value
@@ -137,20 +140,45 @@ async function handleCancelSelf() {
 
 <template>
   <div class="mx-auto max-w-4xl">
-    <!-- T051: Game header sub-component -->
-    <SignupGameHeader
-      v-if="game"
-      :game="game"
-      :confirmed-count="confirmedCount"
-      :max-players="game.maxPlayers ?? null"
-    />
-
     <!-- Error banner -->
     <div
       v-if="error"
       class="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg"
     >
       {{ error }}
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-12 mb-6">
+      <div class="lg:col-span-6 flex">
+        <!-- T051: Game header sub-component -->
+        <SignupGameHeader
+          v-if="game"
+          :game="game"
+          :confirmed-count="confirmedCount"
+          :max-players="game.maxPlayers ?? null"
+        />
+      </div>
+      <div class="lg:col-span-6 flex flex-col">
+        <!-- T076: Player-only add player widget (proxy + guest) -->
+        <SignupAddPlayer
+          v-if="
+            game?.status === GameStatus.SCHEDULED &&
+            currentPlayerStatus === 'signed_up' &&
+            authStore.user?.role === UserRole.PLAYER &&
+            !isFull
+          "
+          :confirmed-player-ids="
+            roster.map((r) => r.player?.id).filter(Boolean)
+          "
+          :proxy-loading="proxyLoading"
+          :proxy-error="proxyError"
+          :is-full="isFull"
+          :confirmed-count="confirmedCount"
+          :max-players="game?.maxPlayers ?? DEFAULT_MAX_PLAYERS"
+          @signup-proxy="handleSignupProxy"
+          @signup-guest="handleSignupGuest"
+        />
+      </div>
     </div>
 
     <!-- T053: Registration row (self + isFull) -->
@@ -163,28 +191,12 @@ async function handleCancelSelf() {
       @cancel-self="handleCancelSelf"
     />
 
-    <!-- T076: Player-only add player widget (proxy + guest) -->
-    <SignupAddPlayer
-      v-if="
-        game?.status === GameStatus.SCHEDULED &&
-        currentPlayerStatus === 'signed_up' &&
-        authStore.user?.role === UserRole.PLAYER &&
-        !isFull
-      "
-      :confirmed-player-ids="roster.map((r) => r.player?.id).filter(Boolean)"
-      :proxy-loading="proxyLoading"
-      :proxy-error="proxyError"
-      :is-full="isFull"
-      @signup-proxy="handleSignupProxy"
-      @signup-guest="handleSignupGuest"
-    />
-
     <!-- T037: responsive layout — field + table side by side ≥768px, stacked on mobile -->
     <div v-if="roster.length" class="mt-6 md:grid md:grid-cols-12 md:gap-6">
       <!-- T037: Field (6/12 cols on md+, full-width on mobile) -->
       <div class="md:col-span-6 mb-6 md:mb-0">
         <!-- T064: formation label -->
-        <p class="text-xs font-medium text-gray-500 mb-2">
+        <p class="text-sm font-semibold text-gray-700 mb-3">
           Formación: {{ effectiveLineup }}
         </p>
         <GameLineupField
@@ -197,13 +209,10 @@ async function handleCancelSelf() {
 
       <!-- T026+T052: Player table (6/12 cols) -->
       <div class="md:col-span-6">
-        <h3 class="text-sm font-semibold text-gray-700 mb-3">
-          Confirmados ({{ confirmedCount
-          }}<span v-if="game?.maxPlayers"> / {{ game.maxPlayers }}</span
-          >)
-        </h3>
         <SignupPlayerTable
           :roster="roster"
+          :confirmed-count="confirmedCount"
+          :max-players="game?.maxPlayers ?? null"
           :highlighted-participant-id="hoveredParticipantId"
           :can-manage-roster="canManageRoster"
           :current-player-id="currentPlayerId"

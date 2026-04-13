@@ -1,3 +1,5 @@
+import { Position } from "./player";
+
 export enum ConfirmationStatus {
   NOT_RESPONDED = "NOT_RESPONDED",
   CONFIRMED = "CONFIRMED",
@@ -68,7 +70,7 @@ export interface RosterEntry {
     firstName: string;
     lastName: string | null;
     jerseyNumber: number | null;
-    position: string | null;
+    position: Position | null;
     /** @TODO transform this into an enum and reuse it across the codebase */
     playerType: "REGISTERED" | "GUEST";
     invitedById: string | null;

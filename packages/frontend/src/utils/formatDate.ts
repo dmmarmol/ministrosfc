@@ -1,10 +1,6 @@
-export function formatDate(
+export function formatDateTime(
   dateString: string,
-  options: Intl.DateTimeFormatOptions = {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  },
+  options: Intl.DateTimeFormatOptions,
   locale: string = "es-AR",
 ): string {
   // Date-only strings (YYYY-MM-DD) are parsed as UTC midnight by the Date constructor.
@@ -17,5 +13,28 @@ export function formatDate(
   const d = new Date(normalized);
   if (isNaN(d.getTime())) return "";
 
-  return d.toLocaleDateString(locale, options);
+  return d.toLocaleString(locale, options);
+}
+
+export function formatDate(
+  dateString: string,
+  options: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  },
+  locale: string = "es-AR",
+): string {
+  return formatDateTime(dateString, options, locale);
+}
+
+export function formatTime(
+  dateString: string,
+  options: Intl.DateTimeFormatOptions = {
+    hour: "2-digit",
+    minute: "2-digit",
+  },
+  locale: string = "es-AR",
+): string {
+  return formatDateTime(dateString, options, locale);
 }

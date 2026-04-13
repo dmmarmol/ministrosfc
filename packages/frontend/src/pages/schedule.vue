@@ -76,7 +76,12 @@ const games = computed(() => data.value?.data ?? []);
       />
     </div>
     <div v-else-if="games.length" class="space-y-3">
-      <GameCard v-for="game in games" :key="game.id" :game="game" />
+      <GameCard
+        v-for="game in games"
+        :key="game.id"
+        :game="game"
+        :signup-state="game.currentPlayerStatus ?? undefined"
+      />
     </div>
     <div v-else class="text-center py-16 text-gray-500">
       <p>

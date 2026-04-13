@@ -7,8 +7,10 @@ import {
   createError,
   useHead,
 } from "nuxt/app";
-import { GameStatus } from "@ministrosfc/shared";
+import { CheckCircleIcon } from "@heroicons/vue/24/solid";
+import { GameStatus, UserRole } from "@ministrosfc/shared";
 import { formatDate } from "~/utils/formatDate";
+import { useAuthStore } from "~/stores/auth";
 
 definePageMeta({ public: true });
 const { $api } = useNuxtApp();
@@ -81,6 +83,20 @@ const statusClass = computed(() => {
   };
   return map[game.value?.status] ?? "";
 });
+
+const authStore = useAuthStore();
+const showSignupLink = computed(
+  () =>
+    authStore.isAuthenticated &&
+    authStore.user?.role === UserRole.PLAYER &&
+    game.value?.status === GameStatus.SCHEDULED,
+);
+
+const isTeamFull = computed(
+  () =>
+    game.value?.maxPlayers != null &&
+    participants.value.length >= game.value.maxPlayers,
+);
 </script>
 
 <template>
@@ -141,10 +157,30 @@ const statusClass = computed(() => {
         </div>
       </div>
 
+      <!-- Signup CTA for authenticated players (FR-042) -->
+      <NuxtLink
+        v-if="showSignupLink"
+        :to="`/games/${slug}/signup`"
+        class="flex items-center justify-center gap-2 w-full mb-6 py-3 rounded-xl bg-brand text-gray-900 font-semibold text-sm hover:opacity-90 transition-opacity"
+      >
+        Anotarse a este partido
+      </NuxtLink>
+
       <!-- Participants -->
-      <h2 class="text-lg font-bold text-gray-800 mb-4">
-        Jugadores ({{ participants.length }})
-      </h2>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-800">
+          Confirmados ({{ participants.length
+          }}<span v-if="game.maxPlayers"> / {{ game.maxPlayers }}</span
+          >)
+        </h2>
+        <div
+          v-if="isTeamFull"
+          class="flex items-center gap-1.5 text-green-600 text-sm font-medium"
+        >
+          <CheckCircleIcon class="w-5 h-5" />
+          Equipo completo
+        </div>
+      </div>
       <div
         v-if="participants.length"
         class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"

@@ -14,22 +14,22 @@ export interface DropdownLabels {
   noResults?: string;
   retry?: string;
 }
-</script>
 
-<script setup lang="ts">
-import { ref, watch, computed } from "vue";
-import VSelect from "vue-select";
-
-interface DropdownAddMoreProps {
+export interface DropdownAddMoreProps {
   modelValue: string | null;
   options: DropdownOption[];
   loading?: boolean;
   creationError?: string | null;
   searchable?: boolean;
   disabled?: boolean;
-  onCreate: (payload: Record<string, unknown>) => Promise<DropdownOption>;
+  onCreate?: (payload: Record<string, unknown>) => Promise<DropdownOption>;
   labels?: DropdownLabels;
 }
+</script>
+
+<script setup lang="ts">
+import { ref, watch, computed } from "vue";
+import VSelect from "vue-select";
 
 const props = withDefaults(defineProps<DropdownAddMoreProps>(), {
   loading: false,
@@ -55,6 +55,7 @@ watch(
 );
 
 const addNewLabel = computed(() => props.labels?.addNew ?? "Agregar nueva...");
+const showFooter = computed(() => addNewLabel.value !== "");
 const emptyLabel = computed(
   () => props.labels?.empty ?? "Sin opciones disponibles",
 );
@@ -90,7 +91,7 @@ function handleOptionSelected(option: DropdownOption) {
 
 // Inline-create slot functions
 async function submitCreate(payload: Record<string, unknown>) {
-  if (creationLoading.value) return;
+  if (creationLoading.value || !props.onCreate) return;
   creationLoading.value = true;
   internalCreationError.value = null;
   try {
@@ -134,9 +135,9 @@ function cancelCreate() {
       </span>
     </template>
 
-    <!-- List-footer slot: always visible when dropdown is open -->
+    <!-- List-footer slot: only rendered when addNew label is set -->
     <template #list-footer>
-      <li class="vs__dropdown-add-more-footer">
+      <li v-if="showFooter" class="vs__dropdown-add-more-footer">
         <template v-if="!open_create">
           <button
             type="button"

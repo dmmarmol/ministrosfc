@@ -12,7 +12,6 @@ const props = defineProps<{
 
 const guestMode = ref(false);
 const guestFirst = ref("");
-const guestLast = ref("");
 const guestPosition = ref<string>("");
 const guestLoading = ref(false);
 const guestError = ref<string | null>(null);
@@ -25,7 +24,6 @@ const POSITIONS = Object.values(Position).map((p) => ({
 function open() {
   guestMode.value = true;
   guestFirst.value = "";
-  guestLast.value = "";
   guestPosition.value = "";
   guestError.value = null;
 }
@@ -36,13 +34,13 @@ function cancel() {
 }
 
 async function submit() {
-  if (!guestFirst.value.trim() || !guestLast.value.trim()) return;
+  if (!guestFirst.value.trim()) return;
   guestLoading.value = true;
   guestError.value = null;
   try {
     await props.onSubmit(
       guestFirst.value.trim(),
-      guestLast.value.trim(),
+      "",
       guestPosition.value || null,
     );
     guestMode.value = false;
@@ -64,25 +62,14 @@ async function submit() {
     </template>
     <template v-else>
       <div class="space-y-3">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs text-gray-500 block mb-1">Nombre *</label>
-            <input
-              v-model="guestFirst"
-              type="text"
-              placeholder="Nombre"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-            />
-          </div>
-          <div>
-            <label class="text-xs text-gray-500 block mb-1">Apellido *</label>
-            <input
-              v-model="guestLast"
-              type="text"
-              placeholder="Apellido"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-            />
-          </div>
+        <div>
+          <label class="text-xs text-gray-500 block mb-1">Nombre *</label>
+          <input
+            v-model="guestFirst"
+            type="text"
+            placeholder="Nombre"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          />
         </div>
         <div>
           <label class="text-xs text-gray-500 block mb-1"
@@ -106,7 +93,7 @@ async function submit() {
         <div class="flex gap-2">
           <button
             class="flex-1 bg-brand text-gray-900 font-semibold text-sm py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
-            :disabled="guestLoading || !guestFirst.trim() || !guestLast.trim()"
+            :disabled="guestLoading || !guestFirst.trim()"
             @click="submit"
           >
             {{ guestLoading ? "Agregando…" : "Confirmar" }}

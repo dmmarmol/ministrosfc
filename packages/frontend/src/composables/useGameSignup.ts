@@ -158,7 +158,7 @@ export function useGameSignup(gameId: Ref<string>) {
         data.value.roster.splice(idx, 1);
         data.value.confirmedCount = Math.max(0, data.value.confirmedCount - 1);
         data.value.isFull = false;
-        data.value.currentPlayerStatus = "available";
+        data.value.currentPlayerStatus = "not_signed_up";
       }
     } catch (e: any) {
       error.value =

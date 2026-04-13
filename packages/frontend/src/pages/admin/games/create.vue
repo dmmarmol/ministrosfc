@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useAsyncData, useHead, useNuxtApp, useRouter } from "nuxt/app";
 import { computed, reactive, ref } from "vue";
+import { DEFAULT_MAX_PLAYERS } from "@ministrosfc/shared";
 import PlaygroundSelect from "~/components/PlaygroundSelect.vue";
 
 definePageMeta({
@@ -30,6 +31,7 @@ const form = reactive({
   date: "",
   time: "",
   playgroundId: null as string | null,
+  maxPlayers: DEFAULT_MAX_PLAYERS as number | null,
   competitionType: "FRIENDLY",
   tournamentId: "",
 });
@@ -63,6 +65,9 @@ async function submit() {
       date: buildIsoDateTime(form.date, form.time),
       competitionType: form.competitionType,
       playgroundId: form.playgroundId ?? null,
+      maxPlayers: Number.isNaN(form.maxPlayers as any)
+        ? null
+        : (form.maxPlayers ?? null),
     };
     if (form.tournamentId) body.tournamentId = form.tournamentId;
     await $api("/api/v1/games", { method: "POST", body });
@@ -145,6 +150,19 @@ async function submit() {
           <option value="PLAYOFF">Playoff</option>
           <option value="SEASON">Temporada</option>
         </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1"
+          >Cupo máximo</label
+        >
+        <input
+          v-model.number="form.maxPlayers"
+          type="number"
+          min="1"
+          step="1"
+          placeholder="Sin límite"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+        />
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-700 mb-1"
