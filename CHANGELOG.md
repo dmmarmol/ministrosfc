@@ -7,6 +7,25 @@ Versioning follows [Semantic Versioning](https://semver.org/) at the project lev
 
 ---
 
+## [0.8.1] — 2026-04-13
+
+### Added
+
+- **Spec 015 completed**: introduced reusable `ConfirmationModal` based on `@nuxt/ui` and applied it to sensitive admin actions.
+- **Shared datetime utility**: added `toISOWithOffset` in `@ministrosfc/shared` for consistent API datetime payload formatting.
+
+### Changed
+
+- **Admin confirmation UX**: standardized modal copy to Spanish across admin flows and kept focus-return behavior from invoking controls.
+- **Spec lifecycle**: marked `specs/015-confirmation-modal/spec.md` as Implemented.
+
+### Fixed
+
+- **Players API filtering/sorting**: `status=ALL` now returns combined results with deterministic ordering (status first, then position group).
+- **Game edit payload validation**: date/time submission now sends ISO 8601 datetime with timezone offset, resolving PATCH validation errors.
+
+---
+
 ## [0.8.0] — 2026-04-13
 
 ### Added

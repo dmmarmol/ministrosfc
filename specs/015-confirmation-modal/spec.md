@@ -2,7 +2,7 @@
 
 **Feature Branch**: `feat/015-confirmation-modal`
 **Created**: 2026-04-09
-**Status**: Draft
+**Status**: Implemented
 **Input**: User description: "Abstract the modal from PlayerDeleteModal into a reusable UI Component named ConfirmationModal. Let this component accept props for title, description, confirm button text, cancel button text, and a callback function to execute on confirmation and on cancellation. Remove calls to confirm() prompt for DELETE operations and instead use the native Confirmation Modal."
 
 ## User Scenarios & Testing _(mandatory)_
