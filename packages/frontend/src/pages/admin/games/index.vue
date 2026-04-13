@@ -236,7 +236,7 @@ function canShareSignup(g: any): boolean {
                     )
                   "
                 >
-                  📋 Conv.
+                  📋 Convocatoria
                 </button>
                 <!-- T013: share-detail link (all statuses with slug) -->
                 <button

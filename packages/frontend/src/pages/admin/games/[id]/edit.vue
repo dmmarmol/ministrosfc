@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useAuthStore } from "~/stores/auth";
 import PlaygroundSelect from "~/components/PlaygroundSelect.vue";
-import { FORMATIONS, GameStatus } from "@ministrosfc/shared";
+import { FORMATIONS, GameStatus, toISOWithOffset } from "@ministrosfc/shared";
 
 definePageMeta({
   layout: "admin",
@@ -38,7 +38,7 @@ watch(
   (g) => {
     if (!g) return;
     form.date = g.date ? g.date.split("T")[0] : "";
-    form.time = g.time ?? "";
+    form.time = g.time ?? g.date?.split("T")[1]?.slice(0, 5) ?? "";
     form.playgroundId = g.playgroundId ?? null;
     form.notes = g.notes ?? "";
     form.homeTeamScore = g.homeTeamScore ?? null;
@@ -64,13 +64,12 @@ async function submit() {
   loading.value = true;
   try {
     const body: Record<string, any> = {
-      date: form.date,
+      date: toISOWithOffset(form.date, form.time),
       notes: form.notes,
       playgroundId: form.playgroundId ?? null,
       maxPlayers: form.maxPlayers ?? null,
       lineup: form.lineup ?? "4-4-2",
     };
-    if (form.time) body.time = form.time;
     if (authStore.isAdmin) {
       body.homeTeamScore = form.homeTeamScore;
       body.awayTeamScore = form.awayTeamScore;
@@ -170,13 +169,15 @@ async function submit() {
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1"
-            >Formación</label
-          >
+            >Formación
+          </label>
           <select
             v-model="form.lineup"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
           >
-            <option v-for="f in FORMATIONS" :key="f" :value="f">{{ f }}</option>
+            <option v-for="f in FORMATIONS" :key="f" :value="f">
+              {{ f }}
+            </option>
           </select>
         </div>
       </div>
