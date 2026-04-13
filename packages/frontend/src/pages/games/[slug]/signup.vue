@@ -87,6 +87,15 @@ const hoveredParticipantId = ref<string | null>(null);
 const proxyLoading = ref(false);
 const proxyError = ref<string | null>(null);
 
+const isAddPlayerDisabled = computed(() => {
+  return !(
+    game.value?.status === GameStatus.SCHEDULED &&
+    currentPlayerStatus.value === "signed_up" &&
+    authStore.user?.role === UserRole.PLAYER &&
+    !isFull.value
+  );
+});
+
 // Auth check + load on client mount — token is available here, not during SSR
 onMounted(async () => {
   if (!authStore.isAuthenticated) {
@@ -159,37 +168,34 @@ async function handleCancelSelf() {
         />
       </div>
       <div class="lg:col-span-6 flex flex-col">
-        <!-- T076: Player-only add player widget (proxy + guest) -->
-        <SignupAddPlayer
-          v-if="
-            game?.status === GameStatus.SCHEDULED &&
-            currentPlayerStatus === 'signed_up' &&
-            authStore.user?.role === UserRole.PLAYER &&
-            !isFull
-          "
-          :confirmed-player-ids="
-            roster.map((r) => r.player?.id).filter(Boolean)
-          "
-          :proxy-loading="proxyLoading"
-          :proxy-error="proxyError"
+        <div class="mb-4">
+          <!-- T076: Player-only add player widget (proxy + guest) -->
+          <SignupAddPlayer
+            :disabled="isAddPlayerDisabled"
+            :confirmed-player-ids="
+              roster.map((r) => r.player?.id).filter(Boolean)
+            "
+            :proxy-loading="proxyLoading"
+            :proxy-error="proxyError"
+            :is-full="isFull"
+            :confirmed-count="confirmedCount"
+            :max-players="game?.maxPlayers ?? DEFAULT_MAX_PLAYERS"
+            @signup-proxy="handleSignupProxy"
+            @signup-guest="handleSignupGuest"
+          />
+        </div>
+
+        <!-- T053: Registration row (self + isFull) -->
+        <SignupRegistrationRow
+          v-if="game?.status === GameStatus.SCHEDULED"
+          :current-player-status="currentPlayerStatus"
           :is-full="isFull"
-          :confirmed-count="confirmedCount"
-          :max-players="game?.maxPlayers ?? DEFAULT_MAX_PLAYERS"
-          @signup-proxy="handleSignupProxy"
-          @signup-guest="handleSignupGuest"
+          @signup-self="handleSignupSelf"
+          @dismiss="() => {}"
+          @cancel-self="handleCancelSelf"
         />
       </div>
     </div>
-
-    <!-- T053: Registration row (self + isFull) -->
-    <SignupRegistrationRow
-      v-if="game?.status === GameStatus.SCHEDULED"
-      :current-player-status="currentPlayerStatus"
-      :is-full="isFull"
-      @signup-self="handleSignupSelf"
-      @dismiss="() => {}"
-      @cancel-self="handleCancelSelf"
-    />
 
     <!-- T037: responsive layout — field + table side by side ≥768px, stacked on mobile -->
     <div v-if="roster.length" class="mt-6 md:grid md:grid-cols-12 md:gap-6">

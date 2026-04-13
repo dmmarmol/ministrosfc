@@ -56,6 +56,7 @@ function makeWrapper(overrides: Record<string, unknown> = {}) {
       confirmedPlayerIds: [],
       proxyLoading: false,
       proxyError: null,
+      disabled: false,
       isFull: false,
       confirmedCount: 0,
       maxPlayers: 16,
@@ -156,15 +157,35 @@ describe("SignupAddPlayer", () => {
     expect(wrapper.emitted("signup-guest")).toEqual([["Ana", "", null]]);
   });
 
-  // 6 + 7. Widget renders nothing when isFull=true
-  it("renders nothing when isFull is true (game at capacity)", () => {
+  // 6 + 7. Widget remains visible but disabled when isFull=true
+  it("keeps widget visible but disables interaction when isFull is true", async () => {
     const wrapper = makeWrapper({ isFull: true });
-    // The root v-if="!isFull" means no content
-    expect(wrapper.find('[data-testid="dropdown-stub"]').exists()).toBe(false);
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="dropdown-stub"]').exists()).toBe(true);
+    expect(
+      wrapper.findComponent({ name: "DropdownAddMore" }).props("disabled"),
+    ).toBe(true);
+    expect(
+      wrapper.find('[data-testid="open-guest-form"]').attributes("disabled"),
+    ).toBeDefined();
+    expect(
+      wrapper.find('[data-testid="add-player-disabled-hint"]').exists(),
+    ).toBe(true);
+  });
+
+  it("keeps widget visible but disables interaction when disabled prop is true", async () => {
+    const wrapper = makeWrapper({ disabled: true });
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="dropdown-stub"]').exists()).toBe(true);
+    expect(
+      wrapper.findComponent({ name: "DropdownAddMore" }).props("disabled"),
+    ).toBe(true);
     expect(wrapper.find('[data-testid="guest-form"]').exists()).toBe(false);
-    expect(wrapper.find('[data-testid="open-guest-form"]').exists()).toBe(
-      false,
-    );
+    expect(
+      wrapper.find('[data-testid="open-guest-form"]').attributes("disabled"),
+    ).toBeDefined();
   });
 
   // Mutual exclusion: dropdown and guest form never visible simultaneously

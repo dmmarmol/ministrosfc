@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import type { CurrentPlayerStatus } from "@ministrosfc/shared";
+import SignupSelfSection from "./SignupSelfSection.vue";
 
 const props = defineProps<{
   currentPlayerStatus: CurrentPlayerStatus;
@@ -37,32 +38,11 @@ async function handleSelf() {
 
   <template v-else>
     <!-- Self signup -->
-    <div
-      v-if="props.currentPlayerStatus === 'not_signed_up'"
-      class="bg-white border border-gray-200 rounded-xl p-4 mb-4"
-    >
-      <p class="text-sm font-medium text-gray-700 mb-3">Tu inscripción</p>
-      <button
-        class="w-full bg-brand text-gray-900 font-semibold text-sm py-2.5 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
-        :disabled="selfLoading"
-        @click="handleSelf"
-      >
-        {{ selfLoading ? "Confirmando…" : "Confirmar asistencia" }}
-      </button>
-    </div>
-    <div
-      v-else-if="props.currentPlayerStatus === 'signed_up'"
-      class="bg-green-50 border border-green-200 rounded-xl p-4 mb-4 flex items-center justify-between"
-    >
-      <span class="text-sm text-green-700 font-medium"
-        >✓ Ya estás confirmado para este partido.</span
-      >
-      <button
-        class="text-sm text-red-500 hover:text-red-700 font-medium ml-4"
-        @click="$emit('cancel-self')"
-      >
-        Cancelar inscripción
-      </button>
-    </div>
+    <SignupSelfSection
+      :status="props.currentPlayerStatus"
+      :loading="selfLoading"
+      @confirm="handleSelf"
+      @cancel-self="$emit('cancel-self')"
+    />
   </template>
 </template>

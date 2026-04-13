@@ -18,10 +18,12 @@ const props = defineProps<{
     >
       <span>{{ game.playground?.name ?? game.location }}</span>
     </p>
-    <div class="flex items-center justify-between gap-2 mb-4">
-      <span class="text-lg font-bold">Ministros FC</span>
-      <span class="text-gray-400">vs</span>
-      <span class="text-lg font-bold">{{ game.opponentTeam?.name }}</span>
+    <div class="grid grid-cols-5 items-baseline justify-between gap-2 mb-4">
+      <span class="col-span-2 text-lg font-bold text-left">Ministros FC</span>
+      <span class="col-span-1 text-gray-400 text-center">vs</span>
+      <span class="col-span-2 text-lg font-bold text-right">{{
+        game.opponentTeam?.name
+      }}</span>
     </div>
     <div class="flex items-baseline justify-between">
       <p class="text-sm text-gray-300">

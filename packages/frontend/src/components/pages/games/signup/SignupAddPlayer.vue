@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useNuxtApp } from "nuxt/app";
 import type { ApiResponse, PlayerPublic } from "@ministrosfc/shared";
 import {
@@ -15,6 +15,7 @@ const props = defineProps<{
   confirmedPlayerIds: string[];
   proxyLoading: boolean;
   proxyError: string | null;
+  disabled: boolean;
   isFull: boolean;
   confirmedCount: number;
   maxPlayers: number;
@@ -43,6 +44,8 @@ const dropdownOptions = computed<DropdownOption[]>(() => {
     .filter((p) => !excluded.has(p.id))
     .map((p) => ({ id: p.id, label: `${p.firstName} ${p.lastName}` }));
 });
+
+const isInteractionDisabled = computed(() => props.disabled || props.isFull);
 
 onMounted(async () => {
   fetchLoading.value = true;
@@ -75,6 +78,7 @@ const POSITIONS = Object.values(Position).map((p) => ({
 }));
 
 function openGuestForm() {
+  if (isInteractionDisabled.value) return;
   guestFirst.value = "";
   guestPosition.value = "";
   guestError.value = null;
@@ -85,6 +89,15 @@ function cancelGuest() {
   mode.value = "dropdown";
   guestError.value = null;
 }
+
+watch(
+  () => isInteractionDisabled.value,
+  (disabled) => {
+    if (disabled && mode.value === "guest") {
+      cancelGuest();
+    }
+  },
+);
 
 function submitGuest() {
   if (!guestFirst.value.trim()) return;
@@ -103,8 +116,12 @@ function submitGuest() {
 
 <template>
   <div
-    v-if="!isFull"
-    class="relative bg-white border border-gray-200 rounded-xl p-4 flex-1"
+    :class="[
+      'relative  border-gray-300  p-4 flex-1',
+      isInteractionDisabled
+        ? 'bg-gray-100 border-t border-r border-l rounded-t-xl'
+        : 'bg-white border rounded-xl',
+    ]"
   >
     <!-- GUEST mode: × dismiss at far top-right of container (FR-039) -->
     <button
@@ -133,7 +150,7 @@ function submitGuest() {
           <DropdownAddMore
             :model-value="null"
             :options="dropdownOptions"
-            :disabled="proxyLoading || fetchLoading"
+            :disabled="isInteractionDisabled || proxyLoading || fetchLoading"
             :loading="fetchLoading"
             :labels="{
               placeholder: 'Seleccionar jugador',
@@ -144,8 +161,14 @@ function submitGuest() {
         </div>
         <!-- "Agregar invitado" trigger — rendered outside DropdownAddMore (plan.md C1 fix) -->
         <button
+          v-if="!isInteractionDisabled"
           data-testid="open-guest-form"
           class="mt-2 self-end text-sm text-brand hover:underline"
+          :class="
+            isInteractionDisabled
+              ? 'opacity-50 cursor-not-allowed hover:no-underline'
+              : ''
+          "
           @click="openGuestForm"
         >
           + Agregar invitado
@@ -160,45 +183,64 @@ function submitGuest() {
     <template v-else>
       <p class="text-sm font-medium text-gray-700 mb-3">Agregar invitado</p>
       <div data-testid="guest-form" class="space-y-3">
-        <div>
-          <label class="text-xs text-gray-500 block mb-1">Nombre *</label>
-          <input
-            v-model="guestFirst"
-            data-testid="guest-first"
-            type="text"
-            placeholder="Nombre"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-          />
-        </div>
-        <div>
-          <label class="text-xs text-gray-500 block mb-1"
-            >Posición (opcional)</label
-          >
-          <select
-            v-model="guestPosition"
-            data-testid="guest-position"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          >
-            <option value="">Sin posición</option>
-            <option
-              v-for="pos in POSITIONS"
-              :key="pos.value"
-              :value="pos.value"
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div>
+            <label class="text-xs text-gray-500 block mb-1">Nombre *</label>
+            <input
+              v-model="guestFirst"
+              data-testid="guest-first"
+              type="text"
+              placeholder="Nombre"
+              :disabled="isInteractionDisabled"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+            />
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 block mb-1"
+              >Posición (opcional)</label
             >
-              {{ pos.label }}
-            </option>
-          </select>
+            <select
+              v-model="guestPosition"
+              data-testid="guest-position"
+              :disabled="isInteractionDisabled"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            >
+              <option value="">Sin posición</option>
+              <option
+                v-for="pos in POSITIONS"
+                :key="pos.value"
+                :value="pos.value"
+              >
+                {{ pos.label }}
+              </option>
+            </select>
+          </div>
         </div>
         <p v-if="guestError" class="text-xs text-red-600">{{ guestError }}</p>
         <button
           data-testid="guest-submit"
           class="w-full bg-brand text-gray-900 font-semibold text-sm py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
-          :disabled="!guestFirst.trim()"
+          :disabled="isInteractionDisabled || !guestFirst.trim()"
           @click="submitGuest"
         >
           Confirmar
         </button>
       </div>
     </template>
+  </div>
+  <div
+    v-if="isInteractionDisabled"
+    class="bg-gray-200 border border-gray-300 py-1.5 px-2 rounded-b-xl"
+  >
+    <p
+      data-testid="add-player-disabled-hint"
+      class="text-xs text-gray-500 w-full text-center"
+    >
+      {{
+        isFull
+          ? "El cupo está completo."
+          : "Confirmá tu asistencia para habilitar esta sección."
+      }}
+    </p>
   </div>
 </template>
