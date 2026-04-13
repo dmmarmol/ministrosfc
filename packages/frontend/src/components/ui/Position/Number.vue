@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { computed } from "vue";
+import { onMounted, ref, watch } from "vue";
 import SoccerJersey from "soccer-jersey";
-import { Position } from "@ministrosfc/shared";
 
 type Props = {
   jerseyNumber: number | null;
@@ -13,23 +12,38 @@ const props = defineProps<Props>();
 const bgColor = "#1a1a1a";
 const textColor = "#FFFFFF";
 
-const jerseyDataUri = computed(() =>
-  SoccerJersey.draw({
-    shirtText: props.jerseyNumber ? props.jerseyNumber.toString() : "-",
-    shirtColor: bgColor,
-    sleeveColor: bgColor,
-    shirtStyle: "plain",
-    shirtStyleDirection: "vertical",
-    textColor: textColor,
-    textOutlineColor: textColor,
-    isBack: true,
-  }),
-);
+const jerseyDataUri = ref("");
+
+function updateJerseyUri() {
+  // soccer-jersey relies on DOM APIs; avoid SSR evaluation.
+  if (import.meta.server || !props.jerseyNumber) {
+    jerseyDataUri.value = "";
+    return;
+  }
+
+  try {
+    jerseyDataUri.value = SoccerJersey.draw({
+      shirtText: props.jerseyNumber.toString(),
+      shirtColor: bgColor,
+      sleeveColor: bgColor,
+      shirtStyle: "plain",
+      shirtStyleDirection: "vertical",
+      textColor: textColor,
+      textOutlineColor: textColor,
+      isBack: true,
+    });
+  } catch {
+    jerseyDataUri.value = "";
+  }
+}
+
+onMounted(updateJerseyUri);
+watch(() => props.jerseyNumber, updateJerseyUri);
 </script>
 <template>
   <div v-if="!props.isGuest && props.jerseyNumber">
     <img
-      v-if="props.isJersey"
+      v-if="props.isJersey && jerseyDataUri"
       :src="jerseyDataUri"
       class="w-8 h-8"
       alt="Camiseta"
