@@ -4,6 +4,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { ref } from "vue";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const mockApi = vi.fn();
 
@@ -80,5 +82,28 @@ describe("UserRoleManager", () => {
     await flushPromises();
 
     expect(wrapper.text()).toContain("Network error");
+  });
+});
+
+describe("admin players status confirmation flow", () => {
+  const playersPagePath = resolve(
+    __dirname,
+    "../../src/pages/admin/players/index.vue",
+  );
+  const source = readFileSync(playersPagePath, "utf8");
+
+  it("uses shared ConfirmationModal for activate/deactivate actions", () => {
+    expect(source).toContain(
+      'import ConfirmationModal from "~/components/ui/ConfirmationModal.vue"',
+    );
+    expect(source).toContain("toggleStatusModalOpen");
+    expect(source).toContain("askToggleStatus");
+    expect(source).toContain("Desactivar jugador");
+    expect(source).toContain("Activar jugador");
+  });
+
+  it("routes activate/deactivate button clicks through modal flow", () => {
+    expect(source).toContain('@click="askToggleStatus(p, $event)"');
+    expect(source).not.toContain('@click="toggleStatus(p)"');
   });
 });

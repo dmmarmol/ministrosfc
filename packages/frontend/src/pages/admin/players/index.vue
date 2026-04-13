@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { nextTick } from "vue";
+import { PlayerStatus, PLAYER_STATUS_FILTER_ALL } from "@ministrosfc/shared";
 import { useAuthStore } from "~/stores/auth";
 import PlayerDeleteModal from "~/components/player/PlayerDeleteModal.vue";
+import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
 
 definePageMeta({
   layout: "admin",
@@ -17,16 +20,29 @@ const playerToDelete = ref<{
   firstName: string;
   lastName: string;
 } | null>(null);
+const playerToToggleStatus = ref<any | null>(null);
+const toggleStatusModalOpen = ref(false);
+const toggleStatusInvoker = ref<HTMLElement | null>(null);
 const search = ref("");
-const statusFilter = ref("ACTIVE");
+const statusFilter = ref<PlayerStatus | typeof PLAYER_STATUS_FILTER_ALL>(
+  PLAYER_STATUS_FILTER_ALL,
+);
 const posFilter = ref("");
 
-const { data, pending, refresh } = await useAsyncData("admin-players", () =>
-  $api<{ data: any[] }>("/api/v1/players", {
-    query: { status: statusFilter.value || undefined, limit: 200 },
-  }),
+const { data, pending, refresh } = await useAsyncData(
+  "admin-players",
+  async () => {
+    return $api<{ data: any[] }>("/api/v1/players", {
+      query: { status: statusFilter.value, limit: 200 },
+    });
+  },
 );
 watch(statusFilter, () => refresh());
+watch(toggleStatusModalOpen, (isOpen) => {
+  if (!isOpen && toggleStatusInvoker.value) {
+    nextTick(() => toggleStatusInvoker.value?.focus());
+  }
+});
 
 const players = computed(() => data.value?.data ?? []);
 const filteredPlayers = computed(() => {
@@ -42,17 +58,29 @@ const filteredPlayers = computed(() => {
   return list;
 });
 
-async function toggleStatus(player: any) {
+function askToggleStatus(player: any, event: Event) {
+  playerToToggleStatus.value = player;
+  toggleStatusInvoker.value = event.currentTarget as HTMLElement;
+  toggleStatusModalOpen.value = true;
+}
+
+function getToggleStatusDescription(player: any | null): string {
+  if (!player) return "";
+  const action = player.status === "ACTIVE" ? "desactivar" : "activar";
+  return `¿Confirmás ${action} a ${player.firstName} ${player.lastName}?`;
+}
+
+async function toggleStatus() {
+  if (!playerToToggleStatus.value) return;
+  const player = playerToToggleStatus.value;
   const newStatus = player.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-  try {
-    await $api(`/api/v1/players/${player.id}/status`, {
-      method: "PATCH",
-      body: { status: newStatus },
-    });
-    await refresh();
-  } catch (e: any) {
-    alert(e?.message ?? "Failed to update player status.");
-  }
+  await $api(`/api/v1/players/${player.id}/status`, {
+    method: "PATCH",
+    body: { status: newStatus },
+  });
+  toggleStatusModalOpen.value = false;
+  playerToToggleStatus.value = null;
+  await refresh();
 }
 
 async function confirmDelete() {
@@ -72,6 +100,28 @@ async function confirmDelete() {
 
 <template>
   <div>
+    <ConfirmationModal
+      :open="toggleStatusModalOpen"
+      :title="
+        playerToToggleStatus?.status === 'ACTIVE'
+          ? 'Desactivar jugador'
+          : 'Activar jugador'
+      "
+      :description="getToggleStatusDescription(playerToToggleStatus)"
+      :confirm-text="
+        playerToToggleStatus?.status === 'ACTIVE' ? 'Desactivar' : 'Activar'
+      "
+      cancel-text="Cancelar"
+      :on-confirm="toggleStatus"
+      :on-cancel="
+        () => {
+          toggleStatusModalOpen = false;
+          playerToToggleStatus = null;
+        }
+      "
+      @update:open="(value) => (toggleStatusModalOpen = value)"
+    />
+
     <!-- Confirmation modal (admin only) -->
     <PlayerDeleteModal
       v-if="playerToDelete"
@@ -101,9 +151,9 @@ async function confirmDelete() {
         v-model="statusFilter"
         class="border border-gray-300 rounded-lg px-3 py-2 text-sm"
       >
-        <option value="ACTIVE">Activo</option>
-        <option value="INACTIVE">Inactivo</option>
-        <option value="">Todos</option>
+        <option :value="PlayerStatus.ACTIVE">Activo</option>
+        <option :value="PlayerStatus.INACTIVE">Inactivo</option>
+        <option :value="PLAYER_STATUS_FILTER_ALL">Todos</option>
       </select>
       <select
         v-model="posFilter"
@@ -224,7 +274,7 @@ async function confirmDelete() {
               >
               <button
                 class="text-xs text-gray-400 hover:text-red-500 transition-colors"
-                @click="toggleStatus(p)"
+                @click="askToggleStatus(p, $event)"
               >
                 {{ p.status === "ACTIVE" ? "Desactivar" : "Activar" }}
               </button>
