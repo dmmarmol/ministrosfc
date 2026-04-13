@@ -34,6 +34,7 @@ describe("Object storage (integration)", () => {
     await request(app).post("/api/v1/auth/register").send({
       email: adminEmail,
       password: "Admin!Stor99",
+      passwordConfirmation: "Admin!Stor99",
       firstName: "Admin",
       lastName: "Storage Test",
     });

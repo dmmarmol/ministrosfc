@@ -1,9 +1,17 @@
 import { GameService } from "../../src/services/GameService";
 import { GameModel } from "../../src/models/Game";
-import { OpponentTeamModel } from "../../src/models/OpponentTeam";
 
 jest.mock("../../src/models/Game");
-jest.mock("../../src/models/OpponentTeam");
+jest.mock("../../src/config/database", () => ({
+  prisma: {
+    opponentTeam: {
+      findUnique: jest.fn(),
+    },
+  },
+}));
+jest.mock("../../src/utils/slug", () => ({
+  generateGameSlug: jest.fn().mockResolvedValue("mock-game-slug"),
+}));
 jest.mock("../../src/config/redis", () => ({
   getRedisClient: () => ({
     del: jest.fn().mockResolvedValue(1),
@@ -22,13 +30,14 @@ jest.mock("../../src/config/redis", () => ({
   },
 }));
 
+import { prisma } from "../../src/config/database";
+
 describe("GameService", () => {
   afterEach(() => jest.clearAllMocks());
 
   describe("createGame", () => {
     it("creates a game when opponentTeamId is valid", async () => {
-      (OpponentTeamModel.findById as jest.Mock).mockResolvedValue({
-        id: "team-1",
+      (prisma.opponentTeam.findUnique as jest.Mock).mockResolvedValue({
         name: "Rivals",
       });
       const mockGame = {

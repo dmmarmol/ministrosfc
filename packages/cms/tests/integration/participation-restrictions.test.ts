@@ -57,6 +57,8 @@ describe("Participation restrictions (integration)", () => {
     const game = await prisma.game.create({
       data: {
         date: tomorrow,
+        endDate: new Date(tomorrow.getTime() + 100 * 60 * 1000),
+        slug: `no-player-${Date.now()}`,
         status: "SCHEDULED",
         tournamentId: tournament.id,
         opponentTeamId: opponent.id,
@@ -114,6 +116,8 @@ describe("Participation restrictions (integration)", () => {
     const game = await prisma.game.create({
       data: {
         date: tomorrow,
+        endDate: new Date(tomorrow.getTime() + 100 * 60 * 1000),
+        slug: `active-player-${Date.now()}`,
         status: "SCHEDULED",
         tournamentId: tournament.id,
         opponentTeamId: opponent.id,

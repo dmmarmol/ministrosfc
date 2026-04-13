@@ -25,6 +25,8 @@ import { addressRouter } from "../routes/address";
 
 export function createApp(): Application {
   const app = express();
+  const isTest =
+    process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID != null;
 
   // Trust proxy for rate limiting behind reverse proxy
   app.set("trust proxy", 1);
@@ -47,7 +49,9 @@ export function createApp(): Application {
   );
 
   // HTTP request logging
-  app.use(pinoHttp({ logger }));
+  if (!isTest) {
+    app.use(pinoHttp({ logger }));
+  }
 
   // Body parsing
   app.use(express.json({ limit: "1mb" }));

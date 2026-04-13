@@ -221,7 +221,7 @@ router.get(
           return { ...g, currentPlayerStatus };
         });
 
-        return res.json({
+        res.json({
           data: gamesWithStatus,
           meta: {
             total: result.total,

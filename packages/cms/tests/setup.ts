@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { execSync } from "child_process";
+import { disconnectRedis } from "../src/config/redis";
 
 const TEST_DB_URL =
   process.env.TEST_DATABASE_URL ??
@@ -37,6 +38,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await disconnectRedis();
   await prisma.$disconnect();
 });
 

@@ -39,7 +39,7 @@ const signupSchema = z.discriminatedUnion("mode", [
   z.object({
     mode: z.literal("guest"),
     firstName: z.string().min(1).max(255),
-    lastName: z.string().min(1).max(255),
+    lastName: z.string().max(255),
     position: z.string().max(10).optional().nullable(),
   }),
   z.object({

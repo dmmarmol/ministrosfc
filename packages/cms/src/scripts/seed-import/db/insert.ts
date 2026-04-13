@@ -63,7 +63,14 @@ export async function insertAll(
 
   // 5. Games (FK: opponentTeamId, tournamentId)
   for (const batch of chunk(payload.games, 500)) {
-    await tx.game.createMany({ data: batch });
+    await tx.game.createMany({
+      data: batch.map((g) => ({
+        ...g,
+        // Required since lineup/endDate migration: seed import creates stable fallback values.
+        slug: `import-${g.id}`,
+        endDate: new Date(g.date.getTime() + 100 * 60 * 1000),
+      })),
+    });
   }
 
   // 6. GameParticipants (FK: gameId, playerId)
