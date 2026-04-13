@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   srcDir: "src/",
   devtools: { enabled: true },
 
-  modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt", "@nuxt/image"],
+  modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt", "@nuxt/image", "@nuxt/ui"],
 
   css: ["leaflet/dist/leaflet.css", "vue-select/dist/vue-select.css"],
 
@@ -17,6 +17,7 @@ export default defineNuxtConfig({
 
   tailwindcss: {
     configPath: "~/tailwind.config.js",
+    exposeConfig: true,
   },
 
   // Server-side rendering enabled for public SEO
@@ -71,5 +72,9 @@ export default defineNuxtConfig({
   typescript: {
     strict: true,
     typeCheck: false, // Skip type-check during build for speed; run tsc separately
+  },
+
+  experimental: {
+    appManifest: false,
   },
 });
