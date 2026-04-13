@@ -1,4 +1,5 @@
 <script setup lang="ts">
+definePageMeta({ public: true });
 useHead({ title: "Roster – Ministros FC" });
 
 const { $api } = useNuxtApp();
@@ -12,7 +13,9 @@ const { data, pending } = await useAsyncData("roster", () =>
   }),
 );
 
-const players = computed(() => data.value?.data ?? []);
+const players = computed(() =>
+  (data.value?.data ?? []).filter((p: any) => p.playerType !== "GUEST"),
+);
 
 const filteredPlayers = computed(() => {
   let list = players.value;

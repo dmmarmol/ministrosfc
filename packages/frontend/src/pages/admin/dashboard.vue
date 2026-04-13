@@ -1,5 +1,12 @@
 <script setup lang="ts">
-definePageMeta({ layout: "admin", middleware: "auth" });
+import { GameStatus } from "@ministrosfc/shared";
+import { formatDate } from "~/utils/formatDate";
+definePageMeta({
+  layout: "admin",
+  middleware: "auth",
+  requiresAuth: true,
+  requiresRole: "editor",
+});
 useHead({ title: "Dashboard – Admin" });
 
 const { $api } = useNuxtApp();
@@ -13,12 +20,12 @@ const [{ data: playersData }, { data: gamesData }, { data: recentData }] =
     ),
     useAsyncData("dash-upcoming", () =>
       $api<{ data: any[] }>("/api/v1/games", {
-        query: { status: "SCHEDULED", limit: 1 },
+        query: { status: GameStatus.SCHEDULED, limit: 1 },
       }),
     ),
     useAsyncData("dash-recent", () =>
       $api<{ data: any[] }>("/api/v1/games", {
-        query: { status: "COMPLETED", limit: 5 },
+        query: { status: GameStatus.COMPLETED, limit: 5 },
       }),
     ),
   ]);
@@ -29,13 +36,6 @@ const stats = computed(() => ({
   completedThisMonth: recentData.value?.data?.length ?? 0,
 }));
 const recentGames = computed(() => recentData.value?.data ?? []);
-
-function formatDate(d: string): string {
-  return new Date(d).toLocaleDateString("es-AR", {
-    month: "short",
-    day: "numeric",
-  });
-}
 </script>
 
 <template>
@@ -102,7 +102,9 @@ function formatDate(d: string): string {
           class="flex items-center justify-between text-sm py-2 border-b border-gray-50 last:border-0"
         >
           <span class="text-gray-800">vs {{ g.opponentTeam?.name }}</span>
-          <span class="text-gray-500 text-xs">{{ formatDate(g.date) }}</span>
+          <span class="text-gray-500 text-xs">{{
+            formatDate(g.date, { month: "short", day: "numeric" })
+          }}</span>
           <NuxtLink
             :to="`/admin/games/${g.id}/edit`"
             class="text-xs text-brand hover:underline"

@@ -50,3 +50,25 @@ export function authenticate(
     });
   }
 }
+
+/**
+ * Optional authentication middleware.
+ * If a valid Bearer token is present, `req.user` is populated (same as `authenticate`).
+ * If the header is absent, invalid, or expired: silently calls `next()` — never returns 401.
+ */
+export function optionalAuthenticate(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): void {
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.slice(7);
+    try {
+      req.user = jwt.verify(token, authConfig.jwtSecret) as JwtPayload;
+    } catch {
+      // Silently ignore invalid/expired tokens — req.user remains undefined
+    }
+  }
+  next();
+}

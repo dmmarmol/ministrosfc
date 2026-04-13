@@ -19,7 +19,7 @@ const router = Router();
 
 const tournamentCreateSchema = z.object({
   name: z.string().min(1).max(255),
-  competitionType: z.nativeEnum(CompetitionType),
+  competitionType: z.enum(CompetitionType),
   description: z.string().max(2000).optional(),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -28,7 +28,7 @@ const tournamentCreateSchema = z.object({
 const tournamentUpdateSchema = tournamentCreateSchema.partial();
 
 const tournamentFilterSchema = paginationSchema.extend({
-  competitionType: z.nativeEnum(CompetitionType).optional(),
+  competitionType: z.enum(CompetitionType).optional(),
 });
 
 // GET /api/v1/tournaments - Public

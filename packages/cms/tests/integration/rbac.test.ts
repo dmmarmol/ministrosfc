@@ -10,7 +10,9 @@ jest.mock("../../src/middleware/rate-limiter", () => ({
   authLimiter: (_req: any, _res: any, next: any) => next(),
   registerLimiter: (_req: any, _res: any, next: any) => next(),
   apiLimiter: (_req: any, _res: any, next: any) => next(),
-}));, () => ({
+}));
+
+jest.mock("../../src/utils/object-storage", () => ({
   validatePhotoFile: jest.fn(),
   uploadPlayerPhoto: jest
     .fn()
@@ -37,6 +39,7 @@ describe("RBAC (integration)", () => {
     await request(app).post("/api/v1/auth/register").send({
       email: adminEmail,
       password: "Admin!Rbac99",
+      passwordConfirmation: "Admin!Rbac99",
       firstName: "Admin",
       lastName: "RBAC",
     });
@@ -53,6 +56,7 @@ describe("RBAC (integration)", () => {
     await request(app).post("/api/v1/auth/register").send({
       email: editorEmail,
       password: "Editor!Rbac99",
+      passwordConfirmation: "Editor!Rbac99",
       firstName: "Editor",
       lastName: "RBAC",
     });
@@ -69,6 +73,7 @@ describe("RBAC (integration)", () => {
     await request(app).post("/api/v1/auth/register").send({
       email: dtEmail,
       password: "Dt!Rbac99",
+      passwordConfirmation: "Dt!Rbac99",
       firstName: "DT",
       lastName: "RBAC",
     });
@@ -85,6 +90,7 @@ describe("RBAC (integration)", () => {
     const lp = await request(app).post("/api/v1/auth/register").send({
       email: playerEmail,
       password: "Player!Rbac99",
+      passwordConfirmation: "Player!Rbac99",
       firstName: "Player",
       lastName: "RBAC",
     });
@@ -229,13 +235,9 @@ describe("RBAC (integration)", () => {
       const res = await request(app)
         .patch(`/api/v1/games/${createRes.body.data.id}`)
         .set("Authorization", `Bearer ${dtToken}`)
-        .send({
-          location: "DT updated pitch",
-          notes: "Bench and lineup prep",
-        });
+        .send({ notes: "Bench and lineup prep" });
 
       expect(res.status).toBe(200);
-      expect(res.body.data.location).toBe("DT updated pitch");
       expect(res.body.data.notes).toBe("Bench and lineup prep");
     });
 

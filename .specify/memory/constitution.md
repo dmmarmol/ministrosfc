@@ -1,24 +1,24 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.5.0 → 1.6.0 (MINOR — Principle VII: Shared Types added)
+Version change: 1.7.0 → 1.8.0 (MINOR — Principle V extended: definePageMeta mandatory on every Nuxt page)
 Ratified: 2026-03-17
-Last Amended: 2026-04-06
+Last Amended: 2026-04-10
 
-Amendment: New principle added: "VII. Shared Types and Cross-Package Contracts".
-Formalizes that @ministrosfc/shared is the single source of truth for all types
-used by more than one workspace package. Resolves @TODO debt in ProfileService.ts
-and useProfile.ts.
+Amendment: Principle V (Component Isolation and Reusability) extended with a mandatory
+"Page Meta Declaration" sub-rule. Every file in `pages/` MUST contain a `definePageMeta`
+call declaring visibility (public/auth-required/auth-page) and any applicable middleware
+options. Pages that are freely public MUST still declare `definePageMeta({ public: true })`
+to make intent explicit and prevent future middleware accidental-blocking.
 
-Added sections:
-  ✅ Principle VII — Shared Types and Cross-Package Contracts
-  ✅ Code Review Standards — new gate: shared type placement check
-
-Templates / agents updated:
-  ✅ plan-template.md — Constitution Check bullet added for shared types gate
-  ✅ tasks-template.md — Phase 1 setup bullet added for shared type definitions
+Modified sections:
+  ✅ Principle V — added "Page Meta Declaration" sub-rule
+  ✅ Code Review Standards — new gate: definePageMeta presence check
+  ✅ plan-template.md — Constitution Check bullet added for definePageMeta gate
 
 Prior amendments (preserved):
+  ✅ v1.7.0 — Principle V: Page Component Decomposition sub-rule
+  ✅ v1.6.0 — Principle VII: Shared Types and Cross-Package Contracts
   ✅ v1.5.0 — Branch naming convention updated
   ✅ v1.4.0 — Package version bump prompt
   ✅ v1.3.0 — Speckit Workflow Continuity mandate
@@ -28,11 +28,13 @@ Follow-up TODOs:
     into @ministrosfc/shared as the canonical profile response type
   - Replace inline data param type in ProfileService.updateProfile with a
     named type exported from @ministrosfc/shared
+  - Gradually backfill existing pages (schedule.vue, roster.vue, etc.) with
+    page-scoped sub-components on their next touch
 -->
 
 # Ministros FC Constitution
 
-**Version**: 1.6.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-06
+**Version**: 1.8.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-10
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -129,14 +131,77 @@ This constitution establishes the architectural principles, development workflow
 - No circular dependencies; dependency direction flows from leaf components upward
 - Component naming is descriptive and matches behavior (not generic names like "Container" or "Manager")
 
-**Context:** Clear component boundaries reduce bugs, enable team parallelism, and lower mental overhead.
+#### Page Component Decomposition (NON-NEGOTIABLE)
+
+**MUST NOT** write large template blocks directly inside `pages/` files.
+
+- A `pages/` file is a **routing entry point only**: it handles `definePageMeta`,
+  top-level `useAsyncData` / `await`, `useHead`, high-level layout wiring, and
+  composable injection. It MUST NOT double as a component tree.
+- Any template block that represents a named feature area **OR** exceeds ~30 lines
+  MUST be extracted to a dedicated sub-component.
+- Page-scoped sub-components live under `components/pages/<feature-path>/`
+  (mirroring the `pages/` directory hierarchy). They are not required to be
+  reusable outside their page context—cohesion over premature generalization.
+- State that is local to a sub-component (e.g., form toggle flags, search results)
+  MUST live inside that component; only cross-component state belongs on the page.
+- Examples of mandatory extractions: game header card, signup form, inline search
+  panel, participant table, roster section.
+
+**Context:** Over-loaded page files conflate routing concerns with UI rendering.
+Extracting feature blocks improves readability, enables isolated unit tests per
+block, and makes the page file a scannable table-of-contents for the feature.
 
 **Examples:**
 
+- ✅ Good: `pages/games/[slug]/signup.vue` contains only setup + composable injection;
+  feature blocks live in `components/pages/games/signup/SignupGuestForm.vue`, etc.
+- ❌ Bad: `pages/games/[slug]/signup.vue` with 400+ lines of mixed template + logic
 - ✅ Good: `PlayerCard.tsx` (single player display), `RosterForm.tsx` (add/edit multiple players)
 - ❌ Bad: `PlayerStuff.tsx`, `Utils.tsx` (too generic), bidirectional imports
 
-**Enforcement:** ESLint rules (import analysis), code review checks, TypeScript strict mode
+**Enforcement:** ESLint rules (import analysis), code review checks, TypeScript strict mode,
+page-decomposition gate in plan-template.md Constitution Check
+
+#### Page Meta Declaration (NON-NEGOTIABLE)
+
+**MUST** call `definePageMeta(...)` in every file under `pages/`, with no exceptions.
+
+- Every page MUST declare its visibility and access policy in `definePageMeta`. The
+  auth middleware (`src/middleware/auth.ts`) relies on per-page meta options to enforce
+  access control; a missing declaration is treated as a policy gap, not a sensible default.
+- The required `definePageMeta` shape depends on the page's access category:
+
+  | Category | Required fields |
+  |---|---|
+  | **Public** (no sign-in needed) | `definePageMeta({ public: true })` |
+  | **Authenticated** (any signed-in user) | `definePageMeta({ middleware: "auth", requiresAuth: true })` |
+  | **Editor+** (EDITOR or ADMIN) | `definePageMeta({ layout: "admin", middleware: "auth", requiresAuth: true, requiresRole: "editor" })` |
+  | **Admin only** | `definePageMeta({ layout: "admin", middleware: "auth", requiresAuth: true, requiresRole: "admin" })` |
+  | **Auth pages** (login/register — redirect if already authenticated) | `definePageMeta({ layout: false, middleware: "auth", authPage: true })` |
+  | **Onboarding page** | `definePageMeta({ middleware: "auth", requiresAuth: true, onboardingPage: true })` |
+
+- `public: true` pages bypass the auth redirect but MUST still declare `definePageMeta`
+  so intent is explicit and searchable. Omitting it entirely is forbidden even for public
+  pages — "no declaration" and "explicitly public" are not the same thing.
+- Any additional `useHead` SEO/title metadata MUST be set via `useHead(...)`, not inside
+  `definePageMeta`, keeping the concerns separate: `definePageMeta` = access policy,
+  `useHead` = document metadata.
+
+**Context:** Implicit public access creates a maintenance hazard: a future middleware
+addition could silently block pages that were never audited. Making access intent
+explicit in every file provides a searchable, reviewable record of the full visibility
+surface of the application.
+
+**Examples:**
+
+- ✅ Good: `pages/schedule.vue` — `definePageMeta({ public: true })` at the top of `<script setup>`
+- ✅ Good: `pages/admin/dashboard.vue` — `definePageMeta({ layout: "admin", middleware: "auth", requiresAuth: true, requiresRole: "editor" })`
+- ❌ Bad: `pages/roster.vue` with no `definePageMeta` call at all
+- ❌ Bad: Setting `title` inside `definePageMeta` instead of `useHead`
+
+**Enforcement:** Code review gate (see Code Review Standards), `definePageMeta`
+presence check in plan-template.md Constitution Check
 
 ---
 
@@ -227,6 +292,28 @@ ministrosfc/
 ├── public/              # Static assets
 ├── docs/                # Documentation
 └── .specify/            # Speckit templates and governance
+```
+
+For `packages/frontend` (Nuxt 3, `srcDir: "src/"`):
+
+```
+packages/frontend/
+├── src/
+│   ├── pages/           # Routing entry points only (definePageMeta, useAsyncData, useHead)
+│   ├── components/
+│   │   ├── pages/       # Page-scoped sub-components (mirrors pages/ hierarchy)
+│   │   │   ├── games/   # Sub-components for pages/games/
+│   │   │   │   └── signup/   # Sub-components for pages/games/[slug]/signup.vue
+│   │   │   └── admin/   # Sub-components for pages/admin/
+│   │   ├── game/        # Reusable game display components
+│   │   ├── player/      # Reusable player display components
+│   │   ├── common/      # Layout chrome (Header, Footer, Navigation)
+│   │   └── ui/          # Generic UI primitives
+│   ├── composables/     # Reactive state + API wrappers
+│   └── utils/           # Pure functions and constants
+└── server/              # Nuxt server routes and middleware (outside srcDir)
+    ├── middleware/
+    └── routes/
 ```
 
 ### Naming Conventions
@@ -409,6 +496,8 @@ chore(deps): upgrade typescript to 5.x
 - [ ] Breaking changes are documented
 - [ ] CHANGELOG updated if user-facing
 - [ ] Types used by more than one package are defined in `@ministrosfc/shared`, not duplicated locally
+- [ ] **Page decomposition (Principle V)**: No `pages/` file contains inline template blocks exceeding ~30 lines; feature areas extracted to `components/pages/<feature-path>/`
+- [ ] **Page meta declaration (Principle V)**: Every `pages/` file has a `definePageMeta` call with explicit visibility; public pages use `definePageMeta({ public: true })`
 
 **Review focus areas:**
 

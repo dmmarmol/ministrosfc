@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 
-definePageMeta({ middleware: "auth" });
+definePageMeta({ middleware: "auth", requiresAuth: true });
 useHead({ title: "Perfil de Usuario – Ministros FC" });
 
 const { $api } = useNuxtApp();

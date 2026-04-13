@@ -34,6 +34,8 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 [Gates determined based on constitution file]
 
 - [ ] **Shared types gate (Principle VII)**: Are any new types used by more than one package? If yes, they MUST be added to `packages/shared/src/types/` and exported from `@ministrosfc/shared` _before_ implementation tasks begin.
+- [ ] **Page decomposition gate (Principle V)**: For any frontend page introduced by this feature, identify which template blocks will be extracted to `components/pages/<feature-path>/`. List them in the Project Structure section below.
+- [ ] **Page meta declaration gate (Principle V)**: Every new `pages/` file MUST include a `definePageMeta` call. Specify the access category (public / requiresAuth / editor+ / admin / authPage / onboardingPage) for each page introduced by this feature.
 
 ## Project Structure
 

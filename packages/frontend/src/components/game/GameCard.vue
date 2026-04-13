@@ -1,17 +1,33 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { formatDate } from "~/utils/formatDate";
+import { GameStatus, type GameSignupState } from "@ministrosfc/shared";
+import GameSignUpButton from "./GameSignUpButton.vue";
 
 const props = defineProps<{
   game: {
     id: string;
+    slug?: string | null;
     date: string;
     location: string | null;
     status: string;
     homeTeamScore: number | null;
     awayTeamScore: number | null;
     opponentTeam: { name: string; logoUrl: string | null } | null;
+    playground?: { name: string } | null;
   };
+  signupState?: GameSignupState | undefined;
 }>();
+
+const detailUrl = computed(() =>
+  props.game.slug ? `/games/${props.game.slug}` : `/games/${props.game.id}`,
+);
+
+const signupUrl = computed(() =>
+  props.game.slug
+    ? `/games/${props.game.slug}/signup`
+    : `/games/${props.game.id}/signup`,
+);
 
 function initials(name?: string | null): string {
   if (!name) return "?";
@@ -21,14 +37,6 @@ function initials(name?: string | null): string {
     .join("")
     .slice(0, 2)
     .toUpperCase();
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("es-AR", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 
 const resultLabel = computed(() => {
@@ -67,51 +75,64 @@ const statusClass = computed(() => {
 </script>
 
 <template>
-  <NuxtLink
-    :to="`/games/${game.id}`"
-    class="group bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-4 flex items-center gap-4"
+  <div
+    class="group bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100"
   >
-    <!-- Opponent logo -->
-    <div
-      class="w-12 h-12 rounded-full bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center"
-    >
-      <img
-        v-if="game.opponentTeam?.logoUrl"
-        :src="game.opponentTeam.logoUrl"
-        :alt="game.opponentTeam.name"
-        class="w-full h-full object-cover"
-      />
-      <span v-else class="text-lg font-bold text-gray-400">{{
-        initials(game.opponentTeam?.name)
-      }}</span>
-    </div>
-    <!-- Game info -->
-    <div class="flex-1 min-w-0">
-      <p class="font-semibold text-gray-900 text-sm truncate">
-        vs {{ game.opponentTeam?.name ?? "Unknown" }}
-      </p>
-      <p class="text-xs text-gray-500 mt-0.5">
-        {{ formatDate(game.date)
-        }}{{ (game.playground?.name ?? game.location) ? ` · ${game.playground?.name ?? game.location}` : "" }}
-      </p>
-    </div>
-    <!-- Score / Status -->
-    <div class="flex-shrink-0 text-right">
-      <template v-if="game.status === 'COMPLETED'">
-        <p class="font-bold text-gray-900 text-lg leading-none">
-          {{ game.homeTeamScore ?? 0 }} – {{ game.awayTeamScore ?? 0 }}
+    <!-- Detail navigation link -->
+    <NuxtLink :to="detailUrl" class="flex items-center gap-4 p-4">
+      <!-- Opponent logo -->
+      <div
+        class="w-12 h-12 rounded-full bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center"
+      >
+        <img
+          v-if="game.opponentTeam?.logoUrl"
+          :src="game.opponentTeam.logoUrl"
+          :alt="game.opponentTeam.name"
+          class="w-full h-full object-cover"
+        />
+        <span v-else class="text-lg font-bold text-gray-400">{{
+          initials(game.opponentTeam?.name)
+        }}</span>
+      </div>
+      <!-- Game info -->
+      <div class="flex-1 min-w-0">
+        <p class="font-semibold text-gray-900 text-sm truncate">
+          vs {{ game.opponentTeam?.name ?? "Unknown" }}
         </p>
-        <p :class="resultClass" class="text-xs font-semibold mt-0.5">
-          {{ resultLabel }}
+        <p class="text-xs text-gray-500 mt-0.5">
+          {{ formatDate(game.date)
+          }}{{
+            (game.playground?.name ?? game.location)
+              ? ` · ${game.playground?.name ?? game.location}`
+              : ""
+          }}
         </p>
-      </template>
-      <template v-else>
-        <span
-          :class="statusClass"
-          class="text-xs font-semibold px-2 py-0.5 rounded-full"
-          >{{ statusLabel }}</span
-        >
-      </template>
-    </div>
-  </NuxtLink>
+      </div>
+      <!-- Score / Status (hidden when CTA is shown for SCHEDULED games) -->
+      <div class="flex-shrink-0 text-right">
+        <template v-if="game.status === GameStatus.COMPLETED">
+          <p class="font-bold text-gray-900 text-lg leading-none">
+            {{ game.homeTeamScore ?? 0 }} – {{ game.awayTeamScore ?? 0 }}
+          </p>
+          <p :class="resultClass" class="text-xs font-semibold mt-0.5">
+            {{ resultLabel }}
+          </p>
+        </template>
+        <template v-else-if="!signupState">
+          <span
+            :class="statusClass"
+            class="text-xs font-semibold px-2 py-0.5 rounded-full"
+            >{{ statusLabel }}</span
+          >
+        </template>
+        <!-- Signup CTA — outside the detail link, only for SCHEDULED games with a signupState -->
+        <GameSignUpButton
+          v-if="game.status === GameStatus.SCHEDULED && signupState"
+          :gameStatus="game.status"
+          :signupUrl="signupUrl"
+          :signupState="signupState"
+        />
+      </div>
+    </NuxtLink>
+  </div>
 </template>

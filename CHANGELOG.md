@@ -7,6 +7,27 @@ Versioning follows [Semantic Versioning](https://semver.org/) at the project lev
 
 ---
 
+## [0.8.0] — 2026-04-13
+
+### Added
+
+- **Game signup/public capacity indicators (FR-044)**: public game detail and signup experiences now show a unified "Confirmados (X/Y)" header with a green "Equipo completo" state indicator when capacity is reached.
+- **Game creation default capacity (FR-043)**: `/admin/games/create` now initializes `maxPlayers` with `DEFAULT_MAX_PLAYERS` and preserves clear-to-null behavior for unlimited games.
+- **Position UI atoms**: introduced reusable position label/number presentation components for roster and admin player surfaces.
+
+### Changed
+
+- **Signup flow UX (Wave 3/4)**: `SignupAddPlayer`, signup header/table, and related pages were updated for improved roster clarity and invitation flow behavior.
+- **Shared contracts/constants**: added exported shared constants and tightened participant typing around position values.
+- **Frontend test suite alignment**: onboarding, auth, jersey rendering, signup table, middleware, and regression tests updated to match current runtime behavior and route contracts.
+
+### Fixed
+
+- **CMS test teardown reliability**: Redis disconnect and global test teardown handling improved, eliminating lingering open-handle warnings in Jest runs.
+- **CMS API/test compatibility**: integration/unit tests and related service expectations aligned with current auth/register, profile, game, and participation contracts.
+
+---
+
 ## [0.7.1] — 2026-04-09
 
 ### Added — Spec 013: DropdownAddMore Component

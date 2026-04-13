@@ -28,6 +28,7 @@ describe("Game CRUD (integration)", () => {
     await request(app).post("/api/v1/auth/register").send({
       email: adminEmail,
       password: "Admin!Game99",
+      passwordConfirmation: "Admin!Game99",
       firstName: "Admin",
       lastName: "Game Test",
     });
@@ -44,6 +45,7 @@ describe("Game CRUD (integration)", () => {
     await request(app).post("/api/v1/auth/register").send({
       email: editorEmail,
       password: "Editor!Game99",
+      passwordConfirmation: "Editor!Game99",
       firstName: "Editor",
       lastName: "Game Test",
     });
@@ -101,10 +103,10 @@ describe("Game CRUD (integration)", () => {
     const res = await request(app)
       .patch(`/api/v1/games/${gameId}`)
       .set("Authorization", `Bearer ${editorToken}`)
-      .send({ location: "Updated Field" });
+      .send({ notes: "Updated notes" });
 
     expect(res.status).toBe(200);
-    expect(res.body.data.location).toBe("Updated Field");
+    expect(res.body.data.notes).toBe("Updated notes");
   });
 
   it("PATCH /api/v1/games/:id → 403 when editor tries to set scores", async () => {

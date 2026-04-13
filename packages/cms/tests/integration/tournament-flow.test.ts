@@ -25,6 +25,7 @@ describe("Tournament flow (integration)", () => {
     await request(app).post("/api/v1/auth/register").send({
       email: adminEmail,
       password: "Admin!Tourn99",
+      passwordConfirmation: "Admin!Tourn99",
       firstName: "Admin",
       lastName: "Tourn Test",
     });

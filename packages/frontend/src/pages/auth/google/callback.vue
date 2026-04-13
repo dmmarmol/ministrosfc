@@ -5,6 +5,8 @@ import { useAuthStore } from "~/stores/auth";
 import { useRuntime } from "~/composables/useRuntime";
 import { useOnboarding } from "~/composables/useOnboarding";
 
+definePageMeta({ middleware: "auth", authPage: true });
+
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();

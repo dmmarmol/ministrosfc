@@ -1,6 +1,6 @@
 {
   "name": "ministrosfc",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "Amateur football team platform - Monorepo",
   "private": true,
   "workspaces": [

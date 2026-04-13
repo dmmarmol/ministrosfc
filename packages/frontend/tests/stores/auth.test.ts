@@ -14,12 +14,17 @@ vi.stubGlobal("useRuntimeConfig", () => ({
 const mockFetch = vi.fn();
 vi.stubGlobal("$fetch", mockFetch);
 
+vi.mock("../../src/composables/useRuntime", () => ({
+  useRuntime: () => ({ isClient: true, isServer: false }),
+}));
+
 // Must import AFTER stubbing globals
 const { useAuthStore } = await import("../../src/stores/auth");
 
 const mockUser = {
   id: "u1",
-  name: "Admin User",
+  firstName: "Admin",
+  lastName: "User",
   email: "admin@test.com",
   role: "ADMIN" as const,
 };
@@ -36,6 +41,7 @@ describe("useAuthStore", () => {
     setActivePinia(createPinia());
     mockFetch.mockReset();
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   afterEach(() => {
@@ -79,12 +85,12 @@ describe("useAuthStore", () => {
       );
     });
 
-    it("persists refreshToken and user to localStorage", async () => {
+    it("persists refreshToken and user to sessionStorage", async () => {
       mockFetch.mockResolvedValueOnce(mockLoginResponse);
       const store = useAuthStore();
       await store.login("admin@test.com", "password123");
-      expect(localStorage.getItem("refreshToken")).toBe("refresh-token");
-      expect(JSON.parse(localStorage.getItem("user")!)).toEqual(mockUser);
+      expect(sessionStorage.getItem("refreshToken")).toBe("refresh-token");
+      expect(JSON.parse(sessionStorage.getItem("user")!)).toEqual(mockUser);
     });
   });
 
@@ -152,15 +158,15 @@ describe("useAuthStore", () => {
       expect(store.refreshToken).toBeNull();
     });
 
-    it("clears localStorage on logout", async () => {
+    it("clears sessionStorage on logout", async () => {
       mockFetch
         .mockResolvedValueOnce(mockLoginResponse)
         .mockResolvedValueOnce({});
       const store = useAuthStore();
       await store.login("admin@test.com", "password123");
       await store.logout();
-      expect(localStorage.getItem("refreshToken")).toBeNull();
-      expect(localStorage.getItem("user")).toBeNull();
+      expect(sessionStorage.getItem("refreshToken")).toBeNull();
+      expect(sessionStorage.getItem("user")).toBeNull();
     });
 
     it("proceeds silently if logout API call fails", async () => {
@@ -175,16 +181,16 @@ describe("useAuthStore", () => {
   });
 
   describe("loadFromStorage", () => {
-    it("restores user and refreshToken from localStorage", () => {
-      localStorage.setItem("user", JSON.stringify(mockUser));
-      localStorage.setItem("refreshToken", "stored-refresh-token");
+    it("restores user and refreshToken from sessionStorage", () => {
+      sessionStorage.setItem("user", JSON.stringify(mockUser));
+      sessionStorage.setItem("refreshToken", "stored-refresh-token");
       const store = useAuthStore();
       store.loadFromStorage();
       expect(store.user).toEqual(mockUser);
       expect(store.refreshToken).toBe("stored-refresh-token");
     });
 
-    it("does not restore if localStorage is empty", () => {
+    it("does not restore if sessionStorage is empty", () => {
       const store = useAuthStore();
       store.loadFromStorage();
       expect(store.user).toBeNull();

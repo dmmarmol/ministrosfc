@@ -11,7 +11,7 @@ import { z } from "zod";
 const router = Router();
 
 const topScorersSchema = z.object({
-  tournamentId: z.string().uuid().optional(),
+  tournamentId: z.uuid().optional(),
   limit: z.coerce.number().int().min(1).max(50).default(10),
 });
 

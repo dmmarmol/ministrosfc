@@ -15,6 +15,14 @@
 import { prisma } from "../config/database";
 import type { Game, GameStatus, Prisma } from "@prisma/client";
 
+export interface PaginatedResult<T> {
+  results: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 interface FindManyOptions {
   status?: GameStatus;
   tournamentId?: string;
@@ -30,7 +38,7 @@ const GameModel = {
     return prisma.game.create({ data });
   },
 
-  async findById(id: string) {
+  async findById(id: string): Promise<Game | null> {
     return prisma.game.findUnique({
       where: { id },
       include: {
@@ -47,15 +55,35 @@ const GameModel = {
                 nickname: true,
                 jerseyNumber: true,
                 position: true,
+                playerType: true,
+                invitedById: true,
               },
             },
+            confirmedBy: {
+              select: { id: true, firstName: true, lastName: true },
+            },
           },
+          orderBy: { confirmedAt: "asc" },
         },
       },
     });
   },
 
-  async findMany(options: FindManyOptions = {}) {
+  async findBySlug(slug: string): Promise<{ id: string; slug: string } | null> {
+    const result = await prisma.game.findUnique({
+      where: { slug },
+      select: { id: true, slug: true },
+    });
+    if (!result) return null;
+    return { id: result.id, slug: result.slug! };
+  },
+
+  /**
+   * Returns a paginated list of games. The result shape is generic so callers
+   * can type-narrow the `results` array to whatever include/select payload they
+   * requested (e.g. `PaginatedResult<GameWithOpponent>`).
+   */
+  async findMany<T = Game>(options: FindManyOptions = {}): Promise<PaginatedResult<T>> {
     const page = options.page ?? 1;
     const limit = Math.min(options.limit ?? 20, 100);
     const skip = (page - 1) * limit;
@@ -81,13 +109,26 @@ const GameModel = {
         include: {
           opponentTeam: { select: { id: true, name: true, logoUrl: true } },
           tournament: { select: { id: true, name: true } },
-          playground: { select: { id: true, name: true, address: true, latitude: true, longitude: true } },
+          playground: {
+            select: {
+              id: true,
+              name: true,
+              address: true,
+              latitude: true,
+              longitude: true,
+            },
+          },
+          _count: {
+            select: {
+              participants: { where: { confirmationStatus: "CONFIRMED" } },
+            },
+          },
         },
       }),
       prisma.game.count({ where }),
     ]);
 
-    return { games, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return { results: games as T[], total, page, limit, totalPages: Math.ceil(total / limit) };
   },
 
   async update(id: string, data: Prisma.GameUpdateInput): Promise<Game> {

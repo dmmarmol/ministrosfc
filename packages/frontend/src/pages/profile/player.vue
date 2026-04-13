@@ -10,7 +10,11 @@ import {
   type UpdatePlayerProfilePayload,
 } from "@ministrosfc/shared";
 
-definePageMeta({ middleware: "auth" });
+definePageMeta({
+  middleware: "auth",
+  requiresAuth: true,
+  skipOnboardingCheck: true,
+});
 useHead({ title: "Perfil de Jugador – Ministros FC" });
 
 const {

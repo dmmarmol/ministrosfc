@@ -1,8 +1,13 @@
 import { GameModel } from "../models/Game";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
+import { generateGameSlug } from "../utils/slug";
 import { getRedisClient } from "../config/redis";
-import type { GameStatus, Role } from "@prisma/client";
+import { prisma } from "../config/database";
+import { type Role, GameStatus } from "@prisma/client";
+
+/** Elapsed milliseconds for one game (100 minutes). */
+const GAME_DURATION_MS = 100 * 60 * 1000;
 
 // Non-admin game editors are limited to metadata/tactical notes.
 const NON_ADMIN_ALLOWED_FIELDS = new Set([
@@ -10,6 +15,7 @@ const NON_ADMIN_ALLOWED_FIELDS = new Set([
   "notes",
   "tournamentId",
   "playgroundId",
+  "lineup",
 ]);
 
 interface GameCreateDTO {
@@ -20,6 +26,9 @@ interface GameCreateDTO {
   tournamentId?: string;
   competitionType?: string;
   playgroundId?: string | null;
+  maxPlayers?: number | null;
+  lineup?: string | null;
+  // endDate and slug are server-generated — stripped from DTO on route
 }
 
 interface GameUpdateDTO {
@@ -33,6 +42,9 @@ interface GameUpdateDTO {
   homeTeamScore?: number;
   awayTeamScore?: number;
   playgroundId?: string | null;
+  maxPlayers?: number | null;
+  lineup?: string | null;
+  // endDate and slug are server-generated — stripped from DTO on route
 }
 
 interface SearchOptions {
@@ -49,8 +61,28 @@ const CACHE_TTL = 300; // 5 min
 
 const GameService = {
   async createGame(dto: GameCreateDTO) {
+    const gameDate = new Date(dto.date);
+    const endDate = new Date(gameDate.getTime() + GAME_DURATION_MS);
+
+    // Fetch opponent name for slug generation
+    const opponentTeam = await prisma.opponentTeam.findUnique({
+      where: { id: dto.opponentTeamId },
+      select: { name: true },
+    });
+    if (!opponentTeam) {
+      throw createError(
+        "Opponent team not found",
+        404,
+        ErrorCode.OPPONENT_NOT_FOUND,
+      );
+    }
+
+    const slug = await generateGameSlug(gameDate, opponentTeam.name, prisma);
+
     const data: any = {
-      date: new Date(dto.date),
+      date: gameDate,
+      endDate,
+      slug,
       location: dto.location,
       notes: dto.notes,
       opponentTeam: { connect: { id: dto.opponentTeamId } },
@@ -63,6 +95,8 @@ const GameService = {
         ? { connect: { id: dto.playgroundId } }
         : { disconnect: true };
     }
+    if (dto.maxPlayers !== undefined) data.maxPlayers = dto.maxPlayers;
+    if (dto.lineup !== undefined) data.lineup = dto.lineup;
 
     const game = await GameModel.create(data);
     await GameService.invalidateCache();
@@ -99,7 +133,7 @@ const GameService = {
   },
 
   async updateGame(id: string, dto: GameUpdateDTO, requestingRole: Role) {
-    await GameService.getGameById(id);
+    const currentGame = await GameService.getGameById(id);
 
     // DT and EDITOR roles share the non-admin restrictions.
     if (requestingRole === "EDITOR" || requestingRole === "DT") {
@@ -116,7 +150,31 @@ const GameService = {
     }
 
     const data: any = {};
-    if (dto.date) data.date = new Date(dto.date);
+    if (dto.date) {
+      const newDate = new Date(dto.date);
+      data.date = newDate;
+      data.endDate = new Date(newDate.getTime() + GAME_DURATION_MS);
+
+      // T016: ADMIN updating date on IN_PROGRESS game to a future date → revert to SCHEDULED
+      if (
+        requestingRole === "ADMIN" &&
+        currentGame.status === GameStatus.IN_PROGRESS &&
+        newDate > new Date()
+      ) {
+        const result = await prisma.$transaction(async (tx) => {
+          return tx.game.update({
+            where: { id },
+            data: {
+              date: newDate,
+              endDate: new Date(newDate.getTime() + GAME_DURATION_MS),
+              status: GameStatus.SCHEDULED,
+            },
+          });
+        });
+        await GameService.invalidateCache();
+        return result;
+      }
+    }
     // NOTE: 'location' is intentionally excluded from update payloads (legacy field,
     // superseded by playgroundId). Any location value in the DTO is silently dropped.
     if ("notes" in dto) data.notes = dto.notes;
@@ -133,12 +191,14 @@ const GameService = {
         ? { connect: { id: dto.playgroundId } }
         : { disconnect: true };
     }
+    if (dto.maxPlayers !== undefined) data.maxPlayers = dto.maxPlayers;
+    if ("lineup" in dto) data.lineup = dto.lineup;
 
     const updated = await GameModel.update(id, data);
 
     // If result recorded, update player statistics
     if (
-      dto.status === "COMPLETED" &&
+      dto.status === GameStatus.COMPLETED &&
       dto.homeTeamScore !== undefined &&
       dto.awayTeamScore !== undefined
     ) {

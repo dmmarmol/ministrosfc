@@ -1,8 +1,7 @@
 import { randomUUID } from "crypto";
 import type { ParsedHistorialRow } from "../parsers/parseHistorial";
 import type { IdMap } from "../types";
-
-type GameStatus = "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+import { GameStatus } from "@ministrosfc/shared";
 type CompetitionType = "FRIENDLY" | "LEAGUE" | "CUP" | "PLAYOFF" | "SEASON";
 
 const COMPETITION_TYPE_MAP: Record<string, CompetitionType> = {
@@ -68,8 +67,8 @@ export function buildGames(
     const status: GameStatus = COMPLETED_CONCLUSIONES.has(
       raw["Conclusión"]?.trim(),
     )
-      ? "COMPLETED"
-      : "SCHEDULED";
+      ? GameStatus.COMPLETED
+      : GameStatus.SCHEDULED;
 
     const notes = assembleNotes(
       raw.DT,

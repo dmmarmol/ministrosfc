@@ -5,7 +5,13 @@ import { usePlaygrounds } from "~/composables/usePlaygrounds";
 import PlaygroundMap from "~/components/PlaygroundMap.vue";
 import type { Playground } from "@ministrosfc/shared";
 
-definePageMeta({ layout: "admin", middleware: "auth", noPadding: true });
+definePageMeta({
+  layout: "admin",
+  middleware: "auth",
+  requiresAuth: true,
+  requiresRole: "editor",
+  noPadding: true,
+});
 useHead({ title: "Canchas – Admin" });
 
 const authStore = useAuthStore();

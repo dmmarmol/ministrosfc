@@ -13,7 +13,7 @@
  * were originally split (TournamentFormat vs CompetitionType) but are now unified.
  */
 import { prisma } from "../config/database";
-import type { Tournament, Prisma } from "@prisma/client";
+import { type Tournament, type Prisma, GameStatus } from "@prisma/client";
 
 export interface MinistrosRecord {
   played: number;
@@ -93,7 +93,7 @@ const TournamentModel = {
     tournamentId: string,
   ): Promise<MinistrosRecord> {
     const completedGames = await prisma.game.findMany({
-      where: { tournamentId, status: "COMPLETED" },
+      where: { tournamentId, status: GameStatus.COMPLETED },
       select: { homeTeamScore: true, awayTeamScore: true },
     });
 

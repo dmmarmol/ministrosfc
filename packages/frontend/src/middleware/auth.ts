@@ -3,64 +3,66 @@ import { useAuthStore } from "../stores/auth";
 import { useRuntime } from "~/composables/useRuntime";
 
 /**
- * Nuxt route middleware — protects authenticated and role-restricted routes.
+ * Nuxt route middleware — reads policy from per-page definePageMeta.
  *
- * Applied globally via definePageMeta({ middleware: 'auth' }) on protected pages,
- * or applied globally by registering in nuxt.config router.middleware.
- *
- * Route conventions:
- *   /admin/**  → requires ADMIN or EDITOR role
- *   /player/** → requires any authenticated user
- *   /login     → redirects authenticated users to /admin/dashboard
+ * Page meta options:
+ *   requiresAuth: true          — any authenticated user
+ *   requiresRole: "editor"      — ADMIN or EDITOR role
+ *   requiresRole: "admin"       — ADMIN only
+ *   authPage: true              — login/register pages (redirect away if already authed)
+ *   onboardingPage: true        — onboarding page (skips the needsOnboarding redirect)
+ *   skipOnboardingCheck: true   — skip the incomplete-onboarding redirect (e.g. /profile/player)
  */
 export default defineNuxtRouteMiddleware((to) => {
-  // Skip all access checks during SSR — auth state lives in sessionStorage which
-  // is unavailable server-side. The auth-init.client.ts plugin restores it before
-  // this middleware re-runs client-side after hydration.
+  // Skip during SSR — auth state lives in sessionStorage, unavailable server-side.
+  // auth-init.client.ts restores it before this re-runs on the client after hydration.
   if (useRuntime().isServer) return;
 
   const authStore = useAuthStore();
   authStore.loadFromStorage();
 
-  // Allow access to onboarding page without redirect loops
-  if (to.path === "/auth/onboarding") {
-    if (!authStore.isAuthenticated) {
-      return navigateTo("/login");
+  const meta = to.meta as {
+    requiresAuth?: boolean;
+    /** @TODO is it possible to use UserRole enum for this? */
+    requiresRole?: "editor" | "admin";
+    authPage?: boolean;
+    onboardingPage?: boolean;
+    skipOnboardingCheck?: boolean;
+  };
+
+  // Auth pages (login/register) — redirect away if already authenticated
+  if (meta.authPage) {
+    if (authStore.isAuthenticated) {
+      return navigateTo(authStore.isEditor ? "/admin/dashboard" : "/");
     }
     return;
   }
 
-  // Redirect authenticated users with incomplete onboarding
-  if (
-    authStore.isAuthenticated &&
-    authStore.needsOnboarding &&
-    to.path !== "/login" &&
-    to.path !== "/profile/player"
-  ) {
-    return navigateTo("/auth/onboarding");
+  // No auth requirement — allow through
+  if (!meta.requiresAuth) return;
+
+  // Unauthenticated — redirect to login with return path
+  if (!authStore.isAuthenticated) {
+    return navigateTo(`/login?redirect=${encodeURIComponent(to.fullPath)}`);
   }
 
-  // If navigating to /login while already authenticated, redirect away
-  if (to.path === "/login" && authStore.isAuthenticated) {
+  // Authenticated: redirect to onboarding if profile is incomplete
+  // (skip on the onboarding page itself and on pages that explicitly opt out)
+  if (
+    authStore.needsOnboarding &&
+    !meta.onboardingPage &&
+    !meta.skipOnboardingCheck
+  ) {
     return navigateTo(
-      authStore.isEditor ? "/admin/dashboard" : "/",
+      `/auth/onboarding?redirect=${encodeURIComponent(to.fullPath)}`,
     );
   }
 
-  // Admin / Editor routes
-  if (to.path.startsWith("/admin")) {
-    if (!authStore.isAuthenticated) {
-      return navigateTo(`/login?redirect=${encodeURIComponent(to.path)}`);
-    }
-    if (!authStore.isEditor) {
-      return navigateTo("/");
-    }
+  // Role check
+  if (meta.requiresRole === "admin" && !authStore.isAdmin) {
+    return navigateTo("/");
   }
-
-  // Player routes (any authenticated user)
-  if (to.path.startsWith("/player")) {
-    if (!authStore.isAuthenticated) {
-      return navigateTo(`/login?redirect=${encodeURIComponent(to.path)}`);
-    }
+  if (meta.requiresRole === "editor" && !authStore.isEditor) {
+    return navigateTo("/");
   }
 });

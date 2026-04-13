@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import { useAuthStore } from "~/stores/auth";
 import PlaygroundSelect from "~/components/PlaygroundSelect.vue";
+import { FORMATIONS, GameStatus } from "@ministrosfc/shared";
 
-definePageMeta({ layout: "admin", middleware: "auth" });
+definePageMeta({
+  layout: "admin",
+  middleware: "auth",
+  requiresAuth: true,
+  requiresRole: "editor",
+});
 
 const { $api } = useNuxtApp();
 const router = useRouter();
@@ -22,7 +28,9 @@ const form = reactive({
   notes: "",
   homeTeamScore: null as number | null,
   awayTeamScore: null as number | null,
-  status: "SCHEDULED",
+  status: GameStatus.SCHEDULED as string,
+  maxPlayers: null as number | null,
+  lineup: "4-4-2" as string,
 });
 
 watch(
@@ -35,7 +43,9 @@ watch(
     form.notes = g.notes ?? "";
     form.homeTeamScore = g.homeTeamScore ?? null;
     form.awayTeamScore = g.awayTeamScore ?? null;
-    form.status = g.status ?? "SCHEDULED";
+    form.status = g.status ?? GameStatus.SCHEDULED;
+    form.maxPlayers = g.maxPlayers ?? null;
+    form.lineup = g.lineup ?? "4-4-2";
   },
   { immediate: true },
 );
@@ -57,6 +67,8 @@ async function submit() {
       date: form.date,
       notes: form.notes,
       playgroundId: form.playgroundId ?? null,
+      maxPlayers: form.maxPlayers ?? null,
+      lineup: form.lineup ?? "4-4-2",
     };
     if (form.time) body.time = form.time;
     if (authStore.isAdmin) {
@@ -133,10 +145,42 @@ async function submit() {
         >
         <PlaygroundSelect v-model="form.playgroundId" />
         <!-- Legacy location text shown read-only if present and no playground assigned -->
-        <p v-if="game.location && !form.playgroundId" class="mt-1 text-xs text-gray-400">
+        <p
+          v-if="game.location && !form.playgroundId"
+          class="mt-1 text-xs text-gray-400"
+        >
           Legado: {{ game.location }}
         </p>
       </div>
+
+      <!-- T010: maxPlayers, T032: lineup -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1"
+            >Cupo máximo</label
+          >
+          <input
+            v-model.number="form.maxPlayers"
+            type="number"
+            min="1"
+            step="1"
+            placeholder="Sin límite"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1"
+            >Formación</label
+          >
+          <select
+            v-model="form.lineup"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          >
+            <option v-for="f in FORMATIONS" :key="f" :value="f">{{ f }}</option>
+          </select>
+        </div>
+      </div>
+
       <div>
         <label class="block text-xs font-medium text-gray-700 mb-1"
           >Notas</label
@@ -188,10 +232,10 @@ async function submit() {
               v-model="form.status"
               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
             >
-              <option value="SCHEDULED">Programado</option>
-              <option value="IN_PROGRESS">En curso</option>
-              <option value="COMPLETED">Completado</option>
-              <option value="CANCELLED">Cancelado</option>
+              <option :value="GameStatus.SCHEDULED">Programado</option>
+              <option :value="GameStatus.IN_PROGRESS">En curso</option>
+              <option :value="GameStatus.COMPLETED">Completado</option>
+              <option :value="GameStatus.CANCELLED">Cancelado</option>
             </select>
           </div>
         </div>

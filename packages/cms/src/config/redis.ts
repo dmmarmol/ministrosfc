@@ -34,7 +34,18 @@ export const redisKeys = {
 
 export async function disconnectRedis(): Promise<void> {
   if (redisClient) {
-    await redisClient.quit();
-    redisClient = null;
+    try {
+      if (redisClient.status === "ready" || redisClient.status === "connect") {
+        await redisClient.quit();
+      } else {
+        redisClient.disconnect();
+      }
+    } catch {
+      // Ensure tests can still tear down even if Redis is unavailable
+      redisClient.disconnect();
+    } finally {
+      redisClient.removeAllListeners();
+      redisClient = null;
+    }
   }
 }

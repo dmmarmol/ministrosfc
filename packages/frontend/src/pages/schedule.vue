@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { GameStatus } from "@ministrosfc/shared";
+definePageMeta({ public: true });
 useHead({ title: "Schedule – Ministros FC" });
 
 const { $api } = useNuxtApp();
@@ -16,7 +18,10 @@ const { data: teamsData } = await useAsyncData("schedule-teams", () =>
 const teams = computed(() => teamsData.value?.data ?? []);
 
 const query = computed(() => ({
-  status: activeTab.value === "upcoming" ? "SCHEDULED" : "COMPLETED",
+  status:
+    activeTab.value === "upcoming"
+      ? GameStatus.SCHEDULED
+      : GameStatus.COMPLETED,
   ...(opponentFilter.value ? { opponentTeamId: opponentFilter.value } : {}),
   limit: 50,
 }));
@@ -71,7 +76,12 @@ const games = computed(() => data.value?.data ?? []);
       />
     </div>
     <div v-else-if="games.length" class="space-y-3">
-      <GameCard v-for="game in games" :key="game.id" :game="game" />
+      <GameCard
+        v-for="game in games"
+        :key="game.id"
+        :game="game"
+        :signup-state="game.currentPlayerStatus ?? undefined"
+      />
     </div>
     <div v-else class="text-center py-16 text-gray-500">
       <p>

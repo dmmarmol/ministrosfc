@@ -67,14 +67,18 @@ describe("JerseySvg", () => {
     const wrapper = mount(JerseySvg, {
       props: { jerseyNumber: 10, lastName: "Gómez" },
     });
-    expect(wrapper.text()).toContain("10");
+    const img = wrapper.find("img");
+    expect(img.exists()).toBe(true);
+    expect(img.attributes("src")).toContain("data:image/svg+xml");
+    expect(wrapper.text()).toContain("GÓMEZ");
   });
 
   it("renders empty when number is null", () => {
     const wrapper = mount(JerseySvg, {
       props: { jerseyNumber: null, lastName: "Gómez" },
     });
-    expect(wrapper.find("svg").exists()).toBe(true);
+    expect(wrapper.find("img").exists()).toBe(true);
+    expect(wrapper.text()).toContain("GÓMEZ");
   });
 });
 

@@ -104,14 +104,13 @@ describe("Game DT permissions (integration)", () => {
   });
 
   describe("PATCH /api/v1/games/:id (DT allowed fields)", () => {
-    it("DT can update location (metadata field)", async () => {
+    it("DT cannot update location (restricted field)", async () => {
       const res = await request(app)
         .patch(`/api/v1/games/${gameId}`)
         .set("Authorization", `Bearer ${dtToken}`)
         .send({ location: "DT Tactical Field" });
 
-      expect(res.status).toBe(200);
-      expect(res.body.data.location).toBe("DT Tactical Field");
+      expect(res.status).toBe(403);
     });
 
     it("DT can update notes (metadata field)", async () => {

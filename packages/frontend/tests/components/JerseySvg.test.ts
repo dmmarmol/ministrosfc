@@ -3,13 +3,15 @@ import { mount } from "@vue/test-utils";
 import JerseySvg from "../../src/components/profile/JerseySvg.vue";
 
 describe("JerseySvg", () => {
-  it("renders SVG with jersey number", () => {
+  it("renders jersey image with generated data URI", () => {
     const wrapper = mount(JerseySvg, {
       props: { jerseyNumber: 10, lastName: "Pérez" },
     });
-    const svg = wrapper.find("svg");
-    expect(svg.exists()).toBe(true);
-    expect(wrapper.text()).toContain("10");
+    const image = wrapper.find("img");
+    expect(image.exists()).toBe(true);
+    expect(image.attributes("src")?.startsWith("data:image/svg+xml")).toBe(
+      true,
+    );
   });
 
   it("renders lastName above the number", () => {
@@ -23,8 +25,8 @@ describe("JerseySvg", () => {
     const wrapper = mount(JerseySvg, {
       props: { jerseyNumber: null, lastName: "López" },
     });
-    const svg = wrapper.find("svg");
-    expect(svg.exists()).toBe(true);
+    const image = wrapper.find("img");
+    expect(image.exists()).toBe(true);
     // Should still render without error
     expect(wrapper.text()).toContain("LÓPEZ");
   });
@@ -38,6 +40,6 @@ describe("JerseySvg", () => {
         textColor: "#FFFFFF",
       },
     });
-    expect(wrapper.find("svg").exists()).toBe(true);
+    expect(wrapper.find("img").exists()).toBe(true);
   });
 });

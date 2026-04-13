@@ -15,21 +15,21 @@ export enum PlayerStatus {
  * SS=Segundo Delantero, CF=Delantero Centro, RWF/LWF=Extremo.
  */
 export enum Position {
-  GK = "GK",
-  CB = "CB",
-  RB = "RB",
-  LB = "LB",
-  RWB = "RWB",
-  LWB = "LWB",
-  DMF = "DMF",
-  CMF = "CMF",
-  AMF = "AMF",
-  RMF = "RMF",
-  LMF = "LMF",
-  SS = "SS",
-  CF = "CF",
-  RWF = "RWF",
-  LWF = "LWF",
+  GK = "GK" /** Portero */,
+  CB = "CB" /** Defensa Central */,
+  RB = "RB" /** Lateral Derecho */,
+  LB = "LB" /** Lateral Izquierdo */,
+  RWB = "RWB" /** Carrilero Derecho */,
+  LWB = "LWB" /** Carrilero Izquierdo */,
+  DMF = "DMF" /** Mediocampista Defensivo */,
+  CMF = "CMF" /** Mediocampista Central */,
+  AMF = "AMF" /** Mediocampista Ofensivo */,
+  RMF = "RMF" /** Mediocampista Derecho */,
+  LMF = "LMF" /** Mediocampista Izquierdo */,
+  SS = "SS" /** Segundo Delantero */,
+  CF = "CF" /** Delantero Centro */,
+  RWF = "RWF" /** Extremo Derecho */,
+  LWF = "LWF" /** Extremo Izquierdo */,
 }
 
 export const PositionDisplayName = {

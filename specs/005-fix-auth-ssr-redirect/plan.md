@@ -1,13 +1,16 @@
 # Implementation Plan: Fix Auth Middleware SSR Redirect
 
-**Branch**: `fix/005-auth-ssr-redirect` | **Date**: 2026-03-25 | **Spec**: [spec.md](spec.md)
+**Branch**: `fix/005-auth-ssr-redirect` | **Date**: 2026-03-25 | **Updated**: 2026-04-10 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `specs/005-fix-auth-ssr-redirect/spec.md`
+**Status**: Implemented
 
 ## Summary
 
-Authenticated users who hard-refresh any protected page (`/admin/**`, `/player/**`) are incorrectly redirected to `/login`. The root cause is that Nuxt 3 route middleware runs on the server during SSR, where Pinia's auth store is always empty (no `localStorage`). The `auth-init.client.ts` plugin that restores state only runs client-side — after the SSR redirect has already been sent.
+Authenticated users who hard-refresh any protected page (`/admin/**`, `/profile/**`) were incorrectly redirected to `/login`. The root cause is that Nuxt 3 route middleware runs on the server during SSR, where Pinia's auth store is always empty (no `sessionStorage`). The `auth-init.client.ts` plugin that restores state only runs client-side — after the SSR redirect has already been sent.
 
 **Fix**: Add `if (useRuntime().isServer) return` as the first statement in `src/middleware/auth.ts`. This allows the server to deliver the page HTML, after which the client plugin hydrates the store and the middleware re-evaluates with the correct auth state.
+
+**Evolution**: The middleware was further refactored from a path-prefix pattern approach to a **per-page meta policy** system. Each page declares its own auth requirements in `definePageMeta`; the middleware reads those meta keys and enforces policy accordingly. This eliminates path-prefix coupling and makes each page's access control self-documenting.
 
 ## Technical Context
 
@@ -17,9 +20,9 @@ Authenticated users who hard-refresh any protected page (`/admin/**`, `/player/*
 **Testing**: Vitest (happy-dom environment) + `vi.mock` for `useRuntime`
 **Target Platform**: Browser (client-side Nuxt) + Node.js (SSR Nuxt server)
 **Project Type**: Web application (Nuxt 3 SPA/SSR hybrid)
-**Performance Goals**: N/A — one-line guard, no measurable overhead
+**Performance Goals**: N/A — lightweight meta lookup, no measurable overhead
 **Constraints**: Must use `useRuntime()` composable per constitution v1.2.0; zero regression on client-side navigation; all existing auth store tests must continue to pass
-**Scale/Scope**: 1 source file modified, 1 new test file, 1 config line changed
+**Scale/Scope**: `src/middleware/auth.ts` rewritten; 19 pages updated; 1 new TypeScript declaration file added
 
 ## Constitution Check
 
@@ -58,12 +61,21 @@ specs/005-fix-auth-ssr-redirect/
 ```text
 packages/frontend/
 ├── src/
-│   └── middleware/
-│       └── auth.ts                 ← MODIFY: add useRuntime().isServer guard (1 line)
+│   ├── middleware/
+│   │   └── auth.ts                     ← REWRITTEN: per-page meta policy enforcement
+│   ├── types/
+│   │   └── nuxt.d.ts                   ← NEW: extends PageMeta with custom auth keys
+│   └── pages/
+│       ├── login.vue                   ← authPage: true
+│       ├── auth/onboarding.vue         ← requiresAuth: true, onboardingPage: true
+│       ├── profile/index.vue           ← requiresAuth: true
+│       ├── profile/player.vue          ← requiresAuth: true, skipOnboardingCheck: true
+│       ├── games/[slug]/signup.vue     ← requiresAuth: true
+│       └── admin/**/*.vue (14 files)   ← requiresAuth: true, requiresRole: "editor"
 ├── tests/
 │   └── middleware/
-│       └── auth.test.ts            ← NEW: Vitest unit tests for all middleware branches
-└── vitest.config.ts                ← MODIFY: remove src/middleware/** from coverage exclusions
+│       └── auth.test.ts                ← NEW: Vitest unit tests for all middleware branches
+└── vitest.config.ts                    ← MODIFY: remove src/middleware/** from coverage exclusions
 ```
 
 **Structure Decision**: Single-package frontend modification. No new packages, modules, or abstractions needed.
@@ -84,9 +96,37 @@ packages/frontend/
 - ⚠️ SSR does not validate auth before sending the page shell (acceptable for a private team tool)
 - httpOnly cookie approach (Option B) deferred — tracked separately as a future auth hardening feature
 
-### ADR-002: Remove middleware from Vitest coverage exclusions
+### ADR-001: Server-skip guard over httpOnly cookie migration
 
-**Context**: `vitest.config.ts` currently excludes `src/middleware/**` from coverage.
+**Context**: Auth state is in `sessionStorage`; SSR middleware can't read it.
+
+**Decision**: Add `if (useRuntime().isServer) return` at the top of `auth.ts`.
+
+**Consequences**:
+
+- ✅ Zero API changes required
+- ✅ Zero security regression — protected data still requires authenticated API calls
+- ✅ Works without any infrastructure changes
+- ⚠️ SSR does not validate auth before sending the page shell (acceptable for a private team tool)
+- httpOnly cookie approach (Option B) deferred — tracked separately as a future auth hardening feature
+
+### ADR-002: Per-page meta policy over path-prefix pattern matching
+
+**Context**: The original middleware used path-prefix checks (`/admin/`, `/profile/`, etc.) to determine which pages required auth. Adding a new protected page required updating the middleware itself.
+
+**Decision**: Rewrite the middleware to read policy exclusively from Nuxt's `to.meta` (set via `definePageMeta` on each page). Each page declares its own requirements using typed meta keys: `requiresAuth`, `requiresRole`, `authPage`, `onboardingPage`, `skipOnboardingCheck`.
+
+**Consequences**:
+
+- ✅ Each page is self-documenting — its access policy is visible right where the component is defined
+- ✅ Adding a new protected page requires zero changes to the middleware
+- ✅ TypeScript type safety via `src/types/nuxt.d.ts` extending Nuxt's `PageMeta` interface
+- ✅ Eliminates risk of path-prefix typos silently leaving pages unprotected
+- ⚠️ A developer forgetting to add `requiresAuth: true` to a new page leaves it unprotected (mitigated by the type declaration making the keys discoverable)
+
+### ADR-003: Remove middleware from Vitest coverage exclusions
+
+**Context**: `vitest.config.ts` previously excluded `src/middleware/**` from coverage.
 
 **Decision**: Remove the exclusion so the new middleware tests register against coverage thresholds.
 
@@ -101,27 +141,40 @@ packages/frontend/
 
 Create `packages/frontend/tests/middleware/auth.test.ts` covering:
 
-| Test case                                                   | Expected behaviour                                                  |
-| ----------------------------------------------------------- | ------------------------------------------------------------------- |
-| `isServer: true` (any route)                                | Returns `undefined`; `navigateTo` never called                      |
-| `isServer: false`, unauthenticated, `/admin/dashboard`      | Redirects to `/login?redirect=%2Fadmin%2Fdashboard`                 |
-| `isServer: false`, unauthenticated, `/player/games`         | Redirects to `/login?redirect=%2Fplayer%2Fgames`                    |
-| `isServer: false`, authenticated ADMIN, `/admin/dashboard`  | No redirect (returns `undefined`)                                   |
-| `isServer: false`, authenticated PLAYER, `/admin/dashboard` | Redirects to `/`                                                    |
-| `isServer: false`, authenticated user on `/login`           | Redirects to `/admin/dashboard` (ADMIN) or `/player/games` (PLAYER) |
+| Test case                                                                                               | Expected behaviour                                      |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `isServer: true` (any route)                                                                            | Returns `undefined`; `navigateTo` never called          |
+| `isServer: false`, unauthenticated, page with `requiresAuth: true`                                      | Redirects to `/login?redirect=<path>`                   |
+| `isServer: false`, unauthenticated, public page (no meta)                                               | No redirect                                             |
+| `isServer: false`, authenticated ADMIN, page with `requiresAuth: true`                                  | No redirect                                             |
+| `isServer: false`, authenticated PLAYER, page with `requiresRole: "editor"`                             | Redirects to `/`                                        |
+| `isServer: false`, authenticated user, page with `authPage: true`                                       | Redirects to `/admin/dashboard` (ADMIN) or `/` (PLAYER) |
+| `isServer: false`, unauthenticated, page with `authPage: true`                                          | No redirect                                             |
+| `isServer: false`, authenticated, needs onboarding, page without `onboardingPage`/`skipOnboardingCheck` | Redirects to `/auth/onboarding`                         |
 
-### Phase 2 (TDD — GREEN): Implement the guard
+### Phase 2 (TDD — GREEN): Implement the middleware
 
-In `src/middleware/auth.ts`:
+Rewrite `src/middleware/auth.ts`:
 
 1. Import `useRuntime` from `~/composables/useRuntime`
-2. Add `if (useRuntime().isServer) return` as the first line of the middleware handler
+2. Add `if (useRuntime().isServer) return` as the first line
+3. Read `to.meta` and cast to the policy shape
+4. Enforce `authPage`, `requiresAuth`, onboarding redirect, `requiresRole` in order
 
-### Phase 3: Update vitest.config.ts
+### Phase 3: Add TypeScript declarations
+
+Create `src/types/nuxt.d.ts` extending `PageMeta` with all custom meta keys.
+
+### Phase 4: Update all pages
+
+Add the appropriate meta keys to all 19 pages' `definePageMeta` calls.
+
+### Phase 5: Update vitest.config.ts
 
 Remove `"src/middleware/**"` from the `coverage.exclude` array.
 
-### Phase 4: Verify
+### Phase 6: Verify
 
 - Run `npx vitest run` in `packages/frontend` — all tests green ✅
 - Manual: log in, hard-refresh `/admin/dashboard` — stays on page ✅
+- Manual: log out, navigate to `/games/:slug/signup` — redirects to `/login?redirect=...` ✅

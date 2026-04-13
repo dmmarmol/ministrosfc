@@ -50,7 +50,7 @@
 - [x] T012 Create `packages/cms/src/routes/playgrounds.ts` — define 5 Express endpoints: `GET /` (list, no auth required — public endpoint), `GET /:id` (single, no auth required — public endpoint), `POST /` (create, requires Admin or Editor role, Zod body: `{ name: z.string().min(1).max(255), address: z.string().min(1).max(500) }`), `PATCH /:id` (update, requires Admin or Editor role, Zod body: `{ name: z.string().min(1).max(255).optional(), address: z.string().min(1).max(500).optional() }`), `DELETE /:id` (delete, requires Admin role only)
 - [x] T013 Mount the playgrounds router in `packages/cms/src/main.ts` — add `app.use('/api/v1/playgrounds', playgroundsRouter)` after the existing route mounts
 - [x] T014 [P] Extend `packages/cms/src/models/GameModel.ts` — add `include: { playground: true }` to the `findAll` and `findById` Prisma queries so the expanded playground relation is returned in game responses
-- [x] T015 [P] Add `playgroundId: z.string().uuid().optional().nullable()` to both the create and update Zod request body schemas in `packages/cms/src/routes/games.ts`
+- [x] T015 [P] Add `playgroundId: z.uuid().optional().nullable()` to both the create and update Zod request body schemas in `packages/cms/src/routes/games.ts`
 - [x] T016 Extend `packages/cms/src/services/GameService.ts` — forward `playgroundId` (when present in the validated payload) as part of the data passed to `GameModel.create` and `GameModel.update`; do not include the `location` field in update payloads (it must never be overwritten by this feature)
 - [x] T017 Run `npx tsc --noEmit` in `packages/cms`, then `npm test` — T005 and T006 tests must pass; no existing game or auth tests may regress
 

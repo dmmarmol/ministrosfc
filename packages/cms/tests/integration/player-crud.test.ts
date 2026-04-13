@@ -34,6 +34,7 @@ describe("Player CRUD (integration)", () => {
     const reg = await request(app).post("/api/v1/auth/register").send({
       email: adminEmail,
       password: "Admin!Secret99",
+      passwordConfirmation: "Admin!Secret99",
       firstName: "Admin",
       lastName: "Player Test",
     });
@@ -53,6 +54,7 @@ describe("Player CRUD (integration)", () => {
     const regEditor = await request(app).post("/api/v1/auth/register").send({
       email: editorEmail,
       password: "Editor!Secret99",
+      passwordConfirmation: "Editor!Secret99",
       firstName: "Editor",
       lastName: "Player Test",
     });

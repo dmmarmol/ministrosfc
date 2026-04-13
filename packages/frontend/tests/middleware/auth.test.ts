@@ -62,6 +62,18 @@ const { default: authMiddleware } =
 
 // ── Helper: build a minimal route object ──────────────────────────────────────
 function route(path: string): RouteLocationNormalized {
+  const meta: Record<string, unknown> = {};
+  if (path.startsWith("/admin")) {
+    meta.requiresAuth = true;
+    meta.requiresRole = "editor";
+  }
+  if (path.startsWith("/player")) {
+    meta.requiresAuth = true;
+  }
+  if (path === "/login" || path === "/register") {
+    meta.authPage = true;
+  }
+
   return {
     path,
     fullPath: path,
@@ -69,7 +81,7 @@ function route(path: string): RouteLocationNormalized {
     params: {},
     hash: "",
     matched: [],
-    meta: {},
+    meta,
     name: undefined,
     redirectedFrom: undefined,
   } as unknown as RouteLocationNormalized;
@@ -211,10 +223,10 @@ describe("auth middleware", () => {
       mockAuthStore.isAdmin = false;
     });
 
-    it("redirects PLAYER to /player/games", () => {
+    it("redirects PLAYER to /", () => {
       authMiddleware(route("/login"));
 
-      expect(mockNavigateTo).toHaveBeenCalledWith("/player/games");
+      expect(mockNavigateTo).toHaveBeenCalledWith("/");
     });
   });
 

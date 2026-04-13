@@ -2,7 +2,12 @@
 import { useAuthStore } from "~/stores/auth";
 import PlayerDeleteModal from "~/components/player/PlayerDeleteModal.vue";
 
-definePageMeta({ layout: "admin", middleware: "auth" });
+definePageMeta({
+  layout: "admin",
+  middleware: "auth",
+  requiresAuth: true,
+  requiresRole: "editor",
+});
 useHead({ title: "Players – Admin" });
 
 const { $api } = useNuxtApp();
@@ -166,15 +171,39 @@ async function confirmDelete() {
                   >👤</span
                 >
               </div>
-              <span class="font-medium text-gray-900"
-                >{{ p.firstName }} {{ p.lastName }}</span
-              >
+              <div class="min-w-0">
+                <span class="font-medium text-gray-900 block truncate"
+                  >{{ p.firstName }} {{ p.lastName }}</span
+                >
+                <div class="flex items-center gap-1 mt-0.5 flex-wrap">
+                  <!-- T040: guest badge -->
+                  <span
+                    v-if="p.playerType === 'GUEST'"
+                    class="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full"
+                    >Invitado</span
+                  >
+                  <!-- T041: deleted inviter warning -->
+                  <span
+                    v-if="
+                      p.playerType === 'GUEST' &&
+                      p.invitedById &&
+                      !p.invitedByName
+                    "
+                    class="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full"
+                    >Invitante eliminado</span
+                  >
+                </div>
+              </div>
             </td>
             <td class="px-4 py-3 text-gray-600 hidden sm:table-cell">
-              {{ p.position ?? "—" }}
+              <UiPositionLabel :position="p.position" />
             </td>
             <td class="px-4 py-3 text-right text-gray-600 hidden sm:table-cell">
-              {{ p.jerseyNumber ?? "—" }}
+              <UiPositionNumber
+                :jersey-number="p.jerseyNumber"
+                :is-guest="p.playerType === 'GUEST'"
+                :is-jersey="true"
+              />
             </td>
             <td class="px-4 py-3 text-center">
               <span

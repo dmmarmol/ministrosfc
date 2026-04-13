@@ -29,6 +29,7 @@ describe("Participation flow (integration)", () => {
     await request(app).post("/api/v1/auth/register").send({
       email: adminEmail,
       password: "Admin!Part99",
+      passwordConfirmation: "Admin!Part99",
       firstName: "Admin",
       lastName: "Part Test",
     });
@@ -45,6 +46,7 @@ describe("Participation flow (integration)", () => {
     const regPlayer = await request(app).post("/api/v1/auth/register").send({
       email: playerEmail,
       password: "Player!Part99",
+      passwordConfirmation: "Player!Part99",
       firstName: "Player",
       lastName: "Part Test",
     });

@@ -6,7 +6,7 @@ import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
 import PlayerDeleteModal from "../../src/components/player/PlayerDeleteModal.vue";
 
-const basePlayer = { id: "p-1", name: "Diego Martín" };
+const basePlayer = { id: "p-1", firstName: "Diego", lastName: "Martín" };
 
 describe("PlayerDeleteModal", () => {
   it("renders player name in modal body", () => {

@@ -12,11 +12,33 @@ export enum GameStatus {
  */
 export enum CompetitionType {
   FRIENDLY = "FRIENDLY",
-  LEAGUE   = "LEAGUE",
-  CUP      = "CUP",
-  PLAYOFF  = "PLAYOFF",
-  SEASON   = "SEASON",
+  LEAGUE = "LEAGUE",
+  CUP = "CUP",
+  PLAYOFF = "PLAYOFF",
+  SEASON = "SEASON",
 }
+
+export const FORMATIONS = [
+  "4-4-2",
+  "4-3-3",
+  "4-2-3-1",
+  "4-5-1",
+  "4-1-4-1",
+  "4-3-2-1",
+  "4-4-1-1",
+  "3-4-3",
+  "3-5-2",
+  "3-4-2-1",
+  "5-3-2",
+  "5-4-1",
+  "5-2-3",
+  "4-2-4",
+] as const;
+
+export type FormationCode = (typeof FORMATIONS)[number];
+
+/** Server-computed signup state returned in `GET /api/v1/games` for PLAYER callers only. */
+export type GameSignupState = "available" | "signed_up" | "full";
 
 export interface AdvancedStats {
   possession?: number;
@@ -46,6 +68,13 @@ export interface Game {
   shotsOnTarget?: number | null;
   fouls?: number | null;
   notes?: string | null;
+  // Feature 014: game signup fields (read-only, server-generated)
+  maxPlayers: number | null;
+  slug: string;
+  lineup: FormationCode | null;
+  endDate: string;
+  /** Server-computed for PLAYER callers; absent for guests and non-PLAYER roles. Never in DTOs. */
+  currentPlayerStatus?: GameSignupState | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -56,6 +85,9 @@ export interface GameCreateDTO {
   date: string;
   location?: string;
   competitionType?: CompetitionType;
+  maxPlayers?: number;
+  lineup?: FormationCode;
+  // endDate is server-generated (date + 100 min) — do NOT include in payloads
 }
 
 export interface GameUpdateDTO {
@@ -70,4 +102,7 @@ export interface GameUpdateDTO {
   fouls?: number;
   notes?: string;
   tournamentId?: string;
+  maxPlayers?: number | null;
+  lineup?: FormationCode | null;
+  // endDate is server-generated (date + 100 min) — do NOT include in payloads
 }
