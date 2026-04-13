@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, nextTick } from "vue";
 import { useNuxtApp, useAsyncData, useHead } from "nuxt/app";
 import { GameStatus } from "@ministrosfc/shared";
 import { formatDate } from "~/utils/formatDate";
+import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
 definePageMeta({
   layout: "admin",
   middleware: "auth",
@@ -31,6 +32,9 @@ const { data, pending, refresh } = await useAsyncData("admin-games", () =>
 );
 watch([statusFilter, opponentFilter], () => refresh());
 const games = computed(() => data.value?.data ?? []);
+const gameToDelete = ref<any | null>(null);
+const deleteModalOpen = ref(false);
+const deleteInvoker = ref<HTMLElement | null>(null);
 
 function statusClass(s: string): string {
   const map: Record<string, string> = {
@@ -41,15 +45,30 @@ function statusClass(s: string): string {
   return map[s] ?? "bg-gray-100 text-gray-500";
 }
 
-async function deleteGame(id: string) {
-  if (!confirm("¿Eliminar este partido? Esta acción no se puede deshacer."))
-    return;
-  try {
-    await $api(`/api/v1/games/${id}`, { method: "DELETE" });
-    await refresh();
-  } catch (e: any) {
-    alert(e?.message ?? "Failed to delete game.");
+watch(deleteModalOpen, (isOpen) => {
+  if (!isOpen && deleteInvoker.value) {
+    nextTick(() => deleteInvoker.value?.focus());
   }
+});
+
+function askDeleteGame(game: any, event: Event) {
+  gameToDelete.value = game;
+  deleteInvoker.value = event.currentTarget as HTMLElement;
+  deleteModalOpen.value = true;
+}
+
+function getDeleteGameDescription(game: any | null): string {
+  if (!game) return "";
+  return "¿Eliminar este partido? Esta acción no se puede deshacer.";
+}
+
+async function deleteGame() {
+  if (!gameToDelete.value) return;
+  const gameId = gameToDelete.value.id;
+  await $api(`/api/v1/games/${gameId}`, { method: "DELETE" });
+  deleteModalOpen.value = false;
+  gameToDelete.value = null;
+  await refresh();
 }
 
 const toastMessage = ref("");
@@ -92,6 +111,22 @@ function canShareSignup(g: any): boolean {
 
 <template>
   <div>
+    <ConfirmationModal
+      :open="deleteModalOpen"
+      title="Eliminar partido"
+      :description="getDeleteGameDescription(gameToDelete)"
+      confirm-text="Eliminar"
+      cancel-text="Cancelar"
+      :on-confirm="deleteGame"
+      :on-cancel="
+        () => {
+          deleteModalOpen = false;
+          gameToDelete = null;
+        }
+      "
+      @update:open="(value) => (deleteModalOpen = value)"
+    />
+
     <!-- Toast -->
     <transition name="fade">
       <div
@@ -219,7 +254,7 @@ function canShareSignup(g: any): boolean {
                 >
                 <button
                   class="text-xs text-red-400 hover:text-red-600 transition-colors"
-                  @click="deleteGame(g.id)"
+                  @click="askDeleteGame(g, $event)"
                 >
                   Eliminar
                 </button>

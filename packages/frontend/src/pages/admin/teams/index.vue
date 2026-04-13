@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { nextTick } from "vue";
+import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
+
 definePageMeta({
   layout: "admin",
   middleware: "auth",
@@ -12,11 +15,20 @@ const showCreate = ref(false);
 const newTeam = reactive({ name: "", colors: "" });
 const createLoading = ref(false);
 const createError = ref("");
+const teamToDelete = ref<any | null>(null);
+const deleteModalOpen = ref(false);
+const deleteInvoker = ref<HTMLElement | null>(null);
 
 const { data, pending, refresh } = await useAsyncData("admin-teams-page", () =>
   $api<{ data: any[] }>("/api/v1/teams"),
 );
 const teams = computed(() => data.value?.data ?? []);
+
+watch(deleteModalOpen, (isOpen) => {
+  if (!isOpen && deleteInvoker.value) {
+    nextTick(() => deleteInvoker.value?.focus());
+  }
+});
 
 async function createTeam() {
   if (!newTeam.name) return;
@@ -38,22 +50,44 @@ async function createTeam() {
   }
 }
 
-async function deleteTeam(team: any) {
-  if (!confirm(`Delete "${team.name}"? This will fail if the team has games.`))
-    return;
-  try {
-    await $api(`/api/v1/teams/${team.id}`, { method: "DELETE" });
-    await refresh();
-  } catch (e: any) {
-    alert(
-      e?.message ?? "Failed to delete team. It may be referenced in games.",
-    );
-  }
+function askDeleteTeam(team: any, event: Event) {
+  teamToDelete.value = team;
+  deleteInvoker.value = event.currentTarget as HTMLElement;
+  deleteModalOpen.value = true;
+}
+
+function getDeleteTeamDescription(team: any | null): string {
+  if (!team) return "";
+  return `Delete "${team.name}"? This will fail if the team has games.`;
+}
+
+async function deleteTeam() {
+  if (!teamToDelete.value) return;
+  await $api(`/api/v1/teams/${teamToDelete.value.id}`, { method: "DELETE" });
+  deleteModalOpen.value = false;
+  teamToDelete.value = null;
+  await refresh();
 }
 </script>
 
 <template>
   <div>
+    <ConfirmationModal
+      :open="deleteModalOpen"
+      title="Delete team"
+      :description="getDeleteTeamDescription(teamToDelete)"
+      confirm-text="Delete"
+      cancel-text="Cancel"
+      :on-confirm="deleteTeam"
+      :on-cancel="
+        () => {
+          deleteModalOpen = false;
+          teamToDelete = null;
+        }
+      "
+      @update:open="(value) => (deleteModalOpen = value)"
+    />
+
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-base font-semibold text-gray-700">Opponent Teams</h2>
       <button
@@ -146,7 +180,7 @@ async function deleteTeam(team: any) {
             <td class="px-4 py-3 text-right">
               <button
                 class="text-xs text-red-400 hover:text-red-600 transition-colors"
-                @click="deleteTeam(t)"
+                @click="askDeleteTeam(t, $event)"
               >
                 Delete
               </button>

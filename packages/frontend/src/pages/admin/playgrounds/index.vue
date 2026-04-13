@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch, nextTick } from "vue";
 import { useAuthStore } from "~/stores/auth";
 import { usePlaygrounds } from "~/composables/usePlaygrounds";
 import PlaygroundMap from "~/components/PlaygroundMap.vue";
+import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
 import type { Playground } from "@ministrosfc/shared";
 
 definePageMeta({
@@ -20,6 +21,9 @@ const { playgrounds, loading, fetchPlaygrounds, deletePlayground } =
 
 const mapRef = ref<InstanceType<typeof PlaygroundMap> | null>(null);
 const highlightedId = ref<string | null>(null);
+const playgroundToDelete = ref<Playground | null>(null);
+const deleteModalOpen = ref(false);
+const deleteInvoker = ref<HTMLElement | null>(null);
 
 onMounted(() => {
   fetchPlaygrounds();
@@ -34,20 +38,54 @@ function onPinClick(id: string) {
   highlightedId.value = id;
 }
 
-async function confirmDelete(pg: Playground) {
-  if (!confirm(`¿Eliminar "${pg.name}"? Esta acción no se puede deshacer.`))
-    return;
-  try {
-    await deletePlayground(pg.id);
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Error al eliminar cancha";
-    alert(msg);
+watch(deleteModalOpen, (isOpen) => {
+  if (!isOpen && deleteInvoker.value) {
+    nextTick(() => deleteInvoker.value?.focus());
   }
+});
+
+function askDeletePlayground(pg: Playground, event: Event) {
+  playgroundToDelete.value = pg;
+  deleteInvoker.value = event.currentTarget as HTMLElement;
+  deleteModalOpen.value = true;
+}
+
+function onCancelDelete() {
+  deleteModalOpen.value = false;
+  playgroundToDelete.value = null;
+}
+
+async function confirmDelete() {
+  if (!playgroundToDelete.value) return;
+  await deletePlayground(playgroundToDelete.value.id);
+  deleteModalOpen.value = false;
+  playgroundToDelete.value = null;
+}
+
+function getConfirmationDescription(
+  playgroundToDelete: Playground | null,
+): string {
+  if (!playgroundToDelete) return "";
+  if (playgroundToDelete.gameCount > 0) {
+    return `La cancha \'${playgroundToDelete.name}\' está en uso por ${playgroundToDelete.gameCount} partido(s). No se puede eliminar hasta que se reasignen o eliminen esos partidos.`;
+  }
+  return `¿Eliminar la cancha \'${playgroundToDelete.name}\'? Esta acción no se puede deshacer.`;
 }
 </script>
 
 <template>
   <div class="flex flex-col h-full">
+    <ConfirmationModal
+      :open="deleteModalOpen"
+      title="Eliminar cancha"
+      :description="getConfirmationDescription(playgroundToDelete)"
+      confirm-text="Eliminar"
+      cancel-text="Cancelar"
+      :on-confirm="confirmDelete"
+      :on-cancel="onCancelDelete"
+      @update:open="(value) => (deleteModalOpen = value)"
+    />
+
     <header
       class="flex items-center justify-between p-6 shadow-md bg-gray-100 z-50 relative"
     >
@@ -103,7 +141,7 @@ async function confirmDelete(pg: Playground) {
                     <button
                       class="text-xs text-red-600 hover:text-red-800 disabled:opacity-40 disabled:pointer-events-none"
                       :disabled="pg.gameCount > 0"
-                      @click.stop="confirmDelete(pg)"
+                      @click.stop="askDeletePlayground(pg, $event)"
                     >
                       Eliminar
                     </button>

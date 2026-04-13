@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { nextTick } from "vue";
+import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
+
 definePageMeta({
   layout: "admin",
   middleware: "auth",
@@ -17,11 +20,20 @@ const newT = reactive({
 });
 const createLoading = ref(false);
 const createError = ref("");
+const tournamentToDelete = ref<any | null>(null);
+const deleteModalOpen = ref(false);
+const deleteInvoker = ref<HTMLElement | null>(null);
 
 const { data, pending, refresh } = await useAsyncData("admin-tournaments", () =>
   $api<{ data: any[] }>("/api/v1/tournaments"),
 );
 const tournaments = computed(() => data.value?.data ?? []);
+
+watch(deleteModalOpen, (isOpen) => {
+  if (!isOpen && deleteInvoker.value) {
+    nextTick(() => deleteInvoker.value?.focus());
+  }
+});
 
 function formatDateRange(start: string, end: string | null): string {
   const s = new Date(start).toLocaleDateString("en-US", {
@@ -64,19 +76,46 @@ async function createTournament() {
   }
 }
 
-async function deleteTournament(t: any) {
-  if (!confirm(`Delete "${t.name}"?`)) return;
-  try {
-    await $api(`/api/v1/tournaments/${t.id}`, { method: "DELETE" });
-    await refresh();
-  } catch (e: any) {
-    alert(e?.message ?? "Cannot delete: tournament may have associated games.");
-  }
+function askDeleteTournament(t: any, event: Event) {
+  tournamentToDelete.value = t;
+  deleteInvoker.value = event.currentTarget as HTMLElement;
+  deleteModalOpen.value = true;
+}
+
+function getDeleteTournamentDescription(tournament: any | null): string {
+  if (!tournament) return "";
+  return `Delete "${tournament.name}"?`;
+}
+
+async function deleteTournament() {
+  if (!tournamentToDelete.value) return;
+  await $api(`/api/v1/tournaments/${tournamentToDelete.value.id}`, {
+    method: "DELETE",
+  });
+  deleteModalOpen.value = false;
+  tournamentToDelete.value = null;
+  await refresh();
 }
 </script>
 
 <template>
   <div>
+    <ConfirmationModal
+      :open="deleteModalOpen"
+      title="Delete tournament"
+      :description="getDeleteTournamentDescription(tournamentToDelete)"
+      confirm-text="Delete"
+      cancel-text="Cancel"
+      :on-confirm="deleteTournament"
+      :on-cancel="
+        () => {
+          deleteModalOpen = false;
+          tournamentToDelete = null;
+        }
+      "
+      @update:open="(value) => (deleteModalOpen = value)"
+    />
+
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-base font-semibold text-gray-700">Tournaments</h2>
       <button
@@ -215,7 +254,7 @@ async function deleteTournament(t: any) {
               >
               <button
                 class="text-xs text-red-400 hover:text-red-600 transition-colors"
-                @click="deleteTournament(t)"
+                @click="askDeleteTournament(t, $event)"
               >
                 Delete
               </button>
