@@ -1,8 +1,13 @@
 {
   "name": "ministrosfc",
-  "version": "0.9.0",
+  "version": "0.8.0",
   "description": "Amateur football team platform - Monorepo",
   "private": true,
+  "author": {
+    "name": "Diego Martin Marmol",
+    "email": "diegomartinmarmol@gmail.com",
+    "url": "https://diegomarmol.com"
+  },
   "workspaces": [
     "packages/*"
   ],
@@ -19,7 +24,6 @@
     "install:all": "npm install",
     "seed:import": "npm run seed:import --workspace=@ministrosfc/cms"
   },
-  "author": "Diego Martin Marmol <diegomartinmarmol@gmail.com>",
   "license": "ISC",
   "engines": {
     "node": ">=23.0.0",
