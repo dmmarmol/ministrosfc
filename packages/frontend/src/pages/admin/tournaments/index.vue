@@ -70,7 +70,7 @@ async function createTournament() {
     });
     await refresh();
   } catch (e: any) {
-    createError.value = e?.message ?? "Failed to create tournament.";
+    createError.value = e?.message ?? "No se pudo crear el torneo.";
   } finally {
     createLoading.value = false;
   }
@@ -84,7 +84,7 @@ function askDeleteTournament(t: any, event: Event) {
 
 function getDeleteTournamentDescription(tournament: any | null): string {
   if (!tournament) return "";
-  return `Delete "${tournament.name}"?`;
+  return `¿Eliminar "${tournament.name}"?`;
 }
 
 async function deleteTournament() {
@@ -102,10 +102,10 @@ async function deleteTournament() {
   <div>
     <ConfirmationModal
       :open="deleteModalOpen"
-      title="Delete tournament"
+      title="Eliminar torneo"
       :description="getDeleteTournamentDescription(tournamentToDelete)"
-      confirm-text="Delete"
-      cancel-text="Cancel"
+      confirm-text="Eliminar"
+      cancel-text="Cancelar"
       :on-confirm="deleteTournament"
       :on-cancel="
         () => {

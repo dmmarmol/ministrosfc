@@ -54,7 +54,7 @@ async function submit() {
     await $api("/api/v1/players", { method: "POST", body: fd });
     await router.push("/admin/players");
   } catch (e: any) {
-    error.value = e?.message ?? "Failed to create player.";
+    error.value = e?.message ?? "No se pudo crear el jugador.";
   } finally {
     loading.value = false;
   }

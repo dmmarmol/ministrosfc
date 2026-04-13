@@ -79,7 +79,7 @@ async function submit() {
     await $api(`/api/v1/games/${id}`, { method: "PATCH", body });
     await router.push("/admin/games");
   } catch (e: any) {
-    error.value = e?.message ?? "Failed to save game.";
+    error.value = e?.message ?? "No se pudo guardar el partido.";
   } finally {
     loading.value = false;
   }

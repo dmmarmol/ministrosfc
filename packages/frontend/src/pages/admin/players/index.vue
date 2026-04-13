@@ -93,7 +93,7 @@ async function confirmDelete() {
     await refresh();
   } catch (e: any) {
     playerToDelete.value = null;
-    alert(e?.message ?? "Failed to delete player.");
+    alert(e?.message ?? "No se pudo eliminar el jugador.");
   }
 }
 </script>

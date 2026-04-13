@@ -79,7 +79,7 @@ async function submit() {
     await $api(`/api/v1/players/${id}`, { method: "PATCH", body: fd });
     await router.push("/admin/players");
   } catch (e: any) {
-    error.value = e?.message ?? "Failed to save player.";
+    error.value = e?.message ?? "No se pudo guardar el jugador.";
   } finally {
     loading.value = false;
   }
@@ -96,7 +96,7 @@ async function toggleStatus() {
     });
     await refresh();
   } catch (e: any) {
-    error.value = e?.message ?? "Failed to update status.";
+    error.value = e?.message ?? "No se pudo actualizar el estado.";
   } finally {
     loading.value = false;
   }
@@ -110,7 +110,7 @@ async function confirmDelete() {
     await navigateTo("/admin/players");
   } catch (e: any) {
     showDeleteModal.value = false;
-    error.value = e?.message ?? "Failed to delete player.";
+    error.value = e?.message ?? "No se pudo eliminar el jugador.";
   } finally {
     loading.value = false;
   }

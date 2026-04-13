@@ -73,7 +73,7 @@ async function submit() {
     await $api("/api/v1/games", { method: "POST", body });
     await router.push("/admin/games");
   } catch (e: any) {
-    error.value = e?.message ?? "Failed to create game.";
+    error.value = e?.message ?? "No se pudo crear el partido.";
   } finally {
     loading.value = false;
   }

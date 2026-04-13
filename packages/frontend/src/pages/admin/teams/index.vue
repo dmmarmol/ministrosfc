@@ -44,7 +44,7 @@ async function createTeam() {
     newTeam.colors = "";
     await refresh();
   } catch (e: any) {
-    createError.value = e?.message ?? "Failed to create team.";
+    createError.value = e?.message ?? "No se pudo crear el equipo.";
   } finally {
     createLoading.value = false;
   }
@@ -58,7 +58,7 @@ function askDeleteTeam(team: any, event: Event) {
 
 function getDeleteTeamDescription(team: any | null): string {
   if (!team) return "";
-  return `Delete "${team.name}"? This will fail if the team has games.`;
+  return `¿Eliminar "${team.name}"? Esta acción fallará si el equipo tiene partidos.`;
 }
 
 async function deleteTeam() {
@@ -74,10 +74,10 @@ async function deleteTeam() {
   <div>
     <ConfirmationModal
       :open="deleteModalOpen"
-      title="Delete team"
+      title="Eliminar equipo"
       :description="getDeleteTeamDescription(teamToDelete)"
-      confirm-text="Delete"
-      cancel-text="Cancel"
+      confirm-text="Eliminar"
+      cancel-text="Cancelar"
       :on-confirm="deleteTeam"
       :on-cancel="
         () => {
