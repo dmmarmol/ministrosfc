@@ -474,7 +474,7 @@ All parallel, each paired with its implementation task (TDD):
 ### Implementation
 
 - [x] T070 [P] Update `packages/cms/tests/unit/ParticipationService.test.ts` — **write these failing tests first (TDD red)**: change existing "DT removes → 403" test to two cases: (a) "DT removes from SCHEDULED game → `deleteMany` called (succeeds)"; (b) "DT removes from COMPLETED game → throws 403"; add `selfUnregister` test group: (1) game SCHEDULED + user has linked playerId → `deleteMany` called with `{ gameId, playerId }`; (2) game not SCHEDULED → throws 422 `GAME_NOT_SCHEDULED`; (3) user has no linked playerId → throws 422; (4) `deleteMany` finds no records → no error (idempotent)
-- [ ] T065 [US9] Add `ParticipationService.selfUnregister(gameId: string, requestingUserId: string): Promise<void>` in `packages/cms/src/services/ParticipationService.ts` — fetch game; verify `status === GameStatus.SCHEDULED` → else throw 422 `GAME_NOT_SCHEDULED`; fetch user `playerId` via `prisma.user.findUnique({ select: { playerId: true } })` → if null throw 422; call `prisma.gameParticipant.deleteMany({ where: { gameId, playerId } })` (idempotent); register `DELETE /api/v1/games/:gameId/participants/self` in `packages/cms/src/routes/participants.ts` — `authenticate` + PLAYER role; return 204 (depends on T070 failing test)
+- [x] T065 [US9] Add `ParticipationService.selfUnregister(gameId: string, requestingUserId: string): Promise<void>` in `packages/cms/src/services/ParticipationService.ts` — fetch game; verify `status === GameStatus.SCHEDULED` → else throw 422 `GAME_NOT_SCHEDULED`; fetch user `playerId` via `prisma.user.findUnique({ select: { playerId: true } })` → if null throw 422; call `prisma.gameParticipant.deleteMany({ where: { gameId, playerId } })` (idempotent); register `DELETE /api/v1/games/:gameId/participants/self` in `packages/cms/src/routes/participants.ts` — `authenticate` + PLAYER role; return 204 (depends on T070 failing test)
 - [x] T066 [P] [US9] Fix `ParticipationService.removeParticipant` in `packages/cms/src/services/ParticipationService.ts` — remove blanket `if (role === "DT") throw 403`; replace with `if (role === "DT" && game.status !== GameStatus.SCHEDULED) throw 403`; net result: DT permitted to remove from SCHEDULED games only — same permission as EDITOR (depends on T070 failing test)
 - [x] T071 [P] Update `packages/frontend/src/composables/__tests__/useGameSignup.test.ts` — **write these failing tests first (TDD red)**: (1) `unregisterSelf()` calls DELETE `/participants/self`, removes matching roster entry by playerId, decrements `confirmedCount`, sets `isFull = false`; (2) `unregisterSelf()` when server returns 422 → sets `error` message, roster unchanged
 - [x] T067 [P] [US9] Add `unregisterSelf()` to `packages/frontend/src/composables/useGameSignup.ts` — calls `DELETE /api/v1/games/:gameId/participants/self`; on 204: remove current player's entry from `roster` (match by `playerId`), decrement `confirmedCount`, set `isFull = false`, reset `currentPlayerStatus` to `"available"`; on 422: set `error` message; on 404: silent no-op (idempotent) (depends on T071 failing test)
@@ -563,35 +563,64 @@ T065 → T068                        (selfUnregister endpoint before frontend ca
   - **Emits**: `@signup-proxy="handleSignupProxy"` (calls wrapped proxy call above, resets `proxyLoading`/`proxyError` on success); `@signup-guest="handleSignupGuest"` (delegates to `useGameSignup.signupGuest`)
   - (FR-036, FR-037, FR-038)
 - [x] T077 — Delete `packages/frontend/src/components/pages/games/signup/SignupProxySearch.vue` after confirming no remaining imports in the codebase (FR-041)
-- [ ] T079 [P] — Make guest last name optional in `SignupGuestForm.vue` and `SignupAddPlayer.vue`: (1) remove `lastName` from the guard in `submit()`/`submitGuest()` (keep only `firstName` required); (2) change the submit button `:disabled` binding to only check `guestFirst`; (3) update the label from "Apellido \*" to "Apellido"; (4) when submitting pass `guestLast.trim() || ""` (empty string, not null) as the `lastName` argument to the `signup-guest` emit / `onSubmit` callback; (5) update the `onSubmit` prop type signature and emit type so `lastName` is `string` (not `string | null`) — empty string is the contract for "not provided"
+- [x] T079 [P] — Remove lastName input from the guest form in `packages/frontend/src/components/pages/games/signup/SignupAddPlayer.vue`: (1) delete `const guestLast = ref("")` and all its usages (reset in `openGuestForm()`, reset in `submitGuest()`, `v-model` in template); (2) change `submitGuest()` guard from `!guestFirst.value.trim() || !guestLast.value.trim()` → `!guestFirst.value.trim()`; (3) replace `guestLast.value.trim()` with `""` in the `emit("signup-guest", ...)` call; (4) delete the Apellido `<div>` block (label + `<input data-testid="guest-last">`) from the template; (5) change template `:disabled` binding from `!guestFirst.trim() || !guestLast.trim()` → `!guestFirst.trim()`; (6) change the guest form wrapping div from `grid grid-cols-2 gap-3` → remove the grid wrapper (single input, no grid needed) — the `emit` type for `"signup-guest"` stays `[firstName: string, lastName: string, position: string | null]` unchanged (empty string is the contract)
+- [x] T080 [P] — Remove lastName input from the orphaned `packages/frontend/src/components/pages/games/signup/SignupGuestForm.vue` for consistency: (1) delete `const guestLast = ref("")` and all usages (reset in `open()`, `v-model`, and cleanup); (2) change `submit()` guard from `!guestFirst.value.trim() || !guestLast.value.trim()` → `!guestFirst.value.trim()`; (3) replace `guestLast.value.trim()` with `""` in `props.onSubmit(...)` call so `onSubmit` prop signature stays `(firstName: string, lastName: string, position: string | null) => Promise<void>` (no type change); (4) remove the `:disabled` clause `|| !guestLast.trim()`; (5) delete the Apellido label + input `<div>` from the template; (6) remove the `grid grid-cols-2 gap-3` wrapper (single firstName input — no grid needed)
+- [x] T081 [P] — Update `packages/frontend/tests/e2e/game-signup.spec.ts` to remove all references to the deleted guest-last field: (1) remove any `await page.fill('[data-testid="guest-last"]', ...)` lines; (2) remove any `expect(page.locator('[data-testid="guest-last"]')).toBeVisible()` or similar existence assertions; (3) update guest-submit disabled-state assertions that previously required both first and last name to be filled — they must now pass when only `guest-first` has a value
 
-**Checkpoint**: Wave 3 complete — full-width layout renders without overflow; `SignupAddPlayer` handles proxy and guest signups; `SignupRegistrationRow` contains only self-signup / cancel-self; `SignupProxySearch` deleted; all Vitest tests pass green
+**Checkpoint**: Wave 3 complete — full-width layout renders without overflow; `SignupAddPlayer` handles proxy and guest signups (no lastName field); `SignupRegistrationRow` contains only self-signup / cancel-self; `SignupProxySearch` deleted; all Vitest and e2e tests pass green
+
+---
+
+## Phase 19: Wave 4 — maxPlayers Default + Confirmed Count Display (FR-043, FR-044)
+
+**Story Goal (US-1 / FR-043)**: Create game form pre-fills `maxPlayers` with `DEFAULT_MAX_PLAYERS = 16`; the field is a clearable integer input that sends `null` when empty.
+
+**Story Goal (US-3, US-4 / FR-044)**: Both the signup page and the public game detail page display a `flex justify-between` header row showing `"Confirmados (X/Y)"` (or `"Confirmados (X)"` when `maxPlayers` is null). When the game is at capacity a green `CheckCircleIcon` (solid Heroicons 24px) and the label `"Equipo completo"` appear on the far right.
+
+**Independent Test (FR-043)**: Open `/admin/games/create`, verify the "Cupo máximo" input is pre-filled with `16`, clear it, submit — verify `maxPlayers` is `null` on the saved record.
+
+**Independent Test (FR-044)**: Open a game with `maxPlayers = 2` and 2 confirmed participants on both `/games/{slug}` and `/games/{slug}/signup` — verify "Confirmados (2/2)" and "Equipo completo" with green icon are visible on both pages.
+
+- [x] T082 [P] — Install `@heroicons/vue` in `packages/frontend`: run `npm install @heroicons/vue` inside `packages/frontend` (or add `"@heroicons/vue": "^2.x"` to `packages/frontend/package.json` devDependencies and run install) so that `import { CheckCircleIcon } from "@heroicons/vue/24/solid"` resolves without a TypeScript error. Verify the package appears under `node_modules/@heroicons/vue/24/solid/index.js`. (FR-044 prerequisite)
+
+- [x] T083 [P] [US-1] — Update `packages/frontend/src/pages/admin/games/create.vue` for FR-043: (1) add `import { DEFAULT_MAX_PLAYERS } from "@ministrosfc/shared"` to the `<script setup>` imports; (2) add `maxPlayers: DEFAULT_MAX_PLAYERS as number | null` to the `form` reactive object initial state; (3) add a labeled field in the template `<div>` containing `<label>Cupo máximo</label>` and `<input v-model.number="form.maxPlayers" type="number" min="1" step="1" placeholder="Sin límite" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />`; (4) in the `submit()` function's POST body object, add `maxPlayers: Number.isNaN(form.maxPlayers as any) ? null : (form.maxPlayers ?? null)` — follow the exact same `v-model.number` + NaN-coercion pattern used in `packages/frontend/src/pages/admin/games/edit.vue`'s `maxPlayers` field.
+
+- [x] T084 [P] [US-4] — Update the public game detail page `packages/frontend/src/pages/games/[slug]/index.vue` for FR-044: (1) add `import { CheckCircleIcon } from "@heroicons/vue/24/solid"` to `<script setup>`; (2) add a computed `isTeamFull = computed(() => game.value?.maxPlayers != null && participants.value.length >= game.value.maxPlayers)`; (3) replace the existing `<h2>Jugadores ({{ participants.length }})</h2>` (or equivalent plain heading) with a `<div class="flex items-center justify-between mb-4">` row: left child is `<h2 class="text-lg font-bold text-gray-800">Confirmados ({{ participants.length }}<span v-if="game?.maxPlayers"> / {{ game.maxPlayers }}</span>)</h2>`; right child is `<div v-if="isTeamFull" class="flex items-center gap-1.5 text-green-600 text-sm font-medium"><CheckCircleIcon class="w-5 h-5" />Equipo completo</div>`. (Depends on T082)
+
+- [x] T085 [P] [US-3] — Update the signup page `packages/frontend/src/pages/games/[slug]/signup.vue` for FR-044: (1) add `import { CheckCircleIcon } from "@heroicons/vue/24/solid"` to `<script setup>`; (2) locate the existing roster section `<h3>` that currently renders `"Confirmados ({{ confirmedCount }}<span v-if="game?.maxPlayers"> / {{ game.maxPlayers }}</span>)"` (around line 217); (3) wrap it in a `<div class="flex items-center justify-between mb-3">` replacing the `mb-3` class that was on the `<h3>`; remove the standalone `mb-3` from the `<h3>` since it is now on the wrapper; (4) add a right-side sibling `<div v-if="isFull" class="flex items-center gap-1.5 text-green-600 text-sm font-medium"><CheckCircleIcon class="w-5 h-5" />Equipo completo</div>` — `isFull` is already provided by the `useGameSignup` composable, no new computed needed. (Depends on T082)
+
+- [x] T086 [P] [US-3] — Update `packages/frontend/src/components/pages/games/signup/SignupPlayerTable.vue` for FR-044 parity: (1) add `import { CheckCircleIcon } from "@heroicons/vue/24/solid"` to `<script setup>`; (2) add computed `isTeamFull = computed(() => props.maxPlayers != null && props.confirmedCount >= props.maxPlayers)`; (3) replace the existing standalone "Confirmados (X/Y)" heading with a `<div class="flex items-center justify-between mb-3">` wrapper and keep the left side text logic unchanged (`Confirmados (X/Y)` or `Confirmados (X)`); (4) add right-side `<div v-if="isTeamFull" class="flex items-center gap-1.5 text-green-600 text-sm font-medium"><CheckCircleIcon class="w-5 h-5" />Equipo completo</div>`. (Depends on T082)
+
+- [x] T087 [P] — Wave 4 TDD coverage (Constitution Principle IV): write failing tests first, then make them pass after T083–T086. Minimum scope: (1) add/extend frontend tests for `packages/frontend/src/pages/admin/games/create.vue` to assert initial `maxPlayers = 16` and submit payload sends `null` when field is cleared; (2) add/extend tests for full-capacity header indicator in `packages/frontend/src/pages/games/[slug]/index.vue` and `packages/frontend/src/components/pages/games/signup/SignupPlayerTable.vue` (`CheckCircleIcon` + "Equipo completo" shown when confirmedCount >= maxPlayers, hidden otherwise); (3) update `packages/frontend/tests/e2e/game-signup.spec.ts` to verify "Confirmados (X/Y)" and "Equipo completo" on both `/games/{slug}` and `/games/{slug}/signup` for a full game. (Depends on T082, T083, T084, T085, T086)
+
+**Checkpoint**: Wave 4 complete — `create.vue` pre-fills `maxPlayers`; signup page, public detail page, and `SignupPlayerTable` show the unified "Confirmados (X/Y)" header with "Equipo completo" indicator when at capacity; `@heroicons/vue` resolves with no TypeScript errors; Wave 4 tests pass green.
 
 ---
 
 ## Task Count Summary (Grand Total)
 
-| Phase                         | Story        | Tasks                     | [P] tasks  |
-| ----------------------------- | ------------ | ------------------------- | ---------- |
-| Phase 1: Setup                | —            | T001–T004 (4)             | 2          |
-| Phase 2: Foundational         | —            | T005–T006 (2)             | 2          |
-| Phase 3                       | US-1         | T007–T013 (7)             | 3          |
-| Phase 4                       | US-7         | T014–T017 (4)             | 2          |
-| Phase 5                       | US-2         | T018–T021 (4)             | 2          |
-| Phase 6                       | US-3         | T051–T053 + T022–T026 (8) | 5          |
-| Phase 7                       | US-4         | T027–T031 (5)             | 3          |
-| Phase 8                       | US-5         | T032–T033 (2)             | 2          |
-| Phase 9                       | US-6         | T034–T038 (5)             | 2          |
-| Phase 10: Polish              | —            | T039–T045 (7)             | 5          |
-| Phase 11                      | US-8         | T046–T050 (5)             | 3          |
-| Phase 12: Unit Tests (Wave 1) | —            | T054–T059 (6)             | 6          |
-| Phase 13: Wave 2 Setup        | —            | T060–T061 (2)             | 1          |
-| Phase 14                      | US-5↑        | T062 (1)                  | 1          |
-| Phase 15                      | US-6↑        | T063–T064 (2)             | 2          |
-| Phase 16                      | US-9         | T065–T069 + T070–T071 (7) | 4          |
-| Phase 17: Tests (Wave 2)      | —            | (T070, T071 moved here)   | 2          |
-| Phase 18: Wave 3              | US-10, US-11 | T072–T079 (8)             | 7          |
-| **Grand Total**               |              | **79 tasks**              | **52 [P]** |
+| Phase                         | Story               | Tasks                     | [P] tasks  |
+| ----------------------------- | ------------------- | ------------------------- | ---------- |
+| Phase 1: Setup                | —                   | T001–T004 (4)             | 2          |
+| Phase 2: Foundational         | —                   | T005–T006 (2)             | 2          |
+| Phase 3                       | US-1                | T007–T013 (7)             | 3          |
+| Phase 4                       | US-7                | T014–T017 (4)             | 2          |
+| Phase 5                       | US-2                | T018–T021 (4)             | 2          |
+| Phase 6                       | US-3                | T051–T053 + T022–T026 (8) | 5          |
+| Phase 7                       | US-4                | T027–T031 (5)             | 3          |
+| Phase 8                       | US-5                | T032–T033 (2)             | 2          |
+| Phase 9                       | US-6                | T034–T038 (5)             | 2          |
+| Phase 10: Polish              | —                   | T039–T045 (7)             | 5          |
+| Phase 11                      | US-8                | T046–T050 (5)             | 3          |
+| Phase 12: Unit Tests (Wave 1) | —                   | T054–T059 (6)             | 6          |
+| Phase 13: Wave 2 Setup        | —                   | T060–T061 (2)             | 1          |
+| Phase 14                      | US-5↑               | T062 (1)                  | 1          |
+| Phase 15                      | US-6↑               | T063–T064 (2)             | 2          |
+| Phase 16                      | US-9                | T065–T069 + T070–T071 (7) | 4          |
+| Phase 17: Tests (Wave 2)      | —                   | (T070, T071 moved here)   | 2          |
+| Phase 18: Wave 3              | US-10, US-11        | T072–T081 (10)            | 9          |
+| Phase 19: Wave 4              | US-1↑, US-3↑, US-4↑ | T082–T087 (6)             | 6          |
+| **Grand Total**               |                     | **87 tasks**              | **60 [P]** |
 
 ### Wave 3 Parallel Execution
 
@@ -602,4 +631,19 @@ T075                                   (independent — simplify SignupRegistrat
 T074 → T076                           (component must exist before signup.vue mounts it)
 T075 → T076                           (simplified emits must be in place before wiring)
 T076 → T077                           (SignupProxySearch deleted only after it has no imports)
+```
+
+### Wave 4 Parallel Execution
+
+```
+T082                                   (install @heroicons/vue — unblocks T084, T085, T086)
+T083                                   (independent — create.vue only, no heroicons)
+T082 → T084                           (heroicons import needed before index.vue change)
+T082 → T085                           (heroicons import needed before signup.vue change)
+T082 → T086                           (heroicons import needed before SignupPlayerTable change)
+T084 ∥ T085 ∥ T086                    (different files, fully parallel once T082 done)
+T083 → T087                           (TDD coverage includes create.vue default/null-submit behavior)
+T084 → T087                           (TDD coverage includes public page full-indicator behavior)
+T085 → T087                           (TDD coverage includes signup page full-indicator behavior)
+T086 → T087                           (TDD coverage includes SignupPlayerTable full-indicator behavior)
 ```

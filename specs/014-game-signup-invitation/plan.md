@@ -1,31 +1,38 @@
-# Implementation Plan: Game Signup Invitation — Wave 3 (014)
+# Implementation Plan: Wave 4 — maxPlayers Default + Confirmed Count Display (FR-043, FR-044)
 
-**Branch**: `chore/014-game-signup-invitation` | **Date**: 2026-04-10 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `specs/014-game-signup-invitation/spec.md` (Wave 3 amendment: US-10, US-11, FR-036–FR-041)
+**Branch**: `chore/014-game-signup-invitation` | **Date**: 2026-04-11 | **Spec**: [spec.md](./spec.md)
+**Input**: Extended scope from `specs/014-game-signup-invitation/spec.md` — FR-043 and FR-044 only. All prior tasks (T001–T081) are already shipped on this branch.
 
 ## Summary
 
-Wave 3 is a **frontend-only** UX overhaul of the Game Sign Up Page. It replaces the inline proxy-search and guest-form embedded in `SignupRegistrationRow` with a new self-contained `SignupAddPlayer` component that uses `DropdownAddMore` for player selection and switches to a standalone guest form via `v-if/v-else`. The page outer wrapper loses its `max-w-2xl` constraint and expands to full browser width. `SignupProxySearch.vue` is deleted. No DB migrations, no CMS changes, no new API endpoints.
+Two incremental frontend improvements to existing pages:
+
+1. **FR-043** — The game creation form (`/admin/games/create`) gains a `maxPlayers` input pre-seeded with `DEFAULT_MAX_PLAYERS = 16` from `@ministrosfc/shared`. Clearing the field submits `null` (unlimited). The value is included in the `POST /api/v1/games` request body; no backend schema changes are required since `maxPlayers` is already accepted.
+
+2. **FR-044** — Both the public `/games/{slug}` detail page and the `/games/{slug}/signup` page unify their confirmed-player section header to `"Confirmados (X/Y)"` / `"Confirmados (X)"` in a `flex justify-between` row. When the game is at capacity (`confirmedCount === maxPlayers`), a green Heroicons `CheckCircleIcon` (solid) and the label `"Equipo completo"` are shown at the far right. The signup page updates this reactively; the public detail page computes it from the fetched participant list.
+
+No new API endpoints, no new shared types, no DB changes.
 
 ## Technical Context
 
-**Language/Version**: TypeScript 5.x (strict mode)
-**Primary Dependencies**: Nuxt 3, Vue 3 Composition API, Tailwind CSS, vue-select (via `DropdownAddMore`), Vitest
-**Storage**: N/A — Wave 3 is frontend-only; existing CMS endpoints unchanged
-**Testing**: Vitest + Vue Test Utils (`@vue/test-utils`)
-**Target Platform**: Nuxt 3 SPA/SSR hybrid, desktop ≥768 px and mobile
-**Project Type**: Web application (frontend package only)
-**Performance Goals**: No new network requests beyond existing — player catalogue fetch is single call on component mount
-**Constraints**: No new shared types; no new CMS endpoints; no migrations; `DropdownAddMore` used as-is without modification
-**Scale/Scope**: 1 new component, 3 modified files, 1 deleted file
+**Language/Version**: TypeScript 5.3 / Vue 3.4 / Nuxt 3  
+**Primary Dependencies**: `@ministrosfc/shared` (constants), `@heroicons/vue` (icon — **not yet installed**)  
+**Storage**: N/A (read-only display changes + existing `maxPlayers` write path)  
+**Testing**: Vitest (unit), Playwright e2e  
+**Target Platform**: Web (SSR + CSR via Nuxt)  
+**Project Type**: Web application (monorepo — frontend package only, one backend validation removal)  
+**Performance Goals**: No new requests; purely computed/reactive changes  
+**Constraints**: Must stay reactive on signup page without full refresh; public detail page is SSR-rendered
 
 ## Constitution Check
 
-_GATE: Evaluated against constitution v1.8.0. Re-checked after Phase 1 design — all gates pass._
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-- [x] **Shared types gate (Principle VII)**: No new cross-package types. `PlayerPublic`, `GuestSignupDTO`, `ProxySignupDTO`, `CurrentPlayerStatus`, `Position`, `PositionDisplayName` are already in `@ministrosfc/shared`. `DropdownOption` is explicitly frontend-only. No new shared type required for Wave 3.
-- [x] **Page decomposition gate (Principle V)**: `signup.vue` remains a routing-entry-only page. New component `SignupAddPlayer.vue` is extracted to `components/pages/games/signup/` per constitution convention. `SignupRegistrationRow.vue` is simplified but already correctly placed. No constitution violation.
-- [x] **Page meta declaration gate (Principle V)**: `signup.vue` already has `definePageMeta({ middleware: "auth", requiresAuth: true })`. No new pages introduced in Wave 3. Gate trivially passes.
+- [x] **Shared types gate**: No new shared types needed. `DEFAULT_MAX_PLAYERS` already exists in `@ministrosfc/shared/src/constants/games.ts` and is already exported. No additions to shared package are required.
+- [x] **Page decomposition gate**: No new pages introduced. Modified pages: `pages/admin/games/create.vue`, `pages/games/[slug]/index.vue`, `pages/games/[slug]/signup.vue`. The "Equipo completo" row is a small inline fragment — not complex enough to warrant extraction to a new component (single-use, 3 lines of markup).
+- [x] **Page meta declaration gate**: No new `pages/` files; all existing pages already have `definePageMeta`.
+
+**No gate violations.**
 
 ## Project Structure
 
@@ -33,205 +40,159 @@ _GATE: Evaluated against constitution v1.8.0. Re-checked after Phase 1 design �
 
 ```text
 specs/014-game-signup-invitation/
-├── plan.md              ← this file (Wave 3 plan)
-├── research.md          ← updated with Wave 3 decisions (Phase 0)
-├── data-model.md        ← updated with Wave 3 component model (Phase 1)
-├── quickstart.md        ← updated with Wave 3 dev guide (Phase 1)
-├── contracts/           ← unchanged (no new API endpoints)
-└── tasks.md             ← Phase 18 tasks already written
+├── plan.md        ← this file (Wave 4 addendum)
+├── research.md    ← existing, no update needed for this wave
+├── data-model.md  ← existing, no update needed
+├── quickstart.md  ← existing, no update needed
+├── contracts/     ← existing, no update needed
+└── tasks.md       ← to be appended by /speckit.tasks (Phase 19)
 ```
 
-### Source Code (repository root)
+### Source Code
 
 ```text
 packages/frontend/
+├── package.json                                      ← add @heroicons/vue
 ├── src/
+│   ├── components/pages/games/signup/
+│   │   └── SignupPlayerTable.vue                     ← FR-044: update header + "Equipo completo"
 │   ├── pages/
+│   │   ├── admin/games/create.vue                    ← FR-043: add maxPlayers input
 │   │   └── games/[slug]/
-│   │       └── signup.vue                        MODIFY: remove max-w-2xl; add SignupAddPlayer; wire proxyLoading/proxyError props
-│   ├── components/
-│   │   └── pages/games/signup/
-│   │       ├── SignupAddPlayer.vue                NEW: v-if dropdown mode / v-else guest form mode
-│   │       ├── SignupRegistrationRow.vue          MODIFY: remove guest form + proxy section; remove signup-guest/signup-proxy emits
-│   │       └── SignupProxySearch.vue              DELETE: superseded by SignupAddPlayer
-│   └── tests/ (or tests/ at package root)
-│       └── components/pages/games/signup/
-│           └── SignupAddPlayer.spec.ts            NEW: Vitest tests (T078, written first)
+│   │       ├── index.vue                             ← FR-044: update header + "Equipo completo"
+│   │       └── signup.vue                            ← FR-044: update header + "Equipo completo"
 ```
 
-## Complexity Tracking
+## Phase 0: Research
 
-No constitution violations. No complexity justification needed.
+No unresolved unknowns. All decisions documented below.
 
----
+### Research Findings
 
-## Phase 0: Research (Complete)
+**R-1: @heroicons/vue availability and usage**
 
-See [research.md](./research.md) — Wave 3 section. All four unknowns resolved:
+- Decision: Install `@heroicons/vue` as a frontend dependency.
+- Rationale: Already referenced in `admin.vue` as a TODO (`<!-- @TODO add user icon from a library like Heroicons -->`). This wave is the natural moment to introduce it. The package provides tree-shakeable Vue 3 SVG icon components.
+- Usage: `import { CheckCircleIcon } from "@heroicons/vue/24/solid"` — use the 24px solid variant for the "Equipo completo" indicator.
+- Alternatives considered: Inline SVG string (rejected — harder to maintain, not consistent with intended Heroicons adoption). Using an emoji ✅ (rejected — inaccessible, not pixel-precise).
 
-| Unknown                                | Resolution                                                                  |
-| -------------------------------------- | --------------------------------------------------------------------------- |
-| DropdownAddMore slot vs. v-if/v-else   | `v-if/v-else` — slot is scoped inside VSelect dropdown, cannot replace root |
-| Player list fetch timing               | Eagerly on `onMounted` inside `SignupAddPlayer`                             |
-| DropdownOption shape and type location | Inline mapping in `SignupAddPlayer`; no shared type needed                  |
-| Loading/error state contract           | Parent owns `proxyLoading` + `proxyError` refs; passed as props to child    |
+**R-2: Where the "Confirmados" header renders on each affected page**
 
----
+| Page                                                  | Current location | Current string                                                            |
+| ----------------------------------------------------- | ---------------- | ------------------------------------------------------------------------- |
+| `pages/games/[slug]/index.vue`                        | lines ~163–166   | `Jugadores ({{ participants.length }})` — uses `<h2>`                     |
+| `pages/games/[slug]/signup.vue`                       | lines ~217–221   | `Confirmados (X / Y)` — `<h3>`, `v-if game?.maxPlayers` for the `/Y` part |
+| `components/pages/games/signup/SignupPlayerTable.vue` | lines ~33–36     | `Confirmados (X / Y)` — standalone `<h3>` in table component              |
 
-## Phase 1: Design & Contracts (Complete)
+All three locations need to become `flex justify-between` rows with the `CheckCircleIcon` + `"Equipo completo"` indicator on the right when full.
 
-### Data Model
+**R-3: isFull computation on the public detail page**
 
-No new DB entities. See [data-model.md](./data-model.md) — Wave 3 section for:
+- The public `[slug]/index.vue` fetches participants separately from the game record. It has no `isFull` boolean from the API.
+- Decision: Compute inline as `participants.length >= (game.maxPlayers ?? Infinity)` — no server change needed.
+- `game.maxPlayers` is returned by `GET /api/v1/games/:id` (the field is already in the game response).
 
-- `SignupAddPlayer` props, emits, internal state, computed refs
-- `SignupRegistrationRow` diffs (removals)
-- `signup.vue` diffs (layout + new state + new import)
-- Deletion of `SignupProxySearch.vue`
+**R-4: `maxPlayers` in the create form POST body**
 
-### Contracts
+- The `gameCreateSchema` in `packages/cms/src/routes/games.ts` already accepts `maxPlayers: z.coerce.number().int().min(1).optional().nullable()`.
+- The `GameService.createGame` DTO already has `maxPlayers?: number | null`.
+- No backend changes needed — only the frontend form needs to be updated.
 
-No new API endpoints. Existing endpoints used:
+**R-5: Input type & clearing behaviour**
 
-- `GET /api/v1/players?status=ACTIVE&playerType=REGISTERED` — player catalogue for dropdown
-- `POST /api/v1/games/:gameId/participants` (proxy mode via `signupProxy`) — unchanged
-- `POST /api/v1/games/:gameId/participants` (guest mode via `signupGuest`) — unchanged
+- Use `<input type="number" min="1" step="1">` with `v-model.number="form.maxPlayers"`.
+- When cleared, `v-model.number` produces `NaN` on empty string in Vue. Coerce in submit: `maxPlayers: Number.isNaN(form.maxPlayers) ? null : form.maxPlayers`.
+- The existing `edit.vue` already uses this same pattern (`v-model.number`, null coercion) — follow it exactly.
 
-### Quickstart
+## Phase 1: Design & Contracts
 
-See [quickstart.md](./quickstart.md) — Wave 3 section.
+No new contracts, no new data model additions. The existing API contract already documents `maxPlayers` as a nullable integer on the game create endpoint. No updates to `contracts/api.md` are needed for this wave.
 
----
+### Component Design
 
-## Implementation Design
+#### FR-043 — `create.vue` form field
 
-### Component: `SignupAddPlayer.vue`
+Add to the form `reactive` initial state:
 
-**Mode switching**: `const mode = ref<'dropdown' | 'guest'>('dropdown')`.
-
-```
-mode === 'dropdown':
-  ─ Render <DropdownAddMore> with options=dropdownOptions, disabled=proxyLoading, loading=fetchLoading
-  ─ @select → emit('signup-proxy', option.id)
-  ─ labels.addNew = "Agregar invitado"
-  ─ When the user clicks "Agregar invitado" (inside list-footer of DropdownAddMore),
-    the click handler calls mode.value = 'guest'
-    NOTE: DropdownAddMore's open_create is internal — we do NOT use the inline-create slot.
-    Instead, we intercept the "Agregar invitado" button click by providing an onCreate prop
-    that sets mode to 'guest' and rejects (never completes), OR we use a custom labels.addNew
-    footer without the slot at all. SIMPLEST: pass onCreate that throws, handle the switch
-    in a @vue:error boundary — too complex.
-    ───
-    BEST APPROACH: Do NOT use DropdownAddMore's built-in "Agregar invitado" for this purpose.
-    Instead, render a plain button "Agregar invitado" BELOW the DropdownAddMore (outside it,
-    inside the box). Clicking it sets mode = 'guest'. This avoids all slot complexity and
-    gives full control over placement — including the box-level × button placement.
-
-mode === 'guest':
-  ─ Render guest form (firstName, lastName, position select, submit button)
-  ─ Show × button at absolute top-right of container
-  ─ Clicking × → mode.value = 'dropdown', clear form fields
-  ─ Submit → validate → emit('signup-guest', ...)
-  ─ Show proxyError (reused) or local guestError
+```ts
+import { DEFAULT_MAX_PLAYERS } from "@ministrosfc/shared";
+// in reactive({ ... })
+maxPlayers: DEFAULT_MAX_PLAYERS as number | null,
 ```
 
-**Revised DropdownAddMore usage**: `labels.addNew` footer is suppressed by not triggering the `inline-create` slot. Use `DropdownAddMore` purely as a searchable player selector. The "Agregar invitado" mode switch is a button rendered outside `DropdownAddMore`, below it, inside the `SignupAddPlayer` box.
+Add to `submit()` body construction:
 
-**Key template structure**:
+```ts
+maxPlayers: Number.isNaN(form.maxPlayers as any) ? null : (form.maxPlayers ?? null),
+```
+
+Template addition (alongside existing Tipo de Partido and Torneo fields):
 
 ```html
-<div class="relative bg-white border border-gray-200 rounded-xl p-4 mb-4">
-  <!-- Guest-mode: × at top-right of box -->
-  <button
-    v-if="mode === 'guest'"
-    @click="cancelGuest"
-    class="absolute top-3 right-3 ..."
+<div>
+  <label class="block text-xs font-medium text-gray-700 mb-1"
+    >Cupo máximo</label
   >
-    ×
-  </button>
-
-  <template v-if="mode === 'dropdown'">
-    <DropdownAddMore
-      v-model="selectedPlayerId"
-      :options="dropdownOptions"
-      :disabled="proxyLoading || fetchLoading"
-      :loading="fetchLoading"
-      :onCreate="noopCreate"
-      :labels="{ addNew: '' }"
-      @select="onPlayerSelected"
-    />
-    <!-- "Add guest" trigger outside DropdownAddMore -->
-    <button @click="mode = 'guest'" class="mt-2 text-sm text-gray-500 ...">
-      + Agregar invitado
-    </button>
-    <p v-if="proxyError" class="text-xs text-red-600 mt-2">{{ proxyError }}</p>
-  </template>
-
-  <template v-else>
-    <!-- Guest form -->
-    <input v-model="guestFirst" placeholder="Nombre" required />
-    <input v-model="guestLast" placeholder="Apellido" required />
-    <select v-model="guestPosition">
-      ...
-    </select>
-    <button @click="submitGuest">Agregar</button>
-    <p v-if="guestError" class="text-xs text-red-600">{{ guestError }}</p>
-  </template>
+  <input
+    v-model.number="form.maxPlayers"
+    type="number"
+    min="1"
+    step="1"
+    placeholder="Sin límite"
+    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+  />
 </div>
 ```
 
-> **Note**: `onCreate` is required by `DropdownAddMore` but not used here. Pass a no-op that returns a rejected promise; the button is suppressed by passing `labels.addNew = ''` (empty string hides the footer button text) or by CSS. Alternatively, pass `labels.addNew = undefined` — check template: `addNewLabel` defaults to "Agregar nueva..." — just pass empty string or a zero-width space to visually hide it.
+#### FR-044 — Confirmed header row pattern (shared between both pages)
 
-### `signup.vue` Layout Change
+The header row replaces the existing plain `<h2>`/`<h3>` in both pages:
 
 ```html
-<!-- BEFORE -->
-<div class="max-w-2xl mx-auto">
-  <!-- AFTER -->
-  <div><!-- or <div class="w-full"> --></div>
+<div class="flex items-center justify-between mb-4">
+  <h2 class="text-lg font-bold text-gray-800">
+    Confirmados ({{ participants.length }}<span v-if="game?.maxPlayers">
+      / {{ game.maxPlayers }}</span
+    >)
+  </h2>
+  <div
+    v-if="isTeamFull"
+    class="flex items-center gap-1.5 text-green-600 text-sm font-medium"
+  >
+    <CheckCircleIcon class="w-5 h-5" />
+    Equipo completo
+  </div>
 </div>
 ```
 
-Right panel (inside `md:col-span-6`):
+**`isTeamFull` per page:**
 
-```html
-<!-- 1. Self CTA -->
-<SignupRegistrationRow
-  v-if="game?.status === GameStatus.SCHEDULED && authStore.user?.role === UserRole.PLAYER"
-  :current-player-status="currentPlayerStatus"
-  :is-full="isFull"
-  @signup-self="handleSignupSelf"
-  @cancel-self="handleCancelSelf"
-  @dismiss="() => {}"
-/>
+- `index.vue`: `computed(() => game.value?.maxPlayers != null && participants.value.length >= game.value.maxPlayers)`
+- `signup.vue`: already has `isFull` from `useGameSignup` composable — use that directly
 
-<!-- 2. Add player widget -->
-<SignupAddPlayer
-  v-if="game?.status === GameStatus.SCHEDULED && currentPlayerStatus === 'signed_up' && authStore.user?.role === UserRole.PLAYER && !isFull"
-  :confirmed-player-ids="confirmedPlayerIds"
-  :proxy-loading="proxyLoading"
-  :proxy-error="proxyError"
-  :is-full="isFull"
-  @signup-proxy="handleSignupProxy"
-  @signup-guest="handleSignupGuest"
-/>
+### Agent context
 
-<!-- 3. Roster table -->
-<SignupPlayerTable ... />
+No agent-context update needed (no new technology beyond `@heroicons/vue`, which is the same vendor as the existing TODO comments already reference).
+
+## Implementation Tasks (Wave 4 — Phase 19)
+
+> Full task list to be generated by `/speckit.tasks`. The following is a preview of the task breakdown:
+
+| #    | Task                                                                          | FR            | File(s)                 |
+| ---- | ----------------------------------------------------------------------------- | ------------- | ----------------------- |
+| T082 | Install `@heroicons/vue` in `packages/frontend`                               | FR-044        | `package.json`          |
+| T083 | Add `maxPlayers` field to create game form with `DEFAULT_MAX_PLAYERS` default | FR-043        | `create.vue`            |
+| T084 | Update public game detail page confirmed-player header (FR-044)               | FR-044        | `[slug]/index.vue`      |
+| T085 | Update signup page confirmed-player header (FR-044) — reactive, uses `isFull` | FR-044        | `[slug]/signup.vue`     |
+| T086 | Update `SignupPlayerTable.vue` confirmed-player header (FR-044 parity)        | FR-044        | `SignupPlayerTable.vue` |
+| T087 | Add Wave 4 TDD coverage (unit + e2e) for FR-043/FR-044                        | FR-043/FR-044 | tests                   |
+
+## Next Steps
+
+After completing the plan, **MUST** output the following block to the user:
+
 ```
+## Next Steps
 
-> **confirmedPlayerIds** computed: `computed(() => roster.value.map(r => r.player.id))`
-
----
-
-## Constitution Check (Post-Design)
-
-Re-evaluated after Phase 1 design:
-
-- [x] **Principle V (decomposition)**: `SignupAddPlayer` as a dedicated page-scoped component is exactly the right decomposition. `signup.vue` stays lean.
-- [x] **Principle V (page meta)**: No new pages.
-- [x] **Principle VII (shared types)**: Confirmed — no new shared types needed. `DropdownOption` stays frontend-only.
-- [x] **Principle VI (data flow)**: Parent owns `proxyLoading`/`proxyError`; child is stateless w.r.t. proxy lifecycle. Unidirectional.
-- [x] **Principle IV (TDD)**: T078 (tests) written BEFORE T074 (implementation) per task ordering.
-
-All gates pass. No violations to justify.
+**Recommended**: `/speckit.tasks` — generate the ordered task list from this plan.
+```

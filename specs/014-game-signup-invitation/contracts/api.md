@@ -90,7 +90,7 @@ Returns full Game Sign Up Page data: game details, roster, auth context.
 }
 ```
 
-**Note on guest privacy**: The `lastName` field for `playerType: GUEST` roster entries is included in this response because it is the authenticated view (read-only admins and the inviting player both see full names). The public game detail page endpoint (`GET /games/:id`) is a separate endpoint that MUST omit guest `lastName`.
+**Note on guest privacy**: The `lastName` field for `playerType: GUEST` roster entries is included in this response because it is the authenticated view. Since T079, the frontend no longer collects guest `lastName` and always stores `""` — entries will show an empty string rather than an actual surname. The public game detail page endpoint (`GET /games/:id`) is a separate endpoint that MUST omit guest `lastName`.
 
 **Response `401`**: Not authenticated.
 
@@ -121,9 +121,11 @@ Trimodal per-item signup endpoint. One call per attendee registration.
 {
   "mode": "guest",
   "firstName": "Marcos",
-  "lastName": "López"
+  "lastName": ""
 }
 ```
+
+> **Note**: `lastName` is required by the API contract but the signup form no longer collects it (T079). The frontend always sends `""`. The backend accepts any string ≥ 0 chars.
 
 **Mode: `proxy`**
 

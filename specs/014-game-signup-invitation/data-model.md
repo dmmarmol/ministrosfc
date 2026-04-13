@@ -134,8 +134,8 @@ export interface SelfSignupDTO {
 
 export interface GuestSignupDTO {
   mode: "guest";
-  firstName: string; // max 255 chars
-  lastName: string; // max 255 chars
+  firstName: string; // max 255 chars, required
+  lastName: string; // 0–255 chars; UI no longer collects last name (T079) — always sent as empty string ""
   position?: string | null; // optional, one of Position enum values; stored on the guest Player record
 }
 
@@ -245,16 +245,17 @@ currentPlayerStatus?: GameSignupState | null; // only present for PLAYER-authent
 
 ## Validation Rules
 
-| Field                            | Rule                                                                                                                                                                            |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `maxPlayers`                     | Int ≥ 1 or null                                                                                                                                                                 |
-| `lineup`                         | Must be one of `FORMATIONS` or null                                                                                                                                             |
-| `slug`                           | Auto-generated server-side; not user-settable                                                                                                                                   |
-| `endDate`                        | Auto-computed server-side as `date + exactly 100 minutes` (no sub-minute rounding); not user-settable; stripped silently from client payloads; nullable for legacy records only |
-| `firstName` / `lastName` (guest) | 1–255 chars, required                                                                                                                                                           |
-| `position` (guest)               | One of `Position` enum values or null; optional — stored on the guest `Player` record; used for SVG field slot assignment same as a registered player's position                |
-| `targetPlayerId` (proxy)         | Valid UUID, must exist as `REGISTERED + ACTIVE` in DB                                                                                                                           |
-| Slug opponent name               | After normalization, must produce at least 1 non-hyphen char                                                                                                                    |
+| Field                    | Rule                                                                                                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `maxPlayers`             | Int ≥ 1 or null                                                                                                                                                                 |
+| `lineup`                 | Must be one of `FORMATIONS` or null                                                                                                                                             |
+| `slug`                   | Auto-generated server-side; not user-settable                                                                                                                                   |
+| `endDate`                | Auto-computed server-side as `date + exactly 100 minutes` (no sub-minute rounding); not user-settable; stripped silently from client payloads; nullable for legacy records only |
+| `firstName` (guest)      | 1–255 chars, required                                                                                                                                                           |
+| `lastName` (guest)       | 0–255 chars; UI sends `""` — last name field was removed from the guest form (T079); backend `min(1)` constraint removed accordingly                                            |
+| `position` (guest)       | One of `Position` enum values or null; optional — stored on the guest `Player` record; used for SVG field slot assignment same as a registered player's position                |
+| `targetPlayerId` (proxy) | Valid UUID, must exist as `REGISTERED + ACTIVE` in DB                                                                                                                           |
+| Slug opponent name       | After normalization, must produce at least 1 non-hyphen char                                                                                                                    |
 
 ---
 
@@ -293,37 +294,36 @@ No new DB entities or API endpoints. Wave 3 is a **pure frontend refactor + new 
 
 **Props**
 
-| Prop | Type | Description |
-|---|---|---|
-| `confirmedPlayerIds` | `string[]` | IDs of players already confirmed for this game; used to filter dropdown |
-| `proxyLoading` | `boolean` | True while parent's proxy API call is in-flight; disables dropdown |
-| `proxyError` | `string \| null` | Inline error message to display on proxy API failure |
-| `isFull` | `boolean` | When true, hide the widget entirely (capacity reached) |
+| Prop                 | Type             | Description                                                             |
+| -------------------- | ---------------- | ----------------------------------------------------------------------- |
+| `confirmedPlayerIds` | `string[]`       | IDs of players already confirmed for this game; used to filter dropdown |
+| `proxyLoading`       | `boolean`        | True while parent's proxy API call is in-flight; disables dropdown      |
+| `proxyError`         | `string \| null` | Inline error message to display on proxy API failure                    |
+| `isFull`             | `boolean`        | When true, hide the widget entirely (capacity reached)                  |
 
 **Emits**
 
-| Event | Payload | Description |
-|---|---|---|
-| `signup-proxy` | `playerId: string` | User selected a registered player; parent fires API call |
-| `signup-guest` | `firstName: string, lastName: string, position: string \| null` | User submitted guest form; parent fires API call |
+| Event          | Payload                                                         | Description                                                                             |
+| -------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `signup-proxy` | `playerId: string`                                              | User selected a registered player; parent fires API call                                |
+| `signup-guest` | `firstName: string, lastName: string, position: string \| null` | User submitted guest form; parent fires API call (`lastName` is always `""` since T079) |
 
 **Internal state**
 
-| Ref | Type | Purpose |
-|---|---|---|
-| `mode` | `'dropdown' \| 'guest'` | Controls v-if branch: dropdown mode or guest form mode |
-| `allPlayers` | `PlayerPublic[]` | Full catalogue fetched once on mount from `GET /api/v1/players?status=ACTIVE&playerType=REGISTERED` |
-| `fetchLoading` | `boolean` | True while player catalogue is loading on mount |
-| `fetchError` | `string \| null` | Error if player catalogue fetch fails |
-| `guestFirst` | `string` | Guest first name (required) |
-| `guestLast` | `string` | Guest last name (required) |
-| `guestPosition` | `string` | Guest position (optional; empty = null on submit) |
-| `guestError` | `string \| null` | Validation error shown before emit |
+| Ref             | Type                    | Purpose                                                                                             |
+| --------------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
+| `mode`          | `'dropdown' \| 'guest'` | Controls v-if branch: dropdown mode or guest form mode                                              |
+| `allPlayers`    | `PlayerPublic[]`        | Full catalogue fetched once on mount from `GET /api/v1/players?status=ACTIVE&playerType=REGISTERED` |
+| `fetchLoading`  | `boolean`               | True while player catalogue is loading on mount                                                     |
+| `fetchError`    | `string \| null`        | Error if player catalogue fetch fails                                                               |
+| `guestFirst`    | `string`                | Guest first name (required)                                                                         |
+| `guestPosition` | `string`                | Guest position (optional; empty = null on submit)                                                   |
+| `guestError`    | `string \| null`        | Validation error shown before emit                                                                  |
 
 **Computed**
 
-| Computed | Derivation |
-|---|---|
+| Computed          | Derivation                                                                                |
+| ----------------- | ----------------------------------------------------------------------------------------- |
 | `dropdownOptions` | `allPlayers.filter(p => !confirmedPlayerIds.includes(p.id))` mapped to `DropdownOption[]` |
 
 **Visibility rule** (enforced in `signup.vue`):
@@ -339,6 +339,7 @@ show SignupAddPlayer when:
 ### Modified Component: `SignupRegistrationRow.vue`
 
 Remove all guest-form and proxy-search logic. Retain:
+
 - Props: `currentPlayerStatus`, `isFull`
 - Emits: `signup-self`, `cancel-self`, `dismiss`
 - Template: self-signup block (`not_signed_up`), cancel-self block (`signed_up`), full-capacity message
@@ -352,22 +353,25 @@ Imports removed: `SignupProxySearch`, all guest-form refs
 **Outer container**: remove `class="max-w-2xl mx-auto"` — replace with `class="w-full"` (or no wrapper class — let Tailwind's default width apply).
 
 **New state** (for proxy loading isolation):
+
 ```ts
-const proxyLoading = ref(false)
-const proxyError = ref<string | null>(null)
+const proxyLoading = ref(false);
+const proxyError = ref<string | null>(null);
 ```
 
 **Updated `handleSignupProxy`**:
+
 ```ts
 async function handleSignupProxy(targetPlayerId: string) {
-  proxyLoading.value = true
-  proxyError.value = null
+  proxyLoading.value = true;
+  proxyError.value = null;
   try {
-    await signupProxy(targetPlayerId)
+    await signupProxy(targetPlayerId);
   } catch (e: any) {
-    proxyError.value = e?.data?.message ?? e?.message ?? 'Error al agregar jugador'
+    proxyError.value =
+      e?.data?.message ?? e?.message ?? "Error al agregar jugador";
   } finally {
-    proxyLoading.value = false
+    proxyLoading.value = false;
   }
 }
 ```
@@ -375,6 +379,7 @@ async function handleSignupProxy(targetPlayerId: string) {
 **New import**: `SignupAddPlayer`
 
 **Right panel order** (below the 12-col grid):
+
 1. `SignupRegistrationRow` (game SCHEDULED only, PLAYER role only)
 2. `SignupAddPlayer` (game SCHEDULED + signed_up PLAYER + !isFull)
 3. `SignupPlayerTable`
