@@ -11,6 +11,7 @@ import { getRedisClient, redisKeys } from "../config/redis";
 import { logger } from "../utils/logger";
 
 const CACHE_TTL_SECONDS = 600; // 10 minutes
+const PLAYER_LIST_CACHE_VERSION = "v3";
 
 export const PlayerService = {
   async createPlayer(
@@ -207,7 +208,7 @@ export const PlayerService = {
 
   async searchPlayers(filters: PlayerFilters) {
     const cacheKey = redisKeys.statsCache(
-      `players:list:${JSON.stringify(filters)}`,
+      `players:list:${PLAYER_LIST_CACHE_VERSION}:${JSON.stringify(filters)}`,
     );
     const redis = getRedisClient();
 

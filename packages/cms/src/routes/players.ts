@@ -14,6 +14,7 @@ import {
 } from "../middleware/validation";
 import { PlayerService } from "../services/PlayerService";
 import { z } from "zod";
+import { PLAYER_STATUS_FILTER_ALL } from "@ministrosfc/shared";
 import { PlayerType, PlayerStatus } from "@prisma/client";
 import { logger } from "../utils/logger";
 
@@ -68,7 +69,9 @@ const playerStatusSchema = z.object({
 });
 
 const playerFilterSchema = paginationSchema.extend({
-  status: z.enum(PlayerStatus).optional(),
+  status: z
+    .union([z.enum(PlayerStatus), z.literal(PLAYER_STATUS_FILTER_ALL)])
+    .optional(),
   position: z.string().optional(),
   search: z.string().optional(),
   playerType: z.enum(PlayerType).optional(),
@@ -79,9 +82,13 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const query = playerFilterSchema.parse(req.query);
     const { status, position, search, playerType } = query;
+    const effectiveStatus =
+      status === PLAYER_STATUS_FILTER_ALL
+        ? null
+        : status ?? PlayerStatus.ACTIVE;
 
     const result = await PlayerService.searchPlayers({
-      status: status ?? PlayerStatus.ACTIVE,
+      status: effectiveStatus,
       position,
       search,
       playerType,
