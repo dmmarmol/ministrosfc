@@ -1,8 +1,9 @@
 # ministrosfc Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-10
+Auto-generated from all feature plans. Last updated: 2026-04-13
 
 ## Active Technologies
+
 - TypeScript 5.x stric + Nuxt 3 (SSR), Express 4, Prisma 5 (PostgreSQL), Pinia 2, Zod (chore/014-game-signup-invitation)
 - PostgreSQL via Prisma (chore/014-game-signup-invitation)
 - TypeScript 5.x (Node.js 20 LTS) (chore/014-game-signup-invitation)
@@ -13,6 +14,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-10
 - N/A — Wave 3 is frontend-only; existing CMS endpoints unchanged (chore/014-game-signup-invitation)
 - TypeScript 5 / Vue 3.4 (Composition API `<script setup>`) + Nuxt 3, Pinia, Tailwind CSS, Vitest (unit), Playwright (e2e) (chore/014-game-signup-invitation)
 - N/A (UI-only change; backend API unchanged) (chore/014-game-signup-invitation)
+- TypeScript 5.x, Vue 3, Nuxt 3 + Nuxt 3, Tailwind CSS, `@nuxt/ui` (new module), Vitest, Vue Test Utils (feat/015-confirmation-modal)
+- N/A (frontend-only behavior + existing backend endpoints) (feat/015-confirmation-modal)
 
 - TypeScript (Node 18+, Nuxt 4/Vue 3) + Express, Prisma, Zod, google-auth-library, Pinia (009-user-registration)
 - TypeScript 5.x, Vue 3 (Nuxt 3 app, ESM) + Nuxt, Vue, Tailwind CSS, Pinia, Vitest, @vue/test-utils (012-dropdown-add-more)
@@ -125,10 +128,10 @@ npx prisma studio                  # Open Prisma Studio GUI
 - **Guest Players**: playerType=GUEST, linked to inviting player via invitedById
 
 ## Recent Changes
+
+- feat/015-confirmation-modal: Added TypeScript 5.x, Vue 3, Nuxt 3 + Nuxt 3, Tailwind CSS, `@nuxt/ui` (new module), Vitest, Vue Test Utils
 - chore/014-game-signup-invitation: Added TypeScript 5 / Vue 3.4 (Composition API `<script setup>`) + Nuxt 3, Pinia, Tailwind CSS, Vitest (unit), Playwright (e2e)
 - chore/014-game-signup-invitation: Added TypeScript 5.x (strict mode) + Nuxt 3, Vue 3 Composition API, Tailwind CSS, vue-select (via `DropdownAddMore`), Vites
-- chore/014-game-signup-invitation: Added TypeScript 5.x / Node 20 + Express 4, Prisma 5 (PostgreSQL), Nuxt 3, Vue 3, Tailwind CSS
-
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
