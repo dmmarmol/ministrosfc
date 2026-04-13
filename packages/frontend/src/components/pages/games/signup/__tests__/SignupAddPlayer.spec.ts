@@ -57,6 +57,8 @@ function makeWrapper(overrides: Record<string, unknown> = {}) {
       proxyLoading: false,
       proxyError: null,
       isFull: false,
+      confirmedCount: 0,
+      maxPlayers: 16,
       ...overrides,
     },
   });
@@ -129,18 +131,17 @@ describe("SignupAddPlayer", () => {
   });
 
   // 5. Valid guest form submission emits signup-guest with correct args
-  it("emits signup-guest with firstName, lastName, and position on valid form submission", async () => {
+  it("emits signup-guest with firstName, empty lastName, and position on valid form submission", async () => {
     const wrapper = makeWrapper();
     await flushPromises();
 
     await wrapper.find('[data-testid="open-guest-form"]').trigger("click");
 
     await wrapper.find('[data-testid="guest-first"]').setValue("Juan");
-    await wrapper.find('[data-testid="guest-last"]').setValue("Pérez");
     await wrapper.find('[data-testid="guest-position"]').setValue("CF");
     await wrapper.find('[data-testid="guest-submit"]').trigger("click");
 
-    expect(wrapper.emitted("signup-guest")).toEqual([["Juan", "Pérez", "CF"]]);
+    expect(wrapper.emitted("signup-guest")).toEqual([["Juan", "", "CF"]]);
   });
 
   // 5b. Guest submission with no position passes null
@@ -150,10 +151,9 @@ describe("SignupAddPlayer", () => {
 
     await wrapper.find('[data-testid="open-guest-form"]').trigger("click");
     await wrapper.find('[data-testid="guest-first"]').setValue("Ana");
-    await wrapper.find('[data-testid="guest-last"]').setValue("Gómez");
     await wrapper.find('[data-testid="guest-submit"]').trigger("click");
 
-    expect(wrapper.emitted("signup-guest")).toEqual([["Ana", "Gómez", null]]);
+    expect(wrapper.emitted("signup-guest")).toEqual([["Ana", "", null]]);
   });
 
   // 6 + 7. Widget renders nothing when isFull=true

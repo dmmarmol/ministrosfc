@@ -51,6 +51,6 @@ describe("login regression", () => {
       "legacy@test.com",
       "Password1!",
     );
-    expect(pushMock).toHaveBeenCalledWith("/player/games");
+    expect(pushMock).toHaveBeenCalledWith("/");
   });
 });

@@ -102,7 +102,9 @@ describe("useGameSignup", () => {
       data: { entry: rosterEntry, confirmedCount: 1, isFull: false },
     }); // signupSelf
 
-    const { load, signupSelf, roster, confirmedCount } = useGameSignup(ref("game-1"));
+    const { load, signupSelf, roster, confirmedCount } = useGameSignup(
+      ref("game-1"),
+    );
     await load();
     await signupSelf();
 
@@ -144,7 +146,12 @@ describe("useGameSignup", () => {
       expect.stringContaining("/signup"),
       expect.objectContaining({
         method: "POST",
-        body: { mode: "guest", firstName: "Juan", lastName: "Perez", position: null },
+        body: {
+          mode: "guest",
+          firstName: "Juan",
+          lastName: "Perez",
+          position: null,
+        },
       }),
     );
     expect(roster.value).toHaveLength(1);
@@ -217,8 +224,13 @@ describe("useGameSignup", () => {
     mockApi.mockResolvedValueOnce({ data: dto }); // load
     mockApi.mockResolvedValueOnce(undefined); // DELETE /self → 204
 
-    const { load, unregisterSelf, roster, confirmedCount, currentPlayerStatus } =
-      useGameSignup(ref("game-1"));
+    const {
+      load,
+      unregisterSelf,
+      roster,
+      confirmedCount,
+      currentPlayerStatus,
+    } = useGameSignup(ref("game-1"));
     await load();
     await unregisterSelf();
 
@@ -228,7 +240,7 @@ describe("useGameSignup", () => {
     );
     expect(roster.value).toHaveLength(0);
     expect(confirmedCount.value).toBe(0);
-    expect(currentPlayerStatus.value).toBe("available");
+    expect(currentPlayerStatus.value).toBe("not_signed_up");
   });
 
   it("unregisterSelf() on 422 sets error and leaves roster unchanged", async () => {
@@ -256,9 +268,14 @@ describe("useGameSignup", () => {
       currentPlayerId: "player-1",
     });
     mockApi.mockResolvedValueOnce({ data: dto }); // load
-    mockApi.mockRejectedValueOnce({ statusCode: 422, message: "Game is not open for unregistration" });
+    mockApi.mockRejectedValueOnce({
+      statusCode: 422,
+      message: "Game is not open for unregistration",
+    });
 
-    const { load, unregisterSelf, roster, error } = useGameSignup(ref("game-1"));
+    const { load, unregisterSelf, roster, error } = useGameSignup(
+      ref("game-1"),
+    );
     await load();
     await unregisterSelf();
 

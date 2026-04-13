@@ -3,7 +3,7 @@ import { mount } from "@vue/test-utils";
 import RegisterForm from "../../src/components/auth/RegisterForm.vue";
 
 describe("register form fields", () => {
-  it("renders registration fields and player checkbox defaulted to true", () => {
+  it("renders registration fields", () => {
     const wrapper = mount(RegisterForm, {
       props: { loading: false, error: "" },
     });
@@ -13,9 +13,5 @@ describe("register form fields", () => {
     expect(wrapper.find("#email").exists()).toBe(true);
     expect(wrapper.find("#password").exists()).toBe(true);
     expect(wrapper.find("#passwordConfirmation").exists()).toBe(true);
-    expect(wrapper.find("#isPlayer").exists()).toBe(true);
-    expect(
-      (wrapper.find("#isPlayer").element as HTMLInputElement).checked,
-    ).toBe(true);
   });
 });

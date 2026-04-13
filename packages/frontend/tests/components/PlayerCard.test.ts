@@ -14,7 +14,8 @@ const NuxtLinkStub = {
 
 const basePlayer = {
   id: "player-1",
-  name: "João Silva",
+  firstName: "João",
+  lastName: "Silva",
   position: "CF",
   jerseyNumber: null,
   photoUrl: null,
