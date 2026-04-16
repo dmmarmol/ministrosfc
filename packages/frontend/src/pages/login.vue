@@ -4,6 +4,7 @@ import { useAuthStore } from "~/stores/auth";
 import LoginForm from "~/components/auth/LoginForm.vue";
 import RegisterForm from "~/components/auth/RegisterForm.vue";
 import GoogleSignInButton from "~/components/auth/GoogleSignInButton.vue";
+import BackButton from "~/components/ui/BackButton.vue";
 
 definePageMeta({ layout: false, middleware: "auth", authPage: true });
 
@@ -89,6 +90,9 @@ onMounted(() => {
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
     <div class="w-full max-w-sm">
+      <div class="mb-3">
+        <BackButton to="/" label="Volver al sitio" />
+      </div>
       <div class="text-center mb-8">
         <div
           class="w-16 h-16 bg-brand rounded-full mx-auto flex items-center justify-center text-gray-900 font-bold text-2xl mb-4"

@@ -6,6 +6,7 @@ import { useAuthStore } from "~/stores/auth";
 import { useJerseyAvailability } from "~/composables/useJerseyAvailability";
 import JerseyNumberInput from "~/components/ui/JerseyNumberInput.vue";
 import IsPlayerCheckbox from "~/components/ui/IsPlayerCheckbox.vue";
+import BackButton from "~/components/ui/BackButton.vue";
 
 definePageMeta({
   layout: false,
@@ -78,14 +79,31 @@ onMounted(async () => {
 
 async function navigateAfterOnboarding() {
   const redirect = route.query.redirect as string | undefined;
-  if (redirect) {
-    await router.push(redirect);
+  // validate: allow only relative paths to prevent open redirect
+  const safeRedirect =
+    redirect && /^\/[^/]/.test(redirect) ? redirect : null;
+  if (safeRedirect) {
+    await router.push(safeRedirect);
   } else if (authStore.isEditor) {
     await router.push("/admin/dashboard");
   } else {
     await router.push("/");
   }
 }
+
+/**
+ * Back button destination: go back to /login preserving the redirect param
+ * so the user doesn't lose their original destination.
+ * Only safe (relative) redirect values are forwarded.
+ */
+const backPath = computed(() => {
+  const redirect = route.query.redirect as string | undefined;
+  const safeRedirect =
+    redirect && /^\/[^/]/.test(redirect) ? redirect : null;
+  return safeRedirect
+    ? `/login?redirect=${encodeURIComponent(safeRedirect)}`
+    : "/login";
+});
 
 async function handleSubmit() {
   try {
@@ -111,6 +129,9 @@ async function handleSubmit() {
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
     <div class="w-full max-w-md">
+      <div class="mb-3">
+        <BackButton :to="backPath" label="Volver" />
+      </div>
       <div class="text-center mb-8">
         <div
           class="w-16 h-16 bg-brand rounded-full mx-auto flex items-center justify-center text-gray-900 font-bold text-2xl mb-4"
