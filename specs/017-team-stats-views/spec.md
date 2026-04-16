@@ -1,6 +1,6 @@
 # Feature Specification: Team Statistics Views
 
-**Feature Branch**: `017-team-stats-views`  
+**Feature Branch**: `feat/017-team-stats-views`  
 **Created**: 2026-04-16  
 **Status**: Draft  
 **Input**: User description: "Create private views to display tournament, games and individual players statistics. Player stats publicly visible. Filtered by year/tournament/rival. URL query params for sharing."
@@ -53,7 +53,7 @@ An authenticated user navigates to the player stats view and can see all players
 
 **Acceptance Scenarios**:
 
-1. **Given** the user selects "All Players" focus, **When** the table renders, **Then** each row shows a player with games played, participation rate, goals, win rate historically and per year.
+1. **Given** the user selects "All Players" focus, **When** the table renders, **Then** each row shows a player with games played, participation rate (games played / total team games as %), goals, win rate historically and per year.
 2. **Given** the user selects a single player, **When** the table renders, **Then** rows show that player's stats broken down by year, tournament, and rival (games played, won, lost, goals, goal rate, win rate).
 3. **Given** the user applies a year filter and selects a player, **When** the table renders, **Then** only data for that year plus that player is shown.
 
@@ -111,11 +111,11 @@ The team has been tracking games and player appearances in a Google Spreadsheet.
 - **FR-004**: The stats section MUST support the following focus modes, each changing the table columns and rows accordingly:
   - **All Years**: one row per year — games played, won, lost, drawn, win rate.
   - **All Tournaments**: one row per tournament per year — games played, won, lost, drawn, win rate.
-  - **All Rivals**: one row per rival — games played, won, lost, drawn, win rate historically and per year.
+  - **All Rivals**: one row per rival with all-time totals — games played, won, lost, drawn, win rate. Per-year and per-tournament breakdown is only available in Specific Rival mode.
   - **Specific Rival**: one row per year/tournament for the selected rival.
-  - **All Players**: one row per player — games played, participation rate, goals, win rate historically and per year.
+  - **All Players**: one row per player — games played, participation rate (games played / total team games as %), goals, win rate historically and per year.
   - **Single Player**: one row per year/tournament/rival for the selected player — games played, won, lost, goals, goal rate, win rate.
-- **FR-005**: The table columns MUST include where applicable: Year, Tournament, Period (start–end date), Games Played, Games Won, Games Lost, Games Drawn, Points Earned, Win Rate %, Goals For, Goals Against, Goal Difference, Goal Rate For, Goal Rate Against.
+- **FR-005**: The table columns MUST include where applicable: Year, Tournament, Period (start–end date of tournament), Games Played, Games Won, Games Lost, Games Drawn, Points Earned, Win Rate %, Goals For, Goals Against, Goal Difference, Goal Rate For (goals scored / games played), Goal Rate Against (goals conceded / games played). Participation Rate % (player games played / total team games in scope) applies to All Players and Single Player views only.
 - **FR-006**: The stats page MUST include a static summary header displaying the following all-time team records:
   - Rival with most games played against (name and count)
   - Rival with most wins against (name and count)
@@ -135,7 +135,7 @@ The team has been tracking games and player appearances in a Google Spreadsheet.
 - **FR-012**: The CMS MUST provide a batch import endpoint that accepts three CSV files (Historial, Jugadores, Apariciones) matching the historical spreadsheet export format.
 - **FR-013**: The import MUST be idempotent — re-uploading the same CSVs MUST NOT create duplicate records; existing records are matched and skipped or updated.
 - **FR-014**: The import MUST parse date formats used in the CSVs: `DD/MM/YYYY` for game dates in Historial and `YYYY/MM/DD` in Apariciones.
-- **FR-015**: The import MUST link Apariciones rows to their corresponding game via the combination of (date + rival + tournament + result); if no match exists, a new game record is created.
+- **FR-015**: The import MUST link Apariciones rows to their corresponding game via the combination of (date + rival + tournament); if no matching game is found, the appearance row is skipped and a warning is added to the import result.
 - **FR-016**: The import MUST link Apariciones to Players by name; if no matching player exists, a minimal player record MUST be created so the appearance is not lost.
 - **FR-017**: CSV rows with blank optional fields (comments, photo URL, image URL, coach) MUST be imported successfully with null/empty values.
 - **FR-018**: Conclusion codes in Historial MUST be mapped as follows: `G` → Win, `P` → Loss, `E` → Draw.
@@ -214,7 +214,7 @@ The following column mappings define how the Google Spreadsheet exports map to t
 - Stats calculations are performed server-side and returned as pre-aggregated objects; no heavy computation happens in the browser.
 - The public player profile page (`/players/{slug}`) already exists; this spec adds the stats section to it.
 - "Points earned" follows standard football scoring: 3 for a win, 1 for a draw, 0 for a loss.
-- A private stats route such as `/stats` or `/admin/stats` is to be determined during planning; the route must be inaccessible to unauthenticated users.
+- The private stats dashboard is accessible at `/stats`. Sub-routes under `/stats` are used per focus mode to enable direct link sharing: `/stats/years` (default), `/stats/tournaments`, `/stats/rivals`, `/stats/rivals/:rivalId`, `/stats/players`, `/stats/players/:playerId`. All sub-routes require authentication.
 - Goal rate is defined as goals scored divided by games played, rounded to 2 decimal places.
 - Player matching during CSV import uses the full name field (`Jugador`) as the lookup key; partial or nickname-only matches are not supported.
 

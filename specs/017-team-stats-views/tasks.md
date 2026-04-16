@@ -74,10 +74,12 @@ _Note: T008–T015 in Phase 2 deliver the implementation for US5. T016–T017 ar
 - [ ] T023 [P] [US2] Create `packages/frontend/src/components/pages/stats/StatsFocusSelector.vue`: props `{ modelValue: string }`, emits `update:modelValue`; renders focus mode options: All Years, All Tournaments, All Rivals, Specific Rival, All Players, Single Player
 - [ ] T024 [P] [US2] Create `packages/frontend/src/components/pages/stats/StatsFilters.vue`: props `{ mode, years, tournaments, rivals, players }`; shows relevant `<select>` dropdowns per mode (year always visible; tournament for tournament mode; rival for rival mode; player for player mode); emits filter change events
 - [ ] T025 [P] [US2] Create `packages/frontend/src/components/pages/stats/StatsTableByYear.vue`: props `{ rows: TeamStatPeriodDTO[], loading: boolean }`; columns: Year, Period, Games, W, L, D, GF, GA, GD, Pts, Win%; empty state: "Sin datos"
-- [ ] T026 [US2] Create `packages/frontend/src/pages/stats.vue`: `definePageMeta({ middleware: "auth", requiresAuth: true })`; inject `useStatsFilters()`; `useAsyncData` for summary header (once); `useAsyncData` with `watch` for table data reacting to filter changes; render `<StatsHeader>`, `<StatsFocusSelector>`, `<StatsFilters>`, and the active `<StatsTableBy*>` component based on `mode`
+- [ ] T026a [US2] Create `packages/frontend/src/pages/stats/index.vue`: `definePageMeta({ middleware: "auth", requiresAuth: true })`; redirect to `/stats/years` via `navigateTo('/stats/years', { replace: true })` in `<script setup>`
+- [ ] T026b [US2] Create `packages/frontend/src/pages/stats/years.vue`: `definePageMeta({ middleware: "auth", requiresAuth: true })`; inject `useStatsFilters()`; fetch `/api/v1/statistics/team/summary` (once) and `/api/v1/statistics/team/by-year` (reactive to year/tournament filter); render `<StatsHeader>`, `<StatsFilters mode="years">`, `<StatsTableByYear>`
+- [ ] T026c [US2] Create `packages/frontend/src/pages/stats/tournaments.vue`: `definePageMeta({ middleware: "auth", requiresAuth: true })`; fetch `/api/v1/statistics/team/by-tournament` reactive to year/rival filter; render `<StatsHeader>`, `<StatsFilters mode="tournaments">`, `<StatsTableByTournament>`
 - [ ] T027 [P] [US2] Write unit test `packages/frontend/tests/unit/components/pages/stats/StatsHeader.spec.ts`: renders all 10 record fields; handles zero/null values
 - [ ] T028 [P] [US2] Write unit test `packages/frontend/tests/unit/components/pages/stats/StatsTableByYear.spec.ts`: correct columns rendered, rows mapped, empty state message shown when rows=[]
-- [ ] T029 [P] [US2] Write Playwright E2E test `packages/frontend/tests/e2e/stats/auth-guard.spec.ts`: unauthenticated user redirected to login; post-auth redirect back to `/stats` (SC-006 regression check)
+- [ ] T029 [P] [US2] Write Playwright E2E test `packages/frontend/tests/e2e/stats/auth-guard.spec.ts`: unauthenticated user navigating to any `/stats/*` sub-route is redirected to login; post-auth redirect returns to original URL (SC-006 regression check)
 
 ---
 
@@ -87,9 +89,11 @@ _Note: T008–T015 in Phase 2 deliver the implementation for US5. T016–T017 ar
 
 **Independent Test**: Log in → stats → select "All Rivals" focus → table shows one row per opponent. Select a specific rival → table shows per-year breakdown for that rival.
 
-- [ ] T030 [P] [US3] Create `packages/frontend/src/components/pages/stats/StatsTableByTournament.vue`: props `{ rows: TeamStatPeriodDTO[], loading: boolean }`; columns: Tournament, Year, Games, W, L, D, GF, GA, GD, Pts, Win%; empty state
+- [ ] T030 [P] [US3] Create `packages/frontend/src/components/pages/stats/StatsTableByTournament.vue`: props `{ rows: TeamStatPeriodDTO[], loading: boolean }`; columns: Tournament, Year, Period (start–end), Games, W, L, D, GF, GA, GD, GRF, GRA, Pts, Win%; empty state
+- [ ] T030b [P] [US3] Write unit test `packages/frontend/tests/unit/components/pages/stats/StatsTableByTournament.spec.ts`: correct columns rendered, period dates displayed, rows mapped, empty state message (satisfies SC-002)
 - [ ] T031 [P] [US3] Create `packages/frontend/src/components/pages/stats/StatsTableByRival.vue`: props `{ rows: TeamStatPeriodDTO[], mode: 'all' | 'single', loading: boolean }`; in `all` mode: one row per rival; in `single` mode: breakdown by year + tournament for that rival; columns adapt per mode; empty state
-- [ ] T032 [US3] Wire "All Rivals" and "Specific Rival" focus modes into `packages/frontend/src/pages/stats.vue`: map `mode=all-rivals` to `GET /api/v1/statistics/team/by-rival`; map `mode=rival` to `GET /api/v1/statistics/team/rivals/:rivalId`; show `<StatsTableByRival>` with appropriate `mode` prop
+- [ ] T032 [US3] Create `packages/frontend/src/pages/stats/rivals/index.vue`: `definePageMeta({ middleware: "auth", requiresAuth: true })`; fetch `/api/v1/statistics/team/by-rival` reactive to year/tournament filter; render `<StatsHeader>`, `<StatsFilters mode="rivals">`, `<StatsTableByRival mode="all">`
+- [ ] T032b [US3] Create `packages/frontend/src/pages/stats/rivals/[id].vue`: `definePageMeta({ middleware: "auth", requiresAuth: true })`; read `rivalId` from route params; fetch `/api/v1/statistics/team/rivals/:rivalId` reactive to year filter; render `<StatsHeader>`, `<StatsFilters mode="rival">`, `<StatsTableByRival mode="single">`
 - [ ] T033 [P] [US3] Write unit test `packages/frontend/tests/unit/components/pages/stats/StatsTableByRival.spec.ts`: all-rivals mode columns, single-rival mode columns, empty state
 
 ---
@@ -100,8 +104,9 @@ _Note: T008–T015 in Phase 2 deliver the implementation for US5. T016–T017 ar
 
 **Independent Test**: Log in → stats → select "All Players" → table shows one row per player with goals, wins, win rate. Click/select a specific player → table shows that player's stats by year.
 
-- [ ] T034 [P] [US4] Create `packages/frontend/src/components/pages/stats/StatsTableByPlayer.vue`: props `{ rows: PlayerStatRowDTO[], mode: 'all' | 'single', loading: boolean }`; in `all` mode: one row per player (name, games, W, L, D, goals, assists, winRate, goalRate); in `single` mode: per-year rows with same columns; empty state
-- [ ] T035 [US4] Wire "All Players" and "Single Player" focus modes into `packages/frontend/src/pages/stats.vue`: map `mode=all-players` to `GET /api/v1/statistics/players?year=&rivalId=`; map `mode=player` to `GET /api/v1/statistics/players/:id?year=&rivalId=`; show `<StatsTableByPlayer>` with appropriate `mode` prop
+- [ ] T034 [P] [US4] Create `packages/frontend/src/components/pages/stats/StatsTableByPlayer.vue`: props `{ rows: PlayerStatRowDTO[], mode: 'all' | 'single', loading: boolean }`; in `all` mode: one row per player (name, games, W, L, D, goals, assists, winRate, goalRate, participationRate%); in `single` mode: per-year rows with same columns; empty state
+- [ ] T035 [US4] Create `packages/frontend/src/pages/stats/players/index.vue`: `definePageMeta({ middleware: "auth", requiresAuth: true })`; fetch `/api/v1/statistics/players` reactive to year/rival filter; render `<StatsHeader>`, `<StatsFilters mode="players">`, `<StatsTableByPlayer mode="all">`
+- [ ] T035b [US4] Create `packages/frontend/src/pages/stats/players/[id].vue`: `definePageMeta({ middleware: "auth", requiresAuth: true })`; read `playerId` from route params; fetch `/api/v1/statistics/players/:id` reactive to year/rival filter; render `<StatsHeader>`, `<StatsFilters mode="player">`, `<StatsTableByPlayer mode="single">`
 - [ ] T036 [P] [US4] Write unit test `packages/frontend/tests/unit/components/pages/stats/StatsTableByPlayer.spec.ts`: all-players mode columns, single-player mode columns, goalRate displayed as decimal, empty state
 
 ---
@@ -112,7 +117,7 @@ _Note: T008–T015 in Phase 2 deliver the implementation for US5. T016–T017 ar
 
 **Independent Test**: Apply any filter combination → URL updates without full reload. Copy URL → open in new authenticated tab → same view restored. Invalid param in URL → silently ignored, defaults applied.
 
-- [ ] T037 [US4] Verify `useStatsFilters.ts` (T018) encodes all 5 filter dimensions: `mode`, `year`, `tournament`, `rival`, `player` as URL query params; double-check `navigateTo` is called with `replace: true` to avoid polluting browser history
+- [ ] T037 [US4] Verify that each stats sub-route URL is directly shareable and restores the correct view without redirect (e.g. `/stats/rivals/uuid` opens the single-rival view; `/stats/players/uuid` opens single-player view)
 - [ ] T038 [P] [US4] Write Playwright E2E test `packages/frontend/tests/e2e/stats/filter-url-roundtrip.spec.ts`: apply mode + year + rival → URL encodes all; reload → same filters restored (SC-003, SC-004); invalid year param → graceful fallback
 
 ---
@@ -175,14 +180,14 @@ T034 (Phase 7 component) → T035
 7. Phase 8: US4 URL sharing
 8. Phase 9: polish + regression
 
-**Total tasks**: 43  
+**Total tasks**: 49  
 **Tasks by user story**:
 - Foundation/Setup: T001–T015 (15 tasks)
 - US5 (CSV import acceptance): T016–T017 (2 tasks)
 - US1 (public player stats): T018–T021 (4 tasks)
-- US2 (team dashboard): T022–T029 (8 tasks)
-- US3 (rival stats): T030–T033 (4 tasks)
-- US4 (player comparison + URL): T034–T038 (5 tasks)
+- US2 (team dashboard): T022–T029, T026a–T026c (10 tasks)
+- US3 (rival stats): T030, T030b, T031–T033b (6 tasks)
+- US4 (player comparison + URL): T034–T038, T035b (7 tasks)
 - Polish: T039–T043 (5 tasks)
 
-**Parallel opportunities**: 18 tasks marked `[P]` across all phases
+**Parallel opportunities**: 19 tasks marked `[P]` across all phases

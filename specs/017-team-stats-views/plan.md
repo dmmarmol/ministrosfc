@@ -1,6 +1,6 @@
 # Implementation Plan: Team Statistics Views
 
-**Branch**: `chore/017-team-stats-views` | **Date**: 2026-04-16 | **Spec**: [spec.md](spec.md)  
+**Branch**: `feat/017-team-stats-views` | **Date**: 2026-04-16 | **Spec**: [spec.md](spec.md)  
 **Input**: Feature specification from `specs/017-team-stats-views/spec.md`
 
 ## Summary
@@ -91,7 +91,22 @@ packages/shared/
 packages/frontend/
 └── src/
     ├── pages/
-    │   ├── stats.vue                          ← NEW: private stats dashboard
+    │   ├── stats/
+    │   │   ├── index.vue                      ← NEW: redirects to /stats/years
+    │   │   │                                      definePageMeta({ middleware: "auth", requiresAuth: true })
+    │   │   ├── years.vue                      ← NEW: All Years focus mode
+    │   │   │                                      definePageMeta({ middleware: "auth", requiresAuth: true })
+    │   │   ├── tournaments.vue                ← NEW: All Tournaments focus mode
+    │   │   │                                      definePageMeta({ middleware: "auth", requiresAuth: true })
+    │   │   ├── rivals/
+    │   │   │   ├── index.vue                  ← NEW: All Rivals focus mode
+    │   │   │   │                                  definePageMeta({ middleware: "auth", requiresAuth: true })
+    │   │   │   └── [id].vue                   ← NEW: Single Rival focus mode
+    │   │   │                                      definePageMeta({ middleware: "auth", requiresAuth: true })
+    │   │   └── players/
+    │   │       ├── index.vue                  ← NEW: All Players focus mode
+    │   │       │                                  definePageMeta({ middleware: "auth", requiresAuth: true })
+    │   │       └── [id].vue                   ← NEW: Single Player focus mode
     │   │                                          definePageMeta({ middleware: "auth", requiresAuth: true })
     │   └── players/
     │       └── [id].vue                       ← EXTEND: add wins/losses/draws/winRate to stat cards
@@ -182,11 +197,15 @@ See [contracts/statistics-contract.md](contracts/statistics-contract.md).
 
 ### Frontend Architecture
 
-**`pages/stats.vue`** (new, auth-required):
-- `definePageMeta({ middleware: "auth", requiresAuth: true })`
-- Injects `useStatsFilters()` composable — no direct `useRoute` in the page file
-- `useAsyncData` for summary header (loaded once); separate watchers per focus mode for the table data
-- Renders `<StatsHeader>`, `<StatsFocusSelector>`, `<StatsFilters>`, and the appropriate `<StatsTableBy*>` component
+- `stats/index.vue` → redirect to `/stats/years`
+- `stats/years.vue` — All Years table
+- `stats/tournaments.vue` — All Tournaments table
+- `stats/rivals/index.vue` — All Rivals table
+- `stats/rivals/[id].vue` — Single Rival breakdown
+- `stats/players/index.vue` — All Players table
+- `stats/players/[id].vue` — Single Player breakdown
+
+All `stats/*` pages: `definePageMeta({ middleware: "auth", requiresAuth: true })`
 
 **`useStatsFilters.ts` composable**:
 ```typescript

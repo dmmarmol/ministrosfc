@@ -146,6 +146,8 @@ ORDER BY year DESC
 // Team stats for a single period (year, tournament, or rival)
 export interface TeamStatPeriodDTO {
   label: string;          // e.g. "2023", "Liga", "La Cocina"
+  periodStart?: string;   // ISO date string — start of tournament or year; null for rival rows
+  periodEnd?: string;     // ISO date string — end of tournament or year; null for rival rows
   gamesPlayed: number;
   wins: number;
   losses: number;
@@ -153,6 +155,8 @@ export interface TeamStatPeriodDTO {
   goalsFor: number;
   goalsAgainst: number;
   goalDifference: number;
+  goalRateFor: number;    // goalsFor / gamesPlayed, rounded to 2 decimal
+  goalRateAgainst: number; // goalsAgainst / gamesPlayed, rounded to 2 decimal
   winRate: number;        // 0–100, rounded to 1 decimal
   pointsEarned: number;   // 3*wins + 1*draws
 }
@@ -177,7 +181,7 @@ export interface TeamSummaryHeaderDTO {
   topScorer: { name: string; goals: number };
 }
 
-// Per-player stats row for "All Players" focus mode
+// Per-player stats row for "All Players" and "Single Player" focus modes
 export interface PlayerStatRowDTO {
   playerId: string;
   playerName: string;
@@ -190,8 +194,9 @@ export interface PlayerStatRowDTO {
   assists: number;
   yellowCards: number;
   redCards: number;
-  winRate: number;
-  goalRate: number;
+  winRate: number;            // 0–100, rounded to 1 decimal
+  goalRate: number;           // goals / gamesPlayed, rounded to 2 decimal
+  participationRate: number;  // gamesPlayed / totalTeamGamesInScope * 100, rounded to 1 decimal
 }
 
 // CSV import result summary
