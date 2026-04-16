@@ -35,11 +35,16 @@ Role changes follow strict hierarchy rules so authority boundaries are enforced 
 
 **Acceptance Scenarios**:
 
-1. **Given** an Admin user, **When** they change another user role to Player, Editor, or DT, **Then** the new role is saved and effective immediately.
-2. **Given** an Editor user, **When** they promote a user to Player or DT, **Then** the change succeeds.
-3. **Given** an Editor user, **When** they try to demote any user or set role to Editor/Admin, **Then** the change is denied.
-4. **Given** a Player or DT user, **When** they attempt any role promotion or demotion, **Then** the action is denied.
-5. **Given** a successful role change, **When** the target user next accesses protected areas, **Then** permissions match the new role.
+1. **Given** an Admin user, **When** they change another user role to Player, Editor, DT, or Admin, **Then** a confirmation modal appears describing the role change.
+2. **Given** a role change confirmation modal is displayed, **When** the Admin confirms the action, **Then** the new role is saved and effective immediately.
+3. **Given** a role change confirmation modal is displayed, **When** the Admin cancels the action, **Then** no changes are applied and the modal closes.
+4. **Given** an Admin user, **When** they demote another Admin to a lower role (Player, Editor, or DT), **Then** the confirmation modal appears and upon confirmation the change succeeds and the target user's permissions update accordingly.
+5. **Given** an Admin user, **When** they attempt to change their own role to a non-Admin role, **Then** the action is blocked and an error message states "Cannot demote yourself".
+6. **Given** an Admin user viewing their own user record, **When** they view the role dropdown, **Then** the dropdown is disabled or visually indicates it cannot be changed.
+7. **Given** an Editor user, **When** they promote a user to Player or DT, **Then** a confirmation modal appears and upon confirmation the change succeeds.
+8. **Given** an Editor user, **When** they try to demote any user or set role to Editor/Admin, **Then** the change is denied.
+9. **Given** a Player or DT user, **When** they attempt any role promotion or demotion, **Then** the action is denied.
+10. **Given** a successful role change, **When** the target user next accesses protected areas, **Then** permissions match the new role.
 
 ---
 
@@ -53,20 +58,28 @@ Authorized users can deactivate or delete player-linked users with explicit conf
 
 **Acceptance Scenarios**:
 
-1. **Given** an Admin or Editor user, **When** they deactivate a player user and confirm, **Then** the linked player status changes to inactive and data is retained.
-2. **Given** a deactivated player user, **When** admins view historical/statistical contexts, **Then** the user/player records remain available for historical reporting.
-3. **Given** an Admin user, **When** they delete a player user and confirm, **Then** both user and linked player are deleted.
-4. **Given** an Editor user, **When** they attempt player-user deletion, **Then** the action is denied.
-5. **Given** any deactivate or delete action, **When** confirmation is canceled, **Then** no data change is applied.
-6. **Given** lifecycle actions in admin/users, **When** the UI is rendered, **Then** every destructive or state-changing action uses a confirmation prompt.
+1. **Given** an Admin or Editor user, **When** they click to deactivate a player user, **Then** a confirmation modal appears with clear text stating "Deactivate player [player name]? This will prevent them from participating in new games."
+2. **Given** a deactivation confirmation modal, **When** the user confirms, **Then** the linked player status changes to inactive and data is retained.
+3. **Given** a deactivation confirmation modal, **When** the user cancels, **Then** no changes are applied and the modal closes.
+4. **Given** a deactivated player user, **When** admins view historical/statistical contexts, **Then** the user/player records remain available for historical reporting.
+5. **Given** an Admin user, **When** they click to delete a player user, **Then** a confirmation modal appears with clear text stating "Delete user [user name] and player [player name]? This action cannot be undone."
+6. **Given** a deletion confirmation modal, **When** the Admin confirms, **Then** both user and linked player are deleted.
+7. **Given** a deletion confirmation modal, **When** the Admin cancels, **Then** no data change is applied and the modal closes.
+8. **Given** an Editor user, **When** they attempt player-user deletion, **Then** the action is denied.
+9. **Given** lifecycle actions in admin/users, **When** the UI is rendered, **Then** every destructive or state-changing action (role changes, status toggles, user deletions, player deletions, profile edits) uses a confirmation modal.
 
 ### Edge Cases
 
-- Attempting to deactivate or delete a user with no linked player profile must return a clear validation error and no partial update.
-- Attempting to change a role to the current value should be idempotent and not create duplicate audit/event records.
+- **Admin Self-Demotion Prevention**: An admin attempting to demote themselves (change their own role from ADMIN to any lower role) must be blocked with error "Cannot demote yourself". The role dropdown for the admin's own user record should be disabled or visually indicate it cannot be changed. This prevents accidental privilege loss and ensures at least one admin always exists in the system.
+- **Admin-to-Admin Demotion**: An admin can promote other users to ADMIN and also demote other admins to lower roles (PLAYER, EDITOR, DT). This prevents privilege escalation lock-in where promoted admins can never be demoted. All such actions require confirmation modal approval.
+- **Confirmation Modal for All Sensitive Actions**: Every state-changing action on the /admin/users page must trigger a confirmation modal before execution. Sensitive actions include: role changes (any role to any other role), user status toggles (activate/deactivate), user deletions, player deletions, and critical profile edits (email changes). Non-critical profile edits (first name, last name) do not require confirmation. The modal must clearly state what action will be performed and on which user/player.
+- **Idempotent Changes Skip Confirmation**: Attempting to change a role to its current value (e.g., ADMIN→ADMIN) or toggle status to its current state returns success without confirmation modal or database write. This prevents unnecessary user clicks and maintains good UX.
+- **Network Failure During Confirmation**: If network fails after the user confirms a modal but before the backend processes the request, the UI must close the modal, show an error toast with message "Network error occurred. Please try again." and a retry button, and not mutate local state. The user must retry the action.
+- **Session Expiry During Confirmation**: If an admin's session expires while a confirmation modal is open, the backend rejects the request with 401 Unauthorized and the frontend prompts re-authentication via existing auth middleware.
+- **Concurrent Role Changes**: If two admins attempt to change the same user's role simultaneously, the system uses optimistic concurrency control via `expectedUpdatedAt` timestamp. The second request receives 409 CONFLICT error and must retry with fresh data. Users see updated data after successful operations.
+- Attempting to perform a player-status update (deactivate/reactivate) or delete a user with no linked player profile must return a clear validation error and no partial update.
 - Editing email to a value already used by another account must fail with a clear uniqueness message.
-- Deleting a player user with historical game participations must not leave orphan references.
-- Concurrent updates on the same user (role change plus profile edit) must resolve deterministically without silent overwrite.
+- Deleting a player user with historical game participations must not leave orphan references. (See data integrity requirement below)
 
 ## Requirements _(mandatory)_
 
@@ -76,20 +89,23 @@ Authorized users can deactivate or delete player-linked users with explicit conf
 - **FR-002**: System MUST display first name, last name, and email for each listed user.
 - **FR-003**: System MUST support editing first name, last name, and email for listed users by Admin and Editor roles.
 - **FR-004**: System MUST present the edit action as part of the user full-name interaction (first name + last name), without requiring a dedicated edit button.
-- **FR-005**: System MUST allow Admin users to assign roles Player, Editor, and DT to other users according to policy.
+- **FR-005**: System MUST allow Admin users to assign any role (Player, Editor, DT, Admin) to other users, including promoting users to Admin and demoting other Admins to lower roles.
+- **FR-005a**: System MUST prevent Admin users from demoting themselves (changing their own role from ADMIN to any other role) with error message "Cannot demote yourself".
 - **FR-006**: System MUST allow Editor users to promote users only to Player or DT.
 - **FR-007**: System MUST deny demotion actions initiated by Editor users.
 - **FR-008**: System MUST deny all promotion/demotion actions initiated by Player and DT users.
 - **FR-009**: System MUST apply role changes to persistent user records so authorization behavior reflects the new role.
-- **FR-010**: System MUST allow Admin and Editor users to deactivate player users by changing linked player status to inactive.
+- **FR-010**: System MUST allow Admin and Editor users to perform player-status updates (deactivate/reactivate) by changing linked player status.
 - **FR-011**: System MUST keep user and player data retained when a player user is deactivated.
 - **FR-012**: System MUST allow only Admin users to delete player users.
 - **FR-013**: System MUST delete both user and linked player when Admin confirms deletion of a player user.
-- **FR-014**: System MUST preserve data integrity during player-user deletion (no orphan linked records).
-- **FR-015**: System MUST require explicit confirmation prompts before role changes, deactivation, and deletion actions are executed.
-- **FR-016**: System MUST deny unauthorized lifecycle actions with clear authorization errors.
-- **FR-017**: System MUST validate uniqueness and format constraints for edited email values before persisting changes.
-- **FR-018**: System MUST provide clear success and failure feedback for each completed or rejected admin/users action.
+- **FR-014**: System MUST preserve data integrity during player-user deletion (no orphan linked records; see also Edge Cases).
+- **FR-015**: System MUST require explicit, blocking confirmation modals (ConfirmationModal component) before ALL sensitive actions on /admin/users page are executed, including: role changes (any role to any other role), user status toggles (activate/deactivate), user deletions, player deletions, and critical profile edits (email changes that affect login identity). Confirmation modals MUST display clear action text describing what will happen and to whom, require explicit confirm/cancel buttons, and block background interaction until resolved. EXCEPTION: Idempotent changes (e.g., setting a role to its current value) skip confirmation for better UX.
+- **FR-015a**: System MUST disable the role dropdown (`:disabled` attribute) for an admin viewing their own user record to prevent self-demotion attempts at the UI level. Visual indication (e.g., tooltip stating "Cannot change your own role") SHOULD be added as secondary affordance.
+- **FR-015b**: System MUST validate on the backend that the requesting admin user is not attempting to modify their own role, returning 403 Forbidden with error "Cannot demote yourself" if attempted.
+- **FR-016**: System MUST deny unauthorized lifecycle actions with clear authorization errors (e.g., Editor delete denial, Player/DT promotion attempts).
+- **FR-017**: System MUST validate uniqueness and format constraints for edited email values before persisting changes, and return clear error messages for duplicates.
+- **FR-018**: System MUST provide clear success and failure feedback for each completed or rejected admin/users action (UI and API).
 
 ### Key Entities _(include if feature involves data)_
 
@@ -109,7 +125,9 @@ Authorized users can deactivate or delete player-linked users with explicit conf
 ### Measurable Outcomes
 
 - **SC-001**: 100% of Admin and Editor users can load admin/users and view first name, last name, and email for all visible users.
-- **SC-002**: 100% of role-change attempts enforce policy outcomes (allowed and denied) according to actor role rules.
-- **SC-003**: 100% of deactivation and deletion actions require explicit confirmation before any data mutation.
+- **SC-002**: 100% of role-change attempts enforce policy outcomes (allowed and denied) according to actor role rules. This includes: (1) Admin can demote other admins to lower roles (with confirmation), (2) Admin cannot demote themselves (blocked at UI and backend with clear error), (3) All other role transitions follow documented governance matrix and require confirmation.
+- **SC-003**: 100% of ALL sensitive actions on /admin/users page (role changes, status toggles, user deletions, player deletions, critical edits) require explicit confirmation modal before any data mutation. Exception: idempotent changes (same-value updates) skip confirmation for better UX.
 - **SC-004**: 100% of confirmed Admin deletions remove both user and linked player without orphan linked records.
 - **SC-005**: At least 95% of successful admin/users mutations (edit, promote, deactivate, delete) are reflected in the UI within one refresh cycle.
+- **SC-006**: Admins can demote any user including other admins in under 10 seconds (select role, confirm modal, see update).
+- **SC-007**: Zero accidental admin demotions or user deletions occur due to confirmation requirement - all actions require explicit modal confirmation.

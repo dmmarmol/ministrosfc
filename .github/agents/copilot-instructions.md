@@ -3,6 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2026-04-13
 
 ## Active Technologies
+- TypeScript 5.x (Node.js 18+), Vue 3, Nuxt 3 + Express, Prisma ORM, Zod, Nuxt composables/runtime, Vitest, Jest + Supertes (chore/016-user-promotion-governance)
 
 - TypeScript 5.x stric + Nuxt 3 (SSR), Express 4, Prisma 5 (PostgreSQL), Pinia 2, Zod (chore/014-game-signup-invitation)
 - PostgreSQL via Prisma (chore/014-game-signup-invitation)
@@ -128,10 +129,10 @@ npx prisma studio                  # Open Prisma Studio GUI
 - **Guest Players**: playerType=GUEST, linked to inviting player via invitedById
 
 ## Recent Changes
+- chore/016-user-promotion-governance: Added TypeScript 5.x (Node.js 18+), Vue 3, Nuxt 3 + Express, Prisma ORM, Zod, Nuxt composables/runtime, Vitest, Jest + Supertes
 
 - feat/015-confirmation-modal: Added TypeScript 5.x, Vue 3, Nuxt 3 + Nuxt 3, Tailwind CSS, `@nuxt/ui` (new module), Vitest, Vue Test Utils
 - chore/014-game-signup-invitation: Added TypeScript 5 / Vue 3.4 (Composition API `<script setup>`) + Nuxt 3, Pinia, Tailwind CSS, Vitest (unit), Playwright (e2e)
-- chore/014-game-signup-invitation: Added TypeScript 5.x (strict mode) + Nuxt 3, Vue 3 Composition API, Tailwind CSS, vue-select (via `DropdownAddMore`), Vites
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

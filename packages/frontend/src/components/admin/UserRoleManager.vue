@@ -1,22 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import ConfirmationModal from "../ui/ConfirmationModal.vue";
 
-interface UserPlayer {
-  id: string;
-  status: string;
-  jerseyNumber: number | null;
-  photoUrl: string | null;
-}
+import type { AdminUserListItem } from "@ministrosfc/shared/src/types/api";
 
-interface AdminUser {
-  id: string;
-  email: string;
+interface EditableUserFields {
   firstName: string;
   lastName: string;
-  role: string;
-  createdAt: string;
-  lastLoginAt: string | null;
-  player: UserPlayer | null;
+  email: string;
 }
 
 interface Meta {
@@ -28,7 +19,49 @@ interface Meta {
 
 const { $api } = useNuxtApp();
 
-const users = ref<AdminUser[]>([]);
+const users = ref<AdminUserListItem[]>([]);
+
+// --- Shared confirmation-intent state and action descriptors ---
+type AdminConfirmationActionType = 'change-role' | 'toggle-status' | 'delete-user-player';
+interface AdminConfirmationIntent {
+  actionType: AdminConfirmationActionType;
+  targetUserId: string;
+  targetUserLabel: string;
+  nextValue?: string;
+}
+
+const confirmationIntent = ref<AdminConfirmationIntent | null>(null);
+const editingUserId = ref<string | null>(null);
+const editFields = ref<EditableUserFields>({
+  firstName: "",
+  lastName: "",
+  email: "",
+});
+function startEdit(user: AdminUserListItem) {
+  editingUserId.value = user.id;
+  editFields.value = {
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+  };
+}
+
+async function saveEdit(userId: string) {
+  try {
+    await ($api as any)(`/api/v1/admin/users/${userId}`, {
+      method: "PATCH",
+      body: { ...editFields.value },
+    });
+    editingUserId.value = null;
+    await fetchUsers();
+  } catch (e: any) {
+    alert(e?.data?.message ?? "Error al guardar cambios");
+  }
+}
+
+function cancelEdit() {
+  editingUserId.value = null;
+}
 const meta = ref<Meta | null>(null);
 const loading = ref(false);
 const error = ref("");
@@ -36,6 +69,7 @@ const search = ref("");
 const roleFilter = ref("");
 const page = ref(1);
 const deleteTarget = ref<AdminUser | null>(null);
+const showDeleteModal = ref(false);
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -93,6 +127,7 @@ async function toggleStatus(userId: string, status: string) {
 
 function confirmDelete(user: AdminUser) {
   deleteTarget.value = user;
+  showDeleteModal.value = true;
 }
 
 async function doDelete() {
@@ -102,6 +137,7 @@ async function doDelete() {
       method: "DELETE",
     });
     deleteTarget.value = null;
+    showDeleteModal.value = false;
     await fetchUsers();
   } catch (e: any) {
     alert(e?.data?.message ?? "Error al eliminar jugador");
@@ -175,10 +211,41 @@ onMounted(fetchUsers);
         <tbody class="divide-y divide-gray-100">
           <tr v-for="user in users" :key="user.id">
             <td class="px-4 py-3">
-              <div class="font-medium text-gray-900">
-                {{ user.firstName }} {{ user.lastName }}
+              <div v-if="editingUserId === user.id">
+                <input
+                  v-model="editFields.firstName"
+                  class="border rounded px-1 py-0.5 text-xs w-20 mr-1"
+                />
+                <input
+                  v-model="editFields.lastName"
+                  class="border rounded px-1 py-0.5 text-xs w-20 mr-1"
+                />
+                <input
+                  v-model="editFields.email"
+                  class="border rounded px-1 py-0.5 text-xs w-36"
+                />
+                <button
+                  class="ml-2 text-xs px-2 py-1 rounded bg-green-100 text-green-700"
+                  @click="saveEdit(user.id)"
+                >
+                  Guardar
+                </button>
+                <button
+                  class="ml-1 text-xs px-2 py-1 rounded bg-gray-100 text-gray-600"
+                  @click="cancelEdit"
+                >
+                  Cancelar
+                </button>
               </div>
-              <div class="text-xs text-gray-400">{{ user.email }}</div>
+              <div v-else>
+                <span
+                  class="font-medium text-gray-900 cursor-pointer underline decoration-dotted"
+                  @click="startEdit(user)"
+                >
+                  {{ user.firstName }} {{ user.lastName }}
+                </span>
+                <div class="text-xs text-gray-400">{{ user.email }}</div>
+              </div>
             </td>
             <td class="px-4 py-3">
               <span
@@ -279,34 +346,27 @@ onMounted(fetchUsers);
       </div>
     </div>
 
-    <!-- Delete confirmation modal -->
-    <div
-      v-if="deleteTarget"
-      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-    >
-      <div class="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-lg">
-        <h3 class="font-semibold text-gray-800 mb-2">Eliminar jugador</h3>
-        <p class="text-sm text-gray-600 mb-4">
-          ¿Seguro que querés eliminar el perfil de jugador de
-          <strong
-            >{{ deleteTarget.firstName }} {{ deleteTarget.lastName }}</strong
-          >? Esta acción no se puede deshacer.
-        </p>
-        <div class="flex justify-end gap-2">
-          <button
-            class="px-4 py-2 rounded border text-sm"
-            @click="deleteTarget = null"
-          >
-            Cancelar
-          </button>
-          <button
-            class="px-4 py-2 rounded bg-red-600 text-white text-sm hover:bg-red-700"
-            @click="doDelete"
-          >
-            Eliminar
-          </button>
-        </div>
-      </div>
-    </div>
+    <!-- Delete confirmation modal using reusable component -->
+    <ConfirmationModal
+      v-if="deleteTarget && showDeleteModal"
+      :open="showDeleteModal"
+      :title="'Eliminar jugador'"
+      :description="`¿Seguro que querés eliminar el perfil de jugador de ${deleteTarget.firstName} ${deleteTarget.lastName}? Esta acción no se puede deshacer.`"
+      confirm-text="Eliminar"
+      cancel-text="Cancelar"
+      :onConfirm="doDelete"
+      :onCancel="
+        () => {
+          showDeleteModal.value = false;
+          deleteTarget.value = null;
+        }
+      "
+      @update:open="
+        (v) => {
+          showDeleteModal.value = v;
+          if (!v) deleteTarget.value = null;
+        }
+      "
+    />
   </div>
 </template>

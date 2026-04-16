@@ -1,3 +1,48 @@
+// --- Admin Users Governance DTOs ---
+
+export interface AdminUserListItem {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  createdAt: string;
+  lastLoginAt: string | null;
+  player: {
+    id: string;
+    status: string;
+    jerseyNumber: number | null;
+    photoUrl: string | null;
+  } | null;
+}
+
+export interface AdminUserListResponse {
+  data: AdminUserListItem[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export interface AdminUserProfilePayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+export interface AdminUserRoleChangePayload {
+  role: UserRole;
+}
+
+export interface AdminUserPlayerStatusPayload {
+  status: PlayerStatus;
+}
+
+export interface AdminUserDeleteResponse {
+  success: boolean;
+}
 import { PlayerStatus, PlayerType, Position } from "./player";
 import { UserRole } from "./user";
 

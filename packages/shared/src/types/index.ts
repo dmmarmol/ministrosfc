@@ -8,3 +8,12 @@ export * from "./statistics";
 export * from "./api";
 export * from "./playground";
 export * from "./address";
+// Admin Users Governance DTOs (explicit re-export for clarity)
+export type {
+  AdminUserListItem,
+  AdminUserListResponse,
+  AdminUserProfilePayload,
+  AdminUserRoleChangePayload,
+  AdminUserPlayerStatusPayload,
+  AdminUserDeleteResponse,
+} from "./api";

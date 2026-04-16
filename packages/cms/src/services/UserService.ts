@@ -1,3 +1,62 @@
+// --- Governance Helper Functions ---
+
+import { UserRole } from "@ministrosfc/shared/src/types/user";
+
+export function canPromote(
+  actor: UserRole,
+  target: UserRole,
+  newRole: UserRole,
+): boolean {
+  // Admin can promote to any role including ADMIN
+  if (actor === "ADMIN") return true;
+  // Editor can only promote to PLAYER or DT, and cannot target ADMIN or EDITOR users
+  if (actor === "EDITOR")
+    return (
+      ["PLAYER", "DT"].includes(newRole) &&
+      target !== "ADMIN" &&
+      target !== "EDITOR"
+    );
+  return false;
+}
+
+export function canDemote(
+  actor: UserRole,
+  _target: UserRole,
+  _newRole: UserRole,
+): boolean {
+  // Admin can demote any user including other admins
+  if (actor === "ADMIN") return true;
+  // Editors cannot demote
+  return false;
+}
+
+export function isRoleChangeAllowed(
+  actor: UserRole,
+  target: UserRole,
+  newRole: UserRole,
+): boolean {
+  if (newRole === target) return false; // No-op
+  return (
+    canPromote(actor, target, newRole) || canDemote(actor, target, newRole)
+  );
+}
+
+// Optimistic concurrency: require expectedUpdatedAt to match current updatedAt
+export async function checkOptimisticConcurrency(
+  entity: { updatedAt: Date },
+  expectedUpdatedAt?: string,
+) {
+  if (
+    expectedUpdatedAt &&
+    entity.updatedAt.toISOString() !== expectedUpdatedAt
+  ) {
+    throw createError(
+      "Stale update: entity was modified by another process",
+      409,
+      ErrorCode.CONFLICT,
+    );
+  }
+}
 import { UserModel } from "../models/User";
 import { prisma } from "../config/database";
 import { getRedisClient } from "../config/redis";
@@ -46,6 +105,56 @@ const UserService = {
     const user = await UserModel.update(id, data);
     const { passwordHash: _, ...safeUser } = user as any;
     return safeUser;
+  },
+
+  async updateAdminUserProfile(
+    userId: string,
+    updates: { firstName?: string; lastName?: string; email?: string },
+    expectedUpdatedAt?: string,
+  ) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw createError("User not found", 404, ErrorCode.NOT_FOUND);
+    }
+
+    // Optimistic concurrency check
+    if (
+      expectedUpdatedAt &&
+      user.updatedAt.toISOString() !== expectedUpdatedAt
+    ) {
+      throw createError(
+        "Stale update: user was modified by another process",
+        409,
+        ErrorCode.CONFLICT,
+      );
+    }
+
+    // Build update data with trimmed values
+    const data: { firstName?: string; lastName?: string; email?: string } = {};
+    if (updates.firstName !== undefined) {
+      data.firstName = updates.firstName.trim();
+    }
+    if (updates.lastName !== undefined) {
+      data.lastName = updates.lastName.trim();
+    }
+    if (updates.email !== undefined) {
+      const trimmedEmail = updates.email.trim().toLowerCase();
+      // Check email uniqueness
+      const existing = await prisma.user.findUnique({
+        where: { email: trimmedEmail },
+      });
+      if (existing && existing.id !== userId) {
+        throw createError("Email already in use", 409, ErrorCode.CONFLICT);
+      }
+      data.email = trimmedEmail;
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data,
+    });
+    const { passwordHash: _, ...safe } = updated as any;
+    return safe;
   },
 
   async deleteUser(id: string) {
@@ -104,9 +213,6 @@ const UserService = {
   },
 
   async changeRole(adminId: string, targetId: string, newRole: Role) {
-    if (adminId === targetId) {
-      throw createError("Cannot change own role", 403, ErrorCode.FORBIDDEN);
-    }
     const caller = await prisma.user.findUnique({ where: { id: adminId } });
     if (!caller || caller.role !== "ADMIN") {
       throw createError("Unauthorized", 403, ErrorCode.FORBIDDEN);
@@ -115,12 +221,14 @@ const UserService = {
     if (!target) {
       throw createError("User not found", 404, ErrorCode.NOT_FOUND);
     }
-    if (target.role === "ADMIN") {
-      throw createError(
-        "Cannot change role of another ADMIN",
-        403,
-        ErrorCode.FORBIDDEN,
-      );
+    // Idempotent check: if role is already the target role, return early
+    if (target.role === newRole) {
+      const { passwordHash: _, ...safe } = target as any;
+      return safe;
+    }
+    // Self-demotion check: Admin cannot demote themselves
+    if (adminId === targetId && newRole !== "ADMIN") {
+      throw createError("Cannot demote yourself", 403, ErrorCode.FORBIDDEN);
     }
     const updated = await prisma.user.update({
       where: { id: targetId },

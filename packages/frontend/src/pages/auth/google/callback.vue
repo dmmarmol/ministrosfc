@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import { useAuthStore } from "~/stores/auth";
 import { useRuntime } from "~/composables/useRuntime";
 import { useOnboarding } from "~/composables/useOnboarding";
@@ -8,7 +8,6 @@ import { useOnboarding } from "~/composables/useOnboarding";
 definePageMeta({ middleware: "auth", authPage: true });
 
 const route = useRoute();
-const router = useRouter();
 const authStore = useAuthStore();
 const { fetchStatus } = useOnboarding();
 

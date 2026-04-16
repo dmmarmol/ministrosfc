@@ -78,6 +78,68 @@ describe("Admin role management (integration)", () => {
       expect(res.body.meta).toHaveProperty("page", 1);
     });
 
+    it("returns paginated user list for EDITOR", async () => {
+      const res = await request(app)
+        .get("/api/v1/admin/users")
+        .set("Authorization", `Bearer ${editor.token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).toBeInstanceOf(Array);
+      expect(res.body.data.length).toBe(4);
+      expect(res.body.meta).toHaveProperty("total", 4);
+      expect(res.body.meta).toHaveProperty("page", 1);
+    });
+    describe("PATCH /api/v1/admin/users/:id", () => {
+      it("allows ADMIN to edit user profile fields", async () => {
+        const res = await request(app)
+          .patch(`/api/v1/admin/users/${player.userId}`)
+          .set("Authorization", `Bearer ${admin.token}`)
+          .send({
+            firstName: "Nuevo",
+            lastName: "Apellido",
+            email: "nuevo@ministrosfc.test",
+          });
+
+        expect(res.status).toBe(200);
+        expect(res.body.data.firstName).toBe("Nuevo");
+        expect(res.body.data.lastName).toBe("Apellido");
+        expect(res.body.data.email).toBe("nuevo@ministrosfc.test");
+      });
+
+      it("allows EDITOR to edit user profile fields", async () => {
+        const res = await request(app)
+          .patch(`/api/v1/admin/users/${player2.userId}`)
+          .set("Authorization", `Bearer ${editor.token}`)
+          .send({
+            firstName: "Editado",
+            lastName: "PorEditor",
+            email: "editado@ministrosfc.test",
+          });
+
+        expect(res.status).toBe(200);
+        expect(res.body.data.firstName).toBe("Editado");
+        expect(res.body.data.lastName).toBe("PorEditor");
+        expect(res.body.data.email).toBe("editado@ministrosfc.test");
+      });
+
+      it("rejects non-Editor+ users", async () => {
+        const res = await request(app)
+          .patch(`/api/v1/admin/users/${admin.userId}`)
+          .set("Authorization", `Bearer ${player.token}`)
+          .send({ firstName: "Hacker" });
+        expect(res.status).toBe(403);
+      });
+
+      it("validates email uniqueness", async () => {
+        // Try to set player2's email to admin's email
+        const res = await request(app)
+          .patch(`/api/v1/admin/users/${player2.userId}`)
+          .set("Authorization", `Bearer ${admin.token}`)
+          .send({ email: "admin@ministrosfc.test" });
+        expect(res.status).toBe(409);
+      });
+    });
+
     it("filters by role", async () => {
       const res = await request(app)
         .get("/api/v1/admin/users?role=PLAYER")
@@ -97,12 +159,12 @@ describe("Admin role management (integration)", () => {
       expect(res.body.data.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("returns 403 for non-ADMIN", async () => {
+    it("returns 200 for EDITOR (Editor+ access)", async () => {
       const res = await request(app)
         .get("/api/v1/admin/users")
         .set("Authorization", `Bearer ${editor.token}`);
 
-      expect(res.status).toBe(403);
+      expect(res.status).toBe(200);
     });
 
     it("returns 401 without auth", async () => {
@@ -142,7 +204,7 @@ describe("Admin role management (integration)", () => {
       expect(res.body.data.role).toBe("PLAYER");
     });
 
-    it("rejects changing role of another ADMIN", async () => {
+    it("allows ADMIN to demote another ADMIN", async () => {
       // Create another admin
       const admin2 = await registerAndLogin("admin2@ministrosfc.test", "ADMIN");
 
@@ -151,7 +213,8 @@ describe("Admin role management (integration)", () => {
         .set("Authorization", `Bearer ${admin.token}`)
         .send({ role: "PLAYER" });
 
-      expect(res.status).toBe(403);
+      expect(res.status).toBe(200);
+      expect(res.body.data.role).toBe("PLAYER");
     });
 
     it("rejects changing own role", async () => {
@@ -161,6 +224,27 @@ describe("Admin role management (integration)", () => {
         .send({ role: "PLAYER" });
 
       expect(res.status).toBe(403);
+      expect(res.body.message).toBe("Cannot demote yourself");
+    });
+
+    it("allows ADMIN to promote user to ADMIN role", async () => {
+      const res = await request(app)
+        .patch(`/api/v1/admin/users/${editor.userId}/role`)
+        .set("Authorization", `Bearer ${admin.token}`)
+        .send({ role: "ADMIN" });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.role).toBe("ADMIN");
+    });
+
+    it("returns success for idempotent role change", async () => {
+      const res = await request(app)
+        .patch(`/api/v1/admin/users/${player.userId}/role`)
+        .set("Authorization", `Bearer ${admin.token}`)
+        .send({ role: "PLAYER" });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.role).toBe("PLAYER");
     });
 
     it("rejects non-ADMIN caller", async () => {
@@ -284,6 +368,76 @@ describe("Admin role management (integration)", () => {
         .set("Authorization", `Bearer ${admin.token}`);
 
       expect(res.status).toBe(404);
+    });
+
+    it("T022 integrity: Player record is removed from DB after hard-delete", async () => {
+      // Capture the player record id before deletion
+      const userBefore = await prisma.user.findUniqueOrThrow({
+        where: { id: player2.userId },
+        include: { player: true },
+      });
+      const playerRecordId = userBefore.player!.id;
+
+      const res = await request(app)
+        .delete(`/api/v1/admin/users/${player2.userId}/player`)
+        .set("Authorization", `Bearer ${admin.token}`);
+
+      expect(res.status).toBe(204);
+
+      // Player row must be gone
+      const gone = await prisma.player.findUnique({
+        where: { id: playerRecordId },
+      });
+      expect(gone).toBeNull();
+
+      // User still exists but has no linked player
+      const userAfter = await prisma.user.findUniqueOrThrow({
+        where: { id: player2.userId },
+      });
+      expect(userAfter.playerId).toBeNull();
+    });
+  });
+
+  // T030 regression: duplicate-email and stale-write conflict
+  describe("T030 regression: profile edit edge cases", () => {
+    it("returns 409 on duplicate-email conflict with specific error message", async () => {
+      const res = await request(app)
+        .patch(`/api/v1/admin/users/${player.userId}`)
+        .set("Authorization", `Bearer ${admin.token}`)
+        .send({ email: "editor@ministrosfc.test" });
+
+      expect(res.status).toBe(409);
+      expect(res.body.message).toMatch(
+        /email already in use|conflict|ya está en uso/i,
+      );
+    });
+
+    it("returns 409 on stale-write conflict when expectedUpdatedAt is outdated", async () => {
+      const outdatedTimestamp = new Date(0).toISOString(); // epoch = clearly stale
+
+      const res = await request(app)
+        .patch(`/api/v1/admin/users/${player.userId}`)
+        .set("Authorization", `Bearer ${admin.token}`)
+        .send({ firstName: "Stale", expectedUpdatedAt: outdatedTimestamp });
+
+      expect(res.status).toBe(409);
+    });
+
+    it("succeeds when expectedUpdatedAt matches current updatedAt", async () => {
+      const current = await prisma.user.findUniqueOrThrow({
+        where: { id: player.userId },
+      });
+
+      const res = await request(app)
+        .patch(`/api/v1/admin/users/${player.userId}`)
+        .set("Authorization", `Bearer ${admin.token}`)
+        .send({
+          firstName: "Concurrente",
+          expectedUpdatedAt: current.updatedAt.toISOString(),
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.firstName).toBe("Concurrente");
     });
   });
 });

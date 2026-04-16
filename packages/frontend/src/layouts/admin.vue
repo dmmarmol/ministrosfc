@@ -29,19 +29,19 @@ const pageTitle = computed(() => {
           to="/admin/dashboard"
           class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
           active-class="bg-gray-700 text-brand"
-          >Dashboard</NuxtLink
+          >Inicio</NuxtLink
         >
         <NuxtLink
           to="/admin/players"
           class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
           active-class="bg-gray-700 text-brand"
-          >Players</NuxtLink
+          >Jugadores</NuxtLink
         >
         <NuxtLink
           to="/admin/games"
           class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
           active-class="bg-gray-700 text-brand"
-          >Games</NuxtLink
+          >Partidos</NuxtLink
         >
         <NuxtLink
           to="/admin/playgrounds"
@@ -53,13 +53,19 @@ const pageTitle = computed(() => {
           to="/admin/teams"
           class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
           active-class="bg-gray-700 text-brand"
-          >Teams</NuxtLink
+          >Equipos</NuxtLink
         >
         <NuxtLink
           to="/admin/tournaments"
           class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
           active-class="bg-gray-700 text-brand"
-          >Tournaments</NuxtLink
+          >Torneos</NuxtLink
+        >
+        <NuxtLink
+          to="/admin/users"
+          class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
+          active-class="bg-gray-700 text-brand"
+          >Usuarios</NuxtLink
         >
       </nav>
       <!-- User info + logout -->
