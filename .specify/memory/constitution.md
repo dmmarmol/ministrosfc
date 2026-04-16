@@ -1,7 +1,7 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.7.0 → 1.8.0 (MINOR — Principle V extended: definePageMeta mandatory on every Nuxt page)
+Version change: 1.8.0 → 1.9.0 (MINOR — Package Version Management: git tag MUST be created on every version bump)
 Ratified: 2026-03-17
 Last Amended: 2026-04-10
 
@@ -34,7 +34,7 @@ Follow-up TODOs:
 
 # Ministros FC Constitution
 
-**Version**: 1.8.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-10
+**Version**: 1.9.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-16
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -415,6 +415,12 @@ a constitution violation in PR reviews.
   > **C) Skip** — do not bump version now"
 - If the user chooses A or B, the agent MUST update the `version` field in the **root** `package.json`
   and commit the change together with the spec (or as a follow-up commit on the same branch).
+- **MUST** create an annotated git tag matching the new version immediately after the version commit:
+  ```bash
+  git tag -a vX.Y.Z -m "Release vX.Y.Z"
+  ```
+  The tag MUST be created on the same commit that bumps `package.json` and updates the changelog.
+  If a tag for that version already exists, the agent MUST report the conflict and skip re-tagging.
 - If the user chooses C (skip), no version change is made. The user may bump manually later.
 - The bump applies only to the root `package.json`. Workspace package versions
   (`packages/cms/package.json`, `packages/frontend/package.json`, etc.) are NOT modified
