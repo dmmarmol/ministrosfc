@@ -7,6 +7,7 @@ export * from "./types";
 export * from "./utils/validation";
 export * from "./utils/jersey";
 export * from "./utils/datetime";
+export * from "./utils/strings";
 
 // Validation schemas
 export { passwordSchema, PASSWORD_RULES } from "./validation/password";
