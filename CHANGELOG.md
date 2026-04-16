@@ -7,6 +7,35 @@ Versioning follows [Semantic Versioning](https://semver.org/) at the project lev
 
 ---
 
+## [0.9.0] — 2026-04-16
+
+### Added
+
+- **Spec 016 — User Promotion Governance**: full admin role management system.
+  - CMS `PATCH /api/v1/admin/users/:id/role` endpoint with optimistic-concurrency guard (`expectedUpdatedAt`), self-demotion protection (403), and transactional player-record hard-delete on demotion.
+  - Duplicate-email and stale-write conflicts return 409 with distinct error codes.
+  - Rate-limiter middleware on sensitive admin endpoints.
+  - `UserRoleManager.vue` frontend component: role `<select>` per user row, `ConfirmationModal` gate before every change, self-row disabled.
+  - `BackButton.vue` reusable component; back-navigation added to `/login` (→ `/`) and `/auth/onboarding` (→ `/login?redirect=…` with open-redirect prevention).
+  - `isUserSignedUp` computed exported from `useGameSignup` composable.
+  - `useGameBySlug(slug)` composable consolidating slug resolution + game + participants fetch into a single `useAsyncData` call.
+
+### Changed
+
+- **`@ministrosfc/shared` utils**: `formatDate`, `formatDateTime`, `formatTime` (date formatting) and `getInitials` (string initials) moved from frontend-local utils into `packages/shared/src/utils/datetime.ts` and `strings.ts` and re-exported from `@ministrosfc/shared`. Deleted `packages/frontend/src/utils/formatDate.ts` and `initials.ts`.
+- **Game detail pages** (`games/[slug]/index.vue`, `signup.vue`): replaced ad-hoc `useAsyncData` chains with `useGameBySlug` composable.
+
+### Fixed
+
+- Nuxt composable context loss: `useGameBySlug` is now synchronous (single `useAsyncData` handler) to avoid "called outside of Vue setup" warnings caused by `async` composables losing the Nuxt instance after `await`.
+
+### Tests
+
+- CMS integration: 31 tests including T022 (player record integrity on hard-delete) and T030 regression suite (duplicate email 409, stale write 409, concurrent success).
+- Frontend unit: 79 tests across 14 files, including 33 for `UserRoleManager` and 13 for auth back-button navigation.
+
+---
+
 ## [0.8.1] — 2026-04-13
 
 ### Added
