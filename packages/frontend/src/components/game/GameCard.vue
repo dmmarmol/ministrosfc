@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { formatDate } from "~/utils/formatDate";
-import { GameStatus, type GameSignupState } from "@ministrosfc/shared";
+
+import {
+  GameStatus,
+  type GameSignupState,
+  formatDate,
+  getInitials,
+} from "@ministrosfc/shared";
 import GameSignUpButton from "./GameSignUpButton.vue";
 
 const props = defineProps<{
@@ -28,16 +33,6 @@ const signupUrl = computed(() =>
     ? `/games/${props.game.slug}/signup`
     : `/games/${props.game.id}/signup`,
 );
-
-function initials(name?: string | null): string {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
 
 const resultLabel = computed(() => {
   const h = props.game.homeTeamScore ?? 0;
@@ -91,7 +86,7 @@ const statusClass = computed(() => {
           class="w-full h-full object-cover"
         />
         <span v-else class="text-lg font-bold text-gray-400">{{
-          initials(game.opponentTeam?.name)
+          getInitials(game.opponentTeam?.name)
         }}</span>
       </div>
       <!-- Game info -->

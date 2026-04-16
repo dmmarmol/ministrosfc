@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from "vue";
 import { useNuxtApp, useAsyncData, useHead } from "nuxt/app";
-import { GameStatus } from "@ministrosfc/shared";
-import { formatDate } from "~/utils/formatDate";
+import { GameStatus, formatDate } from "@ministrosfc/shared";
+
 import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
 definePageMeta({
   layout: "admin",

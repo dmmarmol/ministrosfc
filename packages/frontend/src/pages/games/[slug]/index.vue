@@ -1,53 +1,24 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import {
-  useNuxtApp,
-  useRoute,
-  useAsyncData,
-  createError,
-  useHead,
-} from "nuxt/app";
+import { computed, ref } from "vue";
+import { useRoute, useHead } from "nuxt/app";
 import { CheckCircleIcon } from "@heroicons/vue/24/solid";
-import { GameStatus, UserRole } from "@ministrosfc/shared";
-import { formatDate } from "~/utils/formatDate";
+import {
+  GameStatus,
+  UserRole,
+  formatDate,
+  getInitials,
+} from "@ministrosfc/shared";
 import { useAuthStore } from "~/stores/auth";
+import { useGameBySlug } from "~/composables/useGameBySlug";
+import { useGameSignup } from "~/composables/useGameSignup";
 
 definePageMeta({ public: true });
-const { $api } = useNuxtApp();
 const route = useRoute();
 const slug = route.params.slug as string;
 
-// T027: resolve slug → UUID, then fetch full game
-const { data: slugData, error: slugError } = await useAsyncData(
-  `game-slug-${slug}`,
-  () =>
-    $api<{ data: { id: string; slug: string } }>(`/api/v1/games/slug/${slug}`),
-);
-
-if (slugError.value || !slugData.value?.data?.id) {
-  throw createError({ statusCode: 404, statusMessage: "Game not found" });
-}
-
-const gameId = slugData.value.data.id;
-
-const [{ data: gameData, pending }, { data: partData }] = await Promise.all([
-  useAsyncData(`game-${gameId}`, () =>
-    $api<{ data: any }>(`/api/v1/games/${gameId}`),
-  ),
-  useAsyncData(`game-participants-${gameId}`, () =>
-    $api<{ data: any[] }>(`/api/v1/games/${gameId}/participants`),
-  ),
-]);
-
-const game = computed(() => gameData.value?.data ?? null);
-// T030: sort by confirmedAt ASC, guests intermixed
-const participants = computed(() =>
-  [...(partData.value?.data ?? [])].sort(
-    (a, b) =>
-      new Date(a.confirmedAt ?? 0).getTime() -
-      new Date(b.confirmedAt ?? 0).getTime(),
-  ),
-);
+// T027: resolve slug → UUID, then fetch full game + participants
+const { gameId, game, participants, pending } = useGameBySlug(slug);
+const { isUserSignedUp } = useGameSignup(gameId);
 
 useHead(() => ({
   title: game.value
@@ -55,39 +26,30 @@ useHead(() => ({
     : "Game",
 }));
 
-function initials(name?: string | null): string {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((w: string) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
-
 const statusLabel = computed(() => {
-  const map: Record<string, string> = {
+  const map: Record<GameStatus, string> = {
     SCHEDULED: "Upcoming",
     IN_PROGRESS: "Live",
     COMPLETED: "Completed",
     CANCELLED: "Cancelled",
   };
-  return map[game.value?.status] ?? game.value?.status ?? "";
+  return map[game.value?.status as GameStatus] ?? game.value?.status ?? "";
 });
 const statusClass = computed(() => {
-  const map: Record<string, string> = {
+  const map: Record<GameStatus, string> = {
     SCHEDULED: "bg-blue-500/20 text-blue-300",
     IN_PROGRESS: "bg-green-500/20 text-green-300",
     COMPLETED: "bg-gray-500/20 text-gray-300",
     CANCELLED: "bg-red-500/20 text-red-300",
   };
-  return map[game.value?.status] ?? "";
+  return map[game.value?.status as GameStatus] ?? "";
 });
 
 const authStore = useAuthStore();
 const showSignupLink = computed(
   () =>
     authStore.isAuthenticated &&
+    isUserSignedUp.value &&
     authStore.user?.role === UserRole.PLAYER &&
     game.value?.status === GameStatus.SCHEDULED,
 );
@@ -150,7 +112,7 @@ const isTeamFull = computed(
                 :src="game.opponentTeam.logoUrl"
                 class="w-full h-full object-cover"
               />
-              <span v-else>{{ initials(game.opponentTeam?.name) }}</span>
+              <span v-else>{{ getInitials(game.opponentTeam?.name) }}</span>
             </div>
             <span class="text-xl font-bold">{{ game.opponentTeam?.name }}</span>
           </div>
@@ -165,6 +127,7 @@ const isTeamFull = computed(
       >
         Anotarse a este partido
       </NuxtLink>
+      <span v-else>Ya estás anotado a este partido</span>
 
       <!-- Participants -->
       <div class="flex items-center justify-between mb-4">

@@ -17,6 +17,9 @@ export function useGameSignup(gameId: Ref<string>) {
   );
   const currentPlayerId = computed(() => data.value?.currentPlayerId ?? null);
   const game = computed(() => data.value?.game ?? null);
+  const isUserSignedUp = computed(
+    () => data.value?.currentPlayerStatus === "signed_up",
+  );
 
   async function load() {
     loading.value = true;
@@ -176,6 +179,7 @@ export function useGameSignup(gameId: Ref<string>) {
     currentPlayerStatus,
     currentPlayerId,
     game,
+    isUserSignedUp,
     load,
     signupSelf,
     signupGuest,
