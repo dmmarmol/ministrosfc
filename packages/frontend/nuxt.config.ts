@@ -12,6 +12,7 @@ export default defineNuxtConfig({
       apiBaseUrl:
         process.env.NUXT_PUBLIC_API_BASE_URL ?? "http://localhost:5102",
       brandColor: process.env.NUXT_PUBLIC_BRAND_COLOR ?? "#D4AF37",
+      teamName: process.env.NUXT_PUBLIC_TEAM_NAME ?? "Ministros F.C.",
     },
   },
 

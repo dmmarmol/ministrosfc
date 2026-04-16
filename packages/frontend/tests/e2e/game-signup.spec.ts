@@ -7,7 +7,7 @@
 import { test, expect } from "@playwright/test";
 
 const PLAYER_EMAIL = process.env.E2E_PLAYER_EMAIL ?? "player@ministrosfc.com";
-const PLAYER_PASSWORD = process.env.E2E_PLAYER_PASSWORD ?? "player123";
+const PLAYER_PASSWORD = process.env.E2E_PLAYER_PASSWORD ?? "Player1234!";
 
 /**
  * Slug of a SCHEDULED game that still has capacity and where the test player
@@ -33,10 +33,14 @@ const FULL_GAME_SLUG = process.env.E2E_FULL_GAME_SLUG ?? "";
 
 async function loginAsPlayer(page) {
   await page.goto("/login");
-  await page.getByLabel(/email/i).fill(PLAYER_EMAIL);
-  await page.getByLabel(/password/i).fill(PLAYER_PASSWORD);
-  await page.getByRole("button", { name: /sign in|ingresar|log in/i }).click();
-  await expect(page).not.toHaveURL(/\/login/);
+  await page.fill("#login-email", PLAYER_EMAIL);
+  await page.fill("#login-password", PLAYER_PASSWORD);
+  await page.getByRole("button", { name: /iniciar sesión/i }).click();
+
+  // Wait for navigation away from login page
+  await page.waitForURL((url: URL) => !url.pathname.includes("/login"), {
+    timeout: 15000,
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -47,6 +51,10 @@ test.describe("SC-001 — Self-signup flow", () => {
   test("unauthenticated visit redirects to /login with redirect param", async ({
     page,
   }) => {
+    test.skip(
+      SIGNUP_GAME_SLUG === "test-signup-game",
+      "Test game data not configured - set E2E_SIGNUP_GAME_SLUG",
+    );
     // Go to signup page without being logged in
     await page.goto(`/games/${SIGNUP_GAME_SLUG}/signup`);
     // Auth middleware must redirect to login
@@ -58,6 +66,10 @@ test.describe("SC-001 — Self-signup flow", () => {
   test(
     "player can confirm attendance and appear in roster (SC-001 ≤ 60 s)",
     async ({ page }) => {
+      test.skip(
+        SIGNUP_GAME_SLUG === "test-signup-game",
+        "Test game data not configured - set E2E_SIGNUP_GAME_SLUG",
+      );
       const start = Date.now();
 
       // Step 1: Visit signup URL unauthenticated → login redirect
@@ -65,14 +77,12 @@ test.describe("SC-001 — Self-signup flow", () => {
       await expect(page).toHaveURL(/\/login/);
 
       // Step 2: Log in
-      await page.getByLabel(/email/i).fill(PLAYER_EMAIL);
-      await page.getByLabel(/password/i).fill(PLAYER_PASSWORD);
-      await page
-        .getByRole("button", { name: /sign in|ingresar|log in/i })
-        .click();
+      await page.fill("#login-email", PLAYER_EMAIL);
+      await page.fill("#login-password", PLAYER_PASSWORD);
+      await page.getByRole("button", { name: /iniciar sesión/i }).click();
 
-      // After login, Nuxt should redirect back to the signup page
-      await expect(page).toHaveURL(/\/games\/.+\/signup/);
+      // Wait for redirect back to signup page
+      await page.waitForURL(/\/games\/.+\/signup/, { timeout: 15000 });
 
       // Step 3: Confirm attendance
       const confirmBtn = page.getByRole("button", {
@@ -103,6 +113,10 @@ test.describe("SC-002 — Guest signup flow", () => {
   test(
     "guest signup adds roster row with Invitado por label (SC-002 ≤ 30 s)",
     async ({ page }) => {
+      test.skip(
+        SIGNUP_GAME_SLUG === "test-signup-game",
+        "Test game data not configured - set E2E_SIGNUP_GAME_SLUG",
+      );
       await page.goto(`/games/${SIGNUP_GAME_SLUG}/signup`);
 
       // Wait for page to be ready
@@ -138,6 +152,10 @@ test.describe("SC-002 — Guest signup flow", () => {
   test("guest dismiss restores default state without creating a record", async ({
     page,
   }) => {
+    test.skip(
+      SIGNUP_GAME_SLUG === "test-signup-game",
+      "Test game data not configured - set E2E_SIGNUP_GAME_SLUG",
+    );
     await page.goto(`/games/${SIGNUP_GAME_SLUG}/signup`);
 
     // Wait for the "+ Agregar invitado" link to be visible

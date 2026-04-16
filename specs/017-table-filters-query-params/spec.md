@@ -1,9 +1,9 @@
-# Feature Specification: Table Filters into Query Params
+# Feature Specification: Table Filters, Query Params, and Admin Page Decomposition
 
-**Feature Branch**: `016-table-filters-query-params`
+**Feature Branch**: `017-table-filters-query-params`
 **Created**: 2026-04-09
 **Status**: Draft
-**Input**: User description: "Update /admin/players and /admin/games views to include a search bar to filter the list of players and games respectively. The search should be case-insensitive and should filter by name for players and by opponent for games. Connect the UI filters and the search bar to the frontend query-params so that a user can share a link to a filtered list of players or games."
+**Input**: User description: "Update /admin/players and /admin/games views to include a search bar to filter the list of players and games respectively. The search should be case-insensitive and should filter by name for players and by opponent for games. Connect the UI filters and the search bar to the frontend query-params so that a user can share a link to a filtered list of players or games." Scope update: split large admin page components into smaller units, move core page logic into `components/pages/admin`, and standardize table rendering patterns (prefer Nuxt UI Table as base when feasible).
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -45,11 +45,30 @@ An Admin opens `/admin/games`, types an opponent name fragment in the search bar
 
 ---
 
+### User Story 3 — Admin Pages Are Refactored into Reusable Table Units (Priority: P2)
+
+An Admin-facing table page is maintained through small, focused UI units instead of large page files that mix rendering, filtering, and row actions. Core list logic is moved out of page files and reused from `components/pages/admin`.
+
+**Why this priority**: This reduces maintenance risk and regression probability while preserving behavior as admin surfaces grow.
+
+**Independent Test**: Review `/pages/admin` table pages and confirm each page delegates table rendering and list behavior to extracted units under `components/pages/admin`, while keeping existing user-visible behavior unchanged.
+
+**Acceptance Scenarios**:
+
+1. **Given** a table-driven admin page (games, players, playgrounds, teams, tournaments, users), **When** implementation is complete, **Then** core list/filter/table behavior is delegated to reusable components under `components/pages/admin`.
+2. **Given** admin pages previously assembled table markup inline, **When** they are refactored, **Then** pages remain focused on route-level orchestration and data wiring.
+3. **Given** the new table units are reused, **When** a table behavior change is needed, **Then** it can be applied in a shared component rather than duplicated across page files.
+4. **Given** table rendering primitives are chosen, **When** a reusable base is available, **Then** Nuxt UI Table is preferred for consistency unless a documented exception applies.
+
+---
+
 ### Edge Cases
 
 - What happens when the user navigates back/forward using the browser? The filter state should be restored from the URL history entry.
 - What if the search term contains special characters (e.g., `&`, `#`)? The term must be properly URL-encoded in the query param.
 - What if both a search filter and a sort column are active simultaneously? Both state values should coexist in the URL as separate query params.
+- What if one admin page needs custom columns/actions that do not fit the shared default? The shared table units should allow per-page slot or config extension without forking base behavior.
+- What if migration happens incrementally page-by-page? Existing pages should remain functional during transition with no broken navigation or missing actions.
 
 ## Requirements _(mandatory)_
 
@@ -62,6 +81,11 @@ An Admin opens `/admin/games`, types an opponent name fragment in the search bar
 - **FR-005**: Filtering MUST be performed client-side against the already-loaded list; no additional API calls are required for filtering.
 - **FR-006**: When the search bar is cleared (empty string), the query param MUST be removed from the URL (not left as `?search=`).
 - **FR-007**: When no rows match the current filter, an empty-state message "Sin resultados" MUST be shown in place of the table rows.
+- **FR-008**: Table-heavy routes under `packages/frontend/src/pages/admin/**` (including games, players, playgrounds, teams, tournaments, and users) MUST be split into smaller page-facing units under `packages/frontend/src/components/pages/admin/**`.
+- **FR-009**: Route page files under `packages/frontend/src/pages/admin/**` SHOULD act as orchestration layers (routing, page-level fetching, composition) and MUST NOT contain duplicated table-building logic across multiple pages.
+- **FR-010**: Shared table behavior (headers, empty states, loading placeholders, common actions/slots wiring) MUST be centralized in reusable components instead of duplicated per page.
+- **FR-011**: Refactoring to extracted admin page components MUST preserve existing user-visible behavior (filters, actions, labels, and row outcomes) unless explicitly changed by this spec.
+- **FR-012**: For reusable table foundations, implementation SHOULD prefer Nuxt UI Table as the base component when it satisfies required behaviors; exceptions MUST be documented in spec artifacts.
 
 ## Success Criteria _(mandatory)_
 
@@ -71,9 +95,14 @@ An Admin opens `/admin/games`, types an opponent name fragment in the search bar
 - **SC-002**: A shared URL with `?search={term}` produces the same filtered view for any Admin who opens it.
 - **SC-003**: The browser Back / Forward buttons correctly restore the previous filter state without a full page reload.
 - **SC-004**: Zero additional HTTP requests are made to the CMS API when filtering (all filtering is client-side).
+- **SC-005**: All targeted admin table pages render through extracted units in `components/pages/admin`, and no targeted page relies on a duplicated inline table implementation.
+- **SC-006**: At least one shared table base used by multiple admin pages is implemented and reused, with Nuxt UI Table adopted where compatible.
+- **SC-007**: Regression verification for targeted admin pages confirms parity for core actions (search/filter, row actions, empty/loading states).
 
 ## Assumptions
 
 - The full dataset for each table is already loaded in memory (no pagination conflict exists at current data volumes).
 - The filter is additive with any existing sort state; both can be active simultaneously.
 - "Full name" for players means the `firstName + lastName` concatenation.
+- Scope includes admin table pages under `packages/frontend/src/pages/admin/`: `games`, `players`, `playgrounds`, `teams`, `tournaments`, and `users`.
+- Existing visual design should be preserved while decomposing structure into reusable units.

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatDate } from "~/utils/formatDate";
+import { formatDate } from "@ministrosfc/shared";
 
 interface GuestGame {
   id: string;
@@ -39,7 +39,11 @@ defineProps<{
         </div>
         <NuxtLink
           v-if="guest.game"
-          :to="guest.game.slug ? `/games/${guest.game.slug}` : `/games/${guest.game.id}`"
+          :to="
+            guest.game.slug
+              ? `/games/${guest.game.slug}`
+              : `/games/${guest.game.id}`
+          "
           class="text-xs text-brand hover:underline"
         >
           Ver partido

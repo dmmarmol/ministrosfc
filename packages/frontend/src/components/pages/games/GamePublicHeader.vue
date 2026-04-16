@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { GameStatus } from "@ministrosfc/shared";
-import { formatDate } from "~/utils/formatDate";
+import { GameStatus, formatDate, getInitials } from "@ministrosfc/shared";
+
+
 const props = defineProps<{
   game: {
     date: string;
@@ -15,14 +16,7 @@ const props = defineProps<{
   statusClass: string;
 }>();
 
-function initials(name?: string | null): string {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((w: string) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+
 }
 </script>
 
@@ -71,7 +65,7 @@ function initials(name?: string | null): string {
             :src="game.opponentTeam.logoUrl"
             class="w-full h-full object-cover"
           />
-          <span v-else>{{ initials(game.opponentTeam?.name) }}</span>
+          <span v-else>{{ getInitials(game.opponentTeam?.name) }}</span>
         </div>
         <span class="text-xl font-bold">{{ game.opponentTeam?.name }}</span>
       </div>

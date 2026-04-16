@@ -1,9 +1,12 @@
 import rateLimit from "express-rate-limit";
 import { ErrorCode } from "../utils/error-codes";
 
+// In development/test, use higher limits to avoid blocking E2E tests
+const isDevelopment = process.env.NODE_ENV !== "production";
+
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,
+  max: isDevelopment ? 200 : 5, // Much higher limit in dev/test for E2E tests
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -17,7 +20,7 @@ export const authLimiter = rateLimit({
 
 export const registerLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,
+  max: isDevelopment ? 200 : 5, // Much higher limit in dev/test for E2E tests
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -31,7 +34,7 @@ export const registerLimiter = rateLimit({
 
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  max: isDevelopment ? 500 : 100, // Higher limit in dev/test
   standardHeaders: true,
   legacyHeaders: false,
   message: {

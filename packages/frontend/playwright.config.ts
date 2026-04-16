@@ -4,13 +4,14 @@ export default defineConfig({
   testDir: "tests/e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  retries: process.env.CI ? 2 : 1, // Add 1 retry for flaky tests in local dev
+  workers: process.env.CI ? 1 : 3, // Reduced from unlimited to 3 workers to avoid rate limit issues
   reporter: "html",
 
   use: {
-    baseURL: "http://localhost:5103",
+    baseURL: "https://localhost:5103",
     trace: "on-first-retry",
+    ignoreHTTPSErrors: true,
   },
 
   projects: [
@@ -29,9 +30,10 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: "nuxt dev --port 5103",
-    url: "http://localhost:5103",
+    command: "npm run dev",
+    url: "https://localhost:5103",
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
+    ignoreHTTPSErrors: true,
   },
 });

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useNuxtApp, useRoute, useAsyncData, useHead } from "nuxt/app";
-import { GameStatus } from "@ministrosfc/shared";
-import { formatDate } from "~/utils/formatDate";
+import { GameStatus, formatDate } from "@ministrosfc/shared";
+
 definePageMeta({
   layout: "admin",
   middleware: "auth",

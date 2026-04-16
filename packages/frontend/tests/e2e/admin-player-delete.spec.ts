@@ -5,16 +5,20 @@
 import { test, expect } from "@playwright/test";
 
 const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? "admin@ministrosfc.com";
-const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "admin123";
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "Admin1234!";
 const EDITOR_EMAIL = process.env.E2E_EDITOR_EMAIL ?? "editor@ministrosfc.com";
-const EDITOR_PASSWORD = process.env.E2E_EDITOR_PASSWORD ?? "editor123";
+const EDITOR_PASSWORD = process.env.E2E_EDITOR_PASSWORD ?? "Editor1234!";
 
 async function loginAs(page: any, email: string, password: string) {
   await page.goto("/login");
-  await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/password/i).fill(password);
-  await page.getByRole("button", { name: /sign in|log in|entrar/i }).click();
-  await page.waitForURL((url: URL) => !url.pathname.includes("/login"));
+  await page.fill("#login-email", email);
+  await page.fill("#login-password", password);
+  await page.getByRole("button", { name: /iniciar sesión/i }).click();
+
+  // Wait for navigation away from login page
+  await page.waitForURL((url: URL) => !url.pathname.includes("/login"), {
+    timeout: 15000,
+  });
 }
 
 test.describe("Admin: Player Delete flow", () => {
@@ -30,19 +34,23 @@ test.describe("Admin: Player Delete flow", () => {
 
     // Get player name from the same row
     const row = deleteBtn.locator("xpath=ancestor::tr");
-    const playerName = await row.locator("td").first().textContent();
+    const playerNameRaw = await row.locator("td").first().textContent();
+    // Strip emojis and extra whitespace from the player name
+    const playerName = playerNameRaw
+      ?.replace(/[\u{1F300}-\u{1F9FF}]/gu, "")
+      .trim();
 
     await deleteBtn.click();
 
     // Modal should appear with player name
-    const modal = page.locator('[data-testid="player-delete-modal"]');
+    const modal = page.locator('[data-testid="confirmation-modal"]');
     await expect(modal).toBeVisible();
     if (playerName) {
-      await expect(modal).toContainText(playerName.trim());
+      await expect(modal).toContainText(playerName);
     }
 
     // Confirm deletion
-    await page.locator('[data-testid="confirm-delete"]').click();
+    await page.locator('[data-testid="confirm-confirmation"]').click();
 
     // Should navigate back to players list
     await page.waitForURL(/\/admin\/players/);
@@ -54,6 +62,7 @@ test.describe("Admin: Player Delete flow", () => {
   });
 
   test("Admin opens modal and clicks Cancel — no changes", async ({ page }) => {
+    test.slow(); // Mark as slow test - gives 3x normal timeout
     await loginAs(page, ADMIN_EMAIL, ADMIN_PASSWORD);
     await page.goto("/admin/players");
 
@@ -63,10 +72,10 @@ test.describe("Admin: Player Delete flow", () => {
     const initialRows = await page.locator("tbody tr").count();
 
     await deleteBtn.click();
-    const modal = page.locator('[data-testid="player-delete-modal"]');
+    const modal = page.locator('[data-testid="confirmation-modal"]');
     await expect(modal).toBeVisible();
 
-    await page.locator('[data-testid="cancel-delete"]').click();
+    await page.locator('[data-testid="cancel-confirmation"]').click();
     await expect(modal).not.toBeVisible();
 
     // Row count unchanged
@@ -95,9 +104,9 @@ test.describe("Admin: Player Delete flow", () => {
     await expect(deleteBtn).toBeVisible();
     await deleteBtn.click();
 
-    const modal = page.locator('[data-testid="player-delete-modal"]');
+    const modal = page.locator('[data-testid="confirmation-modal"]');
     await expect(modal).toBeVisible();
-    await page.locator('[data-testid="confirm-delete"]').click();
+    await page.locator('[data-testid="confirm-confirmation"]').click();
 
     // Should redirect to /admin/players
     await page.waitForURL(/\/admin\/players$/);

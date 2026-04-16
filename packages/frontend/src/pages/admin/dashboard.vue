@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { GameStatus } from "@ministrosfc/shared";
-import { formatDate } from "~/utils/formatDate";
+import { GameStatus, formatDate } from "@ministrosfc/shared";
+
 definePageMeta({
   layout: "admin",
   middleware: "auth",

@@ -1,22 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import ConfirmationModal from "../ui/ConfirmationModal.vue";
+import { useAuthStore } from "~/stores/auth";
 
-interface UserPlayer {
-  id: string;
-  status: string;
-  jerseyNumber: number | null;
-  photoUrl: string | null;
-}
+import type { AdminUserListItem } from "@ministrosfc/shared/src/types/api";
 
-interface AdminUser {
-  id: string;
-  email: string;
+const authStore = useAuthStore();
+
+interface EditableUserFields {
   firstName: string;
   lastName: string;
-  role: string;
-  createdAt: string;
-  lastLoginAt: string | null;
-  player: UserPlayer | null;
+  email: string;
 }
 
 interface Meta {
@@ -28,14 +22,167 @@ interface Meta {
 
 const { $api } = useNuxtApp();
 
-const users = ref<AdminUser[]>([]);
+const users = ref<AdminUserListItem[]>([]);
+
+// --- Shared confirmation-intent state and action descriptors ---
+type AdminConfirmationActionType =
+  | "change-role"
+  | "toggle-status"
+  | "delete-user"
+  | "delete-player"
+  | "edit-email";
+interface AdminConfirmationIntent {
+  actionType: AdminConfirmationActionType;
+  targetUserId: string;
+  targetUserLabel: string;
+  targetPlayerLabel?: string;
+  currentValue?: string;
+  nextValue?: string;
+  title: string;
+  actionDescription: string;
+}
+
+const confirmationIntent = ref<AdminConfirmationIntent | null>(null);
+const confirmationPending = ref<(() => Promise<void>) | null>(null);
+const isConfirmationLoading = ref(false);
+
+function requestConfirmation(
+  intent: AdminConfirmationIntent,
+  action: () => Promise<void>,
+) {
+  confirmationIntent.value = intent;
+  confirmationPending.value = action;
+}
+
+// --- Toast feedback ---
+const toastMessage = ref("");
+const toastType = ref<"success" | "error">("success");
+let toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+function showToast(msg: string, type: "success" | "error" = "success") {
+  toastMessage.value = msg;
+  toastType.value = type;
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toastMessage.value = "";
+  }, 3000);
+}
+
+async function executeConfirmation() {
+  if (!confirmationPending.value) return;
+  isConfirmationLoading.value = true;
+  try {
+    await confirmationPending.value();
+    showToast("Cambio aplicado correctamente.");
+  } catch (e: any) {
+    cancelConfirmation();
+    const status = e?.response?.status ?? e?.status;
+    if (status === 409) {
+      showToast(
+        "Otro administrador modificó este usuario. Recargá e intentá de nuevo.",
+        "error",
+      );
+    } else if (status === 403) {
+      showToast(
+        e?.data?.message ?? "No tenés permisos para esta acción.",
+        "error",
+      );
+    } else {
+      showToast("Ocurrió un error de red. Intentá de nuevo.", "error");
+    }
+    return;
+  } finally {
+    isConfirmationLoading.value = false;
+    confirmationIntent.value = null;
+    confirmationPending.value = null;
+  }
+}
+
+function cancelConfirmation() {
+  confirmationIntent.value = null;
+  confirmationPending.value = null;
+}
+const editingUserId = ref<string | null>(null);
+const editFields = ref<EditableUserFields>({
+  firstName: "",
+  lastName: "",
+  email: "",
+});
+function startEdit(user: AdminUserListItem) {
+  editingUserId.value = user.id;
+  editFields.value = {
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+  };
+}
+
+async function saveEdit(userId: string) {
+  const user = users.value.find((u) => u.id === userId);
+  const emailChanged =
+    user &&
+    editFields.value.email.trim().toLowerCase() !== user.email.toLowerCase();
+
+  if (emailChanged) {
+    // Email changes are critical: require confirmation
+    const newEmail = editFields.value.email.trim().toLowerCase();
+    const fullName = `${user!.firstName} ${user!.lastName}`;
+    requestConfirmation(
+      {
+        actionType: "edit-email",
+        targetUserId: userId,
+        targetUserLabel: fullName,
+        currentValue: user!.email,
+        nextValue: newEmail,
+        title: "Cambiar email",
+        actionDescription: `¿Cambiar el email de ${fullName} de "${user!.email}" a "${newEmail}"? Esto afecta sus credenciales de acceso.`,
+      },
+      async () => {
+        await ($api as any)(`/api/v1/admin/users/${userId}`, {
+          method: "PATCH",
+          body: { ...editFields.value },
+        });
+        editingUserId.value = null;
+        await fetchUsers();
+      },
+    );
+  } else {
+    // Non-critical edits (first/last name): inline save without confirmation
+    try {
+      await ($api as any)(`/api/v1/admin/users/${userId}`, {
+        method: "PATCH",
+        body: {
+          firstName: editFields.value.firstName,
+          lastName: editFields.value.lastName,
+        },
+      });
+      editingUserId.value = null;
+      showToast("Perfil actualizado.");
+      await fetchUsers();
+    } catch (e: any) {
+      const status = e?.response?.status ?? e?.status;
+      if (status === 409) {
+        showToast(
+          "Conflicto: el usuario fue modificado por otro proceso.",
+          "error",
+        );
+      } else {
+        showToast(e?.data?.message ?? "Error al guardar cambios.", "error");
+      }
+    }
+  }
+}
+
+function cancelEdit() {
+  editingUserId.value = null;
+}
 const meta = ref<Meta | null>(null);
 const loading = ref(false);
 const error = ref("");
 const search = ref("");
 const roleFilter = ref("");
 const page = ref(1);
-const deleteTarget = ref<AdminUser | null>(null);
+const deleteTarget = ref<AdminUserListItem | null>(null);
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -67,45 +214,82 @@ async function fetchUsers() {
   }
 }
 
-async function changeRole(userId: string, newRole: string) {
-  try {
-    await ($api as any)(`/api/v1/admin/users/${userId}/role`, {
-      method: "PATCH",
-      body: { role: newRole },
-    });
-    await fetchUsers();
-  } catch (e: any) {
-    alert(e?.data?.message ?? "Error al cambiar rol");
-  }
+function requestRoleChange(user: AdminUserListItem, newRole: string) {
+  // Idempotent: same role → skip confirmation and do nothing
+  if (user.role === newRole) return;
+  const fullName = `${user.firstName} ${user.lastName}`;
+  const roleLabel: Record<string, string> = {
+    ADMIN: "Admin",
+    EDITOR: "Editor",
+    DT: "DT",
+    PLAYER: "Player",
+  };
+  requestConfirmation(
+    {
+      actionType: "change-role",
+      targetUserId: user.id,
+      targetUserLabel: fullName,
+      currentValue: user.role,
+      nextValue: newRole,
+      title: "Cambiar rol",
+      actionDescription: `¿Cambiar el rol de ${fullName} de ${roleLabel[user.role] ?? user.role} a ${roleLabel[newRole] ?? newRole}?`,
+    },
+    async () => {
+      await ($api as any)(`/api/v1/admin/users/${user.id}/role`, {
+        method: "PATCH",
+        body: { role: newRole },
+      });
+      await fetchUsers();
+    },
+  );
 }
 
-async function toggleStatus(userId: string, status: string) {
-  try {
-    await ($api as any)(`/api/v1/admin/users/${userId}/player-status`, {
-      method: "PATCH",
-      body: { status },
-    });
-    await fetchUsers();
-  } catch (e: any) {
-    alert(e?.data?.message ?? "Error al cambiar estado");
-  }
+function requestStatusToggle(user: AdminUserListItem) {
+  if (!user.player) return;
+  const newStatus = user.player.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+  const fullName = `${user.firstName} ${user.lastName}`;
+  const isDeactivating = newStatus === "INACTIVE";
+  requestConfirmation(
+    {
+      actionType: "toggle-status",
+      targetUserId: user.id,
+      targetUserLabel: fullName,
+      targetPlayerLabel: fullName,
+      title: isDeactivating ? "Desactivar jugador" : "Activar jugador",
+      actionDescription: isDeactivating
+        ? `¿Desactivar a ${fullName}? Esto impedirá que participe en nuevos partidos.`
+        : `¿Activar a ${fullName}? Volverá a poder inscribirse en partidos.`,
+    },
+    async () => {
+      await ($api as any)(`/api/v1/admin/users/${user.id}/player-status`, {
+        method: "PATCH",
+        body: { status: newStatus },
+      });
+      await fetchUsers();
+    },
+  );
 }
 
-function confirmDelete(user: AdminUser) {
+function confirmDelete(user: AdminUserListItem) {
   deleteTarget.value = user;
-}
-
-async function doDelete() {
-  if (!deleteTarget.value) return;
-  try {
-    await ($api as any)(`/api/v1/admin/users/${deleteTarget.value.id}/player`, {
-      method: "DELETE",
-    });
-    deleteTarget.value = null;
-    await fetchUsers();
-  } catch (e: any) {
-    alert(e?.data?.message ?? "Error al eliminar jugador");
-  }
+  const fullName = `${user.firstName} ${user.lastName}`;
+  requestConfirmation(
+    {
+      actionType: "delete-user",
+      targetUserId: user.id,
+      targetUserLabel: fullName,
+      targetPlayerLabel: user.player ? `jugador` : undefined,
+      title: "Eliminar usuario y jugador",
+      actionDescription: `¿Eliminar a ${fullName} y su perfil de jugador? Esta acción no se puede deshacer.`,
+    },
+    async () => {
+      await ($api as any)(`/api/v1/admin/users/${user.id}/player`, {
+        method: "DELETE",
+      });
+      deleteTarget.value = null;
+      await fetchUsers();
+    },
+  );
 }
 
 function goPage(p: number) {
@@ -175,10 +359,41 @@ onMounted(fetchUsers);
         <tbody class="divide-y divide-gray-100">
           <tr v-for="user in users" :key="user.id">
             <td class="px-4 py-3">
-              <div class="font-medium text-gray-900">
-                {{ user.firstName }} {{ user.lastName }}
+              <div v-if="editingUserId === user.id">
+                <input
+                  v-model="editFields.firstName"
+                  class="border rounded px-1 py-0.5 text-xs w-20 mr-1"
+                />
+                <input
+                  v-model="editFields.lastName"
+                  class="border rounded px-1 py-0.5 text-xs w-20 mr-1"
+                />
+                <input
+                  v-model="editFields.email"
+                  class="border rounded px-1 py-0.5 text-xs w-36"
+                />
+                <button
+                  class="ml-2 text-xs px-2 py-1 rounded bg-green-100 text-green-700"
+                  @click="saveEdit(user.id)"
+                >
+                  Guardar
+                </button>
+                <button
+                  class="ml-1 text-xs px-2 py-1 rounded bg-gray-100 text-gray-600"
+                  @click="cancelEdit"
+                >
+                  Cancelar
+                </button>
               </div>
-              <div class="text-xs text-gray-400">{{ user.email }}</div>
+              <div v-else>
+                <span
+                  class="font-medium text-gray-900 cursor-pointer underline decoration-dotted"
+                  @click="startEdit(user)"
+                >
+                  {{ user.firstName }} {{ user.lastName }}
+                </span>
+                <div class="text-xs text-gray-400">{{ user.email }}</div>
+              </div>
             </td>
             <td class="px-4 py-3">
               <span
@@ -203,14 +418,23 @@ onMounted(fetchUsers);
               <span v-else class="text-xs text-gray-300">—</span>
             </td>
             <td class="px-4 py-3 text-right space-x-2">
-              <!-- Role change -->
+              <!-- Role change: visible for all users, disabled for current user -->
               <select
-                v-if="user.role !== 'ADMIN'"
-                class="border border-gray-300 rounded px-2 py-1 text-xs"
+                class="border border-gray-300 rounded px-2 py-1 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                :class="{
+                  'opacity-40 cursor-not-allowed':
+                    user.id === authStore.user?.id,
+                }"
                 :value="user.role"
+                :disabled="user.id === authStore.user?.id"
+                :title="
+                  user.id === authStore.user?.id
+                    ? 'No podés cambiar tu propio rol'
+                    : undefined
+                "
                 @change="
-                  changeRole(
-                    user.id,
+                  requestRoleChange(
+                    user,
                     ($event.target as HTMLSelectElement).value,
                   )
                 "
@@ -230,12 +454,7 @@ onMounted(fetchUsers);
                     ? 'border-orange-300 text-orange-600 hover:bg-orange-50'
                     : 'border-green-300 text-green-600 hover:bg-green-50'
                 "
-                @click="
-                  toggleStatus(
-                    user.id,
-                    user.player.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE',
-                  )
-                "
+                @click="requestStatusToggle(user)"
               >
                 {{ user.player.status === "ACTIVE" ? "Desactivar" : "Activar" }}
               </button>
@@ -279,34 +498,36 @@ onMounted(fetchUsers);
       </div>
     </div>
 
-    <!-- Delete confirmation modal -->
-    <div
-      v-if="deleteTarget"
-      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-    >
-      <div class="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-lg">
-        <h3 class="font-semibold text-gray-800 mb-2">Eliminar jugador</h3>
-        <p class="text-sm text-gray-600 mb-4">
-          ¿Seguro que querés eliminar el perfil de jugador de
-          <strong
-            >{{ deleteTarget.firstName }} {{ deleteTarget.lastName }}</strong
-          >? Esta acción no se puede deshacer.
-        </p>
-        <div class="flex justify-end gap-2">
-          <button
-            class="px-4 py-2 rounded border text-sm"
-            @click="deleteTarget = null"
-          >
-            Cancelar
-          </button>
-          <button
-            class="px-4 py-2 rounded bg-red-600 text-white text-sm hover:bg-red-700"
-            @click="doDelete"
-          >
-            Eliminar
-          </button>
-        </div>
+    <!-- Unified confirmation modal for all sensitive actions -->
+    <ConfirmationModal
+      v-if="confirmationIntent !== null"
+      :open="confirmationIntent !== null"
+      :title="confirmationIntent?.title ?? 'Confirmar acción'"
+      :description="confirmationIntent?.actionDescription"
+      confirm-text="Confirmar"
+      cancel-text="Cancelar"
+      :onConfirm="executeConfirmation"
+      :onCancel="cancelConfirmation"
+      @update:open="
+        (v) => {
+          if (!v) cancelConfirmation();
+        }
+      "
+    />
+
+    <!-- Toast feedback -->
+    <transition name="fade">
+      <div
+        v-if="toastMessage"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 text-sm px-4 py-2 rounded-lg shadow-lg z-50"
+        :class="
+          toastType === 'error'
+            ? 'bg-red-600 text-white'
+            : 'bg-gray-900 text-white'
+        "
+      >
+        {{ toastMessage }}
       </div>
-    </div>
+    </transition>
   </div>
 </template>

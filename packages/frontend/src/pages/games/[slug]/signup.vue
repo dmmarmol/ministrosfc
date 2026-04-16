@@ -1,15 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import {
-  useNuxtApp,
-  useRoute,
-  useAsyncData,
-  createError,
-  useHead,
-  navigateTo,
-  useRuntimeConfig,
-} from "nuxt/app";
+import { useRoute, useHead, navigateTo, useRuntimeConfig } from "nuxt/app";
 import { GameStatus, UserRole, DEFAULT_MAX_PLAYERS } from "@ministrosfc/shared";
+import { useGameBySlug } from "~/composables/useGameBySlug";
 import { useGameSignup } from "~/composables/useGameSignup";
 import { useAuthStore } from "~/stores/auth";
 import GameLineupField from "~/components/game/GameLineupField.vue";
@@ -26,22 +19,13 @@ useHead({
   meta: [{ name: "robots", content: "noindex,nofollow" }],
 });
 
-const { $api } = useNuxtApp();
 const route = useRoute();
 const authStore = useAuthStore();
 const config = useRuntimeConfig();
 const slug = route.params.slug as string;
 
 // Resolve slug → gameId
-const { data: slugData, error: slugError } = await useAsyncData(
-  `signup-slug-${slug}`,
-  () =>
-    $api<{ data: { id: string; slug: string } }>(`/api/v1/games/slug/${slug}`),
-);
-if (slugError.value || !slugData.value?.data?.id) {
-  throw createError({ statusCode: 404, statusMessage: "Game not found" });
-}
-const gameId = ref(slugData.value.data.id);
+const { gameId } = useGameBySlug(slug);
 
 // T023: composable
 const {

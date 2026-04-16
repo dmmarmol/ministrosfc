@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { formatDate, formatTime } from "~/utils/formatDate";
-import { type GameSignupPageDTO } from "@ministrosfc/shared";
+import {
+  type GameSignupPageDTO,
+  formatDate,
+  formatTime,
+} from "@ministrosfc/shared";
 
 const props = defineProps<{
   game: GameSignupPageDTO["game"];

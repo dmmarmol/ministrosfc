@@ -14,11 +14,11 @@ const router = Router();
 
 const VALID_ROLES = Object.values(Role);
 
-// GET /api/v1/admin/users — paginated list (ADMIN only)
+// GET /api/v1/admin/users — paginated list (EDITOR+)
 router.get(
   "/",
   authenticate,
-  requireRole("ADMIN"),
+  requireRole("EDITOR"),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const page = Math.max(parseInt(req.query.page as string, 10) || 1, 1);
@@ -120,6 +120,53 @@ router.delete(
     try {
       await UserService.deletePlayer(req.params.id!);
       res.status(204).end();
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+export const adminUserProfileSchema = z
+  .object({
+    firstName: z.string().min(1).max(50).optional(),
+    lastName: z.string().min(1).max(50).optional(),
+    email: z.email().optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    /** @TODO translate to spanish */
+    message: "At least one field must be provided",
+  });
+
+export const adminUserRoleChangeSchema = z.object({
+  role: z.enum(VALID_ROLES as [string, ...string[]]),
+});
+
+export const adminUserPlayerStatusSchema = z.object({
+  status: z.enum(["ACTIVE", "INACTIVE"]),
+});
+
+router.patch(
+  "/:id",
+  authenticate,
+  requireRole("EDITOR"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parsed = adminUserProfileSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({
+          code: "VALIDATION_ERROR",
+          message: parsed.error.issues.map((i) => i.message).join(", "),
+          statusCode: 400,
+        });
+        return;
+      }
+
+      const updated = await UserService.updateAdminUserProfile(
+        req.params.id!,
+        parsed.data,
+        req.body.expectedUpdatedAt,
+      );
+      res.json({ data: updated });
     } catch (err) {
       next(err);
     }

@@ -398,7 +398,7 @@ Each user story phase includes acceptance criteria that can be tested independen
 - [x] T140 Create packages/frontend/tests/e2e/public-flow.spec.ts with Playwright: visit / → homepage loads, navigate to /players → sees players, navigate to /schedule → sees games, no authentication required for all pages
 - [x] T141 Create packages/frontend/tests/e2e/admin-flow.spec.ts: login as admin → redirects away from /login, navigate to /admin/players/new → unauthenticated user redirected to /login
 - [x] T142 Create packages/frontend/tests/e2e/player-participation.spec.ts: login as player → navigate schedule, click game → verify game detail page
-- [ ] T143 Run npm run test:e2e --workspace=@ministrosfc/frontend and ensure all E2E tests pass (requires running dev server)
+- [x] T143 Run npm run test:e2e --workspace=@ministrosfc/frontend and ensure all E2E tests pass (requires running dev server)
 
 #### T144-T154: Production Build & Deployment
 
