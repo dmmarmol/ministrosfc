@@ -1,9 +1,11 @@
 # ministrosfc Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-13
+Auto-generated from all feature plans. Last updated: 2026-04-16
 
 ## Active Technologies
 - TypeScript 5.x (Node.js 18+), Vue 3, Nuxt 3 + Express, Prisma ORM, Zod, Nuxt composables/runtime, Vitest, Jest + Supertes (chore/016-user-promotion-governance)
+- TypeScript (Node.js 20 for CMS, Nuxt 3 / Vue 3 for frontend) + Express 4 (CMS), Prisma 5 (ORM), Nuxt 3 (frontend), `csv-parse` (CSV parsing), `multer` (file upload), Redis (stats cache) (chore/017-team-stats-views)
+- PostgreSQL (primary), Redis (stats result cache, 5-min TTL) (chore/017-team-stats-views)
 
 - TypeScript 5.x stric + Nuxt 3 (SSR), Express 4, Prisma 5 (PostgreSQL), Pinia 2, Zod (chore/014-game-signup-invitation)
 - PostgreSQL via Prisma (chore/014-game-signup-invitation)
@@ -129,10 +131,10 @@ npx prisma studio                  # Open Prisma Studio GUI
 - **Guest Players**: playerType=GUEST, linked to inviting player via invitedById
 
 ## Recent Changes
+- chore/017-team-stats-views: Added TypeScript (Node.js 20 for CMS, Nuxt 3 / Vue 3 for frontend) + Express 4 (CMS), Prisma 5 (ORM), Nuxt 3 (frontend), `csv-parse` (CSV parsing), `multer` (file upload), Redis (stats cache)
 - chore/016-user-promotion-governance: Added TypeScript 5.x (Node.js 18+), Vue 3, Nuxt 3 + Express, Prisma ORM, Zod, Nuxt composables/runtime, Vitest, Jest + Supertes
 
 - feat/015-confirmation-modal: Added TypeScript 5.x, Vue 3, Nuxt 3 + Nuxt 3, Tailwind CSS, `@nuxt/ui` (new module), Vitest, Vue Test Utils
-- chore/014-game-signup-invitation: Added TypeScript 5 / Vue 3.4 (Composition API `<script setup>`) + Nuxt 3, Pinia, Tailwind CSS, Vitest (unit), Playwright (e2e)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

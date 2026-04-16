@@ -4,6 +4,7 @@
 **Created**: 2026-04-16  
 **Status**: Draft  
 **Input**: User description: "Create private views to display tournament, games and individual players statistics. Player stats publicly visible. Filtered by year/tournament/rival. URL query params for sharing."
+**CSV Source**: `data/historial.csv`, `data/jugadores.csv`, `data/apariciones.csv` (Google Spreadsheet exports; canonical source of historical data)
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -74,6 +75,24 @@ Any authenticated user selects filters (focus mode, year, tournament, rival, pla
 
 ---
 
+### User Story 5 – Admin imports CSV exports from Google Spreadsheet to seed historical data (Priority: P2)
+
+The team has been tracking games and player appearances in a Google Spreadsheet. An admin exports the three sheets (Historial, Jugadores, Apariciones) as CSV files and uploads them via the CMS to seed all historical data into the app. After import, the spreadsheet is no longer updated — the app becomes the sole source of truth.
+
+**Why this priority**: Without this seeding mechanism there is no data to display in the statistics views. It must be completed before the stats dashboard delivers real value.
+
+**Independent Test**: Export three CSVs from the spreadsheet → upload via CMS import → the stats dashboard displays the historically accurate figures matching the spreadsheet totals.
+
+**Acceptance Scenarios**:
+
+1. **Given** an admin uploads the three valid CSV files, **When** the import completes, **Then** all games, players, and appearances are created in the database with no data loss.
+2. **Given** an admin re-uploads the same CSV files a second time, **When** the import completes, **Then** no duplicate records are created (idempotent import).
+3. **Given** a CSV file contains rows with missing optional fields (e.g., blank comments, missing photo URL), **When** the import runs, **Then** those rows are imported with null/empty values for optional fields without failing the import.
+4. **Given** a CSV row in Apariciones references a player name that does not yet exist in Jugadores, **When** the import runs, **Then** the appearance is still created and the player is created from minimal data to ensure no appearance is lost.
+5. **Given** the import completes successfully, **When** the admin navigates to the stats dashboard, **Then** the all-time summary header reflects numbers consistent with the imported data.
+
+---
+
 ### Edge Cases
 
 - What happens when there are no games recorded for a given year or tournament? → Table shows that row/period with all values as zero and a "No data" label.
@@ -113,22 +132,91 @@ Any authenticated user selects filters (focus mode, year, tournament, rival, pla
 - **FR-009**: A Player user MUST be able to share a direct link to their own public stats page with unauthenticated users.
 - **FR-010**: The stats section MUST support filtering by year (select), tournament (select), and rival (select) where applicable per focus mode.
 - **FR-011**: The system MUST handle zero-data states gracefully (no crashes, clear empty-state messaging).
+- **FR-012**: The CMS MUST provide a batch import endpoint that accepts three CSV files (Historial, Jugadores, Apariciones) matching the historical spreadsheet export format.
+- **FR-013**: The import MUST be idempotent — re-uploading the same CSVs MUST NOT create duplicate records; existing records are matched and skipped or updated.
+- **FR-014**: The import MUST parse date formats used in the CSVs: `DD/MM/YYYY` for game dates in Historial and `YYYY/MM/DD` in Apariciones.
+- **FR-015**: The import MUST link Apariciones rows to their corresponding game via the combination of (date + rival + tournament + result); if no match exists, a new game record is created.
+- **FR-016**: The import MUST link Apariciones to Players by name; if no matching player exists, a minimal player record MUST be created so the appearance is not lost.
+- **FR-017**: CSV rows with blank optional fields (comments, photo URL, image URL, coach) MUST be imported successfully with null/empty values.
+- **FR-018**: Conclusion codes in Historial MUST be mapped as follows: `G` → Win, `P` → Loss, `E` → Draw.
+
+### CSV Import Data Structure
+
+The following column mappings define how the Google Spreadsheet exports map to the app's data model:
+
+**Historial.csv** (one row per game):
+
+| CSV Column          | Entity Field         | Notes                            |
+| ------------------- | -------------------- | -------------------------------- |
+| Fecha               | game.date            | Format: DD/MM/YYYY               |
+| Torneo              | tournament.name      | Match or create tournament       |
+| Comienzo            | game.start_time      | HH:MM                            |
+| Finalización        | game.end_time        | HH:MM                            |
+| Equipo              | game.home_team       | Always "Ministros FC"            |
+| Rival               | game.rival           | Opponent team name               |
+| Estadio             | game.venue           | Stadium / field name             |
+| Goles Convertidos   | game.goals_for       | Integer                          |
+| Goles Recibidos     | game.goals_against   | Integer                          |
+| Resultado           | game.score_string    | e.g. "3-1"                       |
+| Conclusión          | game.outcome         | G=Win, P=Loss, E=Draw            |
+| Apariciones         | game.appearance_count| Derived count, informational     |
+| DT                  | game.coach           | Optional                         |
+| Comentarios         | game.comments        | Optional                         |
+| Foto                | game.photo_url       | Optional URL                     |
+
+**Jugadores.csv** (one row per player):
+
+| CSV Column   | Entity Field        | Notes                    |
+| ------------ | ------------------- | ------------------------ |
+| Jugador      | player.name         | Full name, lookup key    |
+| Apodo        | player.nickname     |                          |
+| Nacimiento   | player.birth_date   | Optional DD/MM/YYYY      |
+| Edad         | (derived)           | Not stored               |
+| Altura       | player.height_cm    | Integer cm, optional     |
+| Numero       | player.jersey_number| Integer                  |
+| Pie          | player.dominant_foot| e.g. "Diestro"           |
+| Posición     | player.position     | e.g. "SMF"               |
+| DNI          | player.dni          | Optional identifier      |
+| Telefono     | player.phone        | Optional                 |
+| Imagen (URL) | player.image_url    | Optional                 |
+
+**Apariciones.csv** (one row per player per game):
+
+| CSV Column       | Entity Field              | Notes                          |
+| ---------------- | ------------------------- | ------------------------------ |
+| Fecha            | appearance.game_date      | Format: YYYY/MM/DD             |
+| Rival            | appearance.rival          | Used to link to game           |
+| Torneo           | appearance.tournament     | Used to link to game           |
+| Resultado        | appearance.score_string   | Used to link to game           |
+| (5th col)        | appearance.outcome        | G/P/E                          |
+| Jugador          | appearance.player_name    | Full name, links to player     |
+| Jugador (apodo)  | appearance.player_nickname| Informational                  |
+| Goles            | appearance.goals          | Integer                        |
+| Amarilla         | appearance.yellow_cards   | Integer                        |
+| Roja             | appearance.red_cards      | Integer                        |
+| Titular/Suplente | appearance.status         | "Titular" or "Suplente"        |
+| Comentarios      | appearance.comments       | Optional                       |
 
 ### Key Entities
 
-- **GameResult**: A completed game with its score (goals for/against), date, tournament, rival, and list of participating players with their individual contributions (goals scored, position played).
-- **Tournament**: A competition grouping multiple games, with a name, start and end date.
-- **PlayerStat**: Aggregated stats for a player across a time range — derived from GameResult records; not stored directly.
-- **TeamStat**: Aggregated stats for the team across a time range — derived from GameResult records; not stored directly.
+- **Game** (from Historial.csv): date, start_time, end_time, rival, venue, goals_for, goals_against, outcome (Win/Loss/Draw), coach, comments, photo_url.
+- **Tournament**: name; groups multiple games; linked to each game.
+- **Player** (from Jugadores.csv): name (lookup key), nickname, birth_date, height_cm, jersey_number, dominant_foot, position, dni, phone, image_url.
+- **Appearance** (from Apariciones.csv): links a Player to a Game; records goals, yellow_cards, red_cards, status (Titular/Suplente), comments.
+- **PlayerStat**: Aggregated stats for a player across a scope — derived from Appearance records; not stored directly.
+- **TeamStat**: Aggregated stats for the team across a scope — derived from Game records; not stored directly.
 
 ### Assumptions
 
-- Game results (scores, goals per player, participating players) are already stored or will be stored as part of the existing game and participation data model.
+- Historical data originates from a Google Spreadsheet and will be seeded via a one-time CSV import; after import the spreadsheet is retired and the app becomes the sole source of truth.
+- The CSV export format matches the column structure documented in the CSV Import Data Structure section above.
+- Game results (scores, goals per player, participating players) are the source of all statistical calculations; no pre-aggregated stats are stored in the database.
 - Stats calculations are performed server-side and returned as pre-aggregated objects; no heavy computation happens in the browser.
 - The public player profile page (`/players/{slug}`) already exists; this spec adds the stats section to it.
 - "Points earned" follows standard football scoring: 3 for a win, 1 for a draw, 0 for a loss.
 - A private stats route such as `/stats` or `/admin/stats` is to be determined during planning; the route must be inaccessible to unauthenticated users.
 - Goal rate is defined as goals scored divided by games played, rounded to 2 decimal places.
+- Player matching during CSV import uses the full name field (`Jugador`) as the lookup key; partial or nickname-only matches are not supported.
 
 ## Success Criteria _(mandatory)_
 
@@ -140,3 +228,5 @@ Any authenticated user selects filters (focus mode, year, tournament, rival, pla
 - **SC-004**: Loading a shared stats URL with any valid filter combination restores the exact same view 100% of the time — verified by round-trip URL tests.
 - **SC-005**: The all-time summary header displays all 10 required records, with correct values matching the underlying game data.
 - **SC-006**: Zero regressions from the current passing test suite (79/79 frontend, 31/31 CMS baseline).
+- **SC-007**: Admin can complete the full CSV import (all three spreadsheet exports) in a single operation and the resulting stats dashboard matches the historical spreadsheet totals for games played, goals for/against, and win rate.
+- **SC-008**: Re-running the same CSV import produces no duplicate records — verified by running the import twice and comparing record counts.

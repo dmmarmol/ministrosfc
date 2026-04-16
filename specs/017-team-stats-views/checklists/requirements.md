@@ -31,4 +31,4 @@
 
 ## Notes
 
-All checklist items pass. Spec is ready for `/speckit.plan`.
+All checklist items pass. Spec updated 2026-04-16 to include US5 (CSV import / spreadsheet migration), FR-012–FR-018, CSV column mapping tables, updated Key Entities, and SC-007/SC-008. Spec is ready for `/speckit.plan`.
