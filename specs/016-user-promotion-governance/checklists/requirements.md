@@ -1,7 +1,8 @@
-# Specification Quality Checklist: User Promotion Governance
+# Specification Quality Checklist: User Promotion Governance & Auth Navigation
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-04-13
+**Updated**: 2026-04-14 (scope expanded to include authentication navigation UX)
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -32,3 +33,5 @@
 ## Notes
 
 - Validation pass complete. No unresolved clarification markers.
+- **2026-04-14 Update**: Scope expanded to include User Story 4 (Authentication Navigation UX). New requirements (FR-019, FR-020, FR-021) are testable, measurable, and technology-agnostic. Success criterion SC-008 added. All quality criteria maintained.
+- New scope adds 3 functional requirements and 1 measurable success criterion for back button navigation on /auth and /auth/onboarding pages.

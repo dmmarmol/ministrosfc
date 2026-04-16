@@ -1,9 +1,10 @@
-# Feature Specification: User Promotion Governance
+# Feature Specification: User Promotion Governance & Auth Navigation
 
 **Feature Branch**: `016-user-promotion-governance`  
 **Created**: 2026-04-13  
+**Updated**: 2026-04-14 (scope expanded to include authentication navigation UX)  
 **Status**: Draft  
-**Input**: User description: "User Promotion Feature"
+**Input**: User description: "User Promotion Feature" + "Auth navigation back buttons"
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -68,6 +69,26 @@ Authorized users can deactivate or delete player-linked users with explicit conf
 8. **Given** an Editor user, **When** they attempt player-user deletion, **Then** the action is denied.
 9. **Given** lifecycle actions in admin/users, **When** the UI is rendered, **Then** every destructive or state-changing action (role changes, status toggles, user deletions, player deletions, profile edits) uses a confirmation modal.
 
+---
+
+### User Story 4 - Authentication Navigation UX (Priority: P2)
+
+Users navigating authentication flows can return to previous screens using clear back buttons.
+
+**Why this priority**: Improves user experience and reduces confusion during authentication and onboarding flows, but is secondary to core governance features.
+
+**Independent Test**: Navigate to /auth and /auth/onboarding pages and verify back button presence and navigation targets.
+
+**Acceptance Scenarios**:
+
+1. **Given** an unauthenticated user on the /auth page, **When** they view the page, **Then** a back button is visible.
+2. **Given** an unauthenticated user on the /auth page, **When** they click the back button, **Then** they are redirected to the public site (home page).
+3. **Given** a user on the /auth/onboarding page without a return query parameter, **When** they view the page, **Then** a back button is visible.
+4. **Given** a user on the /auth/onboarding page without a return query parameter, **When** they click the back button, **Then** they are redirected to the /auth route.
+5. **Given** a non-registered user attempting to sign up for a game is redirected to /auth/onboarding, **When** they arrive at the onboarding page, **Then** the original page URL is preserved in a return/redirect query parameter.
+6. **Given** a user on the /auth/onboarding page with a return query parameter, **When** they click the back button, **Then** they are redirected to the URL specified in the return parameter.
+7. **Given** back buttons on auth pages, **When** users interact with them, **Then** the buttons are clearly styled and positioned for easy discovery.
+
 ### Edge Cases
 
 - **Admin Self-Demotion Prevention**: An admin attempting to demote themselves (change their own role from ADMIN to any lower role) must be blocked with error "Cannot demote yourself". The role dropdown for the admin's own user record should be disabled or visually indicate it cannot be changed. This prevents accidental privilege loss and ensures at least one admin always exists in the system.
@@ -80,6 +101,12 @@ Authorized users can deactivate or delete player-linked users with explicit conf
 - Attempting to perform a player-status update (deactivate/reactivate) or delete a user with no linked player profile must return a clear validation error and no partial update.
 - Editing email to a value already used by another account must fail with a clear uniqueness message.
 - Deleting a player user with historical game participations must not leave orphan references. (See data integrity requirement below)
+- **Auth Navigation State Preservation**: Back button navigation from /auth or /auth/onboarding must not clear any partially entered form data if the user returns (browser back/forward behavior). However, this is browser-default behavior and requires no special handling.
+- **Public Site Home Page**: The "public site" referenced in FR-019 refers to the application's unauthenticated landing page (typically "/" route or a marketing homepage). If no public site exists, the back button should be hidden or navigate to a sensible default.
+- **Onboarding Flow Interruption**: When a user clicks back from /auth/onboarding to the originating page (via return parameter), any partial onboarding progress is not saved. The user must complete the full onboarding flow in a single session.
+- **Open Redirect Prevention**: Return/redirect query parameters must be validated to prevent open redirect attacks. Only same-origin URLs (matching the current domain) or relative paths (starting with /) should be allowed. External URLs (http://, https://, //) must be rejected and fall back to /auth default navigation.
+- **Malformed Return URLs**: If the return query parameter contains invalid characters, is malformed, or fails validation, the system should fall back to the default /auth navigation rather than throwing an error.
+- **Return URL Encoding**: Return URLs in query parameters must be properly URL-encoded when set and decoded when read. Special characters in paths (e.g., /games/123?tab=signup) must be handled correctly.
 
 ## Requirements _(mandatory)_
 
@@ -106,6 +133,11 @@ Authorized users can deactivate or delete player-linked users with explicit conf
 - **FR-016**: System MUST deny unauthorized lifecycle actions with clear authorization errors (e.g., Editor delete denial, Player/DT promotion attempts).
 - **FR-017**: System MUST validate uniqueness and format constraints for edited email values before persisting changes, and return clear error messages for duplicates.
 - **FR-018**: System MUST provide clear success and failure feedback for each completed or rejected admin/users action (UI and API).
+- **FR-019**: System MUST display a user-friendly back button on the /auth page that navigates users to the public site home page.
+- **FR-020**: System MUST display a user-friendly back button on the /auth/onboarding page that navigates users to: (a) the URL specified in the return/redirect query parameter if present, or (b) the /auth route if no return parameter is provided.
+- **FR-020a**: System MUST validate return/redirect query parameters to prevent open redirect vulnerabilities, allowing only same-origin URLs or relative paths.
+- **FR-021**: System MUST ensure back buttons on authentication pages are clearly visible and accessible, following consistent UI patterns.
+- **FR-022**: System MUST preserve the originating page URL as a return/redirect query parameter when redirecting unauthenticated users from protected pages (e.g., game signup) to /auth/onboarding.
 
 ### Key Entities _(include if feature involves data)_
 
@@ -119,6 +151,12 @@ Authorized users can deactivate or delete player-linked users with explicit conf
 - Deactivation in this feature means player-status deactivation, not account-level authentication lock.
 - Delete behavior for this feature removes both player and linked user account when performed by Admin.
 - Existing confirmation modal patterns are reused for all sensitive actions.
+- The "public site" for auth page back button navigation refers to the unauthenticated home page (typically "/" route).
+- Back button styling and positioning follows existing UI/UX patterns defined in the design system.
+- Auth and onboarding pages use Nuxt routing, so navigation is handled via nuxt-link or router.push().
+- Return URL validation follows common open redirect prevention patterns: same-origin check or relative path validation.
+- The return/redirect query parameter name is consistent across all auth flows (e.g., "return", "redirect", or "returnUrl").
+- Game signup and other protected page redirects to onboarding already exist; this feature only adds the back button with return parameter handling.
 
 ## Success Criteria _(mandatory)_
 
@@ -131,3 +169,5 @@ Authorized users can deactivate or delete player-linked users with explicit conf
 - **SC-005**: At least 95% of successful admin/users mutations (edit, promote, deactivate, delete) are reflected in the UI within one refresh cycle.
 - **SC-006**: Admins can demote any user including other admins in under 10 seconds (select role, confirm modal, see update).
 - **SC-007**: Zero accidental admin demotions or user deletions occur due to confirmation requirement - all actions require explicit modal confirmation.
+- **SC-008**: 100% of users on /auth and /auth/onboarding pages can navigate back to previous screens using clearly visible back buttons.
+- **SC-009**: 100% of redirects from protected pages (e.g., game signup) to /auth/onboarding preserve the original URL, and users can return via back button without re-navigation loss.

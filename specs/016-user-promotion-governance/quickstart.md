@@ -64,20 +64,60 @@ Implement governance-complete admin user management for listing/editing users, c
 Run CMS tests:
 
 ```bash
-npm test --workspace=@ministrosfc/cms -- role-management.test.ts
+cd packages/cms && npx jest tests/integration/role-management.test.ts --testTimeout=30000
 ```
 
-Run frontend tests:
+Run frontend unit tests:
 
 ```bash
-npm test --workspace=@ministrosfc/frontend -- admin-users.test.ts
+cd packages/frontend && npx vitest run tests/unit/admin-users.test.ts
 ```
 
 Optional full package runs:
 
 ```bash
 npm test --workspace=@ministrosfc/cms
-npm test --workspace=@ministrosfc/frontend -- --run
+cd packages/frontend && npx vitest run
+```
+
+## Implementation Status (as of 2026-04-15)
+
+### Backend (packages/cms) — ✅ Complete
+
+- `UserService.ts`: `updateAdminUserProfile`, `changeRole` (self-demotion prevention, idempotent), `updatePlayerStatus`, `deletePlayer` (transactional), optimistic concurrency (`expectedUpdatedAt`)
+- `routes/users.ts`: GET `/`, PATCH `/:id`, PATCH `/:id/role`, PATCH `/:id/player-status`, DELETE `/:id/player`
+- Integration tests: 31/31 passing (T007, T015, T022, T030)
+
+### Shared types (packages/shared) — ✅ Complete
+
+- `AdminUserListItem`, `AdminUserListResponse`, `AdminUserProfilePayload`, `AdminUserRoleChangePayload`, `AdminUserPlayerStatusPayload`, `AdminUserDeleteResponse`
+
+### Frontend (packages/frontend) — ✅ Complete
+
+- `UserRoleManager.vue`: Full-name click edit, email confirmation modal, first/last name inline save, role change confirmation, status toggle confirmation, delete confirmation, self-demotion UI prevention, success/error toasts
+- `pages/admin/users/index.vue`: Thin wrapper, lifecycle feedback delegated to component
+- `components/ui/BackButton.vue`: Reusable accessible back button with `to` and `label` props
+- `pages/login.vue`: Back button → `/` (public site)
+- `pages/auth/onboarding.vue`: Back button → `/login` (preserves and validates `redirect` param to prevent open redirect)
+- `middleware/auth.ts`: Redirects unauthenticated users to `/login?redirect=<original>` and users needing onboarding to `/auth/onboarding?redirect=<original>`
+- Unit tests: 33/33 passing (T008, T008A, T016, T016A, T023); 13/13 passing (T034–T039 auth navigation)
+
+## US4 Verification
+
+```bash
+# Unit tests
+cd packages/frontend && npx vitest run tests/unit/auth-navigation.test.ts
+```
+
+Manual checks:
+
+- Visit `/login` — a back button "Volver al sitio" appears, clicking it navigates to `/`
+- Visit `/auth/onboarding` — a back button "Volver" appears, clicking it navigates to `/login`
+- Visit a protected page while unauthenticated — redirected to `/login?redirect=<page>`, after login → redirects back to original page
+- Attempt an open redirect via `?redirect=https://evil.com` on onboarding — falls back to `/login` (external URLs blocked)
+
+**Note on T041B (terminology standardization)**: The codebase uses `redirect` as the query param name consistently across all pages, middleware, and CMS redirect routes. Renaming to `return` would be an API surface change beyond this spec's scope and is deferred.
+
 ```
 
 ## Manual Verification Checklist
@@ -93,9 +133,23 @@ npm test --workspace=@ministrosfc/frontend -- --run
 - Deactivate/reactivate linked player only after confirmation modal approval.
 - Delete linked player user as Admin only and verify both records are removed after confirmation.
 
+## definePageMeta Audit Results (T033)
+
+**Audited**: 2026-04-15 — All 28 pages in `packages/frontend/src/pages/` declare `definePageMeta`. Constitution Principle V fully satisfied.
+
+| Status       | Count |
+| ------------ | ----- |
+| ✅ Compliant | 28    |
+| ❌ Missing   | 0     |
+
+**US4 path discrepancy**: T036 references `pages/auth/index.vue` (route `/auth`), but the login page is at `pages/login.vue` (route `/login`). See T036 note in tasks.md before implementing US4.
+
+---
+
 ## Done Criteria
 
 - All FR-001..FR-018 covered by tests or explicit acceptance checks.
 - Shared types used for all cross-package admin-users payloads/responses.
 - No sensitive mutation can fire without confirmation in admin users UI.
 - Role and lifecycle actions enforce actor/target policy in backend.
+```

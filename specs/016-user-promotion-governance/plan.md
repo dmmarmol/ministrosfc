@@ -19,6 +19,15 @@ Deliver governance-complete admin user management by extending existing `/api/v1
 **Constraints**: Preserve referential integrity across `User` <-> `Player` <-> `GameParticipant`; no unauthorized role escalation; admin can demote other admins but not themselves; all sensitive actions (role changes, status toggles, deletions, critical edits) require ConfirmationModal component with explicit confirm/cancel; role dropdown disabled for admin's own user record  
 **Scale/Scope**: Team-level directory (tens to low hundreds of users), 1 admin page + users API/service + shared types + targeted test suite updates
 
+**Auth Navigation Scope (US4):**
+
+- **Pages:** `/auth`, `/auth/onboarding` (Nuxt 3, Vue 3)
+- **Back Button:** Shown on both pages; on `/auth` returns to public site ("/"), on `/auth/onboarding` returns to `/auth` or to the URL in a validated `return` query param
+- **Return Param:** If user is redirected to onboarding from a protected page (e.g., game signup), the original URL is preserved in a `return` query param; back button uses this if present
+- **Security:** Return param is validated to prevent open redirect (must be same-origin or relative path)
+- **UX:** Back button is styled and positioned per design system; navigation uses Nuxt router
+- **Testing:** Unit/component tests (Vitest + Vue Test Utils) for button presence, navigation, and param handling; E2E for redirect flows
+
 ## Constitution Check
 
 _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
@@ -26,6 +35,13 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 - [x] **Shared types gate (Principle VII)**: New admin-users response and mutation payload/response types are cross-package (`cms` + `frontend`) and will be added to `packages/shared/src/types/api.ts` and exported through `@ministrosfc/shared`.
 - [x] **Page decomposition gate (Principle V)**: No new page file is added; existing `pages/admin/users/index.vue` remains routing entry and feature UI stays in extracted component(s). If complexity grows, split current `UserRoleManager` into page-scoped sub-components under `components/pages/admin/users/`.
 - [x] **Page meta declaration gate (Principle V)**: No new `pages/` file introduced. Existing `pages/admin/users/index.vue` already declares `definePageMeta({ layout: "admin", middleware: "auth", requiresAuth: true, requiresRole: "editor" })`.
+
+**Auth Navigation Constitution Check:**
+
+- [x] No new page files; `/auth` and `/auth/onboarding` already exist
+- [x] Back button is a UI element, not a new route
+- [x] Navigation logic is implemented in existing page/component files
+- [x] No violation of Principle V (page meta) or VII (shared types)
 
 ## Project Structure
 
@@ -110,6 +126,41 @@ Every task references an explicit path and is executable by an implementation ag
 ## Implementation Notes
 
 ### Admin Demotion Requirements (New Scope)
+
+### User Story 4: Authentication Navigation UX (Back Button & Return Param)
+
+**Frontend Changes:**
+
+- Add a back button to `/auth` and `/auth/onboarding` pages (Nuxt 3, Vue 3)
+- On `/auth`, back button navigates to public site ("/")
+- On `/auth/onboarding`, back button navigates to:
+  - the URL in a validated `return` query param (if present and valid)
+  - otherwise, `/auth`
+- Back button is styled and positioned per design system
+- Navigation uses Nuxt router (router.push or `<NuxtLink>`) for SPA behavior
+- If user is redirected to onboarding from a protected page (e.g., game signup), the original URL is preserved in a `return` query param
+- Return param is validated to prevent open redirect (must be same-origin or relative path)
+- If return param is invalid, fallback to `/auth`
+- All navigation respects browser history (back/forward)
+
+**Testing:**
+
+- Unit/component tests for button presence, navigation, and param handling (Vitest + Vue Test Utils)
+- E2E tests for redirect flows (e.g., game signup → onboarding → back)
+
+**Edge Cases:**
+
+- Malformed or external return param: fallback to `/auth`
+- Return param encoding/decoding: handle special characters
+- Onboarding flow interruption: partial progress is not saved if user navigates back
+
+**Security:**
+
+- Validate return param to prevent open redirect vulnerabilities
+
+**Docs:**
+
+- Update quickstart.md and tasks.md to include new US4 tasks and verification steps
 
 **Backend Changes:**
 

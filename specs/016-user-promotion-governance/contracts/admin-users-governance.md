@@ -157,3 +157,48 @@ Error envelope:
 - All role/status/delete actions must pass through confirmation modal before API call.
 - Edit entry point is the full-name interaction (clicking name opens inline edit or edit row state).
 - UI must show operation result feedback (success toast/banner or inline error) per mutation.
+
+---
+
+## Implementation Notes (T032, 2026-04-15)
+
+### Error response shape (all endpoints)
+
+```json
+{
+  "code": "CONFLICT",
+  "message": "Email already in use",
+  "statusCode": 409
+}
+```
+
+- `code` is one of: `CONFLICT`, `FORBIDDEN`, `NOT_FOUND`, `VALIDATION_ERROR`, `UNAUTHORIZED`, `INTERNAL_ERROR`
+- `message` is human-readable; for `CONFLICT` on duplicate email it is exactly `"Email already in use"`
+- Stale-write conflicts use the same `409 CONFLICT` code with a distinct message referencing `expectedUpdatedAt`
+
+### Idempotent role change
+
+Sending the same role that is already set returns `200 OK` with the current user state and performs **no database write**.
+
+### Self-demotion prevention — dual layer
+
+1. **Backend**: Route returns `403 FORBIDDEN` with `"Cannot demote yourself"` when `req.user.id === userId`.
+2. **Frontend**: Role `<select>` is rendered with `:disabled="user.id === authStore.user?.id"` and `title="No podés cambiar tu propio rol"`. Any attempt is blocked at the UI level before the confirmation modal is shown.
+
+### Transactional player delete
+
+`DELETE /:id/player` uses a single Prisma transaction to:
+
+1. Clear `user.playerId` (set to `null`)
+2. Delete the `Player` record
+
+After the call, neither `Player` nor the `user.playerId` foreign key reference remain.
+
+### Confirmation modal pattern
+
+All sensitive frontend actions use `ConfirmationModal` with these text keys:
+
+- Role change: _"Cambiar rol"_ / action description with old → new role names
+- Status toggle (deactivate): _"Desactivar jugador"_ / _"impedir que participe en nuevos partidos"_
+- Status toggle (reactivate): _"Activar jugador"_
+- Delete player: _"Eliminar usuario y jugador"_ / _"no se puede deshacer"_
