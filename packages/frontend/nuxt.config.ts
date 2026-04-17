@@ -5,7 +5,11 @@ export default defineNuxtConfig({
 
   modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt", "@nuxt/image", "@nuxt/ui"],
 
-  css: ["leaflet/dist/leaflet.css", "vue-select/dist/vue-select.css"],
+  css: [
+    "leaflet/dist/leaflet.css",
+    "vue-select/dist/vue-select.css",
+    "~/assets/base.css",
+  ],
 
   runtimeConfig: {
     public: {
