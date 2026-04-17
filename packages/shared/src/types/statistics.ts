@@ -38,9 +38,11 @@ export interface TournamentStatisticsDTO {
 
 // Team stats for a single period (year, tournament, or rival)
 export interface TeamStatPeriodDTO {
+  key: string;
   label: string;
   periodStart?: string;
   periodEnd?: string;
+  playgroundName: string;
   gamesPlayed: number;
   wins: number;
   losses: number;
@@ -100,3 +102,6 @@ export interface CsvImportResultDTO {
   playgrounds: { created: number; updated: number; skipped: number };
   warnings: string[];
 }
+
+/** Determines which filter selects are shown in the statistics filter bar. */
+export type StatsFiltersMode = "years" | "tournaments" | "rivals" | "players";
