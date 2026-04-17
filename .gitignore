@@ -167,3 +167,4 @@ packages/cms/data/imports/*.csv
 
 # APM dependencies
 apm_modules/
+data/
