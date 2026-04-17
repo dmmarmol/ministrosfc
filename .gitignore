@@ -81,7 +81,6 @@ packages/cms/prisma/dev.db-journal
 .output/
 .nitro/
 .cache/
-.env
 
 # ============================================
 # IDE & Editor
