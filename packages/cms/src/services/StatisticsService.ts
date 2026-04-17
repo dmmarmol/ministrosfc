@@ -96,6 +96,10 @@ const StatisticsService = {
     );
   },
 
+  async getGameYears() {
+    return withCache("cache:stats:years", () => StatisticsModel.getGameYears());
+  },
+
   async getTeamStatsByYear(filters?: {
     tournamentId?: string;
     rivalId?: string;
@@ -107,8 +111,9 @@ const StatisticsService = {
   async getTeamStatsByTournament(filters?: {
     year?: number;
     rivalId?: string;
+    tournamentName?: string;
   }) {
-    const key = `cache:stats:team:tournament:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}`;
+    const key = `cache:stats:team:tournament:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}:${filters?.tournamentName ?? "all"}`;
     return withCache(key, () =>
       StatisticsModel.aggregateTeamByTournament(filters),
     );
@@ -117,8 +122,10 @@ const StatisticsService = {
   async getTeamStatsByRival(filters?: {
     year?: number;
     tournamentId?: string;
+    tournamentName?: string;
+    rivalId?: string;
   }) {
-    const key = `cache:stats:team:rival:${filters?.year ?? "all"}:${filters?.tournamentId ?? "all"}`;
+    const key = `cache:stats:team:rival:${filters?.year ?? "all"}:${filters?.tournamentId ?? "all"}:${filters?.tournamentName ?? "all"}:${filters?.rivalId ?? "all"}`;
     return withCache(key, () => StatisticsModel.aggregateTeamByRival(filters));
   },
 
@@ -129,8 +136,12 @@ const StatisticsService = {
     );
   },
 
-  async getAllPlayerStats(filters?: { year?: number; rivalId?: string }) {
-    const key = `cache:stats:players:all:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}`;
+  async getAllPlayerStats(filters?: {
+    year?: number;
+    rivalId?: string;
+    tournamentName?: string;
+  }) {
+    const key = `cache:stats:players:all:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}:${filters?.tournamentName ?? "all"}`;
     return withCache(key, () => StatisticsModel.aggregatePlayersAll(filters));
   },
 };
