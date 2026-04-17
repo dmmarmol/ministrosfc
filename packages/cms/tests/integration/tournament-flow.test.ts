@@ -94,13 +94,14 @@ describe("Tournament flow (integration)", () => {
   });
 
   it("ministrosRecord shows correct W/D/L after completed games", async () => {
-    // Create 2 games in the tournament
-    const pastDate = "2024-03-01T18:00:00.000Z";
+    // Create 2 games in the tournament (different dates to satisfy unique constraint)
+    const pastDate1 = "2024-03-01T18:00:00.000Z";
+    const pastDate2 = "2024-03-08T18:00:00.000Z";
     const g1 = await request(app)
       .post("/api/v1/games")
       .set("Authorization", `Bearer ${adminToken}`)
       .send({
-        date: pastDate,
+        date: pastDate1,
         opponentTeamId,
         tournamentId,
         competitionType: "LEAGUE",
@@ -109,7 +110,7 @@ describe("Tournament flow (integration)", () => {
       .post("/api/v1/games")
       .set("Authorization", `Bearer ${adminToken}`)
       .send({
-        date: pastDate,
+        date: pastDate2,
         opponentTeamId,
         tournamentId,
         competitionType: "LEAGUE",

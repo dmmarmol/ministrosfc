@@ -6,6 +6,7 @@ import {
 } from "express";
 import { validate, uuidSchema } from "../middleware/validation";
 import { StatisticsService } from "../services/StatisticsService";
+import { authenticate } from "../middleware/auth";
 import { z } from "zod";
 
 const router = Router();
@@ -15,12 +16,31 @@ const topScorersSchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(10),
 });
 
-// GET /api/v1/statistics/players - All players aggregated
+const teamStatsQuerySchema = z.object({
+  year: z.coerce.number().int().min(1900).max(2100).optional(),
+  tournamentId: z.uuid().optional(),
+  rivalId: z.uuid().optional(),
+});
+
+// GET /api/v1/statistics/players - All players aggregated (public + extended)
 router.get(
   "/players",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tournamentId } = req.query as Record<string, string>;
+      const { tournamentId, year, rivalId } = req.query as Record<
+        string,
+        string
+      >;
+      // If year or rivalId are provided, use the richer team-scoped player aggregation
+      if (year || rivalId) {
+        const data = await StatisticsService.getAllPlayerStats({
+          year: year ? parseInt(year, 10) : undefined,
+          rivalId,
+        });
+        res.setHeader("Cache-Control", "public, max-age=300");
+        res.json({ data });
+        return;
+      }
       const data = await StatisticsService.getTopScorers(tournamentId, 50);
       res.setHeader("Cache-Control", "public, max-age=300");
       res.json({ data });
@@ -36,10 +56,11 @@ router.get(
   validate(uuidSchema, "params"),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tournamentId } = req.query as Record<string, string>;
+      const { tournamentId, year } = req.query as Record<string, string>;
       const result = await StatisticsService.getPlayerStats(
         req.params.id!,
         tournamentId,
+        year ? parseInt(year, 10) : undefined,
       );
       res.setHeader("Cache-Control", "public, max-age=300");
       res.json({ data: result });
@@ -76,6 +97,99 @@ router.get(
       const result = await StatisticsService.getTournamentStats(req.params.id!);
       res.setHeader("Cache-Control", "public, max-age=300");
       res.json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// ── Team stats endpoints (Feature 017) — all require auth ────────────────────
+
+// GET /api/v1/statistics/team/summary
+router.get(
+  "/team/summary",
+  authenticate,
+  async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await StatisticsService.getTeamSummary();
+      res.setHeader("Cache-Control", "private, max-age=300");
+      res.json({ data });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// GET /api/v1/statistics/team/by-year
+router.get(
+  "/team/by-year",
+  authenticate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { tournamentId, rivalId } = teamStatsQuerySchema.parse(req.query);
+      const data = await StatisticsService.getTeamStatsByYear({
+        tournamentId,
+        rivalId,
+      });
+      res.setHeader("Cache-Control", "private, max-age=300");
+      res.json({ data });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// GET /api/v1/statistics/team/by-tournament
+router.get(
+  "/team/by-tournament",
+  authenticate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { year, rivalId } = teamStatsQuerySchema.parse(req.query);
+      const data = await StatisticsService.getTeamStatsByTournament({
+        year,
+        rivalId,
+      });
+      res.setHeader("Cache-Control", "private, max-age=300");
+      res.json({ data });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// GET /api/v1/statistics/team/by-rival
+router.get(
+  "/team/by-rival",
+  authenticate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { year, tournamentId } = teamStatsQuerySchema.parse(req.query);
+      const data = await StatisticsService.getTeamStatsByRival({
+        year,
+        tournamentId,
+      });
+      res.setHeader("Cache-Control", "private, max-age=300");
+      res.json({ data });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// GET /api/v1/statistics/team/rivals/:rivalId
+router.get(
+  "/team/rivals/:rivalId",
+  authenticate,
+  validate(z.object({ rivalId: z.uuid() }), "params"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { year } = teamStatsQuerySchema.parse(req.query);
+      const data = await StatisticsService.getRivalStats(req.params.rivalId!, {
+        year,
+      });
+      res.setHeader("Cache-Control", "private, max-age=300");
+      res.json({ data });
     } catch (err) {
       next(err);
     }
