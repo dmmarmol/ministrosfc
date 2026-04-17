@@ -5,7 +5,7 @@
 
 ## Summary
 
-Introduce team-level and player-level statistics views to Ministros FC. The core deliverable is a private stats dashboard (`/stats`) with 6 focus modes (by year, tournament, rival, single rival, all players, single player), a public player stats section on each player's profile page, and URL-encoded filter state for shareability. Historical data is seeded via a one-time admin CSV import from three Google Spreadsheet exports (`data/historial.csv`, `data/jugadores.csv`, `data/apariciones.csv`). A fourth optional file `canchas.csv` links imported games to their Playground records. After import the app becomes the sole source of truth.
+Introduce team-level and player-level statistics views to Ministros FC. The core deliverable is a unified `/statistics` route: public top-scorers table for anonymous users + private dashboard (6 focus modes: by year, tournament, rival, single rival, all players, single player) revealed to authenticated users via a contextual side-nav. The private sub-pages live under `/statistics/*` (original `/stats/*` prefix removed in Phase 12). Also includes a public player stats section on each player's profile page and URL-encoded filter state for shareability. Historical data is seeded via a one-time admin CSV import from three Google Spreadsheet exports (`data/historial.csv`, `data/jugadores.csv`, `data/apariciones.csv`). A fourth optional file `canchas.csv` links imported games to their Playground records. After import the app becomes the sole source of truth.
 
 ## Technical Context
 
@@ -92,36 +92,42 @@ packages/shared/
 
 packages/frontend/
 └── src/
+    ├── layouts/
+    │   └── statistics.vue                     ← NEW (Phase 12): two-column layout wrapping all /statistics/* pages;
+    │                                               left sidebar renders <StatisticsSubNav> v-if authenticated;
+    │                                               right column is the page <slot />
     ├── pages/
-    │   ├── stats/
-    │   │   ├── index.vue                      ← NEW: redirects to /stats/years
-    │   │   │                                      definePageMeta({ middleware: "auth", requiresAuth: true })
-    │   │   ├── years.vue                      ← NEW: All Years focus mode
-    │   │   │                                      definePageMeta({ middleware: "auth", requiresAuth: true })
-    │   │   ├── tournaments.vue                ← NEW: All Tournaments focus mode
-    │   │   │                                      definePageMeta({ middleware: "auth", requiresAuth: true })
+    │   ├── statistics/
+    │   │   ├── index.vue                      ← NEW: public top-scorers table + conditional sub-nav
+    │   │   │                                      definePageMeta({ layout: 'statistics', public: true })
+    │   │   ├── years.vue                      ← NEW (moved from stats/ in Phase 12): All Years focus mode
+    │   │   │                                      definePageMeta({ layout: 'statistics', middleware: "auth", requiresAuth: true })
+    │   │   ├── tournaments.vue                ← NEW (moved from stats/ in Phase 12): All Tournaments focus mode
+    │   │   │                                      definePageMeta({ layout: 'statistics', middleware: "auth", requiresAuth: true })
     │   │   ├── rivals/
-    │   │   │   ├── index.vue                  ← NEW: All Rivals focus mode
-    │   │   │   │                                  definePageMeta({ middleware: "auth", requiresAuth: true })
-    │   │   │   └── [id].vue                   ← NEW: Single Rival focus mode
-    │   │   │                                      definePageMeta({ middleware: "auth", requiresAuth: true })
+    │   │   │   ├── index.vue                  ← NEW (moved from stats/ in Phase 12): All Rivals focus mode
+    │   │   │   │                                  definePageMeta({ layout: 'statistics', middleware: "auth", requiresAuth: true })
+    │   │   │   └── [id].vue                   ← NEW (moved from stats/ in Phase 12): Single Rival focus mode
+    │   │   │                                      definePageMeta({ layout: 'statistics', middleware: "auth", requiresAuth: true })
     │   │   └── players/
-    │   │       ├── index.vue                  ← NEW: All Players focus mode
-    │   │       │                                  definePageMeta({ middleware: "auth", requiresAuth: true })
-    │   │       └── [id].vue                   ← NEW: Single Player focus mode
-    │   │                                          definePageMeta({ middleware: "auth", requiresAuth: true })
+    │   │       ├── index.vue                  ← NEW (moved from stats/ in Phase 12): All Players focus mode
+    │   │       │                                  definePageMeta({ layout: 'statistics', middleware: "auth", requiresAuth: true })
+    │   │       └── [id].vue                   ← NEW (moved from stats/ in Phase 12): Single Player focus mode
+    │   │                                          definePageMeta({ layout: 'statistics', middleware: "auth", requiresAuth: true })
     │   └── players/
     │       └── [id].vue                       ← EXTEND: add wins/losses/draws/winRate to stat cards
     ├── components/
     │   └── pages/
-    │       └── stats/
-    │           ├── StatsHeader.vue
-    │           ├── StatsFocusSelector.vue
-    │           ├── StatsFilters.vue
-    │           ├── StatsTableByYear.vue
-    │           ├── StatsTableByTournament.vue
-    │           ├── StatsTableByRival.vue
-    │           └── StatsTableByPlayer.vue
+    │       ├── stats/
+    │       │   ├── StatsHeader.vue
+    │       │   ├── StatsFocusSelector.vue
+    │       │   ├── StatsFilters.vue
+    │       │   ├── StatsTableByYear.vue
+    │       │   ├── StatsTableByTournament.vue
+    │       │   ├── StatsTableByRival.vue
+    │       │   └── StatsTableByPlayer.vue
+    │       └── statistics/
+    │           └── StatisticsSubNav.vue       ← NEW (Phase 12): vertical auth-gated sidebar nav component
     └── composables/
         └── useStatsFilters.ts                 ← NEW: URL query param sync for all filter state
 
@@ -197,6 +203,8 @@ See [contracts/statistics-contract.md](contracts/statistics-contract.md).
 | GET    | `/api/v1/statistics/team/by-rival`        | authenticated | Stats grouped by rival                                                   |
 | GET    | `/api/v1/statistics/team/rivals/:rivalId` | authenticated | Single rival breakdown                                                   |
 | POST   | `/api/v1/import/csv`                      | ADMIN         | Batch CSV import — historial, jugadores, apariciones, canchas (optional) |
+
+> **Note**: All CMS API routes above (`/api/v1/statistics/*`) are unaffected by Phase 12. The route prefix change (`/stats/` → `/statistics/`) applies only to Nuxt frontend page paths. The frontend sub-pages call the same CMS endpoints regardless of their URL prefix.
 
 **Extended endpoints** (backward-compatible query param additions):
 
@@ -318,3 +326,58 @@ The following sequence respects type-gate and data-gate dependencies:
 16. **`pages/stats.vue`** — assemble sub-components
 17. **`players/[id].vue`** — extend stat cards
 18. **E2E tests** (all three spec files)
+
+---
+
+## Post-Implementation Amendments
+
+### Amendment 1 — Auth: `needsOnboarding` scoped to PLAYER role (2026-04-17)
+
+**File**: `packages/frontend/src/stores/auth.ts`
+
+**Problem**: After `db:reset`, the admin account had no `onboardingCompletedAt` set. The original `needsOnboarding` getter (`user != null && !onboardingCompletedAt`) returned `true` for all users with a null value, causing any authenticated non-player user hitting a `requiresAuth` page (e.g. `/statistics/tournaments`) to be redirected to `/auth/onboarding`.
+
+**Fix**: Scoped the check to `PLAYER` role only:
+
+```typescript
+needsOnboarding: (state) =>
+  state.user != null &&
+  state.user.role === "PLAYER" &&
+  !state.user.onboardingCompletedAt,
+```
+
+**Impact**: ADMIN, EDITOR, DT roles are never redirected to onboarding regardless of `onboardingCompletedAt`.
+
+---
+
+### Amendment 2 — Tournament import: year-scoped upsert (2026-04-17)
+
+**File**: `packages/cms/src/services/csv-import/import-historial.ts`
+
+**Problem**: Tournament lookup matched by `name` only → "Torneo Apertura" from 2024, 2025, and 2026 were merged into a single DB record on re-import.
+
+**Fix**: Tournament `findFirst` now filters by both name and `startDate` within the game's calendar year (`gte: yearStart, lte: yearEnd`). Same-named tournaments in different years become separate `Tournament` records.
+
+---
+
+### Amendment 3 — Tournament stats: group by `tournament.id`, not name (2026-04-17)
+
+**Files**: `packages/cms/src/models/Statistics.ts`, `packages/shared/src/types/statistics.ts`, `packages/frontend/src/components/pages/stats/StatsTableByTournament.vue`
+
+**Problem**: `aggregateTeamByTournament` grouped by `tournament.name` → all editions of "Torneo Apertura" collapsed into one row in the stats table. Additionally `StatsTableByTournament.vue` used `:key="row.label"` which caused Vue duplicate-key warnings for same-named rows.
+
+**Fix**:
+
+1. `groupTeamStatsByKey` extended with optional 4th param `labelFn` to separate the grouping key from the display label.
+2. `aggregateTeamByTournament` now groups by `tournament.id` (unique per year) but displays `tournament.name` as the label.
+3. `TeamStatPeriodDTO` gains a non-displayed `key: string` field (the grouping key, e.g. tournament UUID).
+4. Table `:key` changed from `row.label` to `row.key`.
+5. Year filter dropdown added to `tournaments.vue` (2023–current year options).
+
+---
+
+### Amendment 4 — `StatsTableByRival`: playground name displayed (2026-04-17)
+
+**File**: `packages/frontend/src/components/pages/stats/StatsTableByRival.vue`
+
+**Change**: The rival/period label cell now shows `playgroundName` as inline gray text (`text-gray-400 text-xs`) when available. Also updated `:key` to use `row.key` for consistency with Amendment 3.

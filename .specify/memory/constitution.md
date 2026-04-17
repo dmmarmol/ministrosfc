@@ -1,22 +1,24 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.8.0 → 1.9.0 (MINOR — Package Version Management: git tag MUST be created on every version bump)
+Version change: 1.9.0 → 1.9.1 (PATCH — Principle VI: URL query-param management rule added)
 Ratified: 2026-03-17
-Last Amended: 2026-04-10
+Last Amended: 2026-04-17
 
-Amendment: Principle V (Component Isolation and Reusability) extended with a mandatory
-"Page Meta Declaration" sub-rule. Every file in `pages/` MUST contain a `definePageMeta`
-call declaring visibility (public/auth-required/auth-page) and any applicable middleware
-options. Pages that are freely public MUST still declare `definePageMeta({ public: true })`
-to make intent explicit and prevent future middleware accidental-blocking.
+Amendment: Principle VI (Data Flow and State Management) extended with a new
+"URL Query Parameter Management" sub-rule. All route query-parameter reads and
+writes in `packages/frontend` MUST go through `useQueryParams` composable
+(`src/composables/useQueryParams.ts`). Direct access to `useRoute().query` for
+mutation is forbidden; `useRouter().push({ query: ... })` MUST NOT be called
+outside `useQueryParams`.
 
 Modified sections:
-  ✅ Principle V — added "Page Meta Declaration" sub-rule
-  ✅ Code Review Standards — new gate: definePageMeta presence check
-  ✅ plan-template.md — Constitution Check bullet added for definePageMeta gate
+  ✅ Principle VI — added "URL Query Parameter Management" sub-rule
+  ✅ Code Review Standards — new gate: query-param mutation outside useQueryParams
 
 Prior amendments (preserved):
+  ✅ v1.9.0 — Package Version Management: git tag MUST be created on every version bump
+  ✅ v1.8.0 — Principle V: Page Meta Declaration sub-rule
   ✅ v1.7.0 — Principle V: Page Component Decomposition sub-rule
   ✅ v1.6.0 — Principle VII: Shared Types and Cross-Package Contracts
   ✅ v1.5.0 — Branch naming convention updated
@@ -34,7 +36,7 @@ Follow-up TODOs:
 
 # Ministros FC Constitution
 
-**Version**: 1.9.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-16
+**Version**: 1.9.1 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-17
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -223,6 +225,39 @@ presence check in plan-template.md Constitution Check
 - ❌ Bad: Update UI optimistically, hope the API succeeds later, silently fail on errors
 
 **Enforcement:** TypeScript strict types, code review audits, integration test coverage
+
+#### URL Query Parameter Management (NON-NEGOTIABLE)
+
+**MUST** use `useQueryParams` for all route query-parameter reads and writes in `packages/frontend`.
+
+- `src/composables/useQueryParams.ts` is the single, authorised abstraction for URL query state.
+  It exposes three methods:
+  - `get(key)` — returns the current string value, or `""` if absent
+  - `set(key, value)` — pushes to the router; an empty-string value removes the key
+  - `remove(key)` — removes the key from the URL
+- **MUST NOT** call `useRouter().push({ query: ... })` directly outside of `useQueryParams`.
+- **MUST NOT** read `useRoute().query[key]` directly in components or pages for the purpose of
+  filter/state management; use `useQueryParams().get(key)` instead.
+- `useRoute().query` MAY be used as a reactive watch source (e.g., `watch(() => route.query, ...)`) to
+  trigger re-fetches — this is read-only observation, not mutation, and is permitted.
+- The URL is the single source of truth for all filter state visible in the address bar; local `ref`
+  state MUST NOT duplicate URL-persisted filter values.
+
+**Context:** Scattering `router.push({ query })` calls across components creates invisible coupling
+between pages and the URL shape. `useQueryParams` provides a single change surface: any key-naming
+or serialisation change happens in one file. It also enforces the convention that empty strings
+clean up the URL rather than accumulate noise (`?year=` artifacts).
+
+**Examples:**
+
+- ✅ Good: `const qp = useQueryParams(); qp.set('year', '2025')` — sets `?year=2025`
+- ✅ Good: `qp.set('year', '')` — removes `year` from the URL cleanly
+- ✅ Good: `watch(() => route.query, () => refresh())` — reactive observation only
+- ❌ Bad: `router.push({ query: { ...route.query, year: '2025' } })` — direct mutation outside composable
+- ❌ Bad: `const year = ref(route.query.year)` — local ref that mirrors URL state
+
+**Enforcement:** Code review gate (see Code Review Standards); treat direct `router.push({ query })`
+calls outside `useQueryParams` as a constitution violation
 
 ---
 
@@ -504,6 +539,7 @@ chore(deps): upgrade typescript to 5.x
 - [ ] Types used by more than one package are defined in `@ministrosfc/shared`, not duplicated locally
 - [ ] **Page decomposition (Principle V)**: No `pages/` file contains inline template blocks exceeding ~30 lines; feature areas extracted to `components/pages/<feature-path>/`
 - [ ] **Page meta declaration (Principle V)**: Every `pages/` file has a `definePageMeta` call with explicit visibility; public pages use `definePageMeta({ public: true })`
+- [ ] **URL query params (Principle VI)**: All query-param reads use `useQueryParams().get(key)`; all writes use `useQueryParams().set/remove()`; no direct `router.push({ query })` calls outside the composable
 
 **Review focus areas:**
 

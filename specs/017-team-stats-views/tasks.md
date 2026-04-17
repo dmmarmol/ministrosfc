@@ -211,7 +211,7 @@ T034 (Phase 7 component) → T035
 - [x] T045 [P] [US6] Add `importCanchas(buf: Buffer, adminUserId: string): Promise<Map<string, string>>` private method to `packages/cms/src/services/CsvImportService.ts`: parse `canchas.csv` columns `Cancha`, `Dirección`, `Latitud?`, `Longitud?`; upsert `Playground` by `name` case-insensitively trimmed (`findFirst` where `name ILIKE` then `create`/`update`); set `createdById = adminUserId` on create, `updatedById = adminUserId` on update; return `Map<string,string>` of lowercased trimmed name → playground ID
 - [x] T046 [US6] Update `parseAndImport` signature in `packages/cms/src/services/CsvImportService.ts` to accept `{ historial, jugadores, apariciones, canchas?: Buffer, adminUserId: string }`; call `importCanchas` before `importHistorial` when `canchas` is provided; pass the resulting name→ID map into `importHistorial` so each `Game` upsert sets `playgroundId` when `game.location` (lowercased, trimmed) matches a key; for games with no match emit a warning `"game {date} vs {rival}: location '{location}' not found in canchas.csv"`; populate `result.playgrounds` counter; update import order comment to: jugadores → canchas → historial → apariciones
 - [x] T047 [US6] Update `packages/cms/src/routes/import.ts`: add `{ name: 'canchas', maxCount: 1 }` to the multer `fields` array as an optional field; forward `req.user.userId` as `adminUserId` in the `parseAndImport` call
-- [ ] T048 [P] [US6] Update integration tests in `packages/cms/tests/integration/import/csv-import.test.ts`: (a) canchas happy path — POST all 4 CSVs → `playgrounds.created > 0`; matched games have `playgroundId` set in DB; (b) re-upload → `playgrounds.created === 0, updated > 0`; (c) game with no matching Estadio → `warnings` array contains location-mismatch message; (d) omit `canchas` → import completes without error, `playgrounds` counters all zero
+- [x] T048 [P] [US6] Update integration tests in `packages/cms/tests/integration/import/csv-import.test.ts`: (a) canchas happy path — POST all 4 CSVs → `playgrounds.created > 0`; matched games have `playgroundId` set in DB; (b) re-upload → `playgrounds.created === 0, updated > 0`; (c) game with no matching Estadio → `warnings` array contains location-mismatch message; (d) omit `canchas` → import completes without error, `playgrounds` counters all zero
 - [ ] T049 [US6] Manual smoke test: run `POST /api/v1/import/csv` with `canchas.csv` against dev DB; verify Playground records created via Prisma Studio; verify at least one `Game` row has `playgroundId` populated; verify re-import is idempotent
 
 ---
@@ -227,7 +227,7 @@ T034 (Phase 7 component) → T035
 - [x] T052 [P] Add `Telefono` → `Contact` upsert in the jugadores first pass: after creating/updating the `Player` record, upsert a `Contact` row with `{ phone: row["Telefono"]?.trim() || null, whatsapp: row["Telefono"]?.trim() || null }` using `prisma.contact.upsert({ where: { playerId }, update: {...}, create: { playerId, ...} })`; if `Telefono` is blank skip the upsert
 - [x] T053 Confirm `"Edad"` column is ignored (age must not be stored from CSV — it is derived at read-time from `dateOfBirth`); add an explicit comment in the import loop noting this column is intentionally skipped
 - [x] T054 Add nickname to the `playerNameToId` map after each player upsert — `if (nickname) playerNameToId.set(nickname.toLowerCase(), playerId)` — so that `apariciones.csv` rows that reference a player by their apodo resolve to the correct existing player instead of creating a ghost record
-- [ ] T055 [P] Update integration tests in `packages/cms/tests/integration/import/csv-import.test.ts`: (a) player import with `Nombre` column → single player record, correct firstName/lastName split; (b) player with `Posición = "Delantero, Mediocampista"` → position is `CF`, no error; (c) player with `Telefono` → Contact record created with phone + whatsapp; (d) re-import → no duplicate Contact records; (e) apariciones referencing a known player nickname → no ghost player created
+- [x] T055 [P] Update integration tests in `packages/cms/tests/integration/import/csv-import.test.ts`: (a) player import with `Nombre` column → single player record, correct firstName/lastName split; (b) player with `Posición = "Delantero, Mediocampista"` → position is `CF`, no error; (c) player with `Telefono` → Contact record created with phone + whatsapp; (d) re-import → no duplicate Contact records; (e) apariciones referencing a known player nickname → no ghost player created
 - [x] T056 Add `db:reset` npm script to `packages/cms/package.json` (`prisma migrate reset --force`) and document wipe→reimport workflow in `specs/017-team-stats-views/quickstart.md`; seed script creates `admin@ministrosfc.com` / `Admin1234!`
 
 ---
@@ -253,4 +253,34 @@ T046 (parseAndImport update) → T047 (route update) → T048 (integration tests
 T050 (fix name column lookup) → T051 (fix position split) → T052 (Contact upsert) → T054 (nickname in map) → T055 (integration tests)
 T053 (Edad comment) — standalone, no dependencies
 T051 and T052 can proceed in parallel once T050 is done
+
+--- Phase 12 (nav consolidation) ---
+T057a (StatisticsSubNav component) → T057b (statistics layout)
+T057b (layout) → T057c (statistics/index.vue) + T057d (top-scorers.vue)
+T057c and T058 can proceed in parallel once T057b is complete
+T059 (delete stats/ dir + grep check) → T057c + T058 complete
+T060 (nav conditional redirect) standalone
+T063 (index.vue API guard fix) → T057c complete
+T061 + T062 (verify + E2E update) → T057c + T058 + T059 + T060 complete
 ```
+
+---
+
+## Phase 12: UI Nav Consolidation – Unify `statistics/` and `stats/` under one route (Priority: P2)
+
+**Goal**: Merge all stats content under a single `/statistics` route prefix. The route split separates public top-scorers (`/statistics/top-scorers`) from the authenticated team-summary (`/statistics`). The main nav link redirects conditionally. A persistent side-nav shows two public links always and four auth-gated links when authenticated. The `/stats/` prefix is removed entirely — requests to `/stats/*` result in a 404.
+
+**Amendment (2026-04-17)**: Original plan had top-scorers embedded in `statistics/index.vue`. During implementation a route split was adopted and the spec updated to reflect the new intended state (FR-024, FR-025, US7).
+
+**Independent Test**: Anonymous → nav "Estadísticas" → `/statistics/top-scorers`, table visible, private sub-nav links hidden. Authenticated → nav "Estadísticas" → `/statistics`, summary header visible, all 6 sub-nav links visible. `/statistics/years` without auth → redirected to login → after login returned to `/statistics/years`. `/stats/years` → 404.
+
+- [x] T057a [US7] Create `packages/frontend/src/components/pages/statistics/StatisticsSubNav.vue`: always-mounted `<nav>`; two public links visible unconditionally: "General" → `/statistics`, "Goleadores" → `/statistics/top-scorers`; four auth-gated links inside `v-if="authStore.isAuthenticated"`: "Por año" `/statistics/years`, "Por torneo" `/statistics/tournaments`, "Por rival" `/statistics/rivals`, "Por jugador" `/statistics/players`; `active-class` highlights active link
+- [x] T057b [US7] Create `packages/frontend/src/layouts/statistics.vue`: two-column layout — left `<StatisticsSubNav>`, right `<slot />`; wraps `<CommonHeader>`, `<CommonNavigation>`, `<CommonFooter>`
+- [x] T057c [US7] Convert `pages/statistics.vue` → `pages/statistics/index.vue`: `definePageMeta({ layout: 'statistics', public: true })`; shows `<StatsHeader>` gated by `authStore.isAuthenticated`; shows login CTA for anonymous users; team/summary API call MUST be guarded behind `authStore.isAuthenticated` to avoid 401 for anon users
+- [x] T057d [US7] Create `packages/frontend/src/pages/statistics/top-scorers.vue`: `definePageMeta({ layout: 'statistics', public: true })`; always-visible top-scorers table with tournament filter and player search; fetches `/api/v1/statistics/top-scorers` with `{ server: false }`
+- [x] T058 [US7] Move all files under `pages/stats/` to `pages/statistics/` preserving sub-directory structure; update `definePageMeta` to add `layout: 'statistics'` in each; update any `navigateTo('/stats/...')` calls to `/statistics/...`; no redirect rules for `/stats/` — 404 intentional
+- [x] T059 [US7] Delete the now-empty `pages/stats/` directory; verify no remaining `/stats/` references in the codebase; confirm `pages/statistics.vue` (legacy root file) was deleted to avoid Nuxt routing conflict
+- [x] T060 [US7] Update `components/common/Navigation.vue` "Estadísticas" link (desktop + mobile) to use `:to="authStore.isAuthenticated ? '/statistics' : '/statistics/top-scorers'"` (conditional redirect per FR-025)
+- [x] T061 [P] [US7] Auth-guard regression check: confirmed `definePageMeta({ layout: 'statistics', middleware: 'auth', requiresAuth: true })` present in all 6 pages (`years.vue`, `tournaments.vue`, `rivals/index.vue`, `rivals/[id].vue`, `players/index.vue`, `players/[id].vue`); redirect-back behaviour relies on existing `auth.ts` middleware which passes original URL as `redirect` query param — no behavioural change needed; manual browser verification pending (T049-style)
+- [x] T062 [P] [US7] Update Playwright E2E test `packages/frontend/tests/e2e/stats/auth-guard.spec.ts`: replace all `/stats/*` path strings with `/statistics/*` equivalents; update `filter-url-roundtrip.spec.ts` similarly; add assertion that `/stats/years` returns 404
+- [x] T063 [US7] Fix `statistics/index.vue` E2 guard: wrap the `useAsyncData` team/summary fetch so it returns `Promise.resolve(null)` when `!authStore.isAuthenticated` — prevents 401 being triggered for anonymous visitors (was: always fetched unconditionally)

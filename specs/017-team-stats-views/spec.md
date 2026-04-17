@@ -111,11 +111,39 @@ The team also tracks the fields ("canchas") where each game was played in the sa
 
 ---
 
+### User Story 7 – Nav consolidation: unified `/statistics` route for public and private views (Priority: P2)
+
+> **Amendment (2026-04-17)**: Originally specified that `/statistics/index` would display the public top-scorers table. After implementation review, a route split was adopted: `/statistics/top-scorers` is the dedicated public scorers page, while `/statistics` is the authenticated team-summary dashboard. The nav link behaviour and sub-nav structure were updated accordingly. FR-024 and FR-025 reflect the final implemented state.
+
+All statistics content lives under the `/statistics` route prefix. The feature introduces two distinct public/private segments:
+
+- **`/statistics/top-scorers`** — publicly accessible page showing the all-time top-scorers table. No authentication required.
+- **`/statistics`** — authenticated summary dashboard showing the all-time `StatsHeader`. Anonymous users see a login prompt; authenticated users see the summary. The four private sub-pages (`/years`, `/tournaments`, `/rivals/*`, `/players/*`) require authentication.
+
+The main navigation "Estadísticas" link conditionally redirects: authenticated users go to `/statistics`; anonymous users go to `/statistics/top-scorers`. The `statistics` Nuxt layout renders a persistent side-nav: two public links ("General" → `/statistics`, "Goleadores" → `/statistics/top-scorers`) visible to all users, plus four auth-gated links visible only when authenticated. The legacy `/stats/*` path is removed entirely.
+
+**Why this priority**: Improves discoverability — a single nav entry leads to all statistics content regardless of auth state. Removes the inconsistency of two separate route prefixes. Separating the public scorers table into its own route makes it linkable and independently shareable.
+
+**Independent Test**: Anonymous → nav "Estadísticas" → lands on `/statistics/top-scorers`, table visible, auth links hidden in sub-nav. Authenticated → nav "Estadísticas" → lands on `/statistics`, summary header visible, all six sub-nav links visible. Click "Por año" → `/statistics/years` loads. Navigate to `/statistics/years` while logged out → redirected to login. Access `/stats/years` → 404.
+
+**Acceptance Scenarios**:
+
+1. **Given** an anonymous user clicks "Estadísticas" in the main nav, **When** navigation completes, **Then** they land on `/statistics/top-scorers` and the top-scorers table is visible.
+2. **Given** an authenticated user clicks "Estadísticas" in the main nav, **When** navigation completes, **Then** they land on `/statistics` and the all-time summary header is visible.
+3. **Given** any user opens `/statistics/top-scorers` directly, **When** the page loads, **Then** the top-scorers table is visible without requiring login.
+4. **Given** an anonymous user opens `/statistics` directly, **When** the page loads, **Then** a login prompt is shown (no stats data); the team/summary API is NOT called.
+5. **Given** any user is on any `/statistics/*` page, **When** the page renders, **Then** a side-nav is visible with "General" and "Goleadores" links always present; the four private links ("Por año", "Por torneo", "Por rival", "Por jugador") are additionally shown only when authenticated.
+6. **Given** an authenticated user clicks any private sub-nav link, **When** navigation completes, **Then** the corresponding private stats view (`/statistics/years`, `/statistics/tournaments`, `/statistics/rivals`, `/statistics/players`) is rendered.
+7. **Given** an unauthenticated user navigates directly to `/statistics/years` (or any other private sub-route), **When** the page loads, **Then** they are redirected to login and after authentication are returned to the original URL.
+8. **Given** any request arrives at `/stats/*`, **When** handled by the router, **Then** a 404 is returned — the old route prefix no longer exists.
+
+---
+
 ### Edge Cases
 
 - What happens when there are no games recorded for a given year or tournament? → Table shows that row/period with all values as zero and a "No data" label.
 - What happens when a player has zero goals? → Their goal rate displays as 0.00%, not a division error.
-- What happens when an unauthenticated user lands on a private stats URL? → Redirected to login; after auth, redirected back to the original stats URL.
+- What happens when an unauthenticated user lands on a private stats URL? → Redirected to login; after auth, redirected back to the original `/statistics/*` sub-route URL (the `auth.ts` middleware preserves the intended destination via a `redirect` query param; this applies to all `/statistics/years`, `/statistics/tournaments`, `/statistics/rivals/*`, and `/statistics/players/*` sub-routes).
 - What happens when the URL contains invalid filter values (e.g., a non-existent year or rival id)? → Invalid filters are silently ignored; defaults are applied and the URL is corrected.
 - What happens when the team has only played one game historically? → All stats calculate correctly with no division errors or empty-state crashes.
 
@@ -162,6 +190,8 @@ The team also tracks the fields ("canchas") where each game was played in the sa
 - **FR-021**: After Playground upsert, the system MUST update each `Game` whose `location` string matches the playground name (case-insensitive, trimmed) to set `Game.playgroundId`.
 - **FR-022**: Games whose `location` does not match any playground in `canchas.csv` MUST have their `location` field preserved and `playgroundId` left null; a warning entry MUST be added to the import result per unmatched game.
 - **FR-023**: The `CsvImportResultDTO` MUST include a `playgrounds` counter object `{ created, updated, skipped }` and the warning list MUST include messages for unmatched game-to-playground associations.
+- **FR-024**: The `/statistics/top-scorers` route MUST be publicly accessible and display the all-time top-scorers table without requiring authentication. The `/statistics` route MUST display the authenticated team-summary dashboard (`StatsHeader`); anonymous users reach this page and see a login prompt — the team/summary API MUST NOT be called for unauthenticated users. The private dashboard sub-pages MUST be accessible under `/statistics/*` only. The legacy `/stats/*` prefix MUST NOT exist — requests to `/stats/*` result in a 404.
+- **FR-025**: The main navigation "Estadísticas" link MUST conditionally route: authenticated users → `/statistics`; anonymous users → `/statistics/top-scorers`. The `statistics` Nuxt layout's side-nav MUST always render two public links ("General" → `/statistics`, "Goleadores" → `/statistics/top-scorers`) and conditionally render four auth-gated links ("Por año", "Por torneo", "Por rival", "Por jugador") when the user is authenticated.
 
 ### CSV Import Data Structure
 
@@ -237,7 +267,7 @@ The following column mappings define how the Google Spreadsheet exports map to t
 - Stats calculations are performed server-side and returned as pre-aggregated objects; no heavy computation happens in the browser.
 - The public player profile page (`/players/{slug}`) already exists; this spec adds the stats section to it.
 - "Points earned" follows standard football scoring: 3 for a win, 1 for a draw, 0 for a loss.
-- The private stats dashboard is accessible at `/stats`. Sub-routes under `/stats` are used per focus mode to enable direct link sharing: `/stats/years` (default), `/stats/tournaments`, `/stats/rivals`, `/stats/rivals/:rivalId`, `/stats/players`, `/stats/players/:playerId`. All sub-routes require authentication.
+- The public top-scorers page and private stats dashboard are served under a single `/statistics` route. The `/stats/` prefix is removed. Anonymous users see the top-scorers table at `/statistics`; authenticated users additionally see a sub-nav with links to the private sub-pages. Sub-routes under `/statistics` used per focus mode: `/statistics/years`, `/statistics/tournaments`, `/statistics/rivals`, `/statistics/rivals/:rivalId`, `/statistics/players`, `/statistics/players/:playerId`. All sub-routes require authentication.
 - Goal rate is defined as goals scored divided by games played, rounded to 2 decimal places.
 - Player matching during CSV import uses the full name field (`Jugador`) as the lookup key; partial or nickname-only matches are not supported.
 
@@ -253,3 +283,54 @@ The following column mappings define how the Google Spreadsheet exports map to t
 - **SC-006**: Zero regressions from the current passing test suite (79/79 frontend, 31/31 CMS baseline).
 - **SC-007**: Admin can complete the full CSV import (all three spreadsheet exports) in a single operation and the resulting stats dashboard matches the historical spreadsheet totals for games played, goals for/against, and win rate.
 - **SC-008**: Re-running the same CSV import produces no duplicate records — verified by running the import twice and comparing record counts.
+- **SC-009**: An anonymous user navigating to `/statistics` sees the top-scorers table and no sub-nav. An authenticated user on the same page sees the sub-nav with links to the four private sections. Navigating to any `/statistics/*` sub-route without being logged in redirects to login. The `/stats/*` prefix returns 404.
+
+---
+
+## Amendments
+
+### Amendment 2026-04-17 — URL Query Param Centralization, Statistics Layout, and playgroundName Fixes
+
+#### New: `useQueryParams` composable
+
+A new composable `packages/frontend/src/composables/useQueryParams.ts` was created as the single mutation point for URL query params. It exposes `get(key): string`, `set(key, value): Promise<void>`, and `remove(key): Promise<void>`. Calling `set("key", "")` removes the key from the URL cleanly. All direct `router.push({ query })` calls outside this composable are a constitution violation (Principle VI, v1.9.1).
+
+#### New: `statistics-private` Nuxt layout
+
+A new layout `packages/frontend/src/layouts/statistics-private.vue` was introduced. It renders `<StatsFilters>` above the page slot and owns all filter → URL wiring via `useQueryParams`. Filter visibility is controlled by `route.meta.filtersMode` (typed as `StatsFiltersMode`). All four private stats pages (`years`, `tournaments`, `rivals/index`, `players/index`) were migrated to use this layout.
+
+#### New: `useStatisticsAvailableTournaments` composable
+
+`packages/frontend/src/composables/useStatisticsAvailableTournaments.ts` fetches `GET /api/v1/tournaments` and returns `{ value: string; label: string }[]` deduplicated by tournament name (multiple "Amistoso" editions collapse to a single option). The value is the tournament name string, used for name-based API filtering.
+
+#### New: `StatsFiltersMode` shared type
+
+`export type StatsFiltersMode = "years" | "tournaments" | "rivals" | "players"` was added to `packages/shared/src/types/statistics.ts`. Both the layout and `StatsFilters` component import it from `@ministrosfc/shared`.
+
+#### Backend: `tournamentName` filter propagated to all stats endpoints
+
+The `tournamentName?: string` filter was added to `teamStatsQuerySchema` (Zod), and propagated through `StatisticsService` methods (`getTeamStatsByTournament`, `getTeamStatsByRival`, `getAllPlayerStats`) and their corresponding `StatisticsModel` methods (`aggregateTeamByTournament`, `aggregateTeamByRival`, `aggregatePlayersAll`). Cache keys were updated to include the `tournamentName` segment.
+
+#### Bug fix: tournament `endDate` never updated after first game
+
+`packages/cms/src/services/csv-import/import-historial.ts` was setting `endDate` to the first game date and never extending it. Fixed: when a tournament already exists, `updateMany` now extends `endDate` if the current game date is later than the stored value.
+
+#### Bug fix: `playgroundName` now always a `string` in `TeamStatPeriodDTO`
+
+`TeamStatPeriodDTO.playgroundName` was previously `string | undefined` (optional), then changed to `string | null`, and finally to `string` (non-nullable). Fallback is `""` when no playground is linked. Two model assignment sites in `Statistics.ts` were updated accordingly.
+
+#### Enhancement: rivals endpoint returns most common playground
+
+`StatisticsModel.aggregateTeamByRival` now includes `tournament.playground.name` in its Prisma select. After grouping, it computes the most frequently played playground per rival and sets `playgroundName` to that value (or `""` if none is recorded).
+
+#### Bug fix: `players/[id].vue` constitution violation
+
+`packages/frontend/src/pages/players/[id].vue` was mutating `route.query` directly via `router.push({ query: { ...route.query, year } })`. Replaced with `useQueryParams().set("year", val)` in accordance with Principle VI.
+
+#### Redis: no-op client in development
+
+`packages/cms/src/config/redis.ts` now returns a no-op Proxy when `NODE_ENV === "development"`. Every `withCache` read is a miss; writes are silently discarded. No Redis instance is required locally.
+
+#### Constitution updated to v1.9.1
+
+A "URL Query Parameter Management (NON-NEGOTIABLE)" sub-rule was added to Principle VI. Direct `router.push({ query })` outside `useQueryParams` is defined as a Code Review gate violation.
