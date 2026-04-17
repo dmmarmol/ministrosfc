@@ -93,6 +93,24 @@ The team has been tracking games and player appearances in a Google Spreadsheet.
 
 ---
 
+### User Story 6 – Admin imports canchas.csv to seed Playground records and link them to historical games (Priority: P2)
+
+The team also tracks the fields ("canchas") where each game was played in the same Google Spreadsheet. An admin exports the Canchas sheet as a CSV and uploads it alongside the other imports. The system creates or updates Playground records and links each historical game to its corresponding playground.
+
+**Why this priority**: Playground data enriches the historical game records. Without it, `Game.playgroundId` remains null for all imported games. This is additive to US5 and does not block any stats views.
+
+**Independent Test**: Upload `canchas.csv` via the same import endpoint → Playground records are created → each game that references a cancha has its `playgroundId` populated.
+
+**Acceptance Scenarios**:
+
+1. **Given** an admin uploads a valid `canchas.csv`, **When** the import completes, **Then** all unique playground names from the CSV are created as Playground records.
+2. **Given** a game in Historial has an "Estadio" value that matches a playground name in Canchas, **When** the import completes, **Then** that game's `playgroundId` is set to the matching Playground record.
+3. **Given** a game's "Estadio" value does not match any playground in Canchas, **When** the import completes, **Then** the game's `location` string is preserved as-is and `playgroundId` remains null — a warning is added.
+4. **Given** the same `canchas.csv` is re-uploaded, **When** the import completes, **Then** no duplicate Playground records are created (idempotent by name).
+5. **Given** `canchas.csv` is omitted from the upload, **When** the import completes, **Then** the other three CSVs are processed normally and no error is returned; playground linking is simply skipped.
+
+---
+
 ### Edge Cases
 
 - What happens when there are no games recorded for a given year or tournament? → Table shows that row/period with all values as zero and a "No data" label.
@@ -139,6 +157,11 @@ The team has been tracking games and player appearances in a Google Spreadsheet.
 - **FR-016**: The import MUST link Apariciones to Players by name; if no matching player exists, a minimal player record MUST be created so the appearance is not lost.
 - **FR-017**: CSV rows with blank optional fields (comments, photo URL, image URL, coach) MUST be imported successfully with null/empty values.
 - **FR-018**: Conclusion codes in Historial MUST be mapped as follows: `G` → Win, `P` → Loss, `E` → Draw.
+- **FR-019**: The import endpoint MUST accept an optional fourth file field `canchas` (CSV). If omitted, all other processing continues normally without error.
+- **FR-020**: Each row in `canchas.csv` represents one Playground. The system MUST upsert Playground records by `name` (case-insensitive, trimmed).
+- **FR-021**: After Playground upsert, the system MUST update each `Game` whose `location` string matches the playground name (case-insensitive, trimmed) to set `Game.playgroundId`.
+- **FR-022**: Games whose `location` does not match any playground in `canchas.csv` MUST have their `location` field preserved and `playgroundId` left null; a warning entry MUST be added to the import result per unmatched game.
+- **FR-023**: The `CsvImportResultDTO` MUST include a `playgrounds` counter object `{ created, updated, skipped }` and the warning list MUST include messages for unmatched game-to-playground associations.
 
 ### CSV Import Data Structure
 
@@ -146,56 +169,56 @@ The following column mappings define how the Google Spreadsheet exports map to t
 
 **Historial.csv** (one row per game):
 
-| CSV Column          | Entity Field         | Notes                            |
-| ------------------- | -------------------- | -------------------------------- |
-| Fecha               | game.date            | Format: DD/MM/YYYY               |
-| Torneo              | tournament.name      | Match or create tournament       |
-| Comienzo            | game.start_time      | HH:MM                            |
-| Finalización        | game.end_time        | HH:MM                            |
-| Equipo              | game.home_team       | Always "Ministros FC"            |
-| Rival               | game.rival           | Opponent team name               |
-| Estadio             | game.venue           | Stadium / field name             |
-| Goles Convertidos   | game.goals_for       | Integer                          |
-| Goles Recibidos     | game.goals_against   | Integer                          |
-| Resultado           | game.score_string    | e.g. "3-1"                       |
-| Conclusión          | game.outcome         | G=Win, P=Loss, E=Draw            |
-| Apariciones         | game.appearance_count| Derived count, informational     |
-| DT                  | game.coach           | Optional                         |
-| Comentarios         | game.comments        | Optional                         |
-| Foto                | game.photo_url       | Optional URL                     |
+| CSV Column        | Entity Field          | Notes                        |
+| ----------------- | --------------------- | ---------------------------- |
+| Fecha             | game.date             | Format: DD/MM/YYYY           |
+| Torneo            | tournament.name       | Match or create tournament   |
+| Comienzo          | game.start_time       | HH:MM                        |
+| Finalización      | game.end_time         | HH:MM                        |
+| Equipo            | game.home_team        | Always "Ministros FC"        |
+| Rival             | game.rival            | Opponent team name           |
+| Estadio           | game.venue            | Stadium / field name         |
+| Goles Convertidos | game.goals_for        | Integer                      |
+| Goles Recibidos   | game.goals_against    | Integer                      |
+| Resultado         | game.score_string     | e.g. "3-1"                   |
+| Conclusión        | game.outcome          | G=Win, P=Loss, E=Draw        |
+| Apariciones       | game.appearance_count | Derived count, informational |
+| DT                | game.coach            | Optional                     |
+| Comentarios       | game.comments         | Optional                     |
+| Foto              | game.photo_url        | Optional URL                 |
 
 **Jugadores.csv** (one row per player):
 
-| CSV Column   | Entity Field        | Notes                    |
-| ------------ | ------------------- | ------------------------ |
-| Jugador      | player.name         | Full name, lookup key    |
-| Apodo        | player.nickname     |                          |
-| Nacimiento   | player.birth_date   | Optional DD/MM/YYYY      |
-| Edad         | (derived)           | Not stored               |
-| Altura       | player.height_cm    | Integer cm, optional     |
-| Numero       | player.jersey_number| Integer                  |
-| Pie          | player.dominant_foot| e.g. "Diestro"           |
-| Posición     | player.position     | e.g. "SMF"               |
-| DNI          | player.dni          | Optional identifier      |
-| Telefono     | player.phone        | Optional                 |
-| Imagen (URL) | player.image_url    | Optional                 |
+| CSV Column   | Entity Field         | Notes                 |
+| ------------ | -------------------- | --------------------- |
+| Jugador      | player.name          | Full name, lookup key |
+| Apodo        | player.nickname      |                       |
+| Nacimiento   | player.birth_date    | Optional DD/MM/YYYY   |
+| Edad         | (derived)            | Not stored            |
+| Altura       | player.height_cm     | Integer cm, optional  |
+| Numero       | player.jersey_number | Integer               |
+| Pie          | player.dominant_foot | e.g. "Diestro"        |
+| Posición     | player.position      | e.g. "SMF"            |
+| DNI          | player.dni           | Optional identifier   |
+| Telefono     | player.phone         | Optional              |
+| Imagen (URL) | player.image_url     | Optional              |
 
 **Apariciones.csv** (one row per player per game):
 
-| CSV Column       | Entity Field              | Notes                          |
-| ---------------- | ------------------------- | ------------------------------ |
-| Fecha            | appearance.game_date      | Format: YYYY/MM/DD             |
-| Rival            | appearance.rival          | Used to link to game           |
-| Torneo           | appearance.tournament     | Used to link to game           |
-| Resultado        | appearance.score_string   | Used to link to game           |
-| (5th col)        | appearance.outcome        | G/P/E                          |
-| Jugador          | appearance.player_name    | Full name, links to player     |
-| Jugador (apodo)  | appearance.player_nickname| Informational                  |
-| Goles            | appearance.goals          | Integer                        |
-| Amarilla         | appearance.yellow_cards   | Integer                        |
-| Roja             | appearance.red_cards      | Integer                        |
-| Titular/Suplente | appearance.status         | "Titular" or "Suplente"        |
-| Comentarios      | appearance.comments       | Optional                       |
+| CSV Column       | Entity Field               | Notes                      |
+| ---------------- | -------------------------- | -------------------------- |
+| Fecha            | appearance.game_date       | Format: YYYY/MM/DD         |
+| Rival            | appearance.rival           | Used to link to game       |
+| Torneo           | appearance.tournament      | Used to link to game       |
+| Resultado        | appearance.score_string    | Used to link to game       |
+| (5th col)        | appearance.outcome         | G/P/E                      |
+| Jugador          | appearance.player_name     | Full name, links to player |
+| Jugador (apodo)  | appearance.player_nickname | Informational              |
+| Goles            | appearance.goals           | Integer                    |
+| Amarilla         | appearance.yellow_cards    | Integer                    |
+| Roja             | appearance.red_cards       | Integer                    |
+| Titular/Suplente | appearance.status          | "Titular" or "Suplente"    |
+| Comentarios      | appearance.comments        | Optional                   |
 
 ### Key Entities
 

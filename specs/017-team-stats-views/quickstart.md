@@ -36,6 +36,7 @@ curl -X POST http://localhost:3001/api/v1/import/csv \
 ```
 
 Expected response:
+
 ```json
 {
   "data": {
@@ -119,3 +120,34 @@ curl -X POST http://localhost:3001/api/v1/import/csv \
   -F "apariciones=@data/apariciones.csv"
 # Expected: no new records created
 ```
+
+---
+
+## Wipe & Re-import (Trial-and-Error Testing)
+
+Use this when you need a clean slate to test the CSV import from scratch.
+
+```bash
+cd packages/cms
+
+# Drop all tables, re-run all migrations, and re-seed (if a seed script is configured)
+npm run db:reset
+```
+
+`db:reset` runs `prisma migrate reset --force` which:
+
+1. Drops the entire database schema
+2. Re-applies all migrations in order
+3. Runs the Prisma seed script if one is configured
+
+After reset, re-import your CSVs:
+
+```bash
+curl -X POST http://localhost:5102/api/v1/import/csv \
+  -H "Authorization: Bearer <admin-token>" \
+  -F "jugadores=@data/jugadores.csv" \
+  -F "historial=@data/historial.csv" \
+  -F "apariciones=@data/apariciones.csv"
+```
+
+> ⚠️ This permanently deletes all data in the dev database. Never run against production.

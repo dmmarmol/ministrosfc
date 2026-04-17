@@ -172,14 +172,14 @@ page-decomposition gate in plan-template.md Constitution Check
   access control; a missing declaration is treated as a policy gap, not a sensible default.
 - The required `definePageMeta` shape depends on the page's access category:
 
-  | Category | Required fields |
-  |---|---|
-  | **Public** (no sign-in needed) | `definePageMeta({ public: true })` |
-  | **Authenticated** (any signed-in user) | `definePageMeta({ middleware: "auth", requiresAuth: true })` |
-  | **Editor+** (EDITOR or ADMIN) | `definePageMeta({ layout: "admin", middleware: "auth", requiresAuth: true, requiresRole: "editor" })` |
-  | **Admin only** | `definePageMeta({ layout: "admin", middleware: "auth", requiresAuth: true, requiresRole: "admin" })` |
-  | **Auth pages** (login/register — redirect if already authenticated) | `definePageMeta({ layout: false, middleware: "auth", authPage: true })` |
-  | **Onboarding page** | `definePageMeta({ middleware: "auth", requiresAuth: true, onboardingPage: true })` |
+  | Category                                                            | Required fields                                                                                       |
+  | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+  | **Public** (no sign-in needed)                                      | `definePageMeta({ public: true })`                                                                    |
+  | **Authenticated** (any signed-in user)                              | `definePageMeta({ middleware: "auth", requiresAuth: true })`                                          |
+  | **Editor+** (EDITOR or ADMIN)                                       | `definePageMeta({ layout: "admin", middleware: "auth", requiresAuth: true, requiresRole: "editor" })` |
+  | **Admin only**                                                      | `definePageMeta({ layout: "admin", middleware: "auth", requiresAuth: true, requiresRole: "admin" })`  |
+  | **Auth pages** (login/register — redirect if already authenticated) | `definePageMeta({ layout: false, middleware: "auth", authPage: true })`                               |
+  | **Onboarding page**                                                 | `definePageMeta({ middleware: "auth", requiresAuth: true, onboardingPage: true })`                    |
 
 - `public: true` pages bypass the auth redirect but MUST still declare `definePageMeta`
   so intent is explicit and searchable. Omitting it entirely is forbidden even for public

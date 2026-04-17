@@ -48,66 +48,84 @@ No new Prisma models are introduced. All stats are derived from queries over exi
 
 ### `historial.csv` → Game + Tournament + OpponentTeam
 
-| CSV Column         | Target                         | Transformation                        |
-| ------------------ | ------------------------------ | ------------------------------------- |
-| Fecha              | `Game.date`                    | Parse `DD/MM/YYYY` → `DateTime`       |
-| Torneo             | `Tournament.name`              | Upsert by name                        |
-| Comienzo           | `Game.startTime`               | String as-is (`"10:00"`)              |
-| Finalización       | `Game.endTime`                 | String as-is (`"11:30"`)              |
-| Equipo             | (ignored)                      | Always "Ministros"                    |
-| Rival              | `OpponentTeam.name`            | Upsert by name (trimmed)              |
-| Estadio            | `Game.location`                | String                                |
-| Goles Convertidos  | `Game.homeTeamScore`           | Integer                               |
-| Goles Recibidos    | `Game.awayTeamScore`           | Integer                               |
-| Resultado          | (ignored)                      | Derived from scores                   |
-| Conclusión         | (validation only)              | G/P/E cross-checked vs scores         |
-| Apariciones        | (ignored)                      | TRUE/FALSE flag — not a count         |
-| DT                 | `Game.coach`                   | Optional string                       |
-| Comentarios        | `Game.notes`                   | Optional string                       |
-| Foto               | `Game.photoUrl`                | Optional URL string                   |
-| (last date col)    | (ignored)                      | Duplicate date artefact               |
+| CSV Column        | Target               | Transformation                  |
+| ----------------- | -------------------- | ------------------------------- |
+| Fecha             | `Game.date`          | Parse `DD/MM/YYYY` → `DateTime` |
+| Torneo            | `Tournament.name`    | Upsert by name                  |
+| Comienzo          | `Game.startTime`     | String as-is (`"10:00"`)        |
+| Finalización      | `Game.endTime`       | String as-is (`"11:30"`)        |
+| Equipo            | (ignored)            | Always "Ministros"              |
+| Rival             | `OpponentTeam.name`  | Upsert by name (trimmed)        |
+| Estadio           | `Game.location`      | String                          |
+| Goles Convertidos | `Game.homeTeamScore` | Integer                         |
+| Goles Recibidos   | `Game.awayTeamScore` | Integer                         |
+| Resultado         | (ignored)            | Derived from scores             |
+| Conclusión        | (validation only)    | G/P/E cross-checked vs scores   |
+| Apariciones       | (ignored)            | TRUE/FALSE flag — not a count   |
+| DT                | `Game.coach`         | Optional string                 |
+| Comentarios       | `Game.notes`         | Optional string                 |
+| Foto              | `Game.photoUrl`      | Optional URL string             |
+| (last date col)   | (ignored)            | Duplicate date artefact         |
 
 Game `status` is set to `COMPLETED` for all imported rows. Game `competitionType` is set to `LEAGUE` by default (all historical rows are Liga).
 
 ### `jugadores.csv` → Player
 
-| CSV Column      | Target                  | Transformation                                     |
-| --------------- | ----------------------- | -------------------------------------------------- |
-| Jugador (N)     | `Player.name`           | Upsert key; strip count annotation from header     |
-| Apodo           | `Player.nickname`       | Optional                                           |
-| Invitado Por    | `Player.invitedById`    | Lookup Player by name, resolve to UUID             |
-| Nacimiento      | `Player.dateOfBirth`    | Parse `DD/MM/YYYY` → `YYYY-MM-DD` string, optional |
-| Edad            | (ignored)               | Derived field                                      |
-| Altura          | `Player.height`         | Integer cm, optional                               |
-| Numero          | `Player.jerseyNumber`   | Integer, optional                                  |
-| Pie             | `Player.dominantFoot`   | Map: "Diestro"→RIGHT, "Zurdo"→LEFT, else AMBIDEXTROUS |
-| Posición        | `Player.position`       | Map to Position enum; null if unrecognised         |
-| DNI             | `Player.nationalId`     | Optional string                                    |
-| Telefono        | `Contact.phone`         | Optional (via contactInfo relation)                |
-| Imagen (URL)    | `Player.photoUrl`       | Optional URL                                       |
+| CSV Column   | Target                | Transformation                                        |
+| ------------ | --------------------- | ----------------------------------------------------- |
+| Jugador (N)  | `Player.name`         | Upsert key; strip count annotation from header        |
+| Apodo        | `Player.nickname`     | Optional                                              |
+| Invitado Por | `Player.invitedById`  | Lookup Player by name, resolve to UUID                |
+| Nacimiento   | `Player.dateOfBirth`  | Parse `DD/MM/YYYY` → `YYYY-MM-DD` string, optional    |
+| Edad         | (ignored)             | Derived field                                         |
+| Altura       | `Player.height`       | Integer cm, optional                                  |
+| Numero       | `Player.jerseyNumber` | Integer, optional                                     |
+| Pie          | `Player.dominantFoot` | Map: "Diestro"→RIGHT, "Zurdo"→LEFT, else AMBIDEXTROUS |
+| Posición     | `Player.position`     | Map to Position enum; null if unrecognised            |
+| DNI          | `Player.nationalId`   | Optional string                                       |
+| Telefono     | `Contact.phone`       | Optional (via contactInfo relation)                   |
+| Imagen (URL) | `Player.photoUrl`     | Optional URL                                          |
 
 `playerType` defaults to `REGISTERED`. `status` defaults to `ACTIVE`.
 
 ### `apariciones.csv` → GameParticipant
 
-| CSV Column      | Target                          | Transformation                                          |
-| --------------- | ------------------------------- | ------------------------------------------------------- |
-| Fecha           | (game lookup key)               | Parse `YYYY/MM/DD` → `DateTime`                         |
-| Rival           | (game lookup key)               | Match `OpponentTeam.name`                               |
-| Torneo          | (game lookup key)               | Match `Tournament.name`                                 |
-| Resultado       | (game lookup key, secondary)    | Cross-check; not stored                                 |
-| col 5 (G/P/E)   | (ignored)                       | Derived from game scores                                |
-| Jugador         | `GameParticipant.playerId`      | Lookup `Player.name`; create minimal player if missing  |
-| Jugador (apodo) | (ignored in import)             | Informational only                                      |
-| Goles           | `GameParticipant.goalsScored`   | Integer                                                 |
-| Amarilla        | `GameParticipant.yellowCards`   | Integer                                                 |
-| Roja            | `GameParticipant.redCards`      | Integer                                                 |
-| Asistencia      | `GameParticipant.assists`       | Integer (this is assists, not appearances)              |
-| Titular/Suplente| `GameParticipant.isStarter`     | "Titular"→true, "Suplente"→false, blank→null            |
-| Comentarios     | `GameParticipant.notes`         | Optional string                                         |
+| CSV Column       | Target                        | Transformation                                         |
+| ---------------- | ----------------------------- | ------------------------------------------------------ |
+| Fecha            | (game lookup key)             | Parse `YYYY/MM/DD` → `DateTime`                        |
+| Rival            | (game lookup key)             | Match `OpponentTeam.name`                              |
+| Torneo           | (game lookup key)             | Match `Tournament.name`                                |
+| Resultado        | (game lookup key, secondary)  | Cross-check; not stored                                |
+| col 5 (G/P/E)    | (ignored)                     | Derived from game scores                               |
+| Jugador          | `GameParticipant.playerId`    | Lookup `Player.name`; create minimal player if missing |
+| Jugador (apodo)  | (ignored in import)           | Informational only                                     |
+| Goles            | `GameParticipant.goalsScored` | Integer                                                |
+| Amarilla         | `GameParticipant.yellowCards` | Integer                                                |
+| Roja             | `GameParticipant.redCards`    | Integer                                                |
+| Asistencia       | `GameParticipant.assists`     | Integer (this is assists, not appearances)             |
+| Titular/Suplente | `GameParticipant.isStarter`   | "Titular"→true, "Suplente"→false, blank→null           |
+| Comentarios      | `GameParticipant.notes`       | Optional string                                        |
 
 Game lookup: find `Game` where `(date == fecha AND opponentTeam.name == rival AND tournament.name == torneo)`.
 If no match found → skip with warning (do not create orphan appearances).
+
+### `canchas.csv` → Playground
+
+| CSV Column | Target                 | Transformation                                          |
+| ---------- | ---------------------- | ------------------------------------------------------- |
+| Cancha     | `Playground.name`      | Upsert key; trimmed, case-insensitive match             |
+| Dirección  | `Playground.address`   | Required string                                         |
+| Latitud    | `Playground.latitude`  | Parse to Float; optional — omit column if not available |
+| Longitud   | `Playground.longitude` | Parse to Float; optional — omit column if not available |
+
+`Playground.createdById` is set to the authenticated admin's user ID making the import request.
+`Playground.updatedById` is set on subsequent upserts.
+
+After all Playgrounds are upserted, the importer builds a name→ID map and updates every `Game` whose `location` (trimmed, lowercased) matches a Playground name. Unmatched games retain their `location` value and emit a warning.
+
+**Import order**: `jugadores` → `canchas` → `historial` → `apariciones`
+
+Canchas must be processed before Historial so `Game.playgroundId` can be set during the Game upsert in a single pass. If canchas is absent, the historial import sets only `Game.location` (existing behaviour).
 
 ---
 
@@ -134,6 +152,7 @@ ORDER BY year DESC
 (Equivalent Prisma raw query or `groupBy` with `_count`, `_sum`)
 
 ### All-time summary header records (single SQL pass)
+
 - Rival with most games: `GROUP BY opponentTeamId ORDER BY count DESC LIMIT 1`
 - Best win: `ORDER BY (homeTeamScore - awayTeamScore) DESC LIMIT 1` where homeTeamScore > awayTeamScore
 - Top scorer: `GROUP BY playerId ORDER BY SUM(goalsScored) DESC LIMIT 1` on GameParticipant
@@ -145,9 +164,9 @@ ORDER BY year DESC
 ```typescript
 // Team stats for a single period (year, tournament, or rival)
 export interface TeamStatPeriodDTO {
-  label: string;          // e.g. "2023", "Liga", "La Cocina"
-  periodStart?: string;   // ISO date string — start of tournament or year; null for rival rows
-  periodEnd?: string;     // ISO date string — end of tournament or year; null for rival rows
+  label: string; // e.g. "2023", "Liga", "La Cocina"
+  periodStart?: string; // ISO date string — start of tournament or year; null for rival rows
+  periodEnd?: string; // ISO date string — end of tournament or year; null for rival rows
   gamesPlayed: number;
   wins: number;
   losses: number;
@@ -155,13 +174,13 @@ export interface TeamStatPeriodDTO {
   goalsFor: number;
   goalsAgainst: number;
   goalDifference: number;
-  goalRateFor: number;    // goalsFor / gamesPlayed, rounded to 2 decimal
+  goalRateFor: number; // goalsFor / gamesPlayed, rounded to 2 decimal
   goalRateAgainst: number; // goalsAgainst / gamesPlayed, rounded to 2 decimal
-  winRate: number;        // 0–100, rounded to 1 decimal
-  pointsEarned: number;   // 3*wins + 1*draws
+  winRate: number; // 0–100, rounded to 1 decimal
+  pointsEarned: number; // 3*wins + 1*draws
 }
 
-// All-time team summary header  
+// All-time team summary header
 export interface TeamSummaryHeaderDTO {
   totalGames: number;
   totalWins: number;
@@ -194,14 +213,15 @@ export interface PlayerStatRowDTO {
   assists: number;
   yellowCards: number;
   redCards: number;
-  winRate: number;            // 0–100, rounded to 1 decimal
-  goalRate: number;           // goals / gamesPlayed, rounded to 2 decimal
-  participationRate: number;  // gamesPlayed / totalTeamGamesInScope * 100, rounded to 1 decimal
+  winRate: number; // 0–100, rounded to 1 decimal
+  goalRate: number; // goals / gamesPlayed, rounded to 2 decimal
+  participationRate: number; // gamesPlayed / totalTeamGamesInScope * 100, rounded to 1 decimal
 }
 
 // CSV import result summary
 export interface CsvImportResultDTO {
   players: { created: number; updated: number; skipped: number };
+  playgrounds: { created: number; updated: number; skipped: number };
   games: { created: number; updated: number; skipped: number };
   appearances: { created: number; updated: number; skipped: number };
   warnings: string[];

@@ -5,7 +5,7 @@
 
 ## Summary
 
-Introduce team-level and player-level statistics views to Ministros FC. The core deliverable is a private stats dashboard (`/stats`) with 6 focus modes (by year, tournament, rival, single rival, all players, single player), a public player stats section on each player's profile page, and URL-encoded filter state for shareability. Historical data is seeded via a one-time admin CSV import from three Google Spreadsheet exports (`data/historial.csv`, `data/jugadores.csv`, `data/apariciones.csv`). After import the app becomes the sole source of truth.
+Introduce team-level and player-level statistics views to Ministros FC. The core deliverable is a private stats dashboard (`/stats`) with 6 focus modes (by year, tournament, rival, single rival, all players, single player), a public player stats section on each player's profile page, and URL-encoded filter state for shareability. Historical data is seeded via a one-time admin CSV import from three Google Spreadsheet exports (`data/historial.csv`, `data/jugadores.csv`, `data/apariciones.csv`). A fourth optional file `canchas.csv` links imported games to their Playground records. After import the app becomes the sole source of truth.
 
 ## Technical Context
 
@@ -76,7 +76,9 @@ packages/cms/
 │   │   ├── StatisticsService.ts               ← ADD: getTeamSummary, getTeamStatsByYear,
 │   │   │                                              getTeamStatsByTournament, getTeamStatsByRival,
 │   │   │                                              getRivalStats; extend getPlayerStats/getTopScorers
-│   │   └── CsvImportService.ts                ← NEW: parseAndImport(files) → CsvImportResultDTO
+│   │   └── CsvImportService.ts                ← NEW: parseAndImport({ historial, jugadores,
+│                                                   apariciones, canchas?, adminUserId })
+│                                                   → CsvImportResultDTO
 │   ├── models/
 │   │   └── Statistics.ts                      ← ADD: team aggregation query methods
 │   └── config/
@@ -126,7 +128,8 @@ packages/frontend/
 data/
 ├── historial.csv    ← source of historical game data (997 rows)
 ├── jugadores.csv    ← source of player roster data (61 rows)
-└── apariciones.csv  ← source of match appearances (887 rows)
+├── apariciones.csv  ← source of match appearances (887 rows)
+└── canchas.csv      ← source of playground records (optional; columns: Cancha, Dirección, Latitud?, Longitud?)
 
 packages/cms/tests/integration/
 └── import/
@@ -153,6 +156,7 @@ See [research.md](research.md). Key decisions:
 7. **URL state**: `useStatsFilters` composable; `useRoute().query` read on mount, `navigateTo` on change
 
 **CSV real data corrections** (vs. original spec):
+
 - `historial.csv` column "Apariciones" = `TRUE`/`FALSE` flag (not a count) — **ignored** in import
 - `apariciones.csv` column 11 = "Asistencia" = assists (integer), not appearances
 - `jugadores.csv` first header = `Jugador (62)` — strip count annotation; column 3 = "Invitado Por" (maps to `invitedById`)
@@ -165,16 +169,19 @@ See [data-model.md](data-model.md).
 
 **Schema migrations** (single migration, 2 models):
 
-| Model | Change |
-|-------|--------|
-| `Game` | + `startTime String?`, `endTime String?`, `coach String?`, `photoUrl String?`, `@@unique([date, opponentTeamId, tournamentId])` |
-| `GameParticipant` | + `isStarter Boolean?` |
+| Model             | Change                                                                                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `Game`            | + `startTime String?`, `endTime String?`, `coach String?`, `photoUrl String?`, `@@unique([date, opponentTeamId, tournamentId])` |
+| `GameParticipant` | + `isStarter Boolean?`                                                                                                          |
+
+`Game.playgroundId` (nullable FK to `Playground`) and the `Playground` model already exist in the schema — **no additional migration required** for the canchas.csv extension.
 
 **New Shared DTOs** (extend `packages/shared/src/types/statistics.ts`):
+
 - `TeamStatPeriodDTO` — one row for a year/tournament/rival period
 - `TeamSummaryHeaderDTO` — all-time records (10 data points)
 - `PlayerStatRowDTO` — extended player row with wins/losses/draws/winRate/goalRate
-- `CsvImportResultDTO` — import operation result with counts + warnings
+- `CsvImportResultDTO` — import operation result with counts + warnings; includes `playgrounds: { created, updated, skipped }`
 
 ### API Contracts
 
@@ -182,16 +189,17 @@ See [contracts/statistics-contract.md](contracts/statistics-contract.md).
 
 **New CMS endpoints**:
 
-| Method | Path | Auth | Purpose |
-|--------|------|------|---------|
-| GET | `/api/v1/statistics/team/summary` | authenticated | All-time team records header |
-| GET | `/api/v1/statistics/team/by-year` | authenticated | Stats grouped by year |
-| GET | `/api/v1/statistics/team/by-tournament` | authenticated | Stats grouped by tournament |
-| GET | `/api/v1/statistics/team/by-rival` | authenticated | Stats grouped by rival |
-| GET | `/api/v1/statistics/team/rivals/:rivalId` | authenticated | Single rival breakdown |
-| POST | `/api/v1/import/csv` | ADMIN | Batch CSV import of historical data |
+| Method | Path                                      | Auth          | Purpose                                                                  |
+| ------ | ----------------------------------------- | ------------- | ------------------------------------------------------------------------ |
+| GET    | `/api/v1/statistics/team/summary`         | authenticated | All-time team records header                                             |
+| GET    | `/api/v1/statistics/team/by-year`         | authenticated | Stats grouped by year                                                    |
+| GET    | `/api/v1/statistics/team/by-tournament`   | authenticated | Stats grouped by tournament                                              |
+| GET    | `/api/v1/statistics/team/by-rival`        | authenticated | Stats grouped by rival                                                   |
+| GET    | `/api/v1/statistics/team/rivals/:rivalId` | authenticated | Single rival breakdown                                                   |
+| POST   | `/api/v1/import/csv`                      | ADMIN         | Batch CSV import — historial, jugadores, apariciones, canchas (optional) |
 
 **Extended endpoints** (backward-compatible query param additions):
+
 - `GET /api/v1/statistics/players` — add `year` (int), `rivalId` (UUID) optional params
 - `GET /api/v1/statistics/players/:id` — add `year` (int), `rivalId` (UUID) optional params
 
@@ -208,6 +216,7 @@ See [contracts/statistics-contract.md](contracts/statistics-contract.md).
 All `stats/*` pages: `definePageMeta({ middleware: "auth", requiresAuth: true })`
 
 **`useStatsFilters.ts` composable**:
+
 ```typescript
 // Reactive filter state backed by URL query params
 // mode: 'all-years' | 'all-tournaments' | 'all-rivals' | 'rival' | 'all-players' | 'player'
@@ -217,42 +226,75 @@ All `stats/*` pages: `definePageMeta({ middleware: "auth", requiresAuth: true })
 ```
 
 **`players/[id].vue`** (extended):
+
 - Extend `statCards` computed to include: wins, losses, draws, winRate
 - Add year filter `<select>` to player stats section (backed by URL `?year=` param on this page too)
 - No new sub-components (existing pattern sufficient)
 
-### Post-Design Constitution Re-Check
+### Canchas.csv Extension Design
 
-- [x] Shared types gate: All 4 DTOs placed in `packages/shared/src/types/statistics.ts` ✓
+**Input**: optional fourth multer field `canchas` — CSV with columns: `Cancha`, `Dirección`, `Latitud?`, `Longitud?`
+
+**Service changes** (`CsvImportService.ts`):
+
+```typescript
+// New method: importCanchas(buf: Buffer, adminUserId: string) → Map<string, string>
+// Returns a lowercased playground name → playground ID map for game linking.
+// Upserts by name (case-insensitive, trimmed). Sets createdById/updatedById.
+
+// Updated parseAndImport signature:
+parseAndImport({
+  historial, jugadores, apariciones,
+  canchas?,        // ← new optional buffer
+  adminUserId,     // ← new required: from req.user.userId
+}) → CsvImportResultDTO
+
+// Import order: jugadores → canchas → historial → apariciones
+// Canchas before historial: name→ID map passed into importHistorial;
+// Game upsert sets playgroundId inline when Estadio matches.
+// Games with no playground match: location preserved, warning emitted.
+```
+
+**Route changes** (`routes/import.ts`):
+
+- Add `{ name: 'canchas', maxCount: 1 }` to multer fields array (optional field)
+- Pass `req.user.userId` into `parseAndImport()`
+
+**No schema migration needed** — `Game.playgroundId` and `Playground` already exist.
+
+### Post-Design Constitution Re-Check (updated)
+
+- [x] Shared types gate: All 4 DTOs in `packages/shared/src/types/statistics.ts`; `CsvImportResultDTO` extended with `playgrounds` counter ✓
 - [x] Page decomposition gate: 7 sub-components in `components/pages/stats/` ✓
 - [x] Page meta gate: `stats.vue` → `definePageMeta({ middleware: "auth", requiresAuth: true })` ✓
+- [x] No new Prisma models introduced; no destructive schema changes ✓
 
 ## Test Coverage Plan
 
 ### CMS (Jest + Supertest)
 
-| Test file | What's covered |
-|-----------|----------------|
-| `tests/integration/import/csv-import.test.ts` | Happy path (all 3 CSVs), idempotency (re-import = no duplicates), missing optional fields, unknown player auto-create, malformed date 422 response |
-| `tests/integration/statistics/team-stats.test.ts` | Summary header, by-year, by-tournament, by-rival, single rival; 401 for unauthenticated; filter params |
+| Test file                                         | What's covered                                                                                                                                                                                                      |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/integration/import/csv-import.test.ts`     | Happy path (all 3 CSVs + optional canchas), idempotency, canchas-only re-upload, game-playground link, unmatched location warning, missing optional fields, unknown player auto-create, malformed date 422 response |
+| `tests/integration/statistics/team-stats.test.ts` | Summary header, by-year, by-tournament, by-rival, single rival; 401 for unauthenticated; filter params                                                                                                              |
 
 ### Frontend (Vitest + Vue Test Utils)
 
-| Test file | What's covered |
-|-----------|----------------|
-| `tests/unit/composables/useStatsFilters.spec.ts` | Init from URL, setFilter updates URL, resetFilters clears params, invalid param ignored |
-| `tests/unit/components/pages/stats/StatsHeader.spec.ts` | All 10 records rendered; zero-data graceful |
-| `tests/unit/components/pages/stats/StatsTableByYear.spec.ts` | Columns, rows, win rate calc, empty-state |
-| `tests/unit/components/pages/stats/StatsTableByRival.spec.ts` | All-rivals and single-rival modes |
-| `tests/unit/components/pages/stats/StatsTableByPlayer.spec.ts` | All-players and single-player modes |
+| Test file                                                      | What's covered                                                                          |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `tests/unit/composables/useStatsFilters.spec.ts`               | Init from URL, setFilter updates URL, resetFilters clears params, invalid param ignored |
+| `tests/unit/components/pages/stats/StatsHeader.spec.ts`        | All 10 records rendered; zero-data graceful                                             |
+| `tests/unit/components/pages/stats/StatsTableByYear.spec.ts`   | Columns, rows, win rate calc, empty-state                                               |
+| `tests/unit/components/pages/stats/StatsTableByRival.spec.ts`  | All-rivals and single-rival modes                                                       |
+| `tests/unit/components/pages/stats/StatsTableByPlayer.spec.ts` | All-players and single-player modes                                                     |
 
 ### Frontend E2E (Playwright)
 
-| Test file | What's covered |
-|-----------|----------------|
-| `tests/e2e/stats/filter-url-roundtrip.spec.ts` | Apply filters → URL updates → reload → same view (SC-003, SC-004) |
-| `tests/e2e/stats/auth-guard.spec.ts` | Unauthenticated → redirected to login; post-auth redirect back (US-2 AC6) |
-| `tests/e2e/stats/player-public-stats.spec.ts` | Anonymous sees player stats; shared URL restores filter (US-1, SC-001) |
+| Test file                                      | What's covered                                                            |
+| ---------------------------------------------- | ------------------------------------------------------------------------- |
+| `tests/e2e/stats/filter-url-roundtrip.spec.ts` | Apply filters → URL updates → reload → same view (SC-003, SC-004)         |
+| `tests/e2e/stats/auth-guard.spec.ts`           | Unauthenticated → redirected to login; post-auth redirect back (US-2 AC6) |
+| `tests/e2e/stats/player-public-stats.spec.ts`  | Anonymous sees player stats; shared URL restores filter (US-1, SC-001)    |
 
 ## Implementation Order
 
@@ -260,8 +302,8 @@ The following sequence respects type-gate and data-gate dependencies:
 
 1. **Shared types** — extend `packages/shared/src/types/statistics.ts` ← **gate for everything else**
 2. **Prisma migration** — `add_game_import_fields` (Game + GameParticipant)
-3. **`CsvImportService.ts`** — parse + upsert logic; unit and integration tests
-4. **`import.ts` route** — multipart handler, ADMIN auth; register in `config/server.ts`
+3. **`CsvImportService.ts`** — parse + upsert logic including canchas extension; unit and integration tests
+4. **`import.ts` route** — multipart handler, ADMIN auth, thread `adminUserId`; register in `config/server.ts`
 5. **Statistics model** — team aggregation query methods (Prisma groupBy / raw)
 6. **`StatisticsService.ts`** extensions — 5 new team methods + extend player methods
 7. **`statistics.ts` route** extensions — 5 new team endpoints + extended player params

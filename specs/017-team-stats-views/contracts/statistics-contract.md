@@ -8,12 +8,12 @@
 
 ## Existing endpoints (unchanged)
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/api/v1/statistics/players` | Public | Top scorers list |
-| GET | `/api/v1/statistics/players/:id` | Public | Single player career stats |
-| GET | `/api/v1/statistics/top-scorers` | Public | Top scorers with limit |
-| GET | `/api/v1/statistics/tournaments/:id` | Public | Tournament stats |
+| Method | Path                                 | Auth   | Description                |
+| ------ | ------------------------------------ | ------ | -------------------------- |
+| GET    | `/api/v1/statistics/players`         | Public | Top scorers list           |
+| GET    | `/api/v1/statistics/players/:id`     | Public | Single player career stats |
+| GET    | `/api/v1/statistics/top-scorers`     | Public | Top scorers with limit     |
+| GET    | `/api/v1/statistics/tournaments/:id` | Public | Tournament stats           |
 
 ---
 
@@ -26,6 +26,7 @@ Returns the all-time team summary header (records, totals).
 **Auth**: `authenticate` (any authenticated user)  
 **Query params**: none  
 **Response 200**:
+
 ```json
 {
   "data": {
@@ -40,8 +41,18 @@ Returns the all-time team summary header (records, totals).
     "rivalMostWins": { "name": "Estrella Roja", "count": 12 },
     "rivalMostLosses": { "name": "La Cocina", "count": 28 },
     "rivalMostDraws": { "name": "Trabajo y Prev", "count": 8 },
-    "bestWin": { "rival": "La Cocina", "tournament": "Liga", "date": "2024-03-10", "score": "5-0" },
-    "worstLoss": { "rival": "Leones", "tournament": "Liga", "date": "2023-09-23", "score": "0-6" },
+    "bestWin": {
+      "rival": "La Cocina",
+      "tournament": "Liga",
+      "date": "2024-03-10",
+      "score": "5-0"
+    },
+    "worstLoss": {
+      "rival": "Leones",
+      "tournament": "Liga",
+      "date": "2023-09-23",
+      "score": "0-6"
+    },
     "rivalMostGoalsFor": { "name": "La Cocina", "totalGoals": 89 },
     "rivalMostGoalsAgainst": { "name": "La Cocina", "totalGoals": 140 },
     "topScorer": { "name": "Patricio Herrera", "goals": 78 }
@@ -57,9 +68,11 @@ Returns team stats grouped by calendar year.
 
 **Auth**: `authenticate`  
 **Query params**:
+
 - `tournamentId` (optional, UUID) — filter to a specific tournament
 
 **Response 200**:
+
 ```json
 {
   "data": [
@@ -87,10 +100,12 @@ Returns team stats grouped by tournament (and optionally year).
 
 **Auth**: `authenticate`  
 **Query params**:
+
 - `year` (optional, integer) — filter to a specific year
 - `rivalId` (optional, UUID) — filter to a specific rival
 
 **Response 200**:
+
 ```json
 {
   "data": [
@@ -120,10 +135,12 @@ Returns team stats grouped by opponent.
 
 **Auth**: `authenticate`  
 **Query params**:
+
 - `year` (optional, integer) — filter to a specific year
 - `tournamentId` (optional, UUID)
 
 **Response 200**:
+
 ```json
 {
   "data": [
@@ -155,6 +172,7 @@ Returns team stats for a single rival, broken down by year and tournament.
 **Query params**: `year` (optional, integer)
 
 **Response 200**:
+
 ```json
 {
   "data": {
@@ -174,11 +192,13 @@ Extended to also support player-level stats with win/draw/loss breakdown.
 
 **Auth**: Public  
 **Query params**:
+
 - `year` (optional, integer) — added param
 - `tournamentId` (optional, UUID) — existing param
 - `rivalId` (optional, UUID) — added param
 
 **Response 200** (extended `PlayerStatRowDTO`):
+
 ```json
 {
   "data": [
@@ -212,11 +232,13 @@ Batch import of historical data from three Google Spreadsheet CSV exports.
 **Auth**: `authenticate` + `requireRole("ADMIN")`  
 **Content-Type**: `multipart/form-data`  
 **Form fields**:
-- `historial` (file, required) — `historial.csv` 
+
+- `historial` (file, required) — `historial.csv`
 - `jugadores` (file, required) — `jugadores.csv`
 - `apariciones` (file, required) — `apariciones.csv`
 
 **Response 200**:
+
 ```json
 {
   "data": {
@@ -231,6 +253,7 @@ Batch import of historical data from three Google Spreadsheet CSV exports.
 ```
 
 **Response 422** (validation failure):
+
 ```json
 {
   "error": "CSV_PARSE_ERROR",

@@ -11,6 +11,7 @@
 **Rationale**: Three files in one request keeps the import atomic from the admin's perspective. The CMS already uses `multer` for photo uploads, so multipart is a natural extension. Processing in-process (rather than background job) is acceptable because each CSV has at most ~1000 rows; import will complete in < 2 seconds.
 
 **Alternatives considered**:
+
 - Sequential individual uploads — rejected because partial imports leave the database in an inconsistent state with dangling Apariciones rows referencing missing Games.
 - Background job queue — rejected as over-engineering for this data volume; synchronous response with a summary result is simpler.
 
@@ -20,17 +21,18 @@
 
 **Decision**: Use Prisma `upsert` with the following natural keys per entity:
 
-| Entity          | Natural Key (upsert on)                                        |
-| --------------- | -------------------------------------------------------------- |
-| `OpponentTeam`  | `name` (case-insensitive, trimmed)                             |
-| `Tournament`    | `name` (case-insensitive, trimmed)                             |
-| `Player`        | `name` (case-insensitive, trimmed)                             |
-| `Game`          | `(date + opponentTeamId + tournamentId)` — composite unique    |
+| Entity            | Natural Key (upsert on)                                     |
+| ----------------- | ----------------------------------------------------------- |
+| `OpponentTeam`    | `name` (case-insensitive, trimmed)                          |
+| `Tournament`      | `name` (case-insensitive, trimmed)                          |
+| `Player`          | `name` (case-insensitive, trimmed)                          |
+| `Game`            | `(date + opponentTeamId + tournamentId)` — composite unique |
 | `GameParticipant` | `(gameId + playerId)` — already has `@@unique` in schema    |
 
 **Rationale**: Prisma native upsert is the simplest mechanism, avoids race conditions in a single-process import, and keeps no extra import-log table. Re-importing the same CSVs will update non-key fields rather than duplicate rows.
 
 **Alternatives considered**:
+
 - Hash-based deduplication table — rejected (over-engineering for one-time historical import).
 - Check-then-insert — rejected (race condition prone, more code).
 
@@ -41,6 +43,7 @@
 **Decision**: Additive migrations only — no existing fields removed or renamed.
 
 **New fields on `Game`**:
+
 - `startTime String?` — HH:MM string (from "Comienzo" column)
 - `endTime String?` — HH:MM string (from "Finalización" column)
 - `coach String?` — coach name at match time (from "DT" column)
@@ -49,9 +52,11 @@
 **Note on `outcome`**: Win/Loss/Draw is derivable from `homeTeamScore` vs `awayTeamScore` at query time; no new column needed. The import maps "G" → game where homeTeamScore > awayTeamScore, "P" → homeTeamScore < awayTeamScore, "E" → scores equal. If scores are null (not filled), outcome string is stored as a `notes` annotation.
 
 **New field on `GameParticipant`**:
+
 - `isStarter Boolean?` — `true` = Titular, `false` = Suplente, `null` = unknown
 
 **New field on `Game` (composite unique index)**:
+
 - Add `@@unique([date, opponentTeamId, tournamentId])` to enable upsert.
 
 **Rationale**: Minimal schema surface. All new fields are nullable to maintain backward compatibility with existing game creation flows.
@@ -63,6 +68,7 @@
 **Decision**: Compute team stats at query time via Prisma aggregate queries (no pre-aggregated TeamStats table). Cache results in Redis with a 5-minute TTL, same pattern as existing `StatisticsService`.
 
 Team stat queries are joins over `Game` + `Tournament` + `OpponentTeam` with GROUP BY:
+
 - `getTeamStatsByYear()` — group completed games by calendar year
 - `getTeamStatsByTournament()` — group by tournamentId + year
 - `getTeamStatsByRival()` — group by opponentTeamId
@@ -71,6 +77,7 @@ Team stat queries are joins over `Game` + `Tournament` + `OpponentTeam` with GRO
 **Rationale**: With ~1000 historical games the query will be fast without any pre-aggregation. The existing `Statistics` model stores player-level data; team-level data is a natural extension to the `StatisticsService` rather than a new model.
 
 **Alternatives considered**:
+
 - New `TeamStatistics` Prisma model — rejected (premature optimization, adds complexity for a read-only derived view).
 - Materialized view in PostgreSQL — rejected (requires raw SQL, no Prisma support, overkill for 1000 rows).
 
@@ -99,6 +106,7 @@ From inspecting `data/historial.csv`, `data/jugadores.csv`, `data/apariciones.cs
 ## 7. Access Control on Stats Routes
 
 **Decision**:
+
 - `GET /api/v1/statistics/players` and `GET /api/v1/statistics/players/:id` — remain **public** (FR-001)
 - New `GET /api/v1/statistics/team/*` endpoints — require **authentication** (`authenticate` middleware, no role restriction — any logged-in user)
 - `POST /api/v1/import/csv` — **ADMIN only**

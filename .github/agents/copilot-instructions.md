@@ -131,7 +131,7 @@ npx prisma studio                  # Open Prisma Studio GUI
 - **Guest Players**: playerType=GUEST, linked to inviting player via invitedById
 
 ## Recent Changes
-- chore/017-team-stats-views: Added TypeScript (Node.js 20 for CMS, Nuxt 3 / Vue 3 for frontend) + Express 4 (CMS), Prisma 5 (ORM), Nuxt 3 (frontend), `csv-parse` (CSV parsing), `multer` (file upload), Redis (stats cache)
+- feat/017-team-stats-views (canchas extension): `CsvImportService.parseAndImport` accepts optional `canchas` buffer + `adminUserId`; upserts `Playground` by name; links `Game.playgroundId` via Estadio↔Cancha match; `CsvImportResultDTO` extended with `playgrounds: { created, updated, skipped }`; import order: jugadores → canchas → historial → apariciones; no new Prisma migration needed (`Game.playgroundId` and `Playground` model already exist)
 - chore/016-user-promotion-governance: Added TypeScript 5.x (Node.js 18+), Vue 3, Nuxt 3 + Express, Prisma ORM, Zod, Nuxt composables/runtime, Vitest, Jest + Supertes
 
 - feat/015-confirmation-modal: Added TypeScript 5.x, Vue 3, Nuxt 3 + Nuxt 3, Tailwind CSS, `@nuxt/ui` (new module), Vitest, Vue Test Utils
