@@ -1,7 +1,7 @@
 Nombre,Apodo,Invitado Por,Nacimiento,Edad,Altura,Numero,Pie,Posición,DNI,Telefono,Imagen (URL)
 Zurdo,Zurdo,,,,,,Zurdo,,,,https://imgs.search.brave.com/vRRxYcLWZsqxt62MluNtJPz2pQJYLZeTPeHC-2Z7Gw8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zaWZ0/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyNS8wOC9kdW1t/eS11c2VyLnBuZw
 Tito,"""El Colectivero""",Patricio Herrera,,,,,,,,,https://imgs.search.brave.com/vRRxYcLWZsqxt62MluNtJPz2pQJYLZeTPeHC-2Z7Gw8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zaWZ0/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyNS8wOC9kdW1t/eS11c2VyLnBuZw
-Santiago Andrada,Gordito,Patricio Herrera,,,,5,,CMF,43954665,‪+54 9 11 2624‑8754‬,https://imgs.search.brave.com/vRRxYcLWZsqxt62MluNtJPz2pQJYLZeTPeHC-2Z7Gw8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zaWZ0/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyNS8wOC9kdW1t/eS11c2VyLnBuZw
+Santiago Andrada,Gordito,Patricio Herrera,,,,5,,CMF,43964665,‪+54 9 11 2624‑8754‬,https://imgs.search.brave.com/vRRxYcLWZsqxt62MluNtJPz2pQJYLZeTPeHC-2Z7Gw8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zaWZ0/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyNS8wOC9kdW1t/eS11c2VyLnBuZw
 Rodrigo,Rod,,,,,,,DMF,,,https://imgs.search.brave.com/vRRxYcLWZsqxt62MluNtJPz2pQJYLZeTPeHC-2Z7Gw8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zaWZ0/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyNS8wOC9kdW1t/eS11c2VyLnBuZw
 Alexis Flores,Pichichu,Patricio Herrera,,,,,,DMF,34554237,,https://imgs.search.brave.com/vRRxYcLWZsqxt62MluNtJPz2pQJYLZeTPeHC-2Z7Gw8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zaWZ0/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyNS8wOC9kdW1t/eS11c2VyLnBuZw
 Patricio Herrera,Pato,,,,,,,"SMF,CMF",41544791,+54 9 11 4938-0652,https://imgs.search.brave.com/vRRxYcLWZsqxt62MluNtJPz2pQJYLZeTPeHC-2Z7Gw8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zaWZ0/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyNS8wOC9kdW1t/eS11c2VyLnBuZw
@@ -54,7 +54,8 @@ Petiso,Amigo del Tano,Lucas Garnero,,,,,,,,,https://imgs.search.brave.com/vRRxYc
 Chango,??,,,,,,,,,,https://imgs.search.brave.com/vRRxYcLWZsqxt62MluNtJPz2pQJYLZeTPeHC-2Z7Gw8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zaWZ0/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyNS8wOC9kdW1t/eS11c2VyLnBuZw
 Faso,??,,,,,,,,,,https://imgs.search.brave.com/vRRxYcLWZsqxt62MluNtJPz2pQJYLZeTPeHC-2Z7Gw8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zaWZ0/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyNS8wOC9kdW1t/eS11c2VyLnBuZw
 Chuni,??,,,,,,,,,,https://imgs.search.brave.com/vRRxYcLWZsqxt62MluNtJPz2pQJYLZeTPeHC-2Z7Gw8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zaWZ0/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyNS8wOC9kdW1t/eS11c2VyLnBuZw
-Ismael,Amigo de Mariano (Uruguayo),Mariano Gavira,,,,,Diestro,"CMF,DMF,AMF",,,https://imgs.search.brave.com/vRRxYcLWZsqxt62MluNtJPz2pQJYLZeTPeHC-2Z7Gw8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zaWZ0/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyNS8wOC9kdW1t/eS11c2VyLnBuZw
+Ismael Etchemendy,Amigo de Mariano (Uruguayo),Mariano Gavira,,,,,Diestro,"CMF,DMF,AMF",,,https://imgs.search.brave.com/vRRxYcLWZsqxt62MluNtJPz2pQJYLZeTPeHC-2Z7Gw8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zaWZ0/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyNS8wOC9kdW1t/eS11c2VyLnBuZw
+Ismael,??,Patricio Herrera,,,,,,,,,
 Juni,??,,,,,,,,,,https://imgs.search.brave.com/vRRxYcLWZsqxt62MluNtJPz2pQJYLZeTPeHC-2Z7Gw8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zaWZ0/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyNS8wOC9kdW1t/eS11c2VyLnBuZw
 Santiago (Mati),Cuñado de Mati,Matias Vine,,,,,,,,,https://imgs.search.brave.com/vRRxYcLWZsqxt62MluNtJPz2pQJYLZeTPeHC-2Z7Gw8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zaWZ0/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyNS8wOC9kdW1t/eS11c2VyLnBuZw
 Claudio Sánchez,Amigo de Fer,Fernando Garay,,,,,,CMF,,,https://imgs.search.brave.com/vRRxYcLWZsqxt62MluNtJPz2pQJYLZeTPeHC-2Z7Gw8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zaWZ0/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyNS8wOC9kdW1t/eS11c2VyLnBuZw
