@@ -16,6 +16,7 @@
  * "Edad" is intentionally absent — age is derived at read-time from dateOfBirth, never stored.
  */
 export type JugadoresColumn =
+  | "ID"
   | "Nombre"
   | "Apodo"
   | "Invitado Por"
@@ -29,6 +30,7 @@ export type JugadoresColumn =
   | "Imagen (URL)";
 
 export const JUGADORES_COLUMN_MAP: Record<JugadoresColumn, string> = {
+  ID: "Player.externalId", // stable UUID assigned in CSV
   Nombre: "firstName + lastName", // split on first space
   Apodo: "Player.nickname",
   "Invitado Por": "Player.invitedById", // resolved via name lookup (second pass)
@@ -44,6 +46,7 @@ export const JUGADORES_COLUMN_MAP: Record<JugadoresColumn, string> = {
 
 /** jugadores.csv column header enum — values are enforced against JugadoresColumn. */
 export enum JugadoresCols {
+  id = "ID",
   nombre = "Nombre",
   apodo = "Apodo",
   invitadoPor = "Invitado Por",
@@ -125,6 +128,7 @@ export type AparicionesColumn =
   | "Torneo"
   | "Resultado"
   | "Jugador"
+  | "JugadorID"
   | "Goles"
   | "Amarilla"
   | "Roja"
@@ -137,7 +141,8 @@ export const APARICIONES_COLUMN_MAP: Record<AparicionesColumn, string> = {
   Rival: "(game lookup key)",
   Torneo: "(game lookup key)",
   Resultado: "(game lookup key)", // cross-check only
-  Jugador: "GameParticipant.playerId", // resolved via name lookup
+  Jugador: "GameParticipant.playerId", // resolved via name lookup (fallback)
+  JugadorID: "GameParticipant.playerId", // resolved via Player.externalId (preferred)
   Goles: "GameParticipant.goalsScored",
   Amarilla: "GameParticipant.yellowCards",
   Roja: "GameParticipant.redCards",
@@ -153,6 +158,7 @@ export enum AparicionesCols {
   torneo = "Torneo",
   // "Resultado" intentionally omitted — used for cross-check only, not stored
   jugador = "Jugador",
+  jugadorId = "JugadorID",
   goles = "Goles",
   amarilla = "Amarilla",
   roja = "Roja",

@@ -8,6 +8,7 @@
  * the public CsvImportService interface.
  */
 import type { CsvImportResultDTO } from "@ministrosfc/shared";
+import { prisma } from "../../config/database";
 import { importJugadores } from "./import-jugadores";
 import { importCanchas } from "./import-canchas";
 import { importHistorial } from "./import-historial";
@@ -55,6 +56,37 @@ export const CsvImportService = {
       playgroundNameToId,
       !!files.canchas,
     );
+
+    // 3.5. For each tournament, set playground to the most-used one across its games
+    if (files.canchas && playgroundNameToId.size > 0) {
+      const tournaments = await prisma.tournament.findMany({
+        select: {
+          id: true,
+          games: {
+            where: { playgroundId: { not: null } },
+            select: { playgroundId: true },
+          },
+        },
+      });
+      for (const tournament of tournaments) {
+        if (tournament.games.length === 0) continue;
+        // Count occurrences of each playgroundId
+        const freq = new Map<string, number>();
+        for (const g of tournament.games) {
+          if (g.playgroundId)
+            freq.set(g.playgroundId, (freq.get(g.playgroundId) ?? 0) + 1);
+        }
+        const topPlaygroundId = [...freq.entries()].sort(
+          (a, b) => b[1] - a[1],
+        )[0]?.[0];
+        if (topPlaygroundId) {
+          await prisma.tournament.update({
+            where: { id: tournament.id },
+            data: { playgroundId: topPlaygroundId },
+          });
+        }
+      }
+    }
 
     // 4. apariciones → upserts game participants; uses playerNameToId to skip extra DB lookups
     await importApariciones(

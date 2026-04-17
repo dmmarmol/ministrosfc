@@ -1,7 +1,7 @@
 import { prisma } from "../../config/database";
 import { ConfirmationStatus, PlayerStatus, PlayerType } from "@prisma/client";
 import type { CsvImportResultDTO } from "@ministrosfc/shared";
-import { parseCsv, parseDate, splitName } from "./helpers";
+import { parseCsv, parseDate, splitName, ensureExternalIds } from "./helpers";
 import { AparicionesCols } from "./column-maps";
 
 /**
@@ -18,7 +18,12 @@ export async function importApariciones(
   warnings: string[],
   playerNameToId: Map<string, string>,
 ): Promise<void> {
-  const rows = parseCsv(buf);
+  // Ensure every row has a stable JugadorID UUID.
+  // Also disambiguates the duplicate "Jugador" header (col 5 = full name, col 6 = nickname → JugadorNickname).
+  const normalised = ensureExternalIds(buf, "JugadorID", [
+    { header: "Jugador", occurrenceIndex: 1, newName: "JugadorNickname" },
+  ]);
+  const rows = parseCsv(normalised);
 
   for (const row of rows) {
     const fechaRaw = row[AparicionesCols.fecha]?.trim();
@@ -32,11 +37,18 @@ export async function importApariciones(
     const rivalName = row[AparicionesCols.rival]?.trim();
     const tournamentName = row[AparicionesCols.torneo]?.trim() || null;
 
-    // Resolve tournament id
+    // Resolve tournament id — must be year-scoped so same-named tournaments in
+    // different calendar years are kept distinct (mirrors import-historial logic).
     let tournamentId: string | null = null;
     if (tournamentName) {
+      const gameYear = date.getUTCFullYear();
+      const yearStart = new Date(Date.UTC(gameYear, 0, 1));
+      const yearEnd = new Date(Date.UTC(gameYear, 11, 31));
       const t = await prisma.tournament.findFirst({
-        where: { name: { equals: tournamentName, mode: "insensitive" } },
+        where: {
+          name: { equals: tournamentName, mode: "insensitive" },
+          startDate: { gte: yearStart, lte: yearEnd },
+        },
         select: { id: true },
       });
       tournamentId = t?.id ?? null;
@@ -70,15 +82,29 @@ export async function importApariciones(
       continue;
     }
 
+    const jugadorExternalId = row[AparicionesCols.jugadorId]?.trim() || null;
     const playerName = row[AparicionesCols.jugador]?.trim();
-    if (!playerName) {
+    if (!jugadorExternalId && !playerName) {
       result.appearances.skipped++;
       continue;
     }
 
-    // Resolve player — check name map first (covers nicknames indexed in importJugadores)
-    let resolvedPlayerId = playerNameToId.get(playerName.toLowerCase());
-    if (!resolvedPlayerId) {
+    // Resolve player — prefer stable externalId, fall back to name map then DB lookup
+    let resolvedPlayerId: string | undefined;
+
+    if (jugadorExternalId) {
+      const byExternal = await prisma.player.findFirst({
+        where: { externalId: jugadorExternalId },
+        select: { id: true },
+      });
+      resolvedPlayerId = byExternal?.id;
+    }
+
+    if (!resolvedPlayerId && playerName) {
+      resolvedPlayerId = playerNameToId.get(playerName.toLowerCase());
+    }
+
+    if (!resolvedPlayerId && playerName) {
       const { firstName, lastName } = splitName(playerName);
       let player = await prisma.player.findFirst({
         where: {
@@ -106,6 +132,14 @@ export async function importApariciones(
 
       resolvedPlayerId = player.id;
       playerNameToId.set(playerName.toLowerCase(), resolvedPlayerId);
+    }
+
+    if (!resolvedPlayerId) {
+      warnings.push(
+        `apariciones: could not resolve player (externalId="${jugadorExternalId ?? ""}", name="${playerName ?? ""}") — row skipped`,
+      );
+      result.appearances.skipped++;
+      continue;
     }
 
     const isStarterRaw = row[AparicionesCols.titularSuplente]

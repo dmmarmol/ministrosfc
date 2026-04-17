@@ -41,16 +41,28 @@ export async function importHistorial(
     }
 
     const tournamentName = row[HistorialCols.torneo]?.trim() || null;
+    const gameYear = date.getUTCFullYear();
 
-    // Upsert tournament
+    // Upsert tournament — matched by (name, year) so editions in different
+    // calendar years are kept as separate Tournament records.
     let tournamentId: string | null = null;
     if (tournamentName) {
+      const yearStart = new Date(Date.UTC(gameYear, 0, 1));
+      const yearEnd = new Date(Date.UTC(gameYear, 11, 31));
       const existingTournament = await prisma.tournament.findFirst({
-        where: { name: { equals: tournamentName, mode: "insensitive" } },
+        where: {
+          name: { equals: tournamentName, mode: "insensitive" },
+          startDate: { gte: yearStart, lte: yearEnd },
+        },
         select: { id: true },
       });
       if (existingTournament) {
         tournamentId = existingTournament.id;
+        // Extend the tournament's endDate if this game is later than the current one.
+        await prisma.tournament.updateMany({
+          where: { id: tournamentId, endDate: { lt: date } },
+          data: { endDate: date },
+        });
       } else {
         const newTournament = await prisma.tournament.create({
           data: {

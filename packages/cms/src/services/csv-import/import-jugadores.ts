@@ -8,6 +8,7 @@ import {
   splitName,
   mapFoot,
   mapPosition,
+  ensureExternalIds,
 } from "./helpers";
 import { JugadoresCols } from "./column-maps";
 
@@ -25,7 +26,10 @@ export async function importJugadores(
   buf: Buffer,
   result: CsvImportResultDTO,
 ): Promise<Map<string, string>> {
-  const rows = parseCsv(buf);
+  // Guarantee every row has a stable UUID in the "ID" column before parsing.
+  // If the uploaded CSV already has IDs they are preserved; missing ones are generated.
+  const normalised = ensureExternalIds(buf, "ID");
+  const rows = parseCsv(normalised);
   const playerNameToId = new Map<string, string>();
 
   // ── Pass 1: upsert players ──────────────────────────────────────────────────
@@ -49,16 +53,24 @@ export async function importJugadores(
 
     const cleanName = stripCountAnnotation(fullName);
     const { firstName, lastName } = splitName(cleanName);
+    const externalId = row[JugadoresCols.id]?.trim() || null;
 
-    const existing = await prisma.player.findFirst({
-      where: {
-        firstName: { equals: firstName, mode: "insensitive" },
-        lastName: { equals: lastName, mode: "insensitive" },
-      },
-      select: { id: true },
-    });
+    // Prefer lookup by stable externalId; fall back to name match for legacy rows
+    const existing = externalId
+      ? await prisma.player.findFirst({
+          where: { externalId },
+          select: { id: true },
+        })
+      : await prisma.player.findFirst({
+          where: {
+            firstName: { equals: firstName, mode: "insensitive" },
+            lastName: { equals: lastName, mode: "insensitive" },
+          },
+          select: { id: true },
+        });
 
     const playerData = {
+      externalId,
       firstName,
       lastName,
       nickname: row[JugadoresCols.apodo]?.trim() || null,
