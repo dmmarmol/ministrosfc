@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TeamStatPeriodDTO } from "@ministrosfc/shared/types/statistics";
+import { type TeamStatPeriodDTO, formatDate } from "@ministrosfc/shared";
 
 defineProps<{
   rows: TeamStatPeriodDTO[];
@@ -21,8 +21,8 @@ defineProps<{
       Sin datos
     </div>
     <div v-else class="overflow-x-auto">
-      <table class="w-full text-sm text-left">
-        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+      <table class="w-full text-sm text-left text-gray-900">
+        <thead class="bg-gray-50 text-gray-900 uppercase text-xs">
           <tr>
             <th class="px-3 py-2">
               {{ mode === "all" ? "Rival" : "Período" }}
@@ -40,12 +40,19 @@ defineProps<{
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
-          <tr v-for="row in rows" :key="row.label" class="hover:bg-gray-50">
-            <td class="px-3 py-2 font-medium">{{ row.label }}</td>
+          <tr v-for="row in rows" :key="row.key" class="hover:bg-gray-50">
+            <td class="px-3 py-2">
+              <span class="font-medium">{{ row.label }}</span>
+              <span
+                v-if="row.playgroundName"
+                class="ml-2 text-gray-400 text-xs"
+                >{{ row.playgroundName }}</span
+              >
+            </td>
             <td v-if="mode === 'single'" class="px-3 py-2 text-gray-500">
               {{
                 row.periodStart && row.periodEnd
-                  ? `${row.periodStart} – ${row.periodEnd}`
+                  ? `${formatDate(row.periodStart, { month: "short", year: "numeric" })} – ${formatDate(row.periodEnd, { month: "short", year: "numeric" })}`
                   : "—"
               }}
             </td>
@@ -72,9 +79,7 @@ defineProps<{
             <td class="px-3 py-2 text-right font-medium">
               {{ row.pointsEarned }}
             </td>
-            <td class="px-3 py-2 text-right">
-              {{ (row.winRate * 100).toFixed(1) }}%
-            </td>
+            <td class="px-3 py-2 text-right">{{ row.winRate.toFixed(1) }}%</td>
           </tr>
         </tbody>
       </table>

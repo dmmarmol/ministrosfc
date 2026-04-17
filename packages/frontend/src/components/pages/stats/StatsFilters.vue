@@ -1,11 +1,14 @@
 <script setup lang="ts">
+import type { StatsFiltersMode } from "@ministrosfc/shared";
+
 const props = defineProps<{
-  mode: string;
-  years?: { value: string; label: string }[];
-  tournaments?: { id: string; name: string }[];
-  rivals?: { id: string; name: string }[];
+  mode: StatsFiltersMode | "player" | "rival";
   players?: { id: string; name: string }[];
 }>();
+
+const { availableYears } = useStatisticsAvailableYears();
+const { availableTournaments } = useStatisticsAvailableTournaments();
+const { availableRivals } = useStatisticsAvailableRivals();
 
 const emit = defineEmits<{
   "change:year": [value: string];
@@ -29,34 +32,34 @@ const playerValue = defineModel<string>("player", { default: "" });
       @change="emit('change:year', yearValue)"
     >
       <option value="">Todos los años</option>
-      <option v-for="y in years" :key="y.value" :value="y.value">
+      <option v-for="y in availableYears" :key="y.value" :value="y.value">
         {{ y.label }}
       </option>
     </select>
 
     <!-- Tournament filter -->
     <select
-      v-if="mode === 'tournaments'"
+      v-if="mode === 'tournaments' || mode === 'rivals'"
       v-model="tournamentValue"
       class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
       @change="emit('change:tournament', tournamentValue)"
     >
       <option value="">Todos los torneos</option>
-      <option v-for="t in tournaments" :key="t.id" :value="t.id">
-        {{ t.name }}
+      <option v-for="t in availableTournaments" :key="t.value" :value="t.value">
+        {{ t.label }}
       </option>
     </select>
 
     <!-- Rival filter -->
     <select
-      v-if="mode === 'rivals' || mode === 'rival'"
+      v-if="['rival', 'rivals'].includes(mode)"
       v-model="rivalValue"
       class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
       @change="emit('change:rival', rivalValue)"
     >
       <option value="">Todos los rivales</option>
-      <option v-for="r in rivals" :key="r.id" :value="r.id">
-        {{ r.name }}
+      <option v-for="r in availableRivals" :key="r.value" :value="r.value">
+        {{ r.label }}
       </option>
     </select>
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PlayerStatRowDTO } from "@ministrosfc/shared/types/statistics";
+import type { PlayerStatRowDTO } from "@ministrosfc/shared";
 
 defineProps<{
   rows: PlayerStatRowDTO[];
@@ -21,8 +21,8 @@ defineProps<{
       Sin datos
     </div>
     <div v-else class="overflow-x-auto">
-      <table class="w-full text-sm text-left">
-        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+      <table class="w-full text-sm text-left text-gray-900">
+        <thead class="bg-gray-50 text-gray-900 uppercase text-xs">
           <tr>
             <th class="px-3 py-2">{{ mode === "all" ? "Jugador" : "Año" }}</th>
             <th class="px-3 py-2 text-right">PJ</th>
@@ -39,7 +39,14 @@ defineProps<{
         <tbody class="divide-y divide-gray-100">
           <tr v-for="row in rows" :key="row.playerId" class="hover:bg-gray-50">
             <td class="px-3 py-2 font-medium">
-              {{ row.playerNickname ?? row.playerName }}
+              <div class="flex gap-x-2 items-baseline">
+                <p class="text-base">
+                  {{ row.playerName }}
+                </p>
+                <p class="text-sm text-gray-400">
+                  {{ row.playerNickname }}
+                </p>
+              </div>
             </td>
             <td class="px-3 py-2 text-right">{{ row.gamesPlayed }}</td>
             <td class="px-3 py-2 text-right text-green-600">{{ row.wins }}</td>
@@ -50,11 +57,17 @@ defineProps<{
             <td class="px-3 py-2 text-right font-medium">{{ row.goals }}</td>
             <td class="px-3 py-2 text-right">{{ row.assists }}</td>
             <td class="px-3 py-2 text-right">
-              {{ (row.winRate * 100).toFixed(1) }}%
+              {{ row.winRate != null ? row.winRate.toFixed(1) : "—" }}%
             </td>
-            <td class="px-3 py-2 text-right">{{ row.goalRate.toFixed(2) }}</td>
             <td class="px-3 py-2 text-right">
-              {{ (row.participationRate * 100).toFixed(1) }}%
+              {{ row.goalRate != null ? row.goalRate.toFixed(2) : "—" }}
+            </td>
+            <td class="px-3 py-2 text-right">
+              {{
+                row.participationRate != null
+                  ? row.participationRate.toFixed(1)
+                  : "—"
+              }}%
             </td>
           </tr>
         </tbody>

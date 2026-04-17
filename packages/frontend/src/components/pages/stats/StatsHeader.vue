@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TeamSummaryHeaderDTO } from "@ministrosfc/shared/types/statistics";
+import type { TeamSummaryHeaderDTO } from "@ministrosfc/shared";
 
 const props = defineProps<{
   summary: TeamSummaryHeaderDTO | null;
@@ -60,7 +60,7 @@ const props = defineProps<{
         class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100"
       >
         <p class="text-2xl font-bold text-brand">
-          {{ (summary.winRate * 100).toFixed(1) }}%
+          {{ summary.winRate.toFixed(1) }}%
         </p>
         <p class="text-xs text-gray-500 mt-1">% Victorias</p>
       </div>
