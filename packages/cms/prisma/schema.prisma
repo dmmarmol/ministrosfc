@@ -110,6 +110,7 @@ model User {
 
 model Player {
   id         String       @id @default(uuid())
+  externalId String?      @unique @db.VarChar(36)
   firstName  String       @db.VarChar(255)
   lastName   String       @db.VarChar(255)
   nickname   String?      @db.VarChar(100)
@@ -209,6 +210,9 @@ model Tournament {
   startDate   DateTime
   endDate     DateTime
   competitionType CompetitionType  @default(LEAGUE)
+
+  playgroundId String?
+  playground   Playground?  @relation(fields: [playgroundId], references: [id], onDelete: SetNull)
 
   games      Game[]       @relation("TournamentGames")
   statistics Statistics[] @relation("TournamentStats")
@@ -354,7 +358,8 @@ model Playground {
   createdBy User  @relation("PlaygroundCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   updatedBy User? @relation("PlaygroundUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
-  games Game[]
+  games       Game[]
+  tournaments Tournament[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
