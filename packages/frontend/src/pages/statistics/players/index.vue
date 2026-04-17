@@ -24,6 +24,7 @@ const { data, pending, refresh } = await useAsyncData(
         ...(qp.get("tournament")
           ? { tournamentName: qp.get("tournament") }
           : {}),
+        ...(qp.get("playerId") ? { playerId: qp.get("playerId") } : {}),
       },
     }),
   { server: false },

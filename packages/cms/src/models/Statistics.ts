@@ -422,6 +422,7 @@ const StatisticsModel = {
 
     let topScorerName = "";
     let topScorerGoals = 0;
+    let topScorerId = "";
     if (topScorerData[0]?.playerId) {
       const p = await prisma.player.findUnique({
         where: { id: topScorerData[0].playerId },
@@ -429,6 +430,7 @@ const StatisticsModel = {
       });
       topScorerName = p ? `${p.firstName} ${p.lastName}` : "";
       topScorerGoals = topScorerData[0]._sum?.goalsScored ?? 0;
+      topScorerId = topScorerData[0].playerId;
     }
 
     return {
@@ -464,7 +466,11 @@ const StatisticsModel = {
         name: byGa?.name ?? "",
         totalGoals: byGa?.ga ?? 0,
       },
-      topScorer: { name: topScorerName, goals: topScorerGoals },
+      topScorer: {
+        id: topScorerId,
+        name: topScorerName,
+        goals: topScorerGoals,
+      },
     };
   },
 
@@ -472,6 +478,7 @@ const StatisticsModel = {
     year?: number;
     rivalId?: string;
     tournamentName?: string;
+    playerId?: string;
   }) {
     const gameWhere: any = { status: GameStatus.COMPLETED };
     if (filters?.rivalId) gameWhere.opponentTeamId = filters.rivalId;
@@ -480,10 +487,13 @@ const StatisticsModel = {
         name: { equals: filters.tournamentName, mode: "insensitive" },
       };
 
+    const participantWhere: any = { game: gameWhere };
+    if (filters?.playerId) participantWhere.playerId = filters.playerId;
+
     const allCompletedGames = await prisma.game.count({ where: gameWhere });
 
     const participants = await prisma.gameParticipant.findMany({
-      where: { game: gameWhere },
+      where: participantWhere,
       select: {
         playerId: true,
         goalsScored: true,

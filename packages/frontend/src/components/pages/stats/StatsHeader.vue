@@ -134,12 +134,20 @@ const props = defineProps<{
       </div>
       <div class="flex justify-between px-4 py-2 text-sm">
         <span class="text-gray-500">Goleador histórico</span>
-        <span class="font-medium text-gray-800"
-          >{{ summary.topScorer?.name ?? "—" }} ({{
-            summary.topScorer?.goals ?? 0
-          }}
-          goles)</span
-        >
+        <span class="flex gap-x-1">
+          <NuxtLink
+            v-if="summary.topScorer?.id"
+            :to="`/players/${summary.topScorer.id}`"
+            class="font-medium text-brand hover:underline"
+            >{{ summary.topScorer.name }}
+          </NuxtLink>
+          <span v-else class="font-medium text-gray-800">{{
+            summary.topScorer?.name ?? "—"
+          }}</span>
+          <span class="font-medium text-gray-800"
+            >({{ summary.topScorer.goals }} goles)</span
+          >
+        </span>
       </div>
     </div>
   </div>

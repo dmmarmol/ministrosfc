@@ -140,8 +140,9 @@ const StatisticsService = {
     year?: number;
     rivalId?: string;
     tournamentName?: string;
+    playerId?: string;
   }) {
-    const key = `cache:stats:players:all:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}:${filters?.tournamentName ?? "all"}`;
+    const key = `cache:stats:players:all:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}:${filters?.tournamentName ?? "all"}:${filters?.playerId ?? "all"}`;
     return withCache(key, () => StatisticsModel.aggregatePlayersAll(filters));
   },
 };

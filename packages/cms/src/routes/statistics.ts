@@ -28,7 +28,7 @@ router.get(
   "/players",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { year, rivalId, tournamentName } = req.query as Record<
+      const { year, rivalId, tournamentName, playerId } = req.query as Record<
         string,
         string
       >;
@@ -36,6 +36,7 @@ router.get(
         year: year ? parseInt(year, 10) : undefined,
         rivalId,
         tournamentName,
+        playerId,
       });
       res.setHeader("Cache-Control", "public, max-age=300");
       res.json({ data });

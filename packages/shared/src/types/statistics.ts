@@ -73,7 +73,7 @@ export interface TeamSummaryHeaderDTO {
   worstLoss: { rival: string; tournament: string; date: string; score: string };
   rivalMostGoalsFor: { name: string; totalGoals: number };
   rivalMostGoalsAgainst: { name: string; totalGoals: number };
-  topScorer: { name: string; goals: number };
+  topScorer: { id: string; name: string; goals: number };
 }
 
 // Per-player stats row for "All Players" and "Single Player" focus modes

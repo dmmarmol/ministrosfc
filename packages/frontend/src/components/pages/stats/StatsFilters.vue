@@ -3,12 +3,12 @@ import type { StatsFiltersMode } from "@ministrosfc/shared";
 
 const props = defineProps<{
   mode: StatsFiltersMode | "player" | "rival";
-  players?: { id: string; name: string }[];
 }>();
 
 const { availableYears } = useStatisticsAvailableYears();
 const { availableTournaments } = useStatisticsAvailableTournaments();
 const { availableRivals } = useStatisticsAvailableRivals();
+const { availablePlayers } = useStatisticsAvailablePlayers();
 
 const emit = defineEmits<{
   "change:year": [value: string];
@@ -52,7 +52,7 @@ const playerValue = defineModel<string>("player", { default: "" });
 
     <!-- Rival filter -->
     <select
-      v-if="['rival', 'rivals'].includes(mode)"
+      v-if="mode === 'rivals' || mode === 'rival'"
       v-model="rivalValue"
       class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
       @change="emit('change:rival', rivalValue)"
@@ -71,8 +71,8 @@ const playerValue = defineModel<string>("player", { default: "" });
       @change="emit('change:player', playerValue)"
     >
       <option value="">Todos los jugadores</option>
-      <option v-for="p in players" :key="p.id" :value="p.id">
-        {{ p.name }}
+      <option v-for="p in availablePlayers" :key="p.value" :value="p.value">
+        {{ p.label }}
       </option>
     </select>
   </div>
