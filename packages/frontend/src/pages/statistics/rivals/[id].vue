@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type {
-  TeamSummaryHeaderDTO,
-  TeamStatPeriodDTO,
-} from "@ministrosfc/shared/types/statistics";
-import StatsHeader from "../../../components/pages/stats/StatsHeader.vue";
+import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 import StatsFilters from "../../../components/pages/stats/StatsFilters.vue";
 import StatsTableByRival from "../../../components/pages/stats/StatsTableByRival.vue";
 
-definePageMeta({ middleware: "auth", requiresAuth: true });
+definePageMeta({
+  layout: "statistics",
+  middleware: "auth",
+  requiresAuth: true,
+});
 
 const route = useRoute();
 const rivalId = route.params.id as string;
@@ -15,11 +15,6 @@ useHead({ title: "Estadísticas – Ministros FC" });
 
 const { $api } = useNuxtApp();
 const { filters, setFilter } = useStatsFilters();
-
-const { data: summaryData } = await useAsyncData("team-summary", () =>
-  $api<{ data: TeamSummaryHeaderDTO }>("/api/v1/statistics/team/summary"),
-);
-const summary = computed(() => summaryData.value?.data ?? null);
 
 const { data, pending, refresh } = await useAsyncData(
   `rival-stats-${rivalId}`,
@@ -32,19 +27,19 @@ const { data, pending, refresh } = await useAsyncData(
         },
       },
     ),
+  { server: false },
 );
+
+const rows = computed(() => data.value?.data ?? []);
 watch(
   () => filters.value.year,
   () => refresh(),
 );
-
-const rows = computed(() => data.value?.data ?? []);
 </script>
 
 <template>
   <div class="space-y-6">
     <h1 class="text-xl font-bold text-gray-900">Estadísticas vs Rival</h1>
-    <StatsHeader :summary="summary" />
     <StatsFilters
       mode="rival"
       :year="filters.year"

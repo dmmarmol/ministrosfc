@@ -1,6 +1,6 @@
 <script setup lang="ts">
-definePageMeta({ public: true });
-useHead({ title: "Statistics – Ministros FC" });
+definePageMeta({ layout: "statistics", public: true });
+useHead({ title: "Goleadores – Ministros FC" });
 
 interface TopScorerEntry {
   player?: {
@@ -18,6 +18,7 @@ interface TopScorerEntry {
 }
 
 const { $api } = useNuxtApp();
+
 const playerSearch = ref("");
 const tournamentFilter = ref("");
 
@@ -26,17 +27,19 @@ const { data: tourData } = await useAsyncData("stats-tournaments", () =>
 );
 const tournaments = computed(() => tourData.value?.data ?? []);
 
-const { data, pending, refresh } = await useAsyncData("top-scorers", () =>
-  $api<{ data: TopScorerEntry[] }>("/api/v1/statistics/top-scorers", {
-    query: {
-      limit: 50,
-      ...(tournamentFilter.value
-        ? { tournamentId: tournamentFilter.value }
-        : {}),
-    },
-  }),
+const { data, pending, refresh } = await useAsyncData(
+  "top-scorers",
+  () =>
+    $api<{ data: TopScorerEntry[] }>("/api/v1/statistics/top-scorers", {
+      query: {
+        limit: 50,
+        ...(tournamentFilter.value
+          ? { tournamentId: tournamentFilter.value }
+          : {}),
+      },
+    }),
+  { server: false },
 );
-watch(tournamentFilter, () => refresh());
 
 const allScorers = computed(() => data.value?.data ?? []);
 const filteredScorers = computed(() => {
@@ -46,11 +49,14 @@ const filteredScorers = computed(() => {
     `${e.player?.firstName ?? ""} ${e.player?.lastName ?? ""}`.toLowerCase();
   return allScorers.value.filter((e) => fullName(e).includes(q));
 });
+
+watch(tournamentFilter, () => refresh());
 </script>
 
 <template>
   <div>
-    <useHead><title>Estadísticas – Ministros FC</title></useHead>
+    <h1 class="text-xl font-bold text-gray-900 mb-4">Goleadores</h1>
+
     <!-- Filters -->
     <div class="flex flex-col sm:flex-row gap-3 mb-6">
       <input
@@ -70,7 +76,7 @@ const filteredScorers = computed(() => {
       </select>
     </div>
 
-    <!-- Top scorers table -->
+    <!-- Loading -->
     <div v-if="pending" class="space-y-2">
       <div
         v-for="i in 10"
@@ -78,12 +84,14 @@ const filteredScorers = computed(() => {
         class="h-12 bg-gray-200 animate-pulse rounded"
       />
     </div>
+
+    <!-- Table -->
     <div
       v-else-if="filteredScorers.length"
       class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
     >
-      <table class="w-full text-sm">
-        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+      <table class="w-full text-sm text-gray-900">
+        <thead class="bg-gray-50 text-gray-900 uppercase text-xs">
           <tr>
             <th class="px-4 py-3 text-left">#</th>
             <th class="px-4 py-3 text-left">Jugador</th>
@@ -103,9 +111,9 @@ const filteredScorers = computed(() => {
               <NuxtLink
                 :to="`/players/${entry.player?.id}`"
                 class="hover:text-brand transition-colors"
-                >{{ entry.player?.firstName }}
-                {{ entry.player?.lastName }}</NuxtLink
               >
+                {{ entry.player?.firstName }} {{ entry.player?.lastName }}
+              </NuxtLink>
             </td>
             <td class="px-4 py-3 text-right font-bold text-brand">
               {{ entry.goalsScored }}
@@ -120,6 +128,7 @@ const filteredScorers = computed(() => {
         </tbody>
       </table>
     </div>
+
     <div v-else class="text-center py-16 text-gray-500">
       Sin estadísticas disponibles.
     </div>

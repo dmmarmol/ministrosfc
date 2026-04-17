@@ -3,10 +3,10 @@ definePageMeta({ public: true });
 import { useGetPlayerById } from "~/composables/useGetPlayerById";
 import { useGetPlayerStatsById } from "~/composables/useGetPlayerStatsById";
 const route = useRoute();
-const router = useRouter();
+const qp = useQueryParams();
 const id = route.params.id as string;
 
-const year = computed(() => route.query.year as string | undefined);
+const year = computed(() => qp.get("year") || undefined);
 
 const { player, pending } = await useGetPlayerById(id);
 
@@ -26,7 +26,7 @@ const statCards = computed(() => {
 
 async function onYearChange(e: Event) {
   const val = (e.target as HTMLSelectElement).value;
-  await router.push({ query: { ...route.query, year: val || undefined } });
+  await qp.set("year", val);
 }
 
 useHead(() => ({
@@ -87,11 +87,7 @@ useHead(() => ({
           @change="onYearChange"
         >
           <option value="">Todos los años</option>
-          <option
-            v-for="y in availableYears"
-            :key="y"
-            :value="String(y)"
-          >
+          <option v-for="y in availableYears" :key="y" :value="String(y)">
             {{ y }}
           </option>
         </select>

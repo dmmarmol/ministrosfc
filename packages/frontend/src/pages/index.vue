@@ -122,27 +122,28 @@ const topScorers = computed(() => scorersData.value?.data ?? []);
         >
           <div
             v-for="(entry, idx) in topScorers.slice(0, 5)"
-            :key="entry.playerId"
+            :key="entry.player?.id ?? idx"
             class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0"
           >
             <span class="text-sm font-bold text-gray-400 w-5">{{
               idx + 1
             }}</span>
             <NuxtLink
-              :to="`/players/${entry.playerId}`"
+              :to="`/players/${entry.player?.id}`"
               class="flex-1 text-sm font-medium text-gray-800 hover:text-brand transition-colors truncate"
-              >{{ entry.playerName }}</NuxtLink
+              >{{ entry.player?.firstName }}
+              {{ entry.player?.lastName }}</NuxtLink
             >
             <span class="text-sm font-bold text-brand"
-              >{{ entry.goals }} ⚽</span
+              >{{ entry.goalsScored }} ⚽</span
             >
           </div>
         </div>
         <p v-else class="text-gray-500 text-sm">Sin datos de goleadores.</p>
         <NuxtLink
-          to="/statistics"
+          to="/statistics/top-scorers"
           class="mt-4 inline-block text-sm text-brand font-medium hover:underline"
-          >Estadísticas completas →</NuxtLink
+          >Ver tabla completa →</NuxtLink
         >
       </section>
     </div>

@@ -4,7 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 export interface StatsFilters {
   mode: string;
   year: string;
-  tournamentId: string;
+  tournament: string;
   rivalId: string;
   playerId: string;
 }
@@ -16,7 +16,7 @@ export function useStatsFilters() {
   const filters = computed<StatsFilters>(() => ({
     mode: (route.query.mode as string) ?? "",
     year: (route.query.year as string) ?? "",
-    tournamentId: (route.query.tournamentId as string) ?? "",
+    tournament: (route.query.tournament as string) ?? "",
     rivalId: (route.query.rivalId as string) ?? "",
     playerId: (route.query.playerId as string) ?? "",
   }));

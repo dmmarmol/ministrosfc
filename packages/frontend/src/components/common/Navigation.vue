@@ -48,7 +48,11 @@ const mobileOpen = ref(false);
         </li>
         <li>
           <NuxtLink
-            to="/statistics"
+            :to="
+              authStore.isAuthenticated
+                ? '/statistics'
+                : '/statistics/top-scorers'
+            "
             class="hover:text-brand transition-colors"
             active-class="text-brand"
             >Estadísticas</NuxtLink
@@ -155,7 +159,9 @@ const mobileOpen = ref(false);
         >Torneos</NuxtLink
       >
       <NuxtLink
-        to="/statistics"
+        :to="
+          authStore.isAuthenticated ? '/statistics' : '/statistics/top-scorers'
+        "
         class="block py-1.5 hover:text-brand"
         active-class="text-brand"
         @click="mobileOpen = false"
