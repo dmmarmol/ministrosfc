@@ -2,17 +2,32 @@
 definePageMeta({ public: true });
 useHead({ title: "Statistics – Ministros FC" });
 
+interface TopScorerEntry {
+  player?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    nickname?: string | null;
+    jerseyNumber?: number | null;
+    position?: string | null;
+    photoUrl?: string | null;
+  };
+  goalsScored: number;
+  assists: number;
+  appearances: number;
+}
+
 const { $api } = useNuxtApp();
 const playerSearch = ref("");
 const tournamentFilter = ref("");
 
 const { data: tourData } = await useAsyncData("stats-tournaments", () =>
-  $api<{ data: any[] }>("/api/v1/tournaments"),
+  $api<{ data: { id: string; name: string }[] }>("/api/v1/tournaments"),
 );
 const tournaments = computed(() => tourData.value?.data ?? []);
 
 const { data, pending, refresh } = await useAsyncData("top-scorers", () =>
-  $api<{ data: any[] }>("/api/v1/statistics/top-scorers", {
+  $api<{ data: TopScorerEntry[] }>("/api/v1/statistics/top-scorers", {
     query: {
       limit: 50,
       ...(tournamentFilter.value
@@ -27,15 +42,15 @@ const allScorers = computed(() => data.value?.data ?? []);
 const filteredScorers = computed(() => {
   if (!playerSearch.value.trim()) return allScorers.value;
   const q = playerSearch.value.trim().toLowerCase();
-  return allScorers.value.filter((e: any) =>
-    e.playerName?.toLowerCase().includes(q),
-  );
+  const fullName = (e: TopScorerEntry) =>
+    `${e.player?.firstName ?? ""} ${e.player?.lastName ?? ""}`.toLowerCase();
+  return allScorers.value.filter((e) => fullName(e).includes(q));
 });
 </script>
 
 <template>
   <div>
-    <useHead><title>Statistics – Ministros FC</title></useHead>
+    <useHead><title>Estadísticas – Ministros FC</title></useHead>
     <!-- Filters -->
     <div class="flex flex-col sm:flex-row gap-3 mb-6">
       <input
@@ -80,19 +95,20 @@ const filteredScorers = computed(() => {
         <tbody>
           <tr
             v-for="(entry, idx) in filteredScorers"
-            :key="entry.playerId"
+            :key="entry.player?.id"
             class="border-t border-gray-100 hover:bg-gray-50 transition-colors"
           >
             <td class="px-4 py-3 text-gray-400 font-bold">{{ idx + 1 }}</td>
             <td class="px-4 py-3 font-medium">
               <NuxtLink
-                :to="`/players/${entry.playerId}`"
+                :to="`/players/${entry.player?.id}`"
                 class="hover:text-brand transition-colors"
-                >{{ entry.playerName }}</NuxtLink
+                >{{ entry.player?.firstName }}
+                {{ entry.player?.lastName }}</NuxtLink
               >
             </td>
             <td class="px-4 py-3 text-right font-bold text-brand">
-              {{ entry.goals }}
+              {{ entry.goalsScored }}
             </td>
             <td class="px-4 py-3 text-right text-gray-600">
               {{ entry.assists }}
