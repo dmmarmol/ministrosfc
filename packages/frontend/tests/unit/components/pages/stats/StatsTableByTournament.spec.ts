@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
 import StatsTableByTournament from "~/components/pages/stats/StatsTableByTournament.vue";
-import type { TeamStatPeriodDTO } from "@ministrosfc/shared/types/statistics";
+import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 
 const row: TeamStatPeriodDTO = {
   label: "Liga 2023",
@@ -22,7 +22,9 @@ const row: TeamStatPeriodDTO = {
 
 describe("StatsTableByTournament", () => {
   it("renders correct columns", () => {
-    const wrapper = mount(StatsTableByTournament, { props: { rows: [row], loading: false } });
+    const wrapper = mount(StatsTableByTournament, {
+      props: { rows: [row], loading: false },
+    });
     const text = wrapper.text();
     expect(text).toContain("Torneo");
     expect(text).toContain("Año");
@@ -32,14 +34,18 @@ describe("StatsTableByTournament", () => {
   });
 
   it("displays period dates", () => {
-    const wrapper = mount(StatsTableByTournament, { props: { rows: [row], loading: false } });
+    const wrapper = mount(StatsTableByTournament, {
+      props: { rows: [row], loading: false },
+    });
     const text = wrapper.text();
     expect(text).toContain("2023-03-01");
     expect(text).toContain("2023-11-30");
   });
 
   it("maps row data", () => {
-    const wrapper = mount(StatsTableByTournament, { props: { rows: [row], loading: false } });
+    const wrapper = mount(StatsTableByTournament, {
+      props: { rows: [row], loading: false },
+    });
     const text = wrapper.text();
     expect(text).toContain("Liga 2023");
     expect(text).toContain("14");
@@ -48,7 +54,9 @@ describe("StatsTableByTournament", () => {
   });
 
   it("shows empty state message", () => {
-    const wrapper = mount(StatsTableByTournament, { props: { rows: [], loading: false } });
+    const wrapper = mount(StatsTableByTournament, {
+      props: { rows: [], loading: false },
+    });
     expect(wrapper.text()).toContain("Sin datos");
   });
 });

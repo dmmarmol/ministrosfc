@@ -9,8 +9,8 @@ test.describe("Filter URL roundtrip (authenticated)", () => {
   test.skip(true, "Requires authenticated session — run with saved auth state");
 
   test("SC-003: year filter encodes into URL", async ({ page }) => {
-    await page.goto("/stats/years");
-    await expect(page).toHaveURL(/\/stats\/years/);
+    await page.goto("/statistics/years");
+    await expect(page).toHaveURL(/\/statistics\/years/);
 
     const yearSelect = page.locator("select").first();
     const options = yearSelect.locator("option");
@@ -25,7 +25,7 @@ test.describe("Filter URL roundtrip (authenticated)", () => {
   });
 
   test("SC-004: reload with URL params restores filter", async ({ page }) => {
-    await page.goto("/stats/years?year=2022");
+    await page.goto("/statistics/years?year=2022");
     await expect(page).toHaveURL(/year=2022/);
 
     const yearSelect = page.locator("select").first();
@@ -34,9 +34,9 @@ test.describe("Filter URL roundtrip (authenticated)", () => {
   });
 
   test("invalid year param is ignored gracefully", async ({ page }) => {
-    await page.goto("/stats/years?year=invalid");
+    await page.goto("/statistics/years?year=invalid");
     // Page should still render without error
-    await expect(page).toHaveURL(/\/stats\/years/);
+    await expect(page).toHaveURL(/\/statistics\/years/);
     await expect(page.locator("body")).not.toContainText("Error");
   });
 });

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
 import StatsTableByYear from "~/components/pages/stats/StatsTableByYear.vue";
-import type { TeamStatPeriodDTO } from "@ministrosfc/shared/types/statistics";
+import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 
 const row: TeamStatPeriodDTO = {
   label: "2023",
@@ -22,7 +22,9 @@ const row: TeamStatPeriodDTO = {
 
 describe("StatsTableByYear", () => {
   it("renders all expected columns", () => {
-    const wrapper = mount(StatsTableByYear, { props: { rows: [row], loading: false } });
+    const wrapper = mount(StatsTableByYear, {
+      props: { rows: [row], loading: false },
+    });
     const text = wrapper.text();
     expect(text).toContain("Año");
     expect(text).toContain("Período");
@@ -38,7 +40,9 @@ describe("StatsTableByYear", () => {
   });
 
   it("maps row data correctly", () => {
-    const wrapper = mount(StatsTableByYear, { props: { rows: [row], loading: false } });
+    const wrapper = mount(StatsTableByYear, {
+      props: { rows: [row], loading: false },
+    });
     const text = wrapper.text();
     expect(text).toContain("2023");
     expect(text).toContain("30");
@@ -49,12 +53,16 @@ describe("StatsTableByYear", () => {
   });
 
   it("shows empty state when rows is empty", () => {
-    const wrapper = mount(StatsTableByYear, { props: { rows: [], loading: false } });
+    const wrapper = mount(StatsTableByYear, {
+      props: { rows: [], loading: false },
+    });
     expect(wrapper.text()).toContain("Sin datos");
   });
 
   it("shows loading skeleton when loading=true", () => {
-    const wrapper = mount(StatsTableByYear, { props: { rows: [], loading: true } });
+    const wrapper = mount(StatsTableByYear, {
+      props: { rows: [], loading: true },
+    });
     const animatedDiv = wrapper.find(".animate-pulse");
     expect(animatedDiv.exists()).toBe(true);
   });

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
 import StatsHeader from "~/components/pages/stats/StatsHeader.vue";
-import type { TeamSummaryHeaderDTO } from "@ministrosfc/shared/types/statistics";
+import type { TeamSummaryHeaderDTO } from "@ministrosfc/shared";
 
 const baseSummary: TeamSummaryHeaderDTO = {
   totalGames: 100,
@@ -15,8 +15,18 @@ const baseSummary: TeamSummaryHeaderDTO = {
   rivalMostWins: { name: "Rival B", count: 15 },
   rivalMostLosses: { name: "Rival C", count: 8 },
   rivalMostDraws: { name: "Rival D", count: 5 },
-  bestWin: { rival: "Rival E", tournament: "Liga", date: "2022-05-01", score: "5-0" },
-  worstLoss: { rival: "Rival F", tournament: "Copa", date: "2021-03-10", score: "0-4" },
+  bestWin: {
+    rival: "Rival E",
+    tournament: "Liga",
+    date: "2022-05-01",
+    score: "5-0",
+  },
+  worstLoss: {
+    rival: "Rival F",
+    tournament: "Copa",
+    date: "2021-03-10",
+    score: "0-4",
+  },
   rivalMostGoalsFor: { name: "Rival G", totalGoals: 30 },
   rivalMostGoalsAgainst: { name: "Rival H", totalGoals: 20 },
   topScorer: { name: "Juan Perez", goals: 45 },

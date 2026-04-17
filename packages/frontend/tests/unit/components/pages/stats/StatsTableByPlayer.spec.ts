@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
 import StatsTableByPlayer from "~/components/pages/stats/StatsTableByPlayer.vue";
-import type { PlayerStatRowDTO } from "@ministrosfc/shared/types/statistics";
+import type { PlayerStatRowDTO } from "@ministrosfc/shared";
 
 const row: PlayerStatRowDTO = {
   playerId: "player-1",
@@ -22,7 +22,9 @@ const row: PlayerStatRowDTO = {
 
 describe("StatsTableByPlayer", () => {
   it("renders all-players mode headers", () => {
-    const wrapper = mount(StatsTableByPlayer, { props: { rows: [row], mode: "all", loading: false } });
+    const wrapper = mount(StatsTableByPlayer, {
+      props: { rows: [row], mode: "all", loading: false },
+    });
     const text = wrapper.text();
     expect(text).toContain("Jugador");
     expect(text).toContain("PJ");
@@ -34,12 +36,16 @@ describe("StatsTableByPlayer", () => {
   });
 
   it("renders single-player mode with year header", () => {
-    const wrapper = mount(StatsTableByPlayer, { props: { rows: [row], mode: "single", loading: false } });
+    const wrapper = mount(StatsTableByPlayer, {
+      props: { rows: [row], mode: "single", loading: false },
+    });
     expect(wrapper.text()).toContain("Año");
   });
 
   it("maps row data with nickname", () => {
-    const wrapper = mount(StatsTableByPlayer, { props: { rows: [row], mode: "all", loading: false } });
+    const wrapper = mount(StatsTableByPlayer, {
+      props: { rows: [row], mode: "all", loading: false },
+    });
     const text = wrapper.text();
     expect(text).toContain("Juancho");
     expect(text).toContain("20");
@@ -47,12 +53,16 @@ describe("StatsTableByPlayer", () => {
   });
 
   it("displays goalRate as decimal", () => {
-    const wrapper = mount(StatsTableByPlayer, { props: { rows: [row], mode: "all", loading: false } });
+    const wrapper = mount(StatsTableByPlayer, {
+      props: { rows: [row], mode: "all", loading: false },
+    });
     expect(wrapper.text()).toContain("0.40");
   });
 
   it("shows empty state", () => {
-    const wrapper = mount(StatsTableByPlayer, { props: { rows: [], mode: "all", loading: false } });
+    const wrapper = mount(StatsTableByPlayer, {
+      props: { rows: [], mode: "all", loading: false },
+    });
     expect(wrapper.text()).toContain("Sin datos");
   });
 });
