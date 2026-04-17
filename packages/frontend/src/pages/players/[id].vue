@@ -1,35 +1,38 @@
 <script setup lang="ts">
 definePageMeta({ public: true });
-const { $api } = useNuxtApp();
+import { useGetPlayerById } from "~/composables/useGetPlayerById";
+import { useGetPlayerStatsById } from "~/composables/useGetPlayerStatsById";
 const route = useRoute();
+const router = useRouter();
 const id = route.params.id as string;
 
-const [{ data: playerData, pending }, { data: statsData }] = await Promise.all([
-  useAsyncData(`player-${id}`, () =>
-    $api<{ data: any }>(`/api/v1/players/${id}`),
-  ),
-  useAsyncData(`player-stats-${id}`, () =>
-    $api<{ data: any }>(`/api/v1/statistics/players/${id}`),
-  ),
-]);
-const player = computed(() => playerData.value?.data ?? null);
-const stats = computed(() => statsData.value?.data ?? null);
-const tournamentStats = computed(() => stats.value?.byTournament ?? []);
+const year = computed(() => route.query.year as string | undefined);
+
+const { player, pending } = await useGetPlayerById(id);
+
+const { stats, availableYears } = await useGetPlayerStatsById(id, { year });
 
 const statCards = computed(() => {
-  const s = stats.value ?? {};
+  const s = stats.value;
   return [
-    { label: "Goals", value: s.goals ?? 0 },
-    { label: "Assists", value: s.assists ?? 0 },
-    { label: "Appearances", value: s.appearances ?? 0 },
-    { label: "Yellow Cards", value: s.yellowCards ?? 0 },
+    { label: "Goles", value: s?.goalsScored ?? 0 },
+    { label: "Asistencias", value: s?.assists ?? 0 },
+    { label: "Partidos", value: s?.appearances ?? 0 },
+    { label: "Tarjetas amarillas", value: s?.yellowCards ?? 0 },
+    { label: "Tarjetas rojas", value: s?.redCards ?? 0 },
+    { label: "Minutos", value: s?.totalMinutes ?? 0 },
   ];
 });
+
+async function onYearChange(e: Event) {
+  const val = (e.target as HTMLSelectElement).value;
+  await router.push({ query: { ...route.query, year: val || undefined } });
+}
 
 useHead(() => ({
   title: player.value
     ? `${player.value.firstName} ${player.value.lastName} – Ministros FC`
-    : "Player",
+    : "Jugador no encontrado – Ministros FC",
 }));
 </script>
 
@@ -76,7 +79,23 @@ useHead(() => ({
       </div>
 
       <!-- Career stats -->
-      <h2 class="text-lg font-bold text-gray-800 mb-4">Career Statistics</h2>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-800">Estadísticas de carrera</h2>
+        <select
+          :value="year"
+          class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand"
+          @change="onYearChange"
+        >
+          <option value="">Todos los años</option>
+          <option
+            v-for="y in availableYears"
+            :key="y"
+            :value="String(y)"
+          >
+            {{ y }}
+          </option>
+        </select>
+      </div>
       <div v-if="stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         <div
           v-for="stat in statCards"
@@ -88,49 +107,10 @@ useHead(() => ({
         </div>
       </div>
 
-      <!-- Per-tournament breakdown -->
-      <h2
-        v-if="tournamentStats.length"
-        class="text-lg font-bold text-gray-800 mb-4"
-      >
-        By Tournament
-      </h2>
-      <div
-        v-if="tournamentStats.length"
-        class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
-      >
-        <table class="w-full text-sm">
-          <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
-            <tr>
-              <th class="px-4 py-3 text-left">Tournament</th>
-              <th class="px-4 py-3 text-right">Goals</th>
-              <th class="px-4 py-3 text-right">Assists</th>
-              <th class="px-4 py-3 text-right">Games</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="row in tournamentStats"
-              :key="row.tournamentId"
-              class="border-t border-gray-100"
-            >
-              <td class="px-4 py-3 font-medium">
-                {{ row.tournamentName ?? "Season" }}
-              </td>
-              <td class="px-4 py-3 text-right font-bold text-brand">
-                {{ row.goals }}
-              </td>
-              <td class="px-4 py-3 text-right text-gray-600">
-                {{ row.assists }}
-              </td>
-              <td class="px-4 py-3 text-right text-gray-600">
-                {{ row.appearances }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- Per-tournament breakdown: not yet available from API -->
     </template>
-    <div v-else class="text-center py-16 text-gray-500">Player not found.</div>
+    <div v-else class="text-center py-16 text-gray-500">
+      Jugador no encontrado.
+    </div>
   </div>
 </template>
