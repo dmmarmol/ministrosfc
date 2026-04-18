@@ -30,16 +30,17 @@ describe("StatsTableByPlayer", () => {
     expect(text).toContain("PJ");
     expect(text).toContain("Goles");
     expect(text).toContain("Asist.");
-    expect(text).toContain("%V");
-    expect(text).toContain("GPJ");
-    expect(text).toContain("%Part.");
+    expect(text).toContain("Win%");
+    expect(text).toContain("GR");
+    expect(text).toContain("Part.%");
   });
 
-  it("renders single-player mode with year header", () => {
+  it("renders single-player mode columns", () => {
     const wrapper = mount(StatsTableByPlayer, {
       props: { rows: [row], mode: "single", loading: false },
     });
-    expect(wrapper.text()).toContain("Año");
+    expect(wrapper.text()).toContain("PJ");
+    expect(wrapper.text()).toContain("Win%");
   });
 
   it("maps row data with nickname", () => {

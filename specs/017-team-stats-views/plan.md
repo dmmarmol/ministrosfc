@@ -93,25 +93,28 @@ packages/shared/
 packages/frontend/
 └── src/
     ├── layouts/
-    │   └── statistics.vue                     ← NEW (Phase 12): two-column layout wrapping all /statistics/* pages;
-    │                                               left sidebar renders <StatisticsSubNav> v-if authenticated;
-    │                                               right column is the page <slot />
+    │   ├── statistics.vue                     ← NEW (Phase 12): two-column layout — left <StatisticsSubNav>, right <slot />;
+    │   │                                           used by public pages (index.vue, top-scorers.vue) and single-entity detail
+    │   │                                           pages (rivals/[id].vue, players/[id].vue)
+    │   └── statistics-private.vue             ← NEW (Amendment 2026-04-17): extends statistics.vue with a top-mounted
+    │                                               <StatsFilters> bar; used by 4 list pages (years, tournaments, rivals/index,
+    │                                               players/index); owns all filter → URL wiring via useQueryParams
     ├── pages/
     │   ├── statistics/
     │   │   ├── index.vue                      ← NEW: public top-scorers table + conditional sub-nav
     │   │   │                                      definePageMeta({ layout: 'statistics', public: true })
     │   │   ├── years.vue                      ← NEW (moved from stats/ in Phase 12): All Years focus mode
-    │   │   │                                      definePageMeta({ layout: 'statistics', middleware: "auth", requiresAuth: true })
+    │   │   │                                      definePageMeta({ layout: 'statistics-private', middleware: "auth", requiresAuth: true })
     │   │   ├── tournaments.vue                ← NEW (moved from stats/ in Phase 12): All Tournaments focus mode
-    │   │   │                                      definePageMeta({ layout: 'statistics', middleware: "auth", requiresAuth: true })
+    │   │   │                                      definePageMeta({ layout: 'statistics-private', middleware: "auth", requiresAuth: true })
     │   │   ├── rivals/
     │   │   │   ├── index.vue                  ← NEW (moved from stats/ in Phase 12): All Rivals focus mode
-    │   │   │   │                                  definePageMeta({ layout: 'statistics', middleware: "auth", requiresAuth: true })
+    │   │   │   │                                  definePageMeta({ layout: 'statistics-private', middleware: "auth", requiresAuth: true })
     │   │   │   └── [id].vue                   ← NEW (moved from stats/ in Phase 12): Single Rival focus mode
     │   │   │                                      definePageMeta({ layout: 'statistics', middleware: "auth", requiresAuth: true })
     │   │   └── players/
     │   │       ├── index.vue                  ← NEW (moved from stats/ in Phase 12): All Players focus mode
-    │   │       │                                  definePageMeta({ layout: 'statistics', middleware: "auth", requiresAuth: true })
+    │   │       │                                  definePageMeta({ layout: 'statistics-private', middleware: "auth", requiresAuth: true })
     │   │       └── [id].vue                   ← NEW (moved from stats/ in Phase 12): Single Player focus mode
     │   │                                          definePageMeta({ layout: 'statistics', middleware: "auth", requiresAuth: true })
     │   └── players/
@@ -128,8 +131,23 @@ packages/frontend/
     │       │   └── StatsTableByPlayer.vue
     │       └── statistics/
     │           └── StatisticsSubNav.vue       ← NEW (Phase 12): vertical auth-gated sidebar nav component
+    ├── types/
+    │   └── table.ts                           ← NEW (Phase 13): ColumnDef interface { key, label, title?, sortable? }
+    └── components/
+        └── ui/
+            └── Table.vue                      ← NEW (Phase 13): <UiTable> generic nuxt/ui wrapper;
+                                                   accepts columns: ColumnDef[], forwards $attrs + slots to <UTable>
     └── composables/
-        └── useStatsFilters.ts                 ← NEW: URL query param sync for all filter state
+        ├── useStatsFilters.ts                   ← ORIGINAL PLAN — superseded by useQueryParams (Amendment 2026-04-17)
+        ├── useQueryParams.ts                    ← NEW (Amendment 2026-04-17): single authorised mutation point for URL
+        │                                             query state; get/set/remove; set("") removes key cleanly
+        ├── useStatisticsAvailableYears.ts       ← NEW (Amendment 2026-04-17): fetches GET /statistics/years
+        ├── useStatisticsAvailableTournaments.ts ← NEW (Amendment 2026-04-17): fetches GET /tournaments;
+        │                                             deduplicates by name
+        ├── useStatisticsAvailableRivals.ts      ← NEW (Amendment 2026-04-17): fetches GET /teams;
+        │                                             sorted alphabetically
+        └── useStatisticsAvailablePlayers.ts     ← NEW (Amendment 2026-04-17): fetches GET /players?limit=200;
+                                                      sorted alphabetically
 
 data/
 ├── historial.csv    ← source of historical game data (997 rows)

@@ -104,4 +104,10 @@ export interface CsvImportResultDTO {
 }
 
 /** Determines which filter selects are shown in the statistics filter bar. */
-export type StatsFiltersMode = "years" | "tournaments" | "rivals" | "players";
+export type StatsFiltersMode =
+  | "years"
+  | "tournaments"
+  | "rivals"
+  | "players"
+  | "player"
+  | "rival";

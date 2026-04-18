@@ -73,6 +73,7 @@ _Note: T008–T015 in Phase 2 deliver the implementation for US5. T016–T017 ar
 - [x] T022 [P] [US2] Create `packages/frontend/src/components/pages/stats/StatsHeader.vue`: props `{ summary: TeamSummaryHeaderDTO }`; renders all 10 all-time records (rival most played, most wins, most losses, most draws, best win, worst loss, most goals for, most goals against, top scorer, all-time totals); graceful empty/zero state
 - [x] T023 [P] [US2] Create `packages/frontend/src/components/pages/stats/StatsFocusSelector.vue`: props `{ modelValue: string }`, emits `update:modelValue`; renders focus mode options: All Years, All Tournaments, All Rivals, Specific Rival, All Players, Single Player
 - [x] T024 [P] [US2] Create `packages/frontend/src/components/pages/stats/StatsFilters.vue`: props `{ mode, years, tournaments, rivals, players }`; shows relevant `<select>` dropdowns per mode (year always visible; tournament for tournament mode; rival for rival mode; player for player mode); emits filter change events
+- [x] T024b [Retro] `StatsFilters.vue` implementation diverged from T024: all four option-list props (`years`, `tournaments`, `rivals`, `players`) were removed; the component now self-loads each option list via dedicated composables (`useStatisticsAvailableYears`, `useStatisticsAvailableTournaments`, `useStatisticsAvailableRivals`, `useStatisticsAvailablePlayers`). The `mode` prop is the only external prop that remains. Change documented per Amendment 2026-04-17.
 - [x] T025 [P] [US2] Create `packages/frontend/src/components/pages/stats/StatsTableByYear.vue`: props `{ rows: TeamStatPeriodDTO[], loading: boolean }`; columns: Year, Period, Games, W, L, D, GF, GA, GD, Pts, Win%; empty state: "Sin datos"
 - [x] T026a [US2] Create `packages/frontend/src/pages/stats/index.vue`: `definePageMeta({ middleware: "auth", requiresAuth: true })`; redirect to `/stats/years` via `navigateTo('/stats/years', { replace: true })` in `<script setup>`
 - [x] T026b [US2] Create `packages/frontend/src/pages/stats/years.vue`: `definePageMeta({ middleware: "auth", requiresAuth: true })`; inject `useStatsFilters()`; fetch `/api/v1/statistics/team/summary` (once) and `/api/v1/statistics/team/by-year` (reactive to year/tournament filter); render `<StatsHeader>`, `<StatsFilters mode="years">`, `<StatsTableByYear>`
@@ -266,6 +267,40 @@ T061 + T062 (verify + E2E update) → T057c + T058 + T059 + T060 complete
 
 ---
 
+## Retrospective Tasks (Amendment 2026-04-17)
+
+- [x] T064 [Retro] Wire `playerId` filter end-to-end: `aggregatePlayersAll` (model) and `getAllPlayerStats` (service) accept `playerId?: string`; cache key includes `playerId` segment; `GET /statistics/players` (route) parses and passes `playerId`; `players/index.vue` includes `playerId` in the `useAsyncData` query params.
+- [x] T065 [Retro] Add `id: string` to `topScorer` in `TeamSummaryHeaderDTO` (`packages/shared/src/types/statistics.ts`); update `StatisticsModel.getTeamSummaryHeader` to capture `topScorerId` from the aggregation result; render `topScorer` as a `<NuxtLink :to="\`/players/${id}\`">`in`StatsHeader.vue`; rebuild `@ministrosfc/shared`.
+
+---
+
+## Phase 13: Stats Table Component — `<UiTable>` + `<StatsTable>` (FR-026–FR-031, A2)
+
+**Goal**: Replace all hand-made `<table>` elements in the four private statistics table components with a two-tier reusable stack: `<UiTable>` (generic `nuxt/ui` wrapper) → `<StatsTable>` (stats-specific decorator with client-side sorting and header tooltips). Extend `StatsFiltersMode` in `@ministrosfc/shared` with the singular variants already in use.
+
+**Independent Test**: Navigate to any private stats page → table renders via `<UiTable>` with no raw `<table>` HTML in the DOM outside `nuxt/ui` internals. Click a sortable column header → rows reorder without additional API calls. Hover over an abbreviated header (e.g. "PJ") → browser tooltip shows "Partidos Jugados". Click a non-sortable column → no reorder.
+
+- [x] T066 [FR-029, A2] Extend `StatsFiltersMode` in `packages/shared/src/types/statistics.ts` to `"years" | "tournaments" | "rivals" | "players" | "player" | "rival"`; rebuild `@ministrosfc/shared` (`npm run build` in `packages/shared`)
+- [x] T067 [FR-029] Create `packages/frontend/src/types/table.ts`: export `ColumnDef` interface `{ key: string; label: string; title?: string; sortable?: boolean }`
+- [x] T068 [FR-026] Create `packages/frontend/src/components/ui/Table.vue` (`<UiTable>`): accepts `columns: ColumnDef[]` and `rows: Record<string, unknown>[]` props; maps each `ColumnDef` to a `<UTable>` column config (passing `key`, `label`); passes all unrecognised attributes and slots to `<UTable>` via `v-bind="$attrs"` and `<slot>` forwarding; no sorting logic; no statistics-specific concerns; no custom HTML `<table>` elements
+- [x] T069 [FR-026, FR-027, FR-028] Create `packages/frontend/src/components/pages/stats/StatsTable.vue`: wraps `<UiTable>`; reactive `sortKey: string | null` and `sortDir: 'asc' | 'desc'` state; computed `sortedRows` — sorts rows client-side when `sortKey` is set, passes through unchanged otherwise; on column header click: if column `sortable` is false → no-op; if same key → toggle asc → desc → reset (null); if new key → set key + asc; renders column headers via `<UTable>` slot with native HTML `title` attribute when `column.title` is a non-empty string; absent or empty `title` → no `title` attribute rendered (silent no-op)
+- [x] T070 [FR-031] Replace hand-made `<table>` markup in `statistics/top-scorers.vue`, `StatsTableByYear.vue`, `StatsTableByTournament.vue`, `StatsTableByRival.vue`, and `StatsTableByPlayer.vue` with `<StatsTable :columns="columns" :rows="rows">` using the column configs from spec.md Amendment 2026-04-17 §Column Configuration Reference; remove all `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>` raw HTML from those files; use `<UTable>` scoped slots (passed through via `<StatsTable>`) for the top-scorers `rank` (index) and `name` (`NuxtLink`) custom cells
+- [x] T071 [P] Write unit tests `packages/frontend/tests/unit/components/ui/Table.spec.ts`: renders column headers from `ColumnDef[]`; `title` attribute present on header when `column.title` is non-empty; `title` attribute absent when `column.title` is missing or empty string; rows render in order passed
+- [x] T072 [P] Write unit tests `packages/frontend/tests/unit/components/pages/stats/StatsTable.spec.ts`: clicking sortable column → rows reorder ascending; clicking same column again → rows reorder descending; clicking a third time → original order restored (sort reset); clicking non-sortable column → no reorder; no additional API calls on sort
+
+---
+
+## Dependencies (Phase 13)
+
+```
+T067 (ColumnDef type) → T068 (UiTable) → T069 (StatsTable) → T070 (replace table markup)
+T066 (StatsFiltersMode in shared) — standalone, no Phase 13 blocking dependencies
+T071 (UiTable unit test) — parallel with T068
+T072 (StatsTable unit test) — parallel with T069
+```
+
+---
+
 ## Phase 12: UI Nav Consolidation – Unify `statistics/` and `stats/` under one route (Priority: P2)
 
 **Goal**: Merge all stats content under a single `/statistics` route prefix. The route split separates public top-scorers (`/statistics/top-scorers`) from the authenticated team-summary (`/statistics`). The main nav link redirects conditionally. A persistent side-nav shows two public links always and four auth-gated links when authenticated. The `/stats/` prefix is removed entirely — requests to `/stats/*` result in a 404.
@@ -281,6 +316,6 @@ T061 + T062 (verify + E2E update) → T057c + T058 + T059 + T060 complete
 - [x] T058 [US7] Move all files under `pages/stats/` to `pages/statistics/` preserving sub-directory structure; update `definePageMeta` to add `layout: 'statistics'` in each; update any `navigateTo('/stats/...')` calls to `/statistics/...`; no redirect rules for `/stats/` — 404 intentional
 - [x] T059 [US7] Delete the now-empty `pages/stats/` directory; verify no remaining `/stats/` references in the codebase; confirm `pages/statistics.vue` (legacy root file) was deleted to avoid Nuxt routing conflict
 - [x] T060 [US7] Update `components/common/Navigation.vue` "Estadísticas" link (desktop + mobile) to use `:to="authStore.isAuthenticated ? '/statistics' : '/statistics/top-scorers'"` (conditional redirect per FR-025)
-- [x] T061 [P] [US7] Auth-guard regression check: confirmed `definePageMeta({ layout: 'statistics', middleware: 'auth', requiresAuth: true })` present in all 6 pages (`years.vue`, `tournaments.vue`, `rivals/index.vue`, `rivals/[id].vue`, `players/index.vue`, `players/[id].vue`); redirect-back behaviour relies on existing `auth.ts` middleware which passes original URL as `redirect` query param — no behavioural change needed; manual browser verification pending (T049-style)
+- [x] T061 [P] [US7] Auth-guard regression check: confirmed `definePageMeta({ layout: 'statistics-private', middleware: 'auth', requiresAuth: true })` in the 4 list pages (`years.vue`, `tournaments.vue`, `rivals/index.vue`, `players/index.vue`) and `definePageMeta({ layout: 'statistics', middleware: 'auth', requiresAuth: true })` in the 2 detail pages (`rivals/[id].vue`, `players/[id].vue`) — detail pages use the base `statistics` layout because they embed `<StatsFilters>` directly in their own template rather than relying on the layout-mounted filter bar; redirect-back behaviour relies on existing `auth.ts` middleware passing original URL as `redirect` query param — no behavioural change needed; manual browser verification pending (T049-style)
 - [x] T062 [P] [US7] Update Playwright E2E test `packages/frontend/tests/e2e/stats/auth-guard.spec.ts`: replace all `/stats/*` path strings with `/statistics/*` equivalents; update `filter-url-roundtrip.spec.ts` similarly; add assertion that `/stats/years` returns 404
 - [x] T063 [US7] Fix `statistics/index.vue` E2 guard: wrap the `useAsyncData` team/summary fetch so it returns `Promise.resolve(null)` when `!authStore.isAuthenticated` — prevents 401 being triggered for anonymous visitors (was: always fetched unconditionally)

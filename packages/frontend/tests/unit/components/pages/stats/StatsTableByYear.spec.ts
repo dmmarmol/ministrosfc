@@ -29,14 +29,14 @@ describe("StatsTableByYear", () => {
     expect(text).toContain("Año");
     expect(text).toContain("Período");
     expect(text).toContain("PJ");
-    expect(text).toContain("V");
-    expect(text).toContain("D");
-    expect(text).toContain("E");
+    expect(text).toContain("PG");
+    expect(text).toContain("PP");
+    expect(text).toContain("PE");
     expect(text).toContain("GF");
     expect(text).toContain("GC");
     expect(text).toContain("DG");
-    expect(text).toContain("Pts");
-    expect(text).toContain("%V");
+    expect(text).toContain("PTS");
+    expect(text).toContain("Win%");
   });
 
   it("maps row data correctly", () => {

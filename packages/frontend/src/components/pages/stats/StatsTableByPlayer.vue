@@ -1,77 +1,113 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import type { PlayerStatRowDTO } from "@ministrosfc/shared";
+import type { ColumnDef } from "~/types/table";
 
-defineProps<{
+const props = defineProps<{
   rows: PlayerStatRowDTO[];
   mode: "all" | "single";
   loading: boolean;
 }>();
+
+const allColumns: ColumnDef[] = [
+  { key: "name", label: "Jugador", title: "Jugador", sortable: true },
+  { key: "games", label: "PJ", title: "Partidos Jugados", sortable: true },
+  { key: "wins", label: "PG", title: "Partidos Ganados", sortable: true },
+  { key: "losses", label: "PP", title: "Partidos Perdidos", sortable: true },
+  { key: "draws", label: "PE", title: "Partidos Empatados", sortable: true },
+  { key: "goals", label: "Goles", title: "Goles", sortable: true },
+  { key: "assists", label: "Asist.", title: "Asistencias", sortable: true },
+  { key: "goalRate", label: "GR", title: "Ritmo Goleador", sortable: true },
+  {
+    key: "winRate",
+    label: "Win%",
+    title: "Porcentaje de Victorias",
+    sortable: true,
+  },
+  {
+    key: "participationRate",
+    label: "Part.%",
+    title: "Porcentaje de Participación",
+    sortable: true,
+  },
+];
+
+// Single-player mode reuses the same DTO fields — year/tournament/rival
+// breakdown is not yet available in PlayerStatRowDTO.
+const singleColumns: ColumnDef[] = [
+  { key: "games", label: "PJ", title: "Partidos Jugados", sortable: true },
+  { key: "wins", label: "PG", title: "Partidos Ganados", sortable: true },
+  { key: "losses", label: "PP", title: "Partidos Perdidos", sortable: true },
+  { key: "draws", label: "PE", title: "Partidos Empatados", sortable: true },
+  { key: "goals", label: "Goles", title: "Goles", sortable: true },
+  { key: "assists", label: "Asist.", title: "Asistencias", sortable: true },
+  { key: "goalRate", label: "GR", title: "Ritmo Goleador", sortable: true },
+  {
+    key: "winRate",
+    label: "Win%",
+    title: "Porcentaje de Victorias",
+    sortable: true,
+  },
+  {
+    key: "participationRate",
+    label: "Part.%",
+    title: "Porcentaje de Participación",
+    sortable: true,
+  },
+];
+
+const columns = computed(() =>
+  props.mode === "all" ? allColumns : singleColumns,
+);
+
+const tableRows = computed(() =>
+  props.rows.map((row) => ({
+    name: row.playerName,
+    nickname: row.playerNickname ?? null,
+    games: row.gamesPlayed,
+    wins: row.wins,
+    losses: row.losses,
+    draws: row.draws,
+    goals: row.goals,
+    assists: row.assists,
+    goalRate: row.goalRate,
+    winRate: row.winRate,
+    participationRate: row.participationRate,
+  })),
+);
 </script>
 
 <template>
-  <div>
-    <div v-if="loading" class="space-y-2">
-      <div
-        v-for="i in 5"
-        :key="i"
-        class="h-8 bg-gray-100 rounded animate-pulse"
-      />
-    </div>
-    <div v-else-if="rows.length === 0" class="text-center text-gray-400 py-8">
-      Sin datos
-    </div>
-    <div v-else class="overflow-x-auto">
-      <table class="w-full text-sm text-left text-gray-900">
-        <thead class="bg-gray-50 text-gray-900 uppercase text-xs">
-          <tr>
-            <th class="px-3 py-2">{{ mode === "all" ? "Jugador" : "Año" }}</th>
-            <th class="px-3 py-2 text-right">PJ</th>
-            <th class="px-3 py-2 text-right">V</th>
-            <th class="px-3 py-2 text-right">D</th>
-            <th class="px-3 py-2 text-right">E</th>
-            <th class="px-3 py-2 text-right">Goles</th>
-            <th class="px-3 py-2 text-right">Asist.</th>
-            <th class="px-3 py-2 text-right">%V</th>
-            <th class="px-3 py-2 text-right">GPJ</th>
-            <th class="px-3 py-2 text-right">%Part.</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-          <tr v-for="row in rows" :key="row.playerId" class="hover:bg-gray-50">
-            <td class="px-3 py-2 font-medium">
-              <div class="flex gap-x-2 items-baseline">
-                <p class="text-base">
-                  {{ row.playerName }}
-                </p>
-                <p class="text-sm text-gray-400">
-                  {{ row.playerNickname }}
-                </p>
-              </div>
-            </td>
-            <td class="px-3 py-2 text-right">{{ row.gamesPlayed }}</td>
-            <td class="px-3 py-2 text-right text-green-600">{{ row.wins }}</td>
-            <td class="px-3 py-2 text-right text-red-500">{{ row.losses }}</td>
-            <td class="px-3 py-2 text-right text-yellow-500">
-              {{ row.draws }}
-            </td>
-            <td class="px-3 py-2 text-right font-medium">{{ row.goals }}</td>
-            <td class="px-3 py-2 text-right">{{ row.assists }}</td>
-            <td class="px-3 py-2 text-right">
-              {{ row.winRate != null ? row.winRate.toFixed(1) : "—" }}%
-            </td>
-            <td class="px-3 py-2 text-right">
-              {{ row.goalRate != null ? row.goalRate.toFixed(2) : "—" }}
-            </td>
-            <td class="px-3 py-2 text-right">
-              {{
-                row.participationRate != null
-                  ? row.participationRate.toFixed(1)
-                  : "—"
-              }}%
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+  <StatsTable :columns="columns" :rows="tableRows" :loading="loading">
+    <template #name-data="{ row }">
+      <div class="flex gap-x-2 items-baseline">
+        <span class="font-medium">{{ row.name }}</span>
+        <span v-if="row.nickname" class="text-sm text-gray-400">{{
+          row.nickname
+        }}</span>
+      </div>
+    </template>
+    <template #wins-data="{ row }">
+      <span class="text-green-600">{{ row.wins }}</span>
+    </template>
+    <template #losses-data="{ row }">
+      <span class="text-red-500">{{ row.losses }}</span>
+    </template>
+    <template #draws-data="{ row }">
+      <span class="text-yellow-500">{{ row.draws }}</span>
+    </template>
+    <template #goalRate-data="{ row }">
+      {{ row.goalRate != null ? Number(row.goalRate).toFixed(2) : "—" }}
+    </template>
+    <template #winRate-data="{ row }">
+      {{ row.winRate != null ? (Number(row.winRate) * 100).toFixed(1) : "—" }}%
+    </template>
+    <template #participationRate-data="{ row }">
+      {{
+        row.participationRate != null
+          ? (Number(row.participationRate) * 100).toFixed(1)
+          : "—"
+      }}%
+    </template>
+  </StatsTable>
 </template>

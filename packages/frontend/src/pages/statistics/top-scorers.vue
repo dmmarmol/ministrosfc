@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { ColumnDef } from "~/types/table";
+
 definePageMeta({ layout: "statistics", public: true });
 useHead({ title: "Goleadores – Ministros FC" });
 
@@ -51,6 +53,30 @@ const filteredScorers = computed(() => {
 });
 
 watch(tournamentFilter, () => refresh());
+
+const columns: ColumnDef[] = [
+  { key: "rank", label: "#", title: "Posición", sortable: false },
+  { key: "name", label: "Jugador", title: "Jugador", sortable: true },
+  { key: "goalsScored", label: "Goles", title: "Goles", sortable: true },
+  { key: "assists", label: "Asist.", title: "Asistencias", sortable: true },
+  {
+    key: "appearances",
+    label: "PJ",
+    title: "Partidos Jugados",
+    sortable: true,
+  },
+];
+
+const tableRows = computed(() =>
+  filteredScorers.value.map((entry, idx) => ({
+    rank: idx + 1,
+    name: `${entry.player?.firstName ?? ""} ${entry.player?.lastName ?? ""}`.trim(),
+    goalsScored: entry.goalsScored,
+    assists: entry.assists,
+    appearances: entry.appearances,
+    playerId: entry.player?.id ?? "",
+  })),
+);
 </script>
 
 <template>
@@ -76,61 +102,19 @@ watch(tournamentFilter, () => refresh());
       </select>
     </div>
 
-    <!-- Loading -->
-    <div v-if="pending" class="space-y-2">
-      <div
-        v-for="i in 10"
-        :key="i"
-        class="h-12 bg-gray-200 animate-pulse rounded"
-      />
-    </div>
-
-    <!-- Table -->
-    <div
-      v-else-if="filteredScorers.length"
-      class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
-    >
-      <table class="w-full text-sm text-gray-900">
-        <thead class="bg-gray-50 text-gray-900 uppercase text-xs">
-          <tr>
-            <th class="px-4 py-3 text-left">#</th>
-            <th class="px-4 py-3 text-left">Jugador</th>
-            <th class="px-4 py-3 text-right">Goles</th>
-            <th class="px-4 py-3 text-right">Asistencias</th>
-            <th class="px-4 py-3 text-right">Partidos</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="(entry, idx) in filteredScorers"
-            :key="entry.player?.id"
-            class="border-t border-gray-100 hover:bg-gray-50 transition-colors"
-          >
-            <td class="px-4 py-3 text-gray-400 font-bold">{{ idx + 1 }}</td>
-            <td class="px-4 py-3 font-medium">
-              <NuxtLink
-                :to="`/players/${entry.player?.id}`"
-                class="hover:text-brand transition-colors"
-              >
-                {{ entry.player?.firstName }} {{ entry.player?.lastName }}
-              </NuxtLink>
-            </td>
-            <td class="px-4 py-3 text-right font-bold text-brand">
-              {{ entry.goalsScored }}
-            </td>
-            <td class="px-4 py-3 text-right text-gray-600">
-              {{ entry.assists }}
-            </td>
-            <td class="px-4 py-3 text-right text-gray-600">
-              {{ entry.appearances }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div v-else class="text-center py-16 text-gray-500">
-      Sin estadísticas disponibles.
-    </div>
+    <!-- Table (loading and empty states handled internally by <StatsTable>) -->
+    <StatsTable :columns="columns" :rows="tableRows" :loading="pending">
+      <template #name-data="{ row }">
+        <NuxtLink
+          :to="`/players/${row.playerId}`"
+          class="font-medium hover:text-brand transition-colors"
+        >
+          {{ row.name }}
+        </NuxtLink>
+      </template>
+      <template #goalsScored-data="{ row }">
+        <span class="font-bold text-brand">{{ row.goalsScored }}</span>
+      </template>
+    </StatsTable>
   </div>
 </template>

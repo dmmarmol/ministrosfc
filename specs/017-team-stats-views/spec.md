@@ -293,7 +293,7 @@ The following column mappings define how the Google Spreadsheet exports map to t
 
 #### New: `useQueryParams` composable
 
-A new composable `packages/frontend/src/composables/useQueryParams.ts` was created as the single mutation point for URL query params. It exposes `get(key): string`, `set(key, value): Promise<void>`, and `remove(key): Promise<void>`. Calling `set("key", "")` removes the key from the URL cleanly. All direct `router.push({ query })` calls outside this composable are a constitution violation (Principle VI, v1.9.1).
+A new composable `packages/frontend/src/composables/useQueryParams.ts` was created as the single mutation point for URL query params. It exposes `get(key): string`, `set(key, value): Promise<void>`, and `remove(key): Promise<void>`. Calling `set("key", "")` removes the key from the URL cleanly. All direct `router.push({ query })` calls outside this composable are a constitution violation (Principle VI, v1.9.1). **Exception**: `navigateTo({ query: ... })` called from within a composable (e.g. `useStatsFilters.ts`) is permitted as an implementation detail — `navigateTo` is a Nuxt-level utility distinct from `useRouter().push()`. This exception applies only when the composable is itself the single mutation surface for URL state; direct `navigateTo({ query })` calls from page or component templates remain a violation.
 
 #### New: `statistics-private` Nuxt layout
 
@@ -305,7 +305,7 @@ A new layout `packages/frontend/src/layouts/statistics-private.vue` was introduc
 
 #### New: `StatsFiltersMode` shared type
 
-`export type StatsFiltersMode = "years" | "tournaments" | "rivals" | "players"` was added to `packages/shared/src/types/statistics.ts`. Both the layout and `StatsFilters` component import it from `@ministrosfc/shared`.
+`export type StatsFiltersMode = "years" | "tournaments" | "rivals" | "players"` was added to `packages/shared/src/types/statistics.ts`. Both the layout and `StatsFilters` component import it from `@ministrosfc/shared`. Two additional single-entity variants — `"player"` and `"rival"` — are confirmed used in `players/[id].vue` and `rivals/[id].vue` (detail pages where the filter bar is scoped to a single entity context, not an aggregate list). These variants are included in `StatsFiltersMode` as part of `@ministrosfc/shared` via T066.
 
 #### Backend: `tournamentName` filter propagated to all stats endpoints
 
@@ -334,3 +334,159 @@ The `tournamentName?: string` filter was added to `teamStatsQuerySchema` (Zod), 
 #### Constitution updated to v1.9.1
 
 A "URL Query Parameter Management (NON-NEGOTIABLE)" sub-rule was added to Principle VI. Direct `router.push({ query })` outside `useQueryParams` is defined as a Code Review gate violation.
+
+---
+
+### Amendment 2026-04-17 — Reusable Stats Table Component using nuxt/ui
+
+#### Context
+
+All statistics views in the frontend (years, tournaments, rivals, players) currently render hand-crafted `<table>` HTML elements directly inside each page component. This is inconsistent, duplicates layout logic, and provides no built-in sorting or accessible column labels.
+
+#### Table Component Architecture: `<UiTable>` + `<StatsTable>`
+
+The statistics table layer uses a two-tier component stack with clear separation of concerns, preparing the ground for future `<AdminTable>` reuse:
+
+- **`components/ui/Table.vue`** (`<UiTable>`) — a **generic, layout-agnostic** wrapper around `nuxt/ui`'s `<UTable>`. Accepts a `columns: ColumnDef[]` prop, renders no statistics-specific logic, and forwards all unrecognised props and slots to `<UTable>` via `v-bind="$attrs"` and `<slot>` forwarding. No custom HTML `<table>` elements are permitted inside `<UiTable>`.
+- **`components/pages/stats/StatsTable.vue`** (`<StatsTable>`) — a **statistics-specific decorator** that wraps `<UiTable>`. Owns client-side sort state and renders column `title` attributes for header tooltips. Has no knowledge of page-level data-fetching or routing.
+
+A future `<AdminTable>` (separate spec, admin layout) will wrap `<UiTable>` in the same pattern with admin-specific concerns.
+
+**FR-026**: Statistics table rendering MUST use the two-tier component architecture described above. `<UiTable>` (`components/ui/Table.vue`) wraps `nuxt/ui`'s `<UTable>` and accepts a `columns: ColumnDef[]` prop. It MUST forward all unrecognised props and slots to `<UTable>` via `v-bind="$attrs"` and `<slot>` forwarding. No custom HTML `<table>` elements are permitted inside `<UiTable>`.
+
+**FR-027**: `<StatsTable>` MUST support column-level sorting. Clicking any sortable column header MUST toggle between ascending and descending order. Sorting MUST be performed client-side on the already-fetched rows (no additional API calls).
+
+**FR-028**: Each `ColumnDef` MAY include an optional `title` string. When provided and non-empty, `<StatsTable>` MUST render a native HTML `title` attribute on the corresponding column header cell, enabling a browser tooltip with the full column name. When `title` is absent or an empty string, the `title` attribute MUST NOT be rendered — this is a valid, silent no-op. This allows headers to display abbreviated labels (e.g., `label: "PJ"`) while surfacing the full description (e.g., `title: "Partidos Jugados"`) on hover.
+
+**FR-029**: Column definitions MUST be passed as a `columns: ColumnDef[]` prop to both `<UiTable>` and `<StatsTable>`. The `ColumnDef` type is defined in `packages/frontend/src/types/table.ts`:
+
+```typescript
+export interface ColumnDef {
+  key: string;
+  label: string; // abbreviated header label (e.g. "PJ")
+  title?: string; // full label shown on hover (e.g. "Partidos Jugados")
+  sortable?: boolean; // defaults to false
+}
+```
+
+No columns are hardcoded in either component.
+
+**FR-030**: `<UiTable>` is layout-agnostic and available to both frontend and admin layouts. `<StatsTable>` MUST be scoped to the **frontend** layout only for this feature — admin-facing table decoration is a separate spec concern.
+
+**FR-031**: All statistics pages with tabular data MUST replace their current hand-made `<table>` markup with `<StatsTable>` — no raw `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, or `<td>` HTML MAY remain in those pages after this change. Pages in scope: `/statistics/top-scorers`, `/statistics/years`, `/statistics/tournaments`, `/statistics/rivals` (list + detail), `/statistics/players` (list + detail). Column configs to use are defined in the Column Configuration Reference below.
+
+#### Column Configuration Reference
+
+Column `key` values correspond to fields in `TeamStatPeriodDTO` / `PlayerStatRowDTO` or computed row properties. `sortable: true` enables client-side sorting in `<StatsTable>`. Columns requiring custom cell rendering (e.g. `NuxtLink`, computed rank) use `<UTable>`'s scoped slot passthrough via `<StatsTable>`.
+
+**Top-Scorers** (`/statistics/top-scorers`):
+
+| key         | label   | title            | sortable | notes                               |
+| ----------- | ------- | ---------------- | -------- | ----------------------------------- |
+| rank        | #       | Posición         | false    | computed index (slot: `idx + 1`)    |
+| name        | Jugador | Jugador          | true     | `NuxtLink` to `/players/:id` (slot) |
+| goalsScored | Goles   | Goles            | true     |                                     |
+| assists     | Asist.  | Asistencias      | true     |                                     |
+| appearances | PJ      | Partidos Jugados | true     |                                     |
+
+**StatsTableByYear** (`/statistics/years`):
+
+| key          | label   | title                   | sortable |
+| ------------ | ------- | ----------------------- | -------- |
+| year         | Año     | Año                     | true     |
+| period       | Período | Período                 | false    |
+| games        | PJ      | Partidos Jugados        | true     |
+| wins         | PG      | Partidos Ganados        | true     |
+| losses       | PP      | Partidos Perdidos       | true     |
+| draws        | PE      | Partidos Empatados      | true     |
+| goalsFor     | GF      | Goles a Favor           | true     |
+| goalsAgainst | GC      | Goles en Contra         | true     |
+| goalDiff     | DG      | Diferencia de Goles     | true     |
+| points       | PTS     | Puntos                  | true     |
+| winRate      | Win%    | Porcentaje de Victorias | true     |
+
+**StatsTableByTournament** (`/statistics/tournaments`):
+
+| key             | label   | title                    | sortable |
+| --------------- | ------- | ------------------------ | -------- |
+| tournament      | Torneo  | Torneo                   | true     |
+| year            | Año     | Año                      | true     |
+| period          | Período | Período                  | false    |
+| games           | PJ      | Partidos Jugados         | true     |
+| wins            | PG      | Partidos Ganados         | true     |
+| losses          | PP      | Partidos Perdidos        | true     |
+| draws           | PE      | Partidos Empatados       | true     |
+| goalsFor        | GF      | Goles a Favor            | true     |
+| goalsAgainst    | GC      | Goles en Contra          | true     |
+| goalDiff        | DG      | Diferencia de Goles      | true     |
+| goalRateFor     | GRF     | Ritmo Goleador a Favor   | true     |
+| goalRateAgainst | GRC     | Ritmo Goleador en Contra | true     |
+| points          | PTS     | Puntos                   | true     |
+| winRate         | Win%    | Porcentaje de Victorias  | true     |
+
+**StatsTableByRival — all mode** (`/statistics/rivals`):
+
+| key            | label  | title                   | sortable |
+| -------------- | ------ | ----------------------- | -------- |
+| rival          | Rival  | Rival                   | true     |
+| games          | PJ     | Partidos Jugados        | true     |
+| wins           | PG     | Partidos Ganados        | true     |
+| losses         | PP     | Partidos Perdidos       | true     |
+| draws          | PE     | Partidos Empatados      | true     |
+| goalsFor       | GF     | Goles a Favor           | true     |
+| goalsAgainst   | GC     | Goles en Contra         | true     |
+| winRate        | Win%   | Porcentaje de Victorias | true     |
+| playgroundName | Cancha | Cancha Más Frecuente    | false    |
+
+**StatsTableByRival — single mode** (`/statistics/rivals/:id`):
+
+| key          | label   | title                   | sortable |
+| ------------ | ------- | ----------------------- | -------- |
+| year         | Año     | Año                     | true     |
+| tournament   | Torneo  | Torneo                  | true     |
+| period       | Período | Período                 | false    |
+| games        | PJ      | Partidos Jugados        | true     |
+| wins         | PG      | Partidos Ganados        | true     |
+| losses       | PP      | Partidos Perdidos       | true     |
+| draws        | PE      | Partidos Empatados      | true     |
+| goalsFor     | GF      | Goles a Favor           | true     |
+| goalsAgainst | GC      | Goles en Contra         | true     |
+| winRate      | Win%    | Porcentaje de Victorias | true     |
+
+**StatsTableByPlayer — all mode** (`/statistics/players`):
+
+| key               | label   | title                       | sortable |
+| ----------------- | ------- | --------------------------- | -------- |
+| name              | Jugador | Jugador                     | true     |
+| games             | PJ      | Partidos Jugados            | true     |
+| wins              | PG      | Partidos Ganados            | true     |
+| losses            | PP      | Partidos Perdidos           | true     |
+| draws             | PE      | Partidos Empatados          | true     |
+| goals             | Goles   | Goles                       | true     |
+| assists           | Asist.  | Asistencias                 | true     |
+| goalRate          | GR      | Ritmo Goleador              | true     |
+| winRate           | Win%    | Porcentaje de Victorias     | true     |
+| participationRate | Part.%  | Porcentaje de Participación | true     |
+
+**StatsTableByPlayer — single mode** (`/statistics/players/:id`):
+
+| key        | label  | title                   | sortable |
+| ---------- | ------ | ----------------------- | -------- |
+| year       | Año    | Año                     | true     |
+| tournament | Torneo | Torneo                  | true     |
+| rival      | Rival  | Rival                   | true     |
+| games      | PJ     | Partidos Jugados        | true     |
+| wins       | PG     | Partidos Ganados        | true     |
+| losses     | PP     | Partidos Perdidos       | true     |
+| draws      | PE     | Partidos Empatados      | true     |
+| goals      | Goles  | Goles                   | true     |
+| goalRate   | GR     | Ritmo Goleador          | true     |
+| winRate    | Win%   | Porcentaje de Victorias | true     |
+
+#### Assumptions
+
+- `@nuxt/ui` is already installed in `packages/frontend`; no new package installation is required.
+- `ColumnDef` is a frontend-local type defined in `packages/frontend/src/types/table.ts`; it is NOT added to `@ministrosfc/shared` — it is a UI rendering concern not shared with the CMS.
+- Sorting state is local to `<StatsTable>` (not persisted in the URL) unless a future spec explicitly requires it.
+- Column `title` tooltips rely solely on the native HTML `title` attribute; no custom tooltip overlay is needed.
+- `<UiTable>` passes through all `$attrs` and slots so future callers (e.g. `<AdminTable>`) can configure row click handlers, custom cell renderers, etc., without modifying `<UiTable>`.
