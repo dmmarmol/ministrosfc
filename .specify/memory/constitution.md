@@ -1,20 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.9.0 → 1.9.1 (PATCH — Principle VI: URL query-param management rule added)
+Version change: 1.9.1 → 1.9.2 (PATCH — Git conventions: semantic commit grouping rule added)
 Ratified: 2026-03-17
-Last Amended: 2026-04-17
+Last Amended: 2026-04-19
 
-Amendment: Principle VI (Data Flow and State Management) extended with a new
-"URL Query Parameter Management" sub-rule. All route query-parameter reads and
-writes in `packages/frontend` MUST go through `useQueryParams` composable
-(`src/composables/useQueryParams.ts`). Direct access to `useRoute().query` for
-mutation is forbidden; `useRouter().push({ query: ... })` MUST NOT be called
-outside `useQueryParams`.
+Amendment: Git Commit Conventions extended with a new "Semantic Commit Grouping"
+sub-rule. Files MUST be staged and committed in groups of semantic value; mixing
+unrelated changes in a single commit is forbidden.
 
 Modified sections:
-  ✅ Principle VI — added "URL Query Parameter Management" sub-rule
-  ✅ Code Review Standards — new gate: query-param mutation outside useQueryParams
+  ✅ Git and Commit Conventions — added "Semantic Commit Grouping" sub-rule
+  ✅ Code Review Standards — new gate: commits must not mix unrelated file changes
 
 Prior amendments (preserved):
   ✅ v1.9.0 — Package Version Management: git tag MUST be created on every version bump
@@ -36,7 +33,7 @@ Follow-up TODOs:
 
 # Ministros FC Constitution
 
-**Version**: 1.9.1 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-17
+**Version**: 1.9.2 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-19
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -524,6 +521,34 @@ chore(deps): upgrade typescript to 5.x
 - Secrets or credentials
 - Commented-out code (delete or explain in commit message)
 
+#### Semantic Commit Grouping (NON-NEGOTIABLE)
+
+**MUST** stage and commit files grouped by semantic value.
+
+- A commit MUST represent a single, coherent unit of change that can be described with one
+  conventional commit message. If a commit requires an "and" in the summary line, it likely
+  spans two semantic units and MUST be split.
+- When multiple related files change together as part of the same logical change (e.g., a route
+  handler + its service method + its model), they MUST be committed together in a single commit.
+- When unrelated concerns change in the same working session (e.g., a bug fix and a new feature),
+  they MUST be committed separately — each in its own atomic commit.
+- The `git add -p` (patch) workflow is the preferred tool for precise, semantic staging.
+- Formatting-only or whitespace-only changes MUST be isolated from logic changes.
+
+**Context:** Commits are the primary unit of code history and code review. Mixed commits make
+`git bisect`, `git blame`, and PR reviews harder to reason about. Atomic, semantically-grouped
+commits enable per-change revert, cherry-pick, and pinpointed blame.
+
+**Examples:**
+
+- ✅ Good: One commit for `useStatisticsAvailableTournaments.ts` + `StatsFilters.vue` (adding
+  the `enabled` guard to both as one semantic change)
+- ✅ Good: Separate commits for "fix(stats): conditionally fetch filter options by mode" and
+  "fix(rivals): watch route.query instead of individual filter fields"
+- ❌ Bad: A single commit touching a new composable, a bug fix in an unrelated page, and a
+  CSS tweak — three semantic units bundled together
+- ❌ Bad: Staging all modified files with `git add .` without reviewing what is included
+
 ### Code Review Standards
 
 **MUST verify in every PR:**
@@ -540,6 +565,7 @@ chore(deps): upgrade typescript to 5.x
 - [ ] **Page decomposition (Principle V)**: No `pages/` file contains inline template blocks exceeding ~30 lines; feature areas extracted to `components/pages/<feature-path>/`
 - [ ] **Page meta declaration (Principle V)**: Every `pages/` file has a `definePageMeta` call with explicit visibility; public pages use `definePageMeta({ public: true })`
 - [ ] **URL query params (Principle VI)**: All query-param reads use `useQueryParams().get(key)`; all writes use `useQueryParams().set/remove()`; no direct `router.push({ query })` calls outside the composable
+- [ ] **Semantic commit grouping (Git Conventions)**: Each commit in the branch represents one coherent unit of change; commits mixing unrelated files MUST be flagged and rebased before merge
 
 **Review focus areas:**
 
