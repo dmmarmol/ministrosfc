@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PlayerStatus } from "@ministrosfc/shared";
 import type { ColumnDef } from "~/types/table";
 
 definePageMeta({ layout: "statistics", public: true });
@@ -20,9 +21,14 @@ interface TopScorerEntry {
 }
 
 const { $api } = useNuxtApp();
+const route = useRoute();
+const qp = useQueryParams();
 
 const playerSearch = ref("");
 const tournamentFilter = ref("");
+const playerStatusFilter = ref<PlayerStatus | "">(
+  (qp.get("playerStatus") as PlayerStatus) || PlayerStatus.ACTIVE,
+);
 
 const { data: tourData } = await useAsyncData("stats-tournaments", () =>
   $api<{ data: { id: string; name: string }[] }>("/api/v1/tournaments"),
@@ -37,6 +43,9 @@ const { data, pending, refresh } = await useAsyncData(
         limit: 50,
         ...(tournamentFilter.value
           ? { tournamentId: tournamentFilter.value }
+          : {}),
+        ...(playerStatusFilter.value
+          ? { status: playerStatusFilter.value }
           : {}),
       },
     }),
@@ -53,6 +62,15 @@ const filteredScorers = computed(() => {
 });
 
 watch(tournamentFilter, () => refresh());
+watch(playerStatusFilter, (v) => qp.set("playerStatus", v));
+watch(
+  () => route.query.playerStatus,
+  () => {
+    playerStatusFilter.value =
+      (qp.get("playerStatus") as PlayerStatus) || PlayerStatus.ACTIVE;
+    refresh();
+  },
+);
 
 const columns: ColumnDef[] = [
   { key: "rank", label: "#", title: "Posición", sortable: false },
@@ -65,6 +83,12 @@ const columns: ColumnDef[] = [
     title: "Partidos Jugados",
     sortable: true,
   },
+  {
+    key: "goalRate",
+    label: "Prom. Gol",
+    title: "Promedio de gol",
+    sortable: true,
+  },
 ];
 
 const tableRows = computed(() =>
@@ -74,6 +98,7 @@ const tableRows = computed(() =>
     goalsScored: entry.goalsScored,
     assists: entry.assists,
     appearances: entry.appearances,
+    goalRate: entry.appearances > 0 ? entry.goalsScored / entry.appearances : 0,
     playerId: entry.player?.id ?? "",
   })),
 );
@@ -100,10 +125,18 @@ const tableRows = computed(() =>
           {{ t.name }}
         </option>
       </select>
+      <select
+        v-model="playerStatusFilter"
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+      >
+        <option :value="PlayerStatus.ACTIVE">Activos</option>
+        <option :value="PlayerStatus.INACTIVE">Inactivos</option>
+        <option value="">Todos los estados</option>
+      </select>
     </div>
 
-    <!-- Table (loading and empty states handled internally by <StatsTable>) -->
-    <StatsTable :columns="columns" :rows="tableRows" :loading="pending">
+    <!-- Table (loading and empty states handled internally by <UiStatsTable>) -->
+    <UiStatsTable :columns="columns" :rows="tableRows" :loading="pending">
       <template #name-data="{ row }">
         <NuxtLink
           :to="`/players/${row.playerId}`"
@@ -115,6 +148,9 @@ const tableRows = computed(() =>
       <template #goalsScored-data="{ row }">
         <span class="font-bold text-brand">{{ row.goalsScored }}</span>
       </template>
-    </StatsTable>
+      <template #goalRate-data="{ row }">
+        {{ Number(row.goalRate).toFixed(2) }}
+      </template>
+    </UiStatsTable>
   </div>
 </template>

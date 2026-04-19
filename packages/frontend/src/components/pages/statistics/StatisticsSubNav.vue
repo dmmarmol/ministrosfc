@@ -23,7 +23,7 @@ const activeClass = "bg-brand/10 text-brand font-semibold";
       </li>
       <li>
         <NuxtLink
-          to="/statistics/top-scorers"
+          to="/statistics/top-scorers?playerStatus=ACTIVE"
           :class="linkClass"
           :active-class="activeClass"
         >
@@ -60,7 +60,7 @@ const activeClass = "bg-brand/10 text-brand font-semibold";
         </li>
         <li>
           <NuxtLink
-            to="/statistics/players"
+            to="/statistics/players?playerStatus=ACTIVE"
             :class="linkClass"
             :active-class="activeClass"
           >
