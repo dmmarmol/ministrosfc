@@ -40,7 +40,7 @@ watch(
 
 <template>
   <div>
-    <UiStatsTitle>Estadísticas de Jugadores</UiStatsTitle>
+    <StatsTitle>Estadísticas de Jugadores</StatsTitle>
     <StatsTableByPlayer :rows="rows" mode="all" :loading="pending" />
   </div>
 </template>

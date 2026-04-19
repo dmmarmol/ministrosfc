@@ -495,3 +495,39 @@ Column `key` values correspond to fields in `TeamStatPeriodDTO` / `PlayerStatRow
 - Sorting state is local to `<StatsTable>` (not persisted in the URL) unless a future spec explicitly requires it.
 - Column `title` tooltips rely solely on the native HTML `title` attribute; no custom tooltip overlay is needed.
 - `<UiTable>` passes through all `$attrs` and slots so future callers (e.g. `<AdminTable>`) can configure row click handlers, custom cell renderers, etc., without modifying `<UiTable>`.
+
+---
+
+### Amendment 2026-04-19 — Rivals Detail Page: UiAccordion, Game Slug Links, and UX Improvements
+
+#### Context
+
+Several improvements and bug fixes were made to the rival detail page (`/statistics/rivals/:id`) and its supporting types/backend. These changes concern the per-game match list rendered inside each year accordion and the overall page navigation UX.
+
+#### Bug fix: `tableRows` used before initialization
+
+`packages/frontend/src/pages/statistics/rivals/[id].vue` declared `const expandedYears = ref(tableRows.value.map(...))` before `tableRows` was declared as a `computed`. This caused a `ReferenceError: Cannot access 'tableRows' before initialization` at runtime. Fixed by reordering declarations so `tableRows` is defined before `expandedYears`.
+
+#### New: `UiAccordion` reusable component
+
+`packages/frontend/src/components/ui/Accordion.vue` was extracted as a reusable component. It accepts an `:open` boolean prop and emits a `@toggle` event. It exposes two named slots: `#header` (the clickable row trigger) and `#content` (the collapsible body). The trigger button renders a rotating chevron SVG that animates via `rotate-180` when open. `rivals/[id].vue` was refactored to use `<UiAccordion>` in place of its inline accordion markup.
+
+#### `TeamStatMatchDTO.slug` made non-optional
+
+`packages/shared/src/types/statistics.ts`: `TeamStatMatchDTO.slug` was changed from `slug?: string` (optional) to `slug: Game["slug"]` (resolves to `string`, non-optional). This makes the field a required part of the DTO contract.
+
+#### Backend: `getRivalBreakdown` returns `slug` per match
+
+`packages/cms/src/models/Statistics.ts` (`getRivalBreakdown` method): the Prisma select for each game now includes `slug: true`. The `slug` value is pushed alongside each match entry. Games with a null slug from legacy data use `g.slug ?? null`; however, because `TeamStatMatchDTO.slug` is now `string`, the backend ensures a non-null value is always present (the field is guaranteed by the `Game` model to be non-null in practice).
+
+#### Enhancement: per-game "Ir al partido" links
+
+Match rows in `rivals/[id].vue` were previously rendering the entire row as a `<NuxtLink>` wrapper, which is not accessible or semantically correct. Changed to:
+
+- Each match row is a `<li>` element with a CSS grid layout (10-column grid including an `auto` final column).
+- A `<NuxtLink :to="\`/games/${match.slug}\`">Ir al partido</NuxtLink>` is placed in the last grid column.
+- The link uses `text-xs text-blue-600 hover:underline whitespace-nowrap` classes.
+
+#### Enhancement: back navigation button on rivals detail page
+
+A `<NuxtLink to="/statistics/rivals">` back link with `w-24` fixed width was added at the top of the `rivals/[id].vue` template, immediately before `<UiStatsTitle>`. It renders a left-pointing chevron SVG icon followed by the label "Volver". The link uses `text-sm text-muted-foreground hover:text-foreground transition-colors` classes and is styled to be legible against the statistics layout dark background via `text-muted-foreground`.

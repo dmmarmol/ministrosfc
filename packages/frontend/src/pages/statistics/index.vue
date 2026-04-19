@@ -21,7 +21,7 @@ const summary = computed(() => summaryData.value?.data ?? null);
 
 <template>
   <div>
-    <UiStatsTitle>Estadísticas Generales</UiStatsTitle>
+    <StatsTitle>Estadísticas Generales</StatsTitle>
     <StatsHeader v-if="authStore.isAuthenticated" :summary="summary" />
     <div v-else class="text-center py-16 text-gray-500">
       <p class="mb-2">Iniciá sesión para ver las estadísticas del equipo.</p>

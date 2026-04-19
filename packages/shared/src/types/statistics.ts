@@ -1,3 +1,5 @@
+import { Game } from "./game";
+
 export interface Statistics {
   id: string;
   playerId: string;
@@ -37,6 +39,15 @@ export interface TournamentStatisticsDTO {
 }
 
 // Team stats for a single period (year, tournament, or rival)
+export interface TeamStatMatchDTO {
+  date: string;
+  homeScore: number;
+  awayScore: number;
+  tournament: string | null;
+  result: "W" | "L" | "D";
+  slug: Game["slug"];
+}
+
 export interface TeamStatPeriodDTO {
   key: string;
   label: string;
@@ -54,6 +65,7 @@ export interface TeamStatPeriodDTO {
   goalRateAgainst: number;
   winRate: number;
   pointsEarned: number;
+  matches?: TeamStatMatchDTO[];
 }
 
 // All-time team summary header

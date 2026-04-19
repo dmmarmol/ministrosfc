@@ -9,6 +9,7 @@
  *  - `getTopScorers(tournamentId?, limit)` — ranked list by goals scored.
  *  - `aggregateForTournament(tournamentId)` — all players' stats within a tournament.
  */
+import { TeamStatMatchDTO } from "@ministrosfc/shared";
 import { prisma } from "../config/database";
 import { GameStatus, PlayerStatus } from "@prisma/client";
 
@@ -313,16 +314,44 @@ const StatisticsModel = {
 
     const games = await prisma.game.findMany({
       where: gameWhere,
-      select: { date: true, homeTeamScore: true, awayTeamScore: true },
+      select: {
+        date: true,
+        homeTeamScore: true,
+        awayTeamScore: true,
+        slug: true,
+        tournament: { select: { name: true } },
+      },
+      orderBy: { date: "asc" },
     });
 
     const filtered = filters?.year
       ? games.filter((g) => new Date(g.date).getUTCFullYear() === filters.year)
       : games;
 
-    return groupTeamStatsByKey(filtered, (g) =>
+    const matchesByYear: Record<string, Array<TeamStatMatchDTO>> = {};
+    for (const g of filtered) {
+      const year = String(new Date(g.date).getUTCFullYear());
+      const gf = g.homeTeamScore ?? 0;
+      const ga = g.awayTeamScore ?? 0;
+      if (!matchesByYear[year]) matchesByYear[year] = [];
+      matchesByYear[year]!.push({
+        date: new Date(g.date).toISOString().slice(0, 10),
+        homeScore: gf,
+        awayScore: ga,
+        tournament: g.tournament?.name ?? null,
+        result: gf > ga ? "W" : ga > gf ? "L" : "D",
+        slug: g.slug ?? null,
+      });
+    }
+
+    const stats = groupTeamStatsByKey(filtered, (g) =>
       String(new Date(g.date).getUTCFullYear()),
     );
+
+    return stats.map((s) => ({
+      ...s,
+      matches: matchesByYear[s.key] ?? [],
+    }));
   },
 
   async getTeamSummaryHeader() {
