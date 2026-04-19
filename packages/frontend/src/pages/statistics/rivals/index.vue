@@ -38,7 +38,7 @@ watch(
 
 <template>
   <div>
-    <h1 class="text-xl font-bold text-gray-900">Estadísticas por Rival</h1>
+    <UiStatsTitle>Estadísticas por Rival</UiStatsTitle>
     <StatsTableByRival :rows="rows" mode="all" :loading="pending" />
   </div>
 </template>

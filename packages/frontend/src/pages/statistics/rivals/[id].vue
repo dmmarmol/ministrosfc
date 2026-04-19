@@ -85,7 +85,7 @@ watch(
 
 <template>
   <div class="space-y-6">
-    <UiStatsTitle>Estadísticas vs {{ rivalName }}</UiStatsTitle>
+    <UiStatsTitle>Estadísticas vs "{{ rivalName }}"</UiStatsTitle>
     <StatsFilters
       mode="rival"
       :year="filters.year"

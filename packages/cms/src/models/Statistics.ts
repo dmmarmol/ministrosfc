@@ -278,23 +278,25 @@ const StatisticsModel = {
       ? games.filter((g) => new Date(g.date).getUTCFullYear() === filters.year)
       : games;
 
-    // Compute most common playground per rival
+    // Compute most common playground per rival (keyed by ID)
     const playgroundFreq: Record<string, Record<string, number>> = {};
     for (const g of filtered) {
-      const rival = g.opponentTeam?.name ?? "?";
+      const rivalId = g.opponentTeam?.id ?? "?";
       const pg = g.tournament?.playground?.name;
       if (!pg) continue;
-      if (!playgroundFreq[rival]) playgroundFreq[rival] = {};
-      playgroundFreq[rival]![pg] = (playgroundFreq[rival]![pg] ?? 0) + 1;
+      if (!playgroundFreq[rivalId]) playgroundFreq[rivalId] = {};
+      playgroundFreq[rivalId]![pg] = (playgroundFreq[rivalId]![pg] ?? 0) + 1;
     }
-    const mostCommonPlayground = (rival: string): string | null => {
-      const freq = playgroundFreq[rival];
+    const mostCommonPlayground = (rivalId: string): string | null => {
+      const freq = playgroundFreq[rivalId];
       if (!freq) return null;
       return Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
     };
 
     const rows = groupTeamStatsByKey(
       filtered,
+      (g) => g.opponentTeam?.id ?? "?",
+      undefined,
       (g) => g.opponentTeam?.name ?? "?",
     );
     return rows.map((r) => ({

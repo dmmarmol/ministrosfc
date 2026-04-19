@@ -75,7 +75,7 @@ watch(
 
     <!-- Rival filter -->
     <select
-      v-if="mode === 'rivals' || mode === 'rival'"
+      v-if="mode === 'rivals'"
       v-model="rivalValue"
       class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
       @change="emit('change:rival', rivalValue)"
