@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PlayerStatRowDTO } from "@ministrosfc/shared";
+import { PlayerStatus, type PlayerStatRowDTO } from "@ministrosfc/shared";
 import StatsTableByPlayer from "../../../components/pages/stats/StatsTableByPlayer.vue";
 
 definePageMeta({
@@ -19,6 +19,7 @@ const { data, pending, refresh } = await useAsyncData(
   () =>
     $api<{ data: PlayerStatRowDTO[] }>("/api/v1/statistics/players", {
       query: {
+        status: qp.get("playerStatus") ?? PlayerStatus.ACTIVE,
         ...(qp.get("year") ? { year: qp.get("year") } : {}),
         ...(qp.get("rivalId") ? { rivalId: qp.get("rivalId") } : {}),
         ...(qp.get("tournament")
@@ -39,7 +40,7 @@ watch(
 
 <template>
   <div>
-    <h1 class="text-xl font-bold text-gray-900">Estadísticas de Jugadores</h1>
+    <UiStatsTitle>Estadísticas de Jugadores</UiStatsTitle>
     <StatsTableByPlayer :rows="rows" mode="all" :loading="pending" />
   </div>
 </template>

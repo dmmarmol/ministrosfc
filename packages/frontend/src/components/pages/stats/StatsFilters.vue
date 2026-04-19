@@ -8,19 +8,42 @@ const props = defineProps<{
 const { availableYears } = useStatisticsAvailableYears();
 const { availableTournaments } = useStatisticsAvailableTournaments();
 const { availableRivals } = useStatisticsAvailableRivals();
-const { availablePlayers } = useStatisticsAvailablePlayers();
 
 const emit = defineEmits<{
   "change:year": [value: string];
   "change:tournament": [value: string];
   "change:rival": [value: string];
   "change:player": [value: string];
+  "change:playerStatus": [value: string];
 }>();
 
 const yearValue = defineModel<string>("year", { default: "" });
 const tournamentValue = defineModel<string>("tournament", { default: "" });
 const rivalValue = defineModel<string>("rival", { default: "" });
 const playerValue = defineModel<string>("player", { default: "" });
+const playerStatusValue = defineModel<string>("playerStatus", {
+  default: "ACTIVE",
+});
+
+const { availablePlayers } = useStatisticsAvailablePlayers(playerStatusValue);
+
+watch(
+  [playerStatusValue, availablePlayers],
+  () => {
+    if (!playerValue.value) return;
+
+    const hasCurrentPlayer = availablePlayers.value.some(
+      (p) => p.value === playerValue.value,
+    );
+
+    // Keep player query param consistent with currently visible player options.
+    if (!hasCurrentPlayer) {
+      playerValue.value = "";
+      emit("change:player", "");
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -61,6 +84,18 @@ const playerValue = defineModel<string>("player", { default: "" });
       <option v-for="r in availableRivals" :key="r.value" :value="r.value">
         {{ r.label }}
       </option>
+    </select>
+
+    <!-- Player status filter -->
+    <select
+      v-if="mode === 'players'"
+      v-model="playerStatusValue"
+      class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+      @change="emit('change:playerStatus', playerStatusValue)"
+    >
+      <option value="ACTIVE">Activos</option>
+      <option value="INACTIVE">Inactivos</option>
+      <option value="">Todos los estados</option>
     </select>
 
     <!-- Player filter -->

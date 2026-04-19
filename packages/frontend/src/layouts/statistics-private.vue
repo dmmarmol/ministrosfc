@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { StatsFiltersMode } from "@ministrosfc/shared";
+import { PlayerStatus, type StatsFiltersMode } from "@ministrosfc/shared";
 import StatsFilters from "~/components/pages/stats/StatsFilters.vue";
 import StatisticsSubNav from "~/components/pages/statistics/StatisticsSubNav.vue";
 
@@ -30,10 +30,12 @@ const filtersMode = computed<StatsFiltersMode>(
             :tournament="qp.get('tournament')"
             :rival="qp.get('rivalId')"
             :player="qp.get('playerId')"
+            :player-status="qp.get('playerStatus') ?? PlayerStatus.ACTIVE"
             @change:year="(v) => qp.set('year', v)"
             @change:tournament="(v) => qp.set('tournament', v)"
             @change:rival="(v) => qp.set('rivalId', v)"
             @change:player="(v) => qp.set('playerId', v)"
+            @change:player-status="(v) => qp.set('playerStatus', v)"
           />
           <slot />
         </div>
