@@ -134,10 +134,17 @@ const StatisticsService = {
     return withCache(key, () => StatisticsModel.aggregateTeamByRival(filters));
   },
 
-  async getRivalStats(rivalId: string, filters?: { year?: number }) {
-    const key = `cache:stats:team:rival:${rivalId}:${filters?.year ?? "all"}`;
+  async getRivalStats(rivalId: string, filters?: { year?: number; playgroundId?: string }) {
+    const key = `cache:stats:team:rival:${rivalId}:${filters?.year ?? "all"}:${filters?.playgroundId ?? "all"}`;
     return withCache(key, () =>
       StatisticsModel.getRivalBreakdown(rivalId, filters),
+    );
+  },
+
+  async getPlayerRivalStats(playerId: string) {
+    const key = `cache:stats:player:rivals:${playerId}`;
+    return withCache(key, () =>
+      StatisticsModel.getPlayerRivalBreakdown(playerId),
     );
   },
 

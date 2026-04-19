@@ -9,7 +9,7 @@
  *  - `getTopScorers(tournamentId?, limit)` — ranked list by goals scored.
  *  - `aggregateForTournament(tournamentId)` — all players' stats within a tournament.
  */
-import { TeamStatMatchDTO } from "@ministrosfc/shared";
+import { PlayerRivalMatchDTO, PlayerRivalPeriodDTO, TeamStatMatchDTO } from "@ministrosfc/shared";
 import { prisma } from "../config/database";
 import { GameStatus, PlayerStatus } from "@prisma/client";
 
@@ -306,11 +306,13 @@ const StatisticsModel = {
     }));
   },
 
-  async getRivalBreakdown(rivalId: string, filters?: { year?: number }) {
+  async getRivalBreakdown(rivalId: string, filters?: { year?: number; playgroundId?: string }) {
     const gameWhere: any = {
       status: GameStatus.COMPLETED,
       opponentTeamId: rivalId,
     };
+    if (filters?.playgroundId)
+      gameWhere.tournament = { playgroundId: filters.playgroundId };
 
     const games = await prisma.game.findMany({
       where: gameWhere,
@@ -510,6 +512,76 @@ const StatisticsModel = {
         goals: topScorerGoals,
       },
     };
+  },
+
+  async getPlayerRivalBreakdown(playerId: string) {
+    const participants = await prisma.gameParticipant.findMany({
+      where: { playerId, game: { status: GameStatus.COMPLETED } },
+      select: {
+        goalsScored: true,
+        game: {
+          select: {
+            date: true,
+            homeTeamScore: true,
+            awayTeamScore: true,
+            slug: true,
+            opponentTeam: { select: { id: true, name: true } },
+            tournament: { select: { name: true } },
+          },
+        },
+      },
+      orderBy: { game: { date: "asc" } },
+    });
+
+    const byRival: Record<
+      string,
+      Omit<PlayerRivalPeriodDTO, "rivalId"> & { matches: PlayerRivalMatchDTO[] }
+    > = {};
+
+    for (const p of participants) {
+      const rivalId = p.game.opponentTeam?.id ?? "?";
+      const rivalName = p.game.opponentTeam?.name ?? "?";
+      const gf = p.game.homeTeamScore ?? 0;
+      const ga = p.game.awayTeamScore ?? 0;
+      const result: PlayerRivalMatchDTO["result"] = gf > ga ? "W" : ga > gf ? "L" : "D";
+
+      if (!byRival[rivalId]) {
+        byRival[rivalId] = {
+          rivalName,
+          gamesPlayed: 0,
+          wins: 0,
+          losses: 0,
+          draws: 0,
+          goalsFor: 0,
+          goalsAgainst: 0,
+          playerGoals: 0,
+          matches: [],
+        };
+      }
+      const r = byRival[rivalId]!;
+      r.gamesPlayed++;
+      r.goalsFor += gf;
+      r.goalsAgainst += ga;
+      r.playerGoals += p.goalsScored ?? 0;
+      if (result === "W") r.wins++;
+      else if (result === "L") r.losses++;
+      else r.draws++;
+
+      r.matches.push({
+        date: new Date(p.game.date).toISOString().slice(0, 10),
+        homeScore: gf,
+        awayScore: ga,
+        tournament: p.game.tournament?.name ?? null,
+        result,
+        slug: p.game.slug ?? null,
+        playerGoals: p.goalsScored ?? 0,
+      });
+    }
+
+    return Object.entries(byRival).map(([rivalId, data]): PlayerRivalPeriodDTO => ({
+      rivalId,
+      ...data,
+    }));
   },
 
   async aggregatePlayersAll(filters?: {

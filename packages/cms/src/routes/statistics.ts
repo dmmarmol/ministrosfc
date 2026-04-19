@@ -23,6 +23,7 @@ const teamStatsQuerySchema = z.object({
   tournamentId: z.uuid().optional(),
   tournamentName: z.string().max(100).optional(),
   rivalId: z.uuid().optional(),
+  playgroundId: z.uuid().optional(),
 });
 
 const playerStatusValues = Object.values(PlayerStatus);
@@ -201,6 +202,22 @@ router.get(
   },
 );
 
+// GET /api/v1/statistics/players/:id/rivals
+router.get(
+  "/players/:id/rivals",
+  authenticate,
+  validate(uuidSchema, "params"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await StatisticsService.getPlayerRivalStats(req.params.id!);
+      res.setHeader("Cache-Control", "private, max-age=300");
+      res.json({ data });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 // GET /api/v1/statistics/team/rivals/:rivalId
 router.get(
   "/team/rivals/:rivalId",
@@ -208,9 +225,10 @@ router.get(
   validate(z.object({ rivalId: z.uuid() }), "params"),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { year } = teamStatsQuerySchema.parse(req.query);
+      const { year, playgroundId } = teamStatsQuerySchema.parse(req.query);
       const data = await StatisticsService.getRivalStats(req.params.rivalId!, {
         year,
+        playgroundId,
       });
       res.setHeader("Cache-Control", "private, max-age=300");
       res.json({ data });

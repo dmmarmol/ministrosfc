@@ -115,6 +115,30 @@ export interface CsvImportResultDTO {
   warnings: string[];
 }
 
+// Per-player stats vs a specific rival team (for player detail page)
+export interface PlayerRivalMatchDTO {
+  date: string;
+  homeScore: number;
+  awayScore: number;
+  tournament: string | null;
+  result: "W" | "L" | "D";
+  slug: Game["slug"];
+  playerGoals: number;
+}
+
+export interface PlayerRivalPeriodDTO {
+  rivalId: string;
+  rivalName: string;
+  gamesPlayed: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  playerGoals: number;
+  matches: PlayerRivalMatchDTO[];
+}
+
 /** Determines which filter selects are shown in the statistics filter bar. */
 export type StatsFiltersMode =
   | "years"
