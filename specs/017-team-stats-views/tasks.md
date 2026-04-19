@@ -319,3 +319,36 @@ T072 (StatsTable unit test) — parallel with T069
 - [x] T061 [P] [US7] Auth-guard regression check: confirmed `definePageMeta({ layout: 'statistics-private', middleware: 'auth', requiresAuth: true })` in the 4 list pages (`years.vue`, `tournaments.vue`, `rivals/index.vue`, `players/index.vue`) and `definePageMeta({ layout: 'statistics', middleware: 'auth', requiresAuth: true })` in the 2 detail pages (`rivals/[id].vue`, `players/[id].vue`) — detail pages use the base `statistics` layout because they embed `<StatsFilters>` directly in their own template rather than relying on the layout-mounted filter bar; redirect-back behaviour relies on existing `auth.ts` middleware passing original URL as `redirect` query param — no behavioural change needed; manual browser verification pending (T049-style)
 - [x] T062 [P] [US7] Update Playwright E2E test `packages/frontend/tests/e2e/stats/auth-guard.spec.ts`: replace all `/stats/*` path strings with `/statistics/*` equivalents; update `filter-url-roundtrip.spec.ts` similarly; add assertion that `/stats/years` returns 404
 - [x] T063 [US7] Fix `statistics/index.vue` E2 guard: wrap the `useAsyncData` team/summary fetch so it returns `Promise.resolve(null)` when `!authStore.isAuthenticated` — prevents 401 being triggered for anonymous visitors (was: always fetched unconditionally)
+
+---
+
+## Phase 14: Player Status Filter for `/statistics/players` (Amendment 2026-04-18)
+
+**Goal**: Allow filtering player statistics by player status (`ACTIVE` / `INACTIVE`). Defaults to `ACTIVE` on `/statistics/players`. Selection persists as `playerStatus` URL query param.
+
+**Amendment**: Added 2026-04-18 after Phase 12 was complete.
+
+**Independent Test**: Navigate to `/statistics/players` → table shows only active players by default. Switch "Estado" to "Inactivos" → URL updates to `?playerStatus=INACTIVE` and table shows only inactive players. Select "Todos los estados" → no status filter, all players shown.
+
+- [x] T073 [US5] `packages/cms/src/routes/statistics.ts` — parse `status` query param in `GET /players`; validate against `["ACTIVE", "INACTIVE"]`; pass through as `PlayerStatusFilter | undefined`
+- [x] T074 [US5] `packages/cms/src/services/StatisticsService.ts` — add `status?: "ACTIVE" | "INACTIVE"` to `getAllPlayerStats` filter shape; extend cache key to include `status` segment
+- [x] T075 [US5] `packages/cms/src/models/Statistics.ts` — add `status` field to `aggregatePlayersAll` filter; apply `participantWhere.player = { status }` when truthy
+- [x] T076 [US5] `packages/frontend/src/pages/statistics/players/index.vue` — add `status: qp.get("playerStatus") ?? "ACTIVE"` to API query inside `useAsyncData`
+- [x] T077 [US5] `packages/frontend/src/components/pages/stats/StatsFilters.vue` — add `playerStatus` `defineModel` (default `"ACTIVE"`); add `"change:playerStatus"` emit; add "Estado" `<select>` with options Activos/Inactivos/Todos los estados rendered only when `mode === 'players'`
+- [x] T078 [US5] `packages/frontend/src/layouts/statistics-private.vue` — bind `:player-status="qp.get('playerStatus') ?? 'ACTIVE'"` and `@change:player-status="(v) => qp.set('playerStatus', v)"` to `<StatsFilters>`
+
+---
+
+## Phase 15: Top-Scorers Enhancements — Goal Rate Column + Player Status Filter (Amendment 2026-04-19)
+
+**Goal**: Add "Promedio de gol" (goal average) column to `/statistics/top-scorers` and add a player status filter mirroring the behaviour from `/statistics/players`. The status filter defaults to `ACTIVE`, is persisted via the `playerStatus` URL query param, and uses the `PlayerStatus` enum from `@ministrosfc/shared`. The "Goleadores" sub-nav link includes `?playerStatus=ACTIVE` as the default.
+
+**Amendment**: Added 2026-04-19 after Phase 14 was complete.
+
+**Independent Test**: Navigate to `/statistics/top-scorers` → "Prom. Gol" column visible; value is `goalsScored / appearances` rounded to 2 decimals (0.00 when appearances = 0). Filter shows "Activos" by default. Switch to "Inactivos" → URL updates to `?playerStatus=INACTIVE` and table reloads with only inactive players. Click "Goleadores" in sub-nav → navigates to `/statistics/top-scorers?playerStatus=ACTIVE`.
+
+- [x] T079 `packages/cms/src/routes/statistics.ts` — extend `topScorersSchema` with `status: z.enum(["ACTIVE", "INACTIVE"]).optional()`; pass `query.status as PlayerStatus | undefined` to service
+- [x] T080 `packages/cms/src/services/StatisticsService.ts` — add `status?: PlayerStatus` to `getTopScorers` params; extend cache key to include `status` segment (`cache:stats:topscorers:${tournamentId ?? "all"}:${limit}:${status ?? "all"}`)
+- [x] T081 `packages/cms/src/models/Statistics.ts` — add `status?: PlayerStatus` to `getTopScorers` params; spread `...(status ? { player: { status } } : {})` into the `groupBy` `where`
+- [x] T082 `packages/frontend/src/pages/statistics/top-scorers.vue` — import `PlayerStatus` from `@ministrosfc/shared`; add `playerStatusFilter` ref (type `PlayerStatus | ""`, default `PlayerStatus.ACTIVE` read from `qp.get("playerStatus")`); include `status: playerStatusFilter.value` in API query when truthy; add `watch(playerStatusFilter, v => qp.set("playerStatus", v))` and `watch(() => route.query.playerStatus, ...)` for URL sync; add `goalRate` column (key `goalRate`, label `Prom. Gol`, title `Promedio de gol`, sortable `true`) to `columns` and `tableRows` (value: `goalsScored / appearances`, 0 when appearances = 0); add player status `<select>` with `PlayerStatus.ACTIVE`, `PlayerStatus.INACTIVE`, and `""` options
+- [x] T083 `packages/frontend/src/components/pages/statistics/StatisticsSubNav.vue` — update "Goleadores" link `to` from `/statistics/top-scorers` to `/statistics/top-scorers?playerStatus=ACTIVE`

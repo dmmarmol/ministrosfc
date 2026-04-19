@@ -192,6 +192,7 @@ The main navigation "Estadísticas" link conditionally redirects: authenticated 
 - **FR-023**: The `CsvImportResultDTO` MUST include a `playgrounds` counter object `{ created, updated, skipped }` and the warning list MUST include messages for unmatched game-to-playground associations.
 - **FR-024**: The `/statistics/top-scorers` route MUST be publicly accessible and display the all-time top-scorers table without requiring authentication. The `/statistics` route MUST display the authenticated team-summary dashboard (`StatsHeader`); anonymous users reach this page and see a login prompt — the team/summary API MUST NOT be called for unauthenticated users. The private dashboard sub-pages MUST be accessible under `/statistics/*` only. The legacy `/stats/*` prefix MUST NOT exist — requests to `/stats/*` result in a 404.
 - **FR-025**: The main navigation "Estadísticas" link MUST conditionally route: authenticated users → `/statistics`; anonymous users → `/statistics/top-scorers`. The `statistics` Nuxt layout's side-nav MUST always render two public links ("General" → `/statistics`, "Goleadores" → `/statistics/top-scorers`) and conditionally render four auth-gated links ("Por año", "Por torneo", "Por rival", "Por jugador") when the user is authenticated.
+- **FR-026**: The `GET /api/v1/statistics/players` endpoint MUST accept an optional `status` query parameter (`ACTIVE` | `INACTIVE`). When provided, only players with the matching `Player.status` are included in the aggregation. The `/statistics/players` page MUST default to `status=ACTIVE` on initial load. In `StatsFilters` `players` mode, the "Jugador" filter and the "Estado" `<select>` MUST be displayed next to each other. The "Estado" filter MUST allow toggling between "Activos" (`ACTIVE`), "Inactivos" (`INACTIVE`), and "Todos los estados" (no filter), and the "Jugador" dropdown options MUST be constrained by the currently selected status (only active players for `ACTIVE`, only inactive players for `INACTIVE`, all players when no status is selected). If a selected player becomes invalid after a status change, the player selection MUST be cleared. The selected status value MUST be encoded as the `playerStatus` URL query parameter per FR-007.
 
 ### CSV Import Data Structure
 
@@ -219,19 +220,20 @@ The following column mappings define how the Google Spreadsheet exports map to t
 
 **Jugadores.csv** (one row per player):
 
-| CSV Column   | Entity Field         | Notes                 |
-| ------------ | -------------------- | --------------------- |
-| Jugador      | player.name          | Full name, lookup key |
-| Apodo        | player.nickname      |                       |
-| Nacimiento   | player.birth_date    | Optional DD/MM/YYYY   |
-| Edad         | (derived)            | Not stored            |
-| Altura       | player.height_cm     | Integer cm, optional  |
-| Numero       | player.jersey_number | Integer               |
-| Pie          | player.dominant_foot | e.g. "Diestro"        |
-| Posición     | player.position      | e.g. "SMF"            |
-| DNI          | player.dni           | Optional identifier   |
-| Telefono     | player.phone         | Optional              |
-| Imagen (URL) | player.image_url     | Optional              |
+| CSV Column   | Entity Field         | Notes                                                         |
+| ------------ | -------------------- | ------------------------------------------------------------- |
+| Jugador      | player.name          | Full name, lookup key                                         |
+| Apodo        | player.nickname      |                                                               |
+| Nacimiento   | player.birth_date    | Optional DD/MM/YYYY                                           |
+| Edad         | (derived)            | Not stored                                                    |
+| Altura       | player.height_cm     | Integer cm, optional                                          |
+| Numero       | player.jersey_number | Integer                                                       |
+| Pie          | player.dominant_foot | e.g. "Diestro"                                                |
+| Posición     | player.position      | e.g. "SMF"                                                    |
+| DNI          | player.dni           | Optional identifier                                           |
+| Telefono     | player.phone         | Optional                                                      |
+| Imagen (URL) | player.image_url     | Optional                                                      |
+| Status       | player.status        | `ACTIVE` or `INACTIVE`; defaults to `ACTIVE` if blank/invalid |
 
 **Apariciones.csv** (one row per player per game):
 
@@ -381,13 +383,16 @@ Column `key` values correspond to fields in `TeamStatPeriodDTO` / `PlayerStatRow
 
 **Top-Scorers** (`/statistics/top-scorers`):
 
-| key         | label   | title            | sortable | notes                               |
-| ----------- | ------- | ---------------- | -------- | ----------------------------------- |
-| rank        | #       | Posición         | false    | computed index (slot: `idx + 1`)    |
-| name        | Jugador | Jugador          | true     | `NuxtLink` to `/players/:id` (slot) |
-| goalsScored | Goles   | Goles            | true     |                                     |
-| assists     | Asist.  | Asistencias      | true     |                                     |
-| appearances | PJ      | Partidos Jugados | true     |                                     |
+| key         | label     | title            | sortable | notes                                                                                       |
+| ----------- | --------- | ---------------- | -------- | ------------------------------------------------------------------------------------------- |
+| rank        | #         | Posición         | false    | computed index (slot: `idx + 1`)                                                            |
+| name        | Jugador   | Jugador          | true     | `NuxtLink` to `/players/:id` (slot)                                                         |
+| goalsScored | Goles     | Goles            | true     |                                                                                             |
+| assists     | Asist.    | Asistencias      | true     |                                                                                             |
+| appearances | PJ        | Partidos Jugados | true     |                                                                                             |
+| goalRate    | Prom. Gol | Promedio de gol  | true     | `goalsScored / appearances`; 2-decimal display; 0.00 when appearances = 0; added 2026-04-19 |
+
+**Amendment (2026-04-19)**: `/statistics/top-scorers` now supports a `playerStatus` filter (`ACTIVE` / `INACTIVE` / all). Defaults to `ACTIVE`. Persisted as `playerStatus` URL query param. The "Goleadores" sub-nav link includes `?playerStatus=ACTIVE`. Uses `PlayerStatus` enum from `@ministrosfc/shared` on the frontend and `z.enum(["ACTIVE","INACTIVE"]).optional()` on the CMS route schema.
 
 **StatsTableByYear** (`/statistics/years`):
 
@@ -464,7 +469,7 @@ Column `key` values correspond to fields in `TeamStatPeriodDTO` / `PlayerStatRow
 | draws             | PE      | Partidos Empatados          | true     |
 | goals             | Goles   | Goles                       | true     |
 | assists           | Asist.  | Asistencias                 | true     |
-| goalRate          | GR      | Ritmo Goleador              | true     |
+| goalRate          | PG      | Promedio de gol             | true     |
 | winRate           | Win%    | Porcentaje de Victorias     | true     |
 | participationRate | Part.%  | Porcentaje de Participación | true     |
 
@@ -480,7 +485,7 @@ Column `key` values correspond to fields in `TeamStatPeriodDTO` / `PlayerStatRow
 | losses     | PP     | Partidos Perdidos       | true     |
 | draws      | PE     | Partidos Empatados      | true     |
 | goals      | Goles  | Goles                   | true     |
-| goalRate   | GR     | Ritmo Goleador          | true     |
+| goalRate   | PG     | Promedio de gol         | true     |
 | winRate    | Win%   | Porcentaje de Victorias | true     |
 
 #### Assumptions

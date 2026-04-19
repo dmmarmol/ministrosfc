@@ -399,3 +399,15 @@ needsOnboarding: (state) =>
 **File**: `packages/frontend/src/components/pages/stats/StatsTableByRival.vue`
 
 **Change**: The rival/period label cell now shows `playgroundName` as inline gray text (`text-gray-400 text-xs`) when available. Also updated `:key` to use `row.key` for consistency with Amendment 3.
+
+### Amendment 5 — Player status filter on `/statistics/players` (2026-04-18)
+
+**FR-026** (new): `GET /api/v1/statistics/players` accepts `status` query param (`ACTIVE` | `INACTIVE`). When omitted, no status filter is applied. The `/statistics/players` page defaults to `status=ACTIVE`. `StatsFilters` in `players` mode renders a "Estado" `<select>` wired to `playerStatus` URL query param.
+
+**Files changed**:
+- `packages/cms/src/routes/statistics.ts` — parse and validate `status` query param
+- `packages/cms/src/services/StatisticsService.ts` — add `status` to `getAllPlayerStats` filter type; include in cache key
+- `packages/cms/src/models/Statistics.ts` — add `participantWhere.player = { status }` when status provided
+- `packages/frontend/src/pages/statistics/players/index.vue` — pass `playerStatus` query param (default `ACTIVE`) to API call
+- `packages/frontend/src/components/pages/stats/StatsFilters.vue` — add `playerStatus` `defineModel`, `change:playerStatus` emit, "Estado" `<select>` visible when `mode === 'players'`
+- `packages/frontend/src/layouts/statistics-private.vue` — bind `:player-status` and `@change:player-status` via `qp`
