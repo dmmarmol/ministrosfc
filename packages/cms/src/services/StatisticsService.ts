@@ -4,6 +4,7 @@ import { PlayerModel } from "../models/Player";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
 import { getRedisClient } from "../config/redis";
+import { PlayerStatus } from "@prisma/client";
 
 const CACHE_TTL = 300; // 5 min
 
@@ -42,10 +43,14 @@ const StatisticsService = {
     return { player, stats, availableYears };
   },
 
-  async getTopScorers(tournamentId?: string, limit = 10) {
-    const cacheKey = `cache:stats:topscorers:${tournamentId ?? "all"}:${limit}`;
+  async getTopScorers(
+    tournamentId?: string,
+    limit = 10,
+    status?: PlayerStatus,
+  ) {
+    const cacheKey = `cache:stats:topscorers:${tournamentId ?? "all"}:${limit}:${status ?? "all"}`;
     return withCache(cacheKey, () =>
-      StatisticsModel.getTopScorers(tournamentId, limit),
+      StatisticsModel.getTopScorers(tournamentId, limit, status),
     );
   },
 
@@ -141,8 +146,9 @@ const StatisticsService = {
     rivalId?: string;
     tournamentName?: string;
     playerId?: string;
+    status?: PlayerStatus;
   }) {
-    const key = `cache:stats:players:all:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}:${filters?.tournamentName ?? "all"}:${filters?.playerId ?? "all"}`;
+    const key = `cache:stats:players:all:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}:${filters?.tournamentName ?? "all"}:${filters?.playerId ?? "all"}:${filters?.status ?? "all"}`;
     return withCache(key, () => StatisticsModel.aggregatePlayersAll(filters));
   },
 };

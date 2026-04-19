@@ -8,12 +8,14 @@ import { validate, uuidSchema } from "../middleware/validation";
 import { StatisticsService } from "../services/StatisticsService";
 import { authenticate } from "../middleware/auth";
 import { z } from "zod";
+import { PlayerStatus } from "@prisma/client";
 
 const router = Router();
 
 const topScorersSchema = z.object({
   tournamentId: z.uuid().optional(),
   limit: z.coerce.number().int().min(1).max(50).default(10),
+  status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
 });
 
 const teamStatsQuerySchema = z.object({
@@ -23,20 +25,25 @@ const teamStatsQuerySchema = z.object({
   rivalId: z.uuid().optional(),
 });
 
+const playerStatusValues = Object.values(PlayerStatus);
+
 // GET /api/v1/statistics/players - All players aggregated (public + extended)
 router.get(
   "/players",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { year, rivalId, tournamentName, playerId } = req.query as Record<
-        string,
-        string
-      >;
+      const { year, rivalId, tournamentName, playerId, status } =
+        req.query as Record<string, string>;
+      const playerStatus: PlayerStatus | undefined =
+        status && playerStatusValues.includes(status as PlayerStatus)
+          ? (status as PlayerStatus)
+          : undefined;
       const data = await StatisticsService.getAllPlayerStats({
         year: year ? parseInt(year, 10) : undefined,
         rivalId,
         tournamentName,
         playerId,
+        status: playerStatus,
       });
       res.setHeader("Cache-Control", "public, max-age=300");
       res.json({ data });
@@ -75,6 +82,7 @@ router.get(
       const data = await StatisticsService.getTopScorers(
         query.tournamentId,
         query.limit,
+        query.status as PlayerStatus | undefined,
       );
       res.setHeader("Cache-Control", "public, max-age=300");
       res.json({ data });

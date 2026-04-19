@@ -10,7 +10,7 @@
  *  - `aggregateForTournament(tournamentId)` — all players' stats within a tournament.
  */
 import { prisma } from "../config/database";
-import { GameStatus } from "@prisma/client";
+import { GameStatus, PlayerStatus } from "@prisma/client";
 
 const StatisticsModel = {
   async getGameYearsForPlayer(playerId: string): Promise<number[]> {
@@ -79,13 +79,20 @@ const StatisticsModel = {
     );
   },
 
-  async getTopScorers(tournamentId?: string, limit = 10) {
+  async getTopScorers(
+    tournamentId?: string,
+    limit = 10,
+    status?: PlayerStatus,
+  ) {
     const gameWhere: any = { status: GameStatus.COMPLETED };
     if (tournamentId) gameWhere.tournamentId = tournamentId;
 
     const results = await prisma.gameParticipant.groupBy({
       by: ["playerId"],
-      where: { game: gameWhere },
+      where: {
+        game: gameWhere,
+        ...(status ? { player: { status } } : {}),
+      },
       _sum: { goalsScored: true, assists: true },
       _count: { id: true },
       orderBy: { _sum: { goalsScored: "desc" } },
@@ -479,6 +486,7 @@ const StatisticsModel = {
     rivalId?: string;
     tournamentName?: string;
     playerId?: string;
+    status?: PlayerStatus;
   }) {
     const gameWhere: any = { status: GameStatus.COMPLETED };
     if (filters?.rivalId) gameWhere.opponentTeamId = filters.rivalId;
@@ -489,6 +497,7 @@ const StatisticsModel = {
 
     const participantWhere: any = { game: gameWhere };
     if (filters?.playerId) participantWhere.playerId = filters.playerId;
+    if (filters?.status) participantWhere.player = { status: filters.status };
 
     const allCompletedGames = await prisma.game.count({ where: gameWhere });
 
