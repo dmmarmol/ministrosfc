@@ -2,15 +2,26 @@
 definePageMeta({ public: true });
 useHead({ title: "Roster – Ministros FC" });
 
+import { PlayerStatus } from "@ministrosfc/shared";
+import { useAuthStore } from "~/stores/auth";
+
 const { $api } = useNuxtApp();
+const authStore = useAuthStore();
 
 const search = ref("");
 const positionFilter = ref("");
+const statusFilter = ref<PlayerStatus | "ALL">(PlayerStatus.ACTIVE);
 
-const { data, pending } = await useAsyncData("roster", () =>
-  $api<{ data: any[] }>("/api/v1/players", {
-    query: { status: "ACTIVE", limit: 100 },
-  }),
+const { data, pending } = await useAsyncData(
+  "roster",
+  () =>
+    $api<{ data: any[] }>("/api/v1/players", {
+      query: {
+        status: statusFilter.value,
+        limit: 100,
+      },
+    }),
+  { watch: [statusFilter] },
 );
 
 const players = computed(() =>
@@ -38,6 +49,15 @@ const filteredPlayers = computed(() => {
   <div>
     <!-- Filters -->
     <div class="flex flex-col sm:flex-row gap-3 mb-6">
+      <select
+        v-if="authStore.isAuthenticated"
+        v-model="statusFilter"
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+      >
+        <option :value="PlayerStatus.ACTIVE">Activos</option>
+        <option :value="PlayerStatus.INACTIVE">Inactivos</option>
+        <option value="ALL">Todos</option>
+      </select>
       <input
         v-model="search"
         type="text"

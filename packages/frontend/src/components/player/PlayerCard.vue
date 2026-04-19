@@ -1,16 +1,9 @@
 <script setup lang="ts">
-const props = defineProps<{
-  player: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    position: string | null;
-    jerseyNumber: number | null;
-    photoUrl: string | null;
-  };
-}>();
+import type { PlayerPublic, Position } from "@ministrosfc/shared";
 
-function formatPosition(pos: string | null): string {
+defineProps<{ player: PlayerPublic }>();
+
+function formatPosition(pos: Position | null): string {
   if (!pos) return "—";
   return pos;
 }
@@ -51,6 +44,9 @@ function formatPosition(pos: string | null): string {
     <div class="p-3">
       <p class="font-semibold text-gray-900 text-sm truncate">
         {{ player.firstName }} {{ player.lastName }}
+      </p>
+      <p v-if="player.nickname" class="text-xs text-gray-400 italic truncate">
+        {{ player.nickname }}
       </p>
       <p class="text-xs text-gray-500 mt-0.5">
         {{ formatPosition(player.position) }}

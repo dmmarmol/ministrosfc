@@ -166,9 +166,10 @@ const isTeamFull = computed(
           >
             {{ p.player?.playerType === "GUEST" ? "Inv." : "Reg." }}
           </span>
-          <span class="text-xs text-gray-500 w-8 flex-shrink-0">
-            {{ p.player?.position ?? "—" }}
-          </span>
+          <UiPositionLabel
+            v-if="p.player?.position"
+            :position="p.player.position"
+          />
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-800 truncate">
               <!-- T030: guest lastName hidden on public page -->
@@ -191,9 +192,27 @@ const isTeamFull = computed(
               }}
             </p>
           </div>
-          <span class="text-xs text-gray-500 capitalize flex-shrink-0">{{
-            p.confirmationStatus?.toLowerCase().replace(/_/g, " ")
-          }}</span>
+          <div
+            class="text-xs text-gray-500 flex-shrink-0 flex items-center gap-4"
+          >
+            <div
+              class="flex gap-x-2"
+              v-if="game.status === GameStatus.COMPLETED && p.goalsScored"
+            >
+              <span v-for="n in p.goalsScored" :key="n" aria-hidden="true"
+                >⚽</span
+              >
+            </div>
+            <span
+              v-if="game.status !== GameStatus.COMPLETED"
+              class="capitalize"
+              >{{
+                p.confirmationStatus === "CONFIRMED"
+                  ? "Confirmado"
+                  : p.confirmationStatus?.toLowerCase().replace(/_/g, " ")
+              }}</span
+            >
+          </div>
         </div>
       </div>
       <p v-else class="text-gray-500 text-sm">No hay jugadores confirmados.</p>
