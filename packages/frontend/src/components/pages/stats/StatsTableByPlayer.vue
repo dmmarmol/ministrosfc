@@ -17,7 +17,7 @@ const allColumns: ColumnDef[] = [
   { key: "draws", label: "PE", title: "Partidos Empatados", sortable: true },
   { key: "goals", label: "Goles", title: "Goles", sortable: true },
   { key: "assists", label: "Asist.", title: "Asistencias", sortable: true },
-  { key: "goalRate", label: "GR", title: "Ritmo Goleador", sortable: true },
+  { key: "goalRate", label: "PG", title: "Promedio de gol", sortable: true },
   {
     key: "winRate",
     label: "Win%",
@@ -41,7 +41,7 @@ const singleColumns: ColumnDef[] = [
   { key: "draws", label: "PE", title: "Partidos Empatados", sortable: true },
   { key: "goals", label: "Goles", title: "Goles", sortable: true },
   { key: "assists", label: "Asist.", title: "Asistencias", sortable: true },
-  { key: "goalRate", label: "GR", title: "Ritmo Goleador", sortable: true },
+  { key: "goalRate", label: "PG", title: "Promedio de gol", sortable: true },
   {
     key: "winRate",
     label: "Win%",
@@ -62,6 +62,7 @@ const columns = computed(() =>
 
 const tableRows = computed(() =>
   props.rows.map((row) => ({
+    playerId: row.playerId,
     name: row.playerName,
     nickname: row.playerNickname ?? null,
     games: row.gamesPlayed,
@@ -78,11 +79,15 @@ const tableRows = computed(() =>
 </script>
 
 <template>
-  <StatsTable :columns="columns" :rows="tableRows" :loading="loading">
+  <UiStatsTable :columns="columns" :rows="tableRows" :loading="loading">
     <template #name-data="{ row }">
       <div class="flex gap-x-2 items-baseline">
-        <span class="font-medium">{{ row.name }}</span>
-        <span v-if="row.nickname" class="text-sm text-gray-400">{{
+        <NuxtLink
+          :to="`/players/${row.playerId}`"
+          class="font-medium hover:text-brand transition-colors"
+          >{{ row.name }}</NuxtLink
+        >
+        <span v-if="row.nickname" class="text-sm text-gray-400 italic">{{
           row.nickname
         }}</span>
       </div>
@@ -100,14 +105,14 @@ const tableRows = computed(() =>
       {{ row.goalRate != null ? Number(row.goalRate).toFixed(2) : "—" }}
     </template>
     <template #winRate-data="{ row }">
-      {{ row.winRate != null ? (Number(row.winRate) * 100).toFixed(1) : "—" }}%
+      {{ row.winRate != null ? Number(row.winRate).toFixed(1) : "—" }}%
     </template>
     <template #participationRate-data="{ row }">
       {{
         row.participationRate != null
-          ? (Number(row.participationRate) * 100).toFixed(1)
+          ? Number(row.participationRate).toFixed(1)
           : "—"
       }}%
     </template>
-  </StatsTable>
+  </UiStatsTable>
 </template>
