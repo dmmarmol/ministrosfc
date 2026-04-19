@@ -1,4 +1,13 @@
 <script lang="ts">
+// NOTE: This component uses `defineComponent` with a `setup()` that returns a
+// render function — this IS the Vue 3 Composition API. It is NOT the Options
+// API (which uses `data()`, `methods: {}`, `computed: {}`, etc.).
+//
+// `<script setup>` cannot be used here because it requires a <template> block.
+// A render function is necessary because Vue 3 templates cannot dynamically
+// generate named slots (`#<key>-header`) from a runtime array — the slot names
+// must be statically known at compile time. Only render functions (`h()`) can
+// build named slots programmatically at runtime.
 import { defineComponent, h, resolveComponent, type PropType } from "vue";
 import type { ColumnDef } from "~/types/table";
 
@@ -12,7 +21,7 @@ import type { ColumnDef } from "~/types/table";
  * the parent. All other slots (data-cell customisations) are forwarded as-is.
  *
  * Emits `sort(key: string)` when a sortable column header is clicked so that
- * a parent component (e.g. <StatsTable>) can own the sort state.
+ * a parent component (e.g. <UiStatsTable>) can own the sort state.
  */
 export default defineComponent({
   name: "UiTable",
@@ -132,6 +141,7 @@ export default defineComponent({
         {
           columns: uTableColumns,
           rows: props.rows,
+          ui: { base: "min-w-full w-full table-auto" },
           ...attrs,
         },
         allSlots,

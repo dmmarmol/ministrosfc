@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { type TeamStatPeriodDTO, formatDate } from "@ministrosfc/shared";
+import { type TeamStatPeriodDTO } from "@ministrosfc/shared";
+import { formatStatDate } from "~/utils/stats";
 import type { ColumnDef } from "~/types/table";
 
 const props = defineProps<{
@@ -53,12 +54,10 @@ const columns: ColumnDef[] = [
 const tableRows = computed(() =>
   props.rows.map((row) => ({
     tournament: row.label,
-    year: row.periodStart
-      ? formatDate(row.periodStart, { year: "numeric" })
-      : "—",
+    year: row.periodStart ? row.periodStart.slice(0, 4) : "—",
     period:
       row.periodStart && row.periodEnd
-        ? `${row.periodStart} – ${row.periodEnd}`
+        ? `${formatStatDate(row.periodStart)} – ${formatStatDate(row.periodEnd)}`
         : "—",
     games: row.gamesPlayed,
     wins: row.wins,
@@ -76,7 +75,7 @@ const tableRows = computed(() =>
 </script>
 
 <template>
-  <StatsTable :columns="columns" :rows="tableRows" :loading="loading">
+  <UiStatsTable :columns="columns" :rows="tableRows" :loading="loading">
     <template #wins-data="{ row }">
       <span class="text-green-600">{{ row.wins }}</span>
     </template>
@@ -106,7 +105,7 @@ const tableRows = computed(() =>
       {{ Number(row.goalRateAgainst).toFixed(2) }}
     </template>
     <template #winRate-data="{ row }">
-      {{ (Number(row.winRate) * 100).toFixed(1) }}%
+      {{ Number(row.winRate).toFixed(1) }}%
     </template>
-  </StatsTable>
+  </UiStatsTable>
 </template>

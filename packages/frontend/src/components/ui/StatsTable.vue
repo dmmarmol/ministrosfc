@@ -8,6 +8,11 @@ const props = defineProps<{
   loading?: boolean;
 }>();
 
+defineSlots<{
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: (props: { row: Record<string, unknown> }) => any;
+}>();
+
 // ── Sort state ────────────────────────────────────────────────────────────────
 
 const sortKey = ref<string | null>(null);
@@ -55,6 +60,12 @@ function handleSort(key: string) {
     sortDir.value = "asc";
   }
 }
+
+const selectedRow = ref<Record<string, unknown> | null>(null);
+
+function onHover(_e: Event, row: Record<string, unknown> | null) {
+  selectedRow.value = row;
+}
 </script>
 
 <template>
@@ -65,6 +76,7 @@ function handleSort(key: string) {
     :sort-key="sortKey"
     :sort-dir="sortDir"
     @sort="handleSort"
+    @hover="onHover"
   >
     <!--
       Forward every slot the consumer provided (e.g. #rank-data, #name-data)
@@ -73,7 +85,7 @@ function handleSort(key: string) {
     <template v-for="(_, slotName) in $slots" #[slotName]="slotProps">
       <slot
         :name="slotName"
-        v-bind="(slotProps as Record<string, unknown>) ?? {}"
+        v-bind="(slotProps as { row: Record<string, unknown> }) ?? {}"
       />
     </template>
   </UiTable>
