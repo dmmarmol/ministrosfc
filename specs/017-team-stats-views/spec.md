@@ -2,7 +2,7 @@
 
 **Feature Branch**: `feat/017-team-stats-views`  
 **Created**: 2026-04-16  
-**Status**: Draft  
+**Status**: Implemented  
 **Input**: User description: "Create private views to display tournament, games and individual players statistics. Player stats publicly visible. Filtered by year/tournament/rival. URL query params for sharing."
 **CSV Source**: `data/historial.csv`, `data/jugadores.csv`, `data/apariciones.csv` (Google Spreadsheet exports; canonical source of historical data)
 
@@ -531,3 +531,31 @@ Match rows in `rivals/[id].vue` were previously rendering the entire row as a `<
 #### Enhancement: back navigation button on rivals detail page
 
 A `<NuxtLink to="/statistics/rivals">` back link with `w-24` fixed width was added at the top of the `rivals/[id].vue` template, immediately before `<UiStatsTitle>`. It renders a left-pointing chevron SVG icon followed by the label "Volver". The link uses `text-sm text-muted-foreground hover:text-foreground transition-colors` classes and is styled to be legible against the statistics layout dark background via `text-muted-foreground`.
+
+---
+
+### Amendment 2026-04-19 — Game Detail UX + Player Profile Improvements
+
+#### Context
+
+Several UX improvements and a type-hygiene fix were made to the game detail page, the player profile components, and the roster page during the final session of this feature branch. These changes are outside the original statistics scope but were bundled here as incidental improvements.
+
+#### Enhancement: goal emojis on game detail page for completed games
+
+`packages/frontend/src/pages/games/[slug]/index.vue`: for each participant in the game detail participants list, a row of ⚽ emojis (one per `p.goalsScored`) is rendered when `game.status === GameStatus.COMPLETED` and `p.goalsScored` is truthy. Emojis are rendered via `v-for="n in p.goalsScored"` with `aria-hidden="true"` on each `<span>`. No emoji is shown for `SCHEDULED`, `IN_PROGRESS`, or `CANCELLED` games.
+
+#### Enhancement: hide confirmation-status label for completed games
+
+`packages/frontend/src/pages/games/[slug]/index.vue`: the confirmation-status label ("Confirmado" / lowercased `confirmationStatus`) is now hidden for `COMPLETED` games via `v-if="game.status !== GameStatus.COMPLETED"`. For non-completed games the label behaviour is unchanged.
+
+#### Enhancement: player status badge in `PlayerHeader.vue`
+
+`packages/frontend/src/components/pages/player/PlayerHeader.vue`: an absolutely-positioned status badge was added to the top-right corner of the player avatar area. It renders "Activo" with green background (`bg-green-100 text-green-800`) when `player.status === 'ACTIVE'`, and "Inactivo" with gray background (`bg-gray-100 text-gray-600`) otherwise.
+
+#### Type hygiene: `PlayerCard.vue` uses `PlayerPublic` from `@ministrosfc/shared`
+
+`packages/frontend/src/components/player/PlayerCard.vue`: the inline prop type was replaced with `PlayerPublic` imported from `@ministrosfc/shared`, eliminating a duplicate type definition and aligning with constitution Principle VII (Shared Types gate).
+
+#### Bug fix: `roster.vue` ALL status filter
+
+`packages/frontend/src/pages/roster.vue`: the `status` query parameter was previously omitted from the players API fetch when the filter value was `"ALL"`, causing the API to return only `ACTIVE` players regardless of selection. Fixed by always passing `status: statusFilter.value` — the CMS correctly handles `"ALL"` as a no-filter sentinel value.

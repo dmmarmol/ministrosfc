@@ -352,3 +352,15 @@ T072 (StatsTable unit test) — parallel with T069
 - [x] T081 `packages/cms/src/models/Statistics.ts` — add `status?: PlayerStatus` to `getTopScorers` params; spread `...(status ? { player: { status } } : {})` into the `groupBy` `where`
 - [x] T082 `packages/frontend/src/pages/statistics/top-scorers.vue` — import `PlayerStatus` from `@ministrosfc/shared`; add `playerStatusFilter` ref (type `PlayerStatus | ""`, default `PlayerStatus.ACTIVE` read from `qp.get("playerStatus")`); include `status: playerStatusFilter.value` in API query when truthy; add `watch(playerStatusFilter, v => qp.set("playerStatus", v))` and `watch(() => route.query.playerStatus, ...)` for URL sync; add `goalRate` column (key `goalRate`, label `Prom. Gol`, title `Promedio de gol`, sortable `true`) to `columns` and `tableRows` (value: `goalsScored / appearances`, 0 when appearances = 0); add player status `<select>` with `PlayerStatus.ACTIVE`, `PlayerStatus.INACTIVE`, and `""` options
 - [x] T083 `packages/frontend/src/components/pages/statistics/StatisticsSubNav.vue` — update "Goleadores" link `to` from `/statistics/top-scorers` to `/statistics/top-scorers?playerStatus=ACTIVE`
+
+---
+
+## Phase 16: Retrospective — Game Detail UX + Player Profile Improvements (Amendment 2026-04-19)
+
+**Context**: Incidental improvements made in the final implementation session. Not part of the original statistics scope; documented here for traceability.
+
+- [x] T084 [Retro] `packages/frontend/src/pages/games/[slug]/index.vue` — render ⚽ emoji per `p.goalsScored` inside a `v-if="game.status === GameStatus.COMPLETED && p.goalsScored"` block; hide confirmation-status label via `v-if="game.status !== GameStatus.COMPLETED"`
+- [x] T085 [Retro] `packages/frontend/src/components/pages/player/PlayerHeader.vue` — add absolutely-positioned status badge (green "Activo" for `ACTIVE`, gray "Inactivo" otherwise) to top-right corner of player avatar area
+- [x] T086 [Retro] `packages/frontend/src/components/player/PlayerCard.vue` — replace inline prop type with `PlayerPublic` imported from `@ministrosfc/shared` (Principle VII alignment)
+
+> **Note**: T049 (canchas.csv manual smoke test) defined in Phase 10 remains the sole open task before this branch can be considered fully closed.
