@@ -5,13 +5,17 @@
  * Returns `availableRivals` as `{ value: string; label: string }[]`
  * sorted alphabetically by name.
  */
-export function useStatisticsAvailableRivals() {
+export function useStatisticsAvailableRivals(enabled: MaybeRef<boolean> = true) {
   const { $api } = useNuxtApp();
+  const isEnabled = toRef(enabled);
 
   const { data } = useAsyncData(
     "statistics-available-rivals",
-    () => $api<{ data: { id: string; name: string }[] }>("/api/v1/teams"),
-    { server: false },
+    () =>
+      isEnabled.value
+        ? $api<{ data: { id: string; name: string }[] }>("/api/v1/teams")
+        : Promise.resolve(null),
+    { server: false, watch: [isEnabled] },
   );
 
   const availableRivals = computed(() => {

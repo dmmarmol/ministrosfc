@@ -7,6 +7,7 @@ export interface StatsFilters {
   tournament: string;
   rivalId: string;
   playerId: string;
+  playgroundId: string;
 }
 
 export function useStatsFilters() {
@@ -19,6 +20,7 @@ export function useStatsFilters() {
     tournament: (route.query.tournament as string) ?? "",
     rivalId: (route.query.rivalId as string) ?? "",
     playerId: (route.query.playerId as string) ?? "",
+    playgroundId: (route.query.playgroundId as string) ?? "",
   }));
 
   async function setFilter(key: keyof StatsFilters, value: string) {

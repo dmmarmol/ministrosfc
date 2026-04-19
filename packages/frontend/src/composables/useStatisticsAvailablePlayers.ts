@@ -8,10 +8,11 @@
 import { PlayerStatus } from "@ministrosfc/shared";
 import type { MaybeRef } from "vue";
 
-export function useStatisticsAvailablePlayers(status?: MaybeRef<string | undefined>) {
+export function useStatisticsAvailablePlayers(status?: MaybeRef<string | undefined>, enabled: MaybeRef<boolean> = true) {
   const { $api } = useNuxtApp();
 
   const statusRef = toRef(status);
+  const isEnabled = toRef(enabled);
 
   const queryStatus = computed<PlayerStatus | undefined>(() => {
     const value = statusRef.value;
@@ -25,6 +26,8 @@ export function useStatisticsAvailablePlayers(status?: MaybeRef<string | undefin
   const { data } = useAsyncData(
     () => `statistics-available-players-${queryStatus.value ?? "all"}`,
     async () => {
+      if (!isEnabled.value) return Promise.resolve(null);
+
       const fetchPlayers = (status?: PlayerStatus) =>
         $api<{
           data: {
@@ -55,7 +58,7 @@ export function useStatisticsAvailablePlayers(status?: MaybeRef<string | undefin
 
       return { data: [...mergedById.values()] };
     },
-    { server: false, watch: [queryStatus] },
+    { server: false, watch: [queryStatus, isEnabled] },
   );
 
   const availablePlayers = computed(() => {

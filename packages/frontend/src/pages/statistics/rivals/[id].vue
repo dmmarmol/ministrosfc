@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 import StatsFilters from "../../../components/pages/stats/StatsFilters.vue";
+import StatsTitle from "~/components/pages/stats/StatsTitle.vue";
 
 definePageMeta({
   layout: "statistics",
@@ -26,6 +27,7 @@ const [{ data: teamData }, { data, pending, refresh }] = await Promise.all([
         {
           query: {
             ...(filters.value.year ? { year: filters.value.year } : {}),
+            ...(filters.value.playgroundId ? { playgroundId: filters.value.playgroundId } : {}),
           },
         },
       ),
@@ -64,7 +66,7 @@ function toggleYear(year: string) {
 }
 
 watch(
-  () => filters.value.year,
+  () => route.query,
   () => refresh(),
 );
 </script>
@@ -75,8 +77,18 @@ watch(
       to="/statistics/rivals"
       class="inline-flex items-center gap-1 w-24 text-sm text-muted-foreground hover:text-foreground transition-colors"
     >
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      <svg
+        class="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M15 19l-7-7 7-7"
+        />
       </svg>
       Volver
     </NuxtLink>
@@ -84,7 +96,9 @@ watch(
     <StatsFilters
       mode="rival"
       :year="filters.year"
+      :playground="filters.playgroundId"
       @change:year="(v) => setFilter('year', v)"
+      @change:playground="(v) => setFilter('playgroundId', v)"
     />
 
     <div v-if="pending" class="text-center text-muted-foreground py-8">

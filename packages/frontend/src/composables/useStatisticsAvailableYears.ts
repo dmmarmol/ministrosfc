@@ -1,4 +1,5 @@
-import { computed } from "vue";
+import { computed, toRef } from "vue";
+import type { MaybeRef } from "vue";
 
 /**
  * Fetches the global list of years that have completed game data.
@@ -7,13 +8,17 @@ import { computed } from "vue";
  * Returns `availableYears` as `{ value: string; label: string }[]`
  * ready to be passed directly to StatsFilters :years prop.
  */
-export function useStatisticsAvailableYears() {
+export function useStatisticsAvailableYears(enabled: MaybeRef<boolean> = true) {
   const { $api } = useNuxtApp();
+  const isEnabled = toRef(enabled);
 
   const { data } = useAsyncData(
     "statistics-available-years",
-    () => $api<{ data: number[] }>("/api/v1/statistics/years"),
-    { server: false },
+    () =>
+      isEnabled.value
+        ? $api<{ data: number[] }>("/api/v1/statistics/years")
+        : Promise.resolve(null),
+    { server: false, watch: [isEnabled] },
   );
 
   const availableYears = computed(() =>

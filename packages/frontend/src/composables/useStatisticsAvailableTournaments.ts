@@ -6,13 +6,17 @@
  * deduplicated by name — tournaments sharing the same name (e.g. multiple
  * "Amistoso" editions) appear as a single option whose value is the name itself.
  */
-export function useStatisticsAvailableTournaments() {
+export function useStatisticsAvailableTournaments(enabled: MaybeRef<boolean> = true) {
   const { $api } = useNuxtApp();
+  const isEnabled = toRef(enabled);
 
   const { data } = useAsyncData(
     "statistics-available-tournaments",
-    () => $api<{ data: { id: string; name: string }[] }>("/api/v1/tournaments"),
-    { server: false },
+    () =>
+      isEnabled.value
+        ? $api<{ data: { id: string; name: string }[] }>("/api/v1/tournaments")
+        : Promise.resolve(null),
+    { server: false, watch: [isEnabled] },
   );
 
   const availableTournaments = computed(() => {
