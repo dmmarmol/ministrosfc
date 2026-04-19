@@ -12,7 +12,7 @@
 import { config } from "@vue/test-utils";
 import { defineComponent, h } from "vue";
 import UiTable from "~/components/ui/Table.vue";
-import StatsTable from "~/components/pages/stats/StatsTable.vue";
+import StatsTable from "~/components/ui/StatsTable.vue";
 
 /**
  * Minimal UTable stub that mirrors the slot contract of the real component:

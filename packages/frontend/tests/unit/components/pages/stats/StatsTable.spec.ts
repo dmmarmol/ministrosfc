@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { mount, config } from "@vue/test-utils";
 import { defineComponent, h } from "vue";
-import StatsTable from "~/components/pages/stats/StatsTable.vue";
+import StatsTable from "~/components/ui/StatsTable.vue";
 import type { ColumnDef } from "~/types/table";
 
 /**
