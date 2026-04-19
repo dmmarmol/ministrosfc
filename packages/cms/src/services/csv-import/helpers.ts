@@ -4,7 +4,7 @@
  */
 import { parse } from "csv-parse/sync";
 import { randomUUID } from "crypto";
-import { Foot } from "@prisma/client";
+import { Foot, PlayerStatus } from "@prisma/client";
 import { Position } from "@ministrosfc/shared";
 
 // ─── CSV parsing ──────────────────────────────────────────────────────────────
@@ -91,9 +91,9 @@ export function ensureExternalIds(
       if (!existing || !/^[0-9a-f-]{36}$/i.test(existing)) {
         cols[idIdx] = randomUUID();
       }
-      outLines.push(cols.join(","));
+      outLines.push(joinCsvLine(cols));
     } else {
-      outLines.push([randomUUID(), ...cols].join(","));
+      outLines.push(joinCsvLine([randomUUID(), ...cols]));
     }
   }
 
@@ -121,6 +121,22 @@ function splitCsvLine(line: string): string[] {
   }
   result.push(cur);
   return result;
+}
+
+/**
+ * Re-serialise an array of field values into a single CSV line.
+ * Any value containing a comma or double-quote is wrapped in double-quotes,
+ * with internal double-quotes escaped as "".
+ */
+function joinCsvLine(cols: string[]): string {
+  return cols
+    .map((v) => {
+      if (v.includes(",") || v.includes('"') || v.includes("\n")) {
+        return `"${v.replace(/"/g, '""')}"`;
+      }
+      return v;
+    })
+    .join(",");
 }
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
@@ -170,6 +186,13 @@ export function splitName(full: string): {
   const firstName = parts[0]!;
   const lastName = parts.slice(1).join(" ");
   return { firstName, lastName };
+}
+
+/** "ACTIVE" | "INACTIVE" → PlayerStatus enum, defaults to ACTIVE if unrecognised. */
+export function mapPlayerStatus(raw: string): PlayerStatus {
+  const v = raw?.trim().toUpperCase();
+  if (v === "INACTIVE") return PlayerStatus.INACTIVE;
+  return PlayerStatus.ACTIVE;
 }
 
 // ─── Value mappers ────────────────────────────────────────────────────────────

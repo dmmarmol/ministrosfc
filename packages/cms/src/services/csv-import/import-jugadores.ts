@@ -8,6 +8,7 @@ import {
   splitName,
   mapFoot,
   mapPosition,
+  mapPlayerStatus,
   ensureExternalIds,
 } from "./helpers";
 import { JugadoresCols } from "./column-maps";
@@ -87,7 +88,7 @@ export async function importJugadores(
       nationalId: row[JugadoresCols.dni]?.trim() || null,
       photoUrl: row[JugadoresCols.imagenUrl]?.trim() || null,
       playerType: PlayerType.REGISTERED,
-      status: PlayerStatus.ACTIVE,
+      status: mapPlayerStatus(row[JugadoresCols.status] ?? ""),
     };
 
     let playerId: string;

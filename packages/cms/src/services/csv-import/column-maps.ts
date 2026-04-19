@@ -27,7 +27,8 @@ export type JugadoresColumn =
   | "Posición"
   | "DNI"
   | "Telefono"
-  | "Imagen (URL)";
+  | "Imagen (URL)"
+  | "Status";
 
 export const JUGADORES_COLUMN_MAP: Record<JugadoresColumn, string> = {
   ID: "Player.externalId", // stable UUID assigned in CSV
@@ -42,6 +43,7 @@ export const JUGADORES_COLUMN_MAP: Record<JugadoresColumn, string> = {
   DNI: "Player.nationalId",
   Telefono: "Contact.phone + Contact.whatsapp",
   "Imagen (URL)": "Player.photoUrl",
+  Status: "Player.status", // ACTIVE | INACTIVE → PlayerStatus enum
 } as const;
 
 /** jugadores.csv column header enum — values are enforced against JugadoresColumn. */
@@ -59,6 +61,7 @@ export enum JugadoresCols {
   dni = "DNI",
   telefono = "Telefono",
   imagenUrl = "Imagen (URL)",
+  status = "Status",
 }
 // Compile-time guard: every enum value must be a valid JugadoresColumn
 void (Object.values(JugadoresCols) satisfies JugadoresColumn[]);
