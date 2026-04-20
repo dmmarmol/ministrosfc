@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { TeamSummaryHeaderDTO } from "@ministrosfc/shared";
-import StatsHeader from "../../components/pages/stats/StatsHeader.vue";
+import StatsHeader from "../../components/pages/statistics/StatsHeader.vue";
+import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 
 definePageMeta({ layout: "statistics", public: true });
 useHead({ title: "Estadísticas – Ministros FC" });

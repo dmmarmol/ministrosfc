@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { PlayerStatRowDTO } from "@ministrosfc/shared";
-import StatsTableByPlayer from "../../../components/pages/stats/StatsTableByPlayer.vue";
-import YearFilter from "~/components/pages/statistics/StatsFilters/YearFilter.vue";
-import PlayerStatusFilter from "~/components/pages/statistics/StatsFilters/PlayerStatusFilter.vue";
-import PlayerFilter from "~/components/pages/statistics/StatsFilters/PlayerFilter.vue";
+import StatsTableByPlayer from "../../../components/pages/statistics/StatsTableByPlayer.vue";
+import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
+import PlayerStatusSelect from "~/components/pages/statistics/StatsFilters/PlayerStatusSelect.vue";
+import PlayerSelect from "~/components/pages/statistics/StatsFilters/PlayerSelect.vue";
 
 definePageMeta({
   layout: "statistics-private",
@@ -48,9 +48,9 @@ watch(
 <template>
   <div>
     <div class="flex flex-wrap gap-3 mb-6">
-      <YearFilter v-model="yearFilter" />
-      <PlayerStatusFilter v-model="playerStatusFilter" />
-      <PlayerFilter v-model="playerFilter" :status="playerStatusFilter" />
+      <YearSelect v-model="yearFilter" />
+      <PlayerStatusSelect v-model="playerStatusFilter" />
+      <PlayerSelect v-model="playerFilter" :status="playerStatusFilter" />
     </div>
     <StatsTitle>Estadísticas de Jugadores</StatsTitle>
     <StatsTableByPlayer :rows="rows" mode="all" :loading="pending" />

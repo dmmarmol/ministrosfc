@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
-import StatsTitle from "~/components/pages/stats/StatsTitle.vue";
-import YearFilter from "~/components/pages/statistics/StatsFilters/YearFilter.vue";
-import PlaygroundFilter from "~/components/pages/statistics/StatsFilters/PlaygroundFilter.vue";
+import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
+import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
+import PlaygroundSelect from "~/components/pages/statistics/StatsFilters/PlaygroundSelect.vue";
 
 definePageMeta({
   layout: "statistics",
@@ -101,8 +101,8 @@ watch(
     </NuxtLink>
     <StatsTitle>Estadísticas vs "{{ rivalName }}"</StatsTitle>
     <div class="flex flex-wrap gap-3">
-      <YearFilter v-model="yearFilter" />
-      <PlaygroundFilter v-model="playgroundFilter" />
+      <YearSelect v-model="yearFilter" />
+      <PlaygroundSelect v-model="playgroundFilter" />
     </div>
 
     <div v-if="pending" class="text-center text-muted-foreground py-8">

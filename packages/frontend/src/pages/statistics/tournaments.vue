@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
-import StatsTableByTournament from "../../components/pages/stats/StatsTableByTournament.vue";
-import YearFilter from "~/components/pages/statistics/StatsFilters/YearFilter.vue";
-import TournamentFilter from "~/components/pages/statistics/StatsFilters/TournamentFilter.vue";
-import PlaygroundFilter from "~/components/pages/statistics/StatsFilters/PlaygroundFilter.vue";
+import StatsTableByTournament from "../../components/pages/statistics/StatsTableByTournament.vue";
+import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
+import TournamentSelect from "~/components/pages/statistics/StatsFilters/TournamentSelect.vue";
+import PlaygroundSelect from "~/components/pages/statistics/StatsFilters/PlaygroundSelect.vue";
+import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 
 definePageMeta({
   layout: "statistics-private",
@@ -53,9 +54,9 @@ watch(
 <template>
   <div>
     <div class="flex flex-wrap gap-3 mb-6">
-      <YearFilter v-model="yearFilter" />
-      <TournamentFilter v-model="tournamentFilter" />
-      <PlaygroundFilter v-model="playgroundFilter" />
+      <YearSelect v-model="yearFilter" />
+      <TournamentSelect v-model="tournamentFilter" />
+      <PlaygroundSelect v-model="playgroundFilter" />
     </div>
     <StatsTitle>Estadísticas por Torneo</StatsTitle>
     <StatsTableByTournament :rows="rows" :loading="pending" />

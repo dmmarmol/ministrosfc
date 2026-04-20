@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { PlayerStatRowDTO } from "@ministrosfc/shared";
-import StatsTableByPlayer from "../../../components/pages/stats/StatsTableByPlayer.vue";
-import YearFilter from "~/components/pages/statistics/StatsFilters/YearFilter.vue";
+import StatsTableByPlayer from "../../../components/pages/statistics/StatsTableByPlayer.vue";
+import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
+import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
 
 definePageMeta({
   layout: "statistics",
@@ -40,9 +41,9 @@ watch(
 
 <template>
   <div class="space-y-6">
-    <UiStatsTitle>Estadísticas del Jugador</UiStatsTitle>
+    <StatsTitle>Estadísticas del Jugador</StatsTitle>
     <div class="flex flex-wrap gap-3">
-      <YearFilter v-model="yearFilter" />
+      <YearSelect v-model="yearFilter" />
     </div>
     <StatsTableByPlayer :rows="rows" mode="single" :loading="pending" />
   </div>

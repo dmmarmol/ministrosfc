@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { ColumnDef } from "~/types/table";
-import YearFilter from "~/components/pages/statistics/StatsFilters/YearFilter.vue";
-import TournamentFilter from "~/components/pages/statistics/StatsFilters/TournamentFilter.vue";
-import PlayerStatusFilter from "~/components/pages/statistics/StatsFilters/PlayerStatusFilter.vue";
+import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
+import TournamentSelect from "~/components/pages/statistics/StatsFilters/TournamentSelect.vue";
+import PlayerStatusSelect from "~/components/pages/statistics/StatsFilters/PlayerStatusSelect.vue";
 import { useAuthStore } from "~/stores/auth";
 
 definePageMeta({ layout: "statistics", public: true });
@@ -108,12 +108,12 @@ const tableRows = computed(() =>
         placeholder="Buscar jugador…"
         class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
       />
-      <YearFilter v-model="yearFilter" />
-      <TournamentFilter
+      <YearSelect v-model="yearFilter" />
+      <TournamentSelect
         v-if="authStore.isAuthenticated"
         v-model="tournamentFilter"
       />
-      <PlayerStatusFilter
+      <PlayerStatusSelect
         v-if="authStore.isAuthenticated"
         v-model="playerStatusFilter"
       />

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
-import StatsTableByYear from "../../components/pages/stats/StatsTableByYear.vue";
-import YearFilter from "~/components/pages/statistics/StatsFilters/YearFilter.vue";
+import StatsTableByYear from "../../components/pages/statistics/StatsTableByYear.vue";
+import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
+import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 
 definePageMeta({
   layout: "statistics-private",
@@ -38,7 +39,7 @@ watch(
 <template>
   <div>
     <div class="flex flex-wrap gap-3 mb-6">
-      <YearFilter v-model="yearFilter" />
+      <YearSelect v-model="yearFilter" />
     </div>
     <StatsTitle>Estadísticas del Equipo</StatsTitle>
     <StatsTableByYear :rows="rows" :loading="pending" />
