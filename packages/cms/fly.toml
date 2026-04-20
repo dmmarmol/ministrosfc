@@ -3,7 +3,7 @@ app = "ministrosfc-cms"
 primary_region = "gru"
 
 [build]
-  dockerfile = "packages/cms/Dockerfile"
+  dockerfile = "Dockerfile"
 
 [deploy]
   # Run Prisma migrations atomically before traffic switches to the new version.
