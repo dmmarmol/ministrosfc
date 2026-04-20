@@ -14,6 +14,9 @@ primary_region = "gru"
 [env]
   APP_PORT = "5103"
   NODE_ENV = "production"
+  # Secrets injected at deploy time via `flyctl secrets set` — never hardcode here:
+  #   NUXT_PUBLIC_API_BASE_URL  → https://ministrosfc-cms.fly.dev (PROD) or https://ministrosfc-cms-dev.fly.dev (DEV)
+  #   NUXT_PUBLIC_APP_URL       → https://ministrosfc-frontend.fly.dev (PROD) or https://ministrosfc-frontend-dev.fly.dev (DEV)
 
 [[vm]]
   cpu_kind = "shared"

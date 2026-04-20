@@ -347,7 +347,9 @@ cd packages/frontend && npm run build
 
 ### Fly.io (Selected Platform - Free Tier)
 
-See complete deployment guide: [deployment.md](./specs/001-ministrosfc-monorepo/deployment.md)
+See the full deployment guide: [deployment.md](./specs/001-ministrosfc-monorepo/deployment.md)
+
+For environment setup, first-time infrastructure provisioning, and secret rotation, see the **[spec 018 quickstart](./specs/018-deployment-process/quickstart.md)**.
 
 ```bash
 # Install Fly CLI

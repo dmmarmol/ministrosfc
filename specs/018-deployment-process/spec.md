@@ -1,8 +1,8 @@
 # Feature Specification: Deployment Process
 
-**Feature Branch**: `main`  
+**Feature Branch**: `feat/018-deployment-process`  
 **Created**: 2026-04-20  
-**Status**: Draft  
+**Status**: Implemented  
 **Input**: User description: "Set up a deployment process to deploy the application to a hosting service. Validate commit history for sensitive data. Use GitHub as the git platform with a public repository. Ensure $0/month hosting cost. Set up monitoring and logging."
 
 ## User Scenarios & Testing _(mandatory)_
@@ -110,7 +110,7 @@ After deployment, the project owner can view logs from both the backend and fron
 - **FR-004**: A pre-commit hook MUST be installed that scans staged files for known sensitive data patterns and rejects commits that contain them.
 - **FR-005**: The pre-commit hook MUST be automatically activated for any developer who clones the repository and completes the standard project setup steps.
 - **FR-006**: All application secrets (database credentials, JWT secrets, API keys, cloud storage credentials) MUST be stored exclusively in the hosting platform's environment variable or secrets management system.
-- **FR-007**: The CI/CD pipeline MUST trigger automatically on every push to the `main` branch.
+- **FR-007**: The CI/CD pipeline MUST trigger automatically on every push to the `main` branch (→ PROD deployment) and on every push to the `develop` branch (→ DEV deployment).
 - **FR-008**: The CI/CD pipeline MUST run all automated tests before deploying; deployment MUST be skipped if any test fails.
 - **FR-009**: The CI/CD pipeline MUST deploy both the CMS backend and the frontend to their respective hosting services upon successful test runs.
 - **FR-010**: The total monthly infrastructure cost of the deployed application MUST be $0 using free tiers only.
@@ -138,6 +138,8 @@ After deployment, the project owner can view logs from both the backend and fron
 
 ## Assumptions
 
+- The application uses Docker Compose for local development only; cloud services (database, Redis, hosting) are provisioned manually once via web consoles and are not managed by Docker Compose.
+- Two full environments are supported: **PROD** (triggered by `main`) and **DEV** (triggered by `develop`). Each environment has its own Fly.io apps, Neon database branch, and Upstash Redis instance.
 - The application uses Docker Compose for local development; the hosting platform may or may not use Docker — the CI/CD pipeline will adapt as needed.
 - The free hosting service selected will support the application's technology stack (Node.js for CMS, Nuxt/Vue for frontend) on its free tier.
 - Redis (used for session management) will use a free-tier managed instance or an alternative zero-cost session strategy if no free Redis is available.
