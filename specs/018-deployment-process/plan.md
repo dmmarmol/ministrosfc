@@ -136,21 +136,21 @@ See [research.md](./research.md) for all decisions. Summary of resolved unknowns
 **Jobs**:
 
 ```
-Job: test-cms
+Job: build-cms
   - Checkout
   - Setup Node.js (LTS)
   - npm ci (monorepo root + packages/cms)
   - Run Jest integration tests (packages/cms)
   - Upload coverage
 
-Job: test-frontend
+Job: build-frontend
   - Checkout
   - Setup Node.js (LTS)
   - npm ci (monorepo root + packages/frontend)
   - Run Vitest unit tests (packages/frontend)
   - No Playwright E2E in CI (requires live DB/Redis; tested locally)
 
-Job: deploy-cms (needs: [test-cms, test-frontend], on push to main/develop only)
+Job: deploy-cms (needs: [build-cms, build-frontend], on push to main/develop only)
   - Checkout
   - Setup flyctl
   - flyctl deploy --app $APP_NAME --config packages/cms/fly.toml

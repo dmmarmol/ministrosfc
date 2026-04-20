@@ -23,8 +23,8 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────────
   # CMS integration tests (requires PostgreSQL)
   # ─────────────────────────────────────────────────────────────────────────────
-  test-cms:
-    name: Test CMS
+  build-cms:
+    name: Build CMS
     runs-on: ubuntu-latest
 
     services:
@@ -86,7 +86,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────────
   deploy-cms:
     name: Deploy CMS
-    needs: [test-cms]
+    needs: [build-cms]
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}

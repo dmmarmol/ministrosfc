@@ -38,8 +38,8 @@
 - [x] T012 In the Neon console, create a `dev` branch from `main` → copy its `DATABASE_URL` (DEV database)
 - [x] T013 Create Upstash account at upstash.com → create Redis database `ministrosfc-prod` (region: São Paulo or us-east-1) → copy the `rediss://` connection URL
 - [~] T014 Create a second Upstash Redis database `ministrosfc-dev` → copy its `rediss://` URL — **SKIPPED: Upstash free tier allows 1 DB; PROD Redis shared across both environments**
-- [X] T015 Run `flyctl auth login`; create all four Fly.io apps: `flyctl apps create ministrosfc-cms`, `ministrosfc-frontend`, `ministrosfc-cms-dev`, `ministrosfc-frontend-dev`
-- [X] T016 Set all required secrets on `ministrosfc-cms` via `flyctl secrets set` per the secrets inventory in `specs/018-deployment-process/plan.md` §1.4 (DATABASE_URL, JWT_SECRET, REDIS_URL, CORS_ORIGINS, Cloudinary vars, Google OAuth vars)
+- [x] T015 Run `flyctl auth login`; create all four Fly.io apps: `flyctl apps create ministrosfc-cms`, `ministrosfc-frontend`, `ministrosfc-cms-dev`, `ministrosfc-frontend-dev`
+- [x] T016 Set all required secrets on `ministrosfc-cms` via `flyctl secrets set` per the secrets inventory in `specs/018-deployment-process/plan.md` §1.4 (DATABASE_URL, JWT_SECRET, REDIS_URL, CORS_ORIGINS, Cloudinary vars, Google OAuth vars)
 - [ ] T017 Set all required secrets on `ministrosfc-cms-dev` via `flyctl secrets set` (same keys, DEV-scoped values — Neon dev branch, Upstash dev DB, dev CORS origin)
 - [ ] T018 Set secrets on `ministrosfc-frontend` via `flyctl secrets set`: `NUXT_PUBLIC_API_BASE_URL=https://ministrosfc-cms.fly.dev`, `NUXT_PUBLIC_APP_URL=https://ministrosfc-frontend.fly.dev`
   > The canonical env var name is `NUXT_PUBLIC_API_BASE_URL` (confirmed in `packages/frontend/nuxt.config.ts` line 17). Do NOT use `NUXT_PUBLIC_API_BASE`.
@@ -56,18 +56,18 @@
 
 **Goal**: A push to `main` or `develop` triggers GitHub Actions, runs all tests, and deploys to PROD or DEV respectively. Pull requests trigger CI only.
 
-**Independent Test**: Push a trivial code change to `main` → observe the Actions tab on GitHub → confirm the pipeline runs `test-cms`, `test-frontend`, `deploy-cms`, `deploy-frontend` jobs in order → confirm the live PROD URL reflects the change within 10 minutes.
+**Independent Test**: Push a trivial code change to `main` → observe the Actions tab on GitHub → confirm the pipeline runs `build-cms`, `build-frontend`, `deploy-cms`, `deploy-frontend` jobs in order → confirm the live PROD URL reflects the change within 10 minutes.
 
 - [x] T023 [P] Add `[deploy]` release command to `packages/cms/fly.toml`: `release_command = "npx prisma migrate deploy"` so Prisma migrations run atomically before each new CMS version goes live
 - [x] T024 [P] Update `packages/frontend/fly.toml` under `[env]`: add comment lines documenting that `NUXT_PUBLIC_API_BASE_URL` and `NUXT_PUBLIC_APP_URL` are injected via `flyctl secrets set` (not hardcoded). Values must NOT appear in the committed file.
 - [x] T025 Create `.github/workflows/ci.yml` with the following jobs:
-  - `test-cms`: checkout → Node LTS setup → `npm ci` → run Jest tests in `packages/cms`
-  - `test-frontend`: checkout → Node LTS setup → `npm ci` → run Vitest tests in `packages/frontend`
-  - `deploy-cms` (needs `test-cms` + `test-frontend`, only on push to `main`/`develop`): setup `flyctl` → `flyctl deploy --config packages/cms/fly.toml --app ${{ secrets.CMS_APP_NAME }}`; select environment with `environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}` — GitHub Actions supports expressions directly in the `environment:` field
+  - `build-cms`: checkout → Node LTS setup → `npm ci` → run Jest tests in `packages/cms`
+  - `build-frontend`: checkout → Node LTS setup → `npm ci` → run Vitest tests in `packages/frontend`
+  - `deploy-cms` (needs `build-cms` + `build-frontend`, only on push to `main`/`develop`): setup `flyctl` → `flyctl deploy --config packages/cms/fly.toml --app ${{ secrets.CMS_APP_NAME }}`; select environment with `environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}` — GitHub Actions supports expressions directly in the `environment:` field
   - `deploy-frontend` (needs `deploy-cms`): setup `flyctl` → `flyctl deploy --config packages/frontend/fly.toml --app ${{ secrets.FRONTEND_APP_NAME }}`; same environment expression as `deploy-cms`
 - [ ] T026 [US3] Push `main` branch to GitHub: `git push -u origin main` → verify the Actions workflow triggers and all 4 jobs complete successfully → confirm PROD CMS URL responds at `https://ministrosfc-cms.fly.dev/api/v1/health` (or equivalent live check)
 - [ ] T027 [US3] Create and push `develop` branch: `git checkout -b develop && git push -u origin develop` → verify the DEV pipeline triggers and deploys to `ministrosfc-cms-dev` and `ministrosfc-frontend-dev`
-- [ ] T028 [US3] Open a pull request (any branch → `main`) → verify only `test-cms` and `test-frontend` run, no deploy jobs are triggered
+- [ ] T028 [US3] Open a pull request (any branch → `main`) → verify only `build-cms` and `build-frontend` run, no deploy jobs are triggered
 
 **Checkpoint**: Every push to `main` deploys PROD; every push to `develop` deploys DEV; PRs only run tests.
 
