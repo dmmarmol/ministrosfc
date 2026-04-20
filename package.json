@@ -12,6 +12,7 @@
     "packages/*"
   ],
   "scripts": {
+    "prepare": "pre-commit install || true",
     "docker:up": "podman-compose up -d",
     "docker:down": "podman-compose down",
     "docker:logs": "podman-compose logs -f",

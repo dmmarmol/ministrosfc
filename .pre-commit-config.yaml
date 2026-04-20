@@ -1,0 +1,30 @@
+repos:
+  # Secret scanning via gitleaks
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.27.2
+    hooks:
+      - id: gitleaks
+
+  # General file safety hooks from the pre-commit standard library
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+        exclude: "\\.(csv|lock)$"
+
+  # Block CSV files from data/ — these contain player personal data.
+  # Uses `language: fail` which matches file paths (not content),
+  # making it the correct tool for filename-based blocking.
+  # (gitleaks regex matches file *content*, not filenames — do not move this there.)
+  - repo: local
+    hooks:
+      - id: no-csv-data-files
+        name: Block CSV data files (player personal data)
+        language: fail
+        files: "^data/.*\\.csv$"
+        entry: >
+          CSV files in data/ contain player personal data and must not be committed.
+          Use the seed import scripts to load data from a secure location instead.

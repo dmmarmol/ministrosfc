@@ -168,3 +168,24 @@ packages/cms/data/imports/*.csv
 # APM dependencies
 apm_modules/
 data/
+
+# ============================================
+# Deployment / Secrets hardening
+# ============================================
+# Additional environment file variants (local overrides, CI injected, etc.)
+.env.*
+!.env.example
+
+# Fly.io local state (contains auth tokens)
+.fly/
+
+# SSL/TLS certificates and private keys
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Common secrets file names
+secrets.json
+credentials.json
+service-account.json

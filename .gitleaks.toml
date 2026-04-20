@@ -1,0 +1,16 @@
+# Gitleaks configuration for Ministros FC
+# Extends the default ruleset with project-specific additions.
+# See: https://github.com/gitleaks/gitleaks
+
+[extend]
+  useDefault = true
+
+# Block .env files from being committed.
+# Note: CSV blocking is handled via the `no-csv-data-files` pre-commit hook
+# (language: fail) because gitleaks `regex` matches file *content*, not filenames.
+[[rules]]
+  id = "env-files"
+  description = "Environment files (.env*) must not be committed — use .env.example instead"
+  regex = '''(?i)(password|secret|key|token)\s*=\s*['"]?[^\s'"]{4,}'''
+  path = '''\.env[^.]*$'''
+  tags = ["secret", "env"]
