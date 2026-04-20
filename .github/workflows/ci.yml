@@ -1,0 +1,123 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # CMS integration tests (requires PostgreSQL)
+  # ─────────────────────────────────────────────────────────────────────────────
+  test-cms:
+    name: Test CMS
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: dev
+          POSTGRES_PASSWORD: dev123
+          POSTGRES_DB: ministrosfc_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "23"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run CMS tests
+        working-directory: packages/cms
+        run: npm test
+        env:
+          NODE_ENV: test
+          TEST_DATABASE_URL: postgresql://dev:dev123@localhost:5432/ministrosfc_test
+          DATABASE_URL: postgresql://dev:dev123@localhost:5432/ministrosfc_test
+          JWT_SECRET: ci-test-secret-key-at-least-64-chars-long-for-ci-suite-only
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Frontend unit tests (Vitest — no external services needed)
+  # ─────────────────────────────────────────────────────────────────────────────
+  test-frontend:
+    name: Test Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "23"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: packages/frontend
+        run: npm test -- --run
+        env:
+          NODE_ENV: test
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Deploy CMS — runs only on push to main or develop (not on pull_request)
+  # Uses GitHub Environments for scoped secrets:
+  #   main    → environment: production → ministrosfc-cms
+  #   develop → environment: development → ministrosfc-cms-dev
+  # ─────────────────────────────────────────────────────────────────────────────
+  deploy-cms:
+    name: Deploy CMS
+    needs: [test-cms, test-frontend]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy CMS to Fly.io
+        run: flyctl deploy --config packages/cms/fly.toml --app ${{ secrets.CMS_APP_NAME }} --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Deploy Frontend — runs after CMS deploy so the new API is live first
+  # ─────────────────────────────────────────────────────────────────────────────
+  deploy-frontend:
+    name: Deploy Frontend
+    needs: [deploy-cms]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy Frontend to Fly.io
+        run: flyctl deploy --config packages/frontend/fly.toml --app ${{ secrets.FRONTEND_APP_NAME }} --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
