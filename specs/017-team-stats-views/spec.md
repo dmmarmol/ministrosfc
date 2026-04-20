@@ -146,6 +146,7 @@ The main navigation "Estadísticas" link conditionally redirects: authenticated 
 - What happens when an unauthenticated user lands on a private stats URL? → Redirected to login; after auth, redirected back to the original `/statistics/*` sub-route URL (the `auth.ts` middleware preserves the intended destination via a `redirect` query param; this applies to all `/statistics/years`, `/statistics/tournaments`, `/statistics/rivals/*`, and `/statistics/players/*` sub-routes).
 - What happens when the URL contains invalid filter values (e.g., a non-existent year or rival id)? → Invalid filters are silently ignored; defaults are applied and the URL is corrected.
 - What happens when the team has only played one game historically? → All stats calculate correctly with no division errors or empty-state crashes.
+- **`winRate` data format** _(Amendment 2026-04-20)_: The API returns `winRate` as a **percentage float** (e.g. `60.0` means 60%), NOT as a decimal fraction (`0.6`). Frontend components MUST render it as `Number(row.winRate).toFixed(1)%` without any `* 100` multiplication. Test fixtures MUST use percentage values (e.g. `winRate: 60.0`).
 
 ## Requirements _(mandatory)_
 
@@ -350,7 +351,9 @@ All statistics views in the frontend (years, tournaments, rivals, players) curre
 The statistics table layer uses a two-tier component stack with clear separation of concerns, preparing the ground for future `<AdminTable>` reuse:
 
 - **`components/ui/Table.vue`** (`<UiTable>`) — a **generic, layout-agnostic** wrapper around `nuxt/ui`'s `<UTable>`. Accepts a `columns: ColumnDef[]` prop, renders no statistics-specific logic, and forwards all unrecognised props and slots to `<UTable>` via `v-bind="$attrs"` and `<slot>` forwarding. No custom HTML `<table>` elements are permitted inside `<UiTable>`.
-- **`components/pages/stats/StatsTable.vue`** (`<StatsTable>`) — a **statistics-specific decorator** that wraps `<UiTable>`. Owns client-side sort state and renders column `title` attributes for header tooltips. Has no knowledge of page-level data-fetching or routing.
+- **`components/pages/statistics/StatsTable.vue`** (`<StatsTable>`) — a **statistics-specific decorator** that wraps `<UiTable>`. Owns client-side sort state and renders column `title` attributes for header tooltips. Has no knowledge of page-level data-fetching or routing.
+
+> **Amendment 2026-04-20**: All statistics sub-components were originally scoped to `components/pages/stats/`. The directory was renamed to `components/pages/statistics/` during implementation to match the `/statistics/*` route prefix. All `StatsFilters/` sub-components were also renamed from `*Filter.vue` to `*Select.vue` (e.g. `PlayerFilter.vue` → `PlayerSelect.vue`). All path references in this spec that still mention `pages/stats/` reflect the original design; the actual paths use `pages/statistics/`.
 
 A future `<AdminTable>` (separate spec, admin layout) will wrap `<UiTable>` in the same pattern with admin-specific concerns.
 
