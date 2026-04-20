@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import StatsTableByPlayer from "~/components/pages/stats/StatsTableByPlayer.vue";
+import StatsTableByPlayer from "~/components/pages/statistics/StatsTableByPlayer.vue";
 import type { PlayerStatRowDTO } from "@ministrosfc/shared";
 
 const row: PlayerStatRowDTO = {
@@ -15,7 +15,7 @@ const row: PlayerStatRowDTO = {
   assists: 10,
   yellowCards: 3,
   redCards: 0,
-  winRate: 0.6,
+  winRate: 60.0,
   goalRate: 0.4,
   participationRate: 0.85,
 };
@@ -31,7 +31,7 @@ describe("StatsTableByPlayer", () => {
     expect(text).toContain("Goles");
     expect(text).toContain("Asist.");
     expect(text).toContain("Win%");
-    expect(text).toContain("GR");
+    expect(text).toContain("PG");
     expect(text).toContain("Part.%");
   });
 

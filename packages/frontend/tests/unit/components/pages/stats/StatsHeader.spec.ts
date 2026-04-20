@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import StatsHeader from "~/components/pages/stats/StatsHeader.vue";
+import StatsHeader from "~/components/pages/statistics/StatsHeader.vue";
 import type { TeamSummaryHeaderDTO } from "@ministrosfc/shared";
 
 const baseSummary: TeamSummaryHeaderDTO = {
@@ -10,7 +10,7 @@ const baseSummary: TeamSummaryHeaderDTO = {
   totalDraws: 15,
   totalGoalsFor: 200,
   totalGoalsAgainst: 120,
-  winRate: 0.6,
+  winRate: 60.0,
   rivalMostPlayed: { name: "Rival A", count: 20 },
   rivalMostWins: { name: "Rival B", count: 15 },
   rivalMostLosses: { name: "Rival C", count: 8 },

@@ -92,4 +92,5 @@ config.global.components = {
   UTable: UTableStub,
   UiTable,
   StatsTable,
+  UiStatsTable: StatsTable,
 };

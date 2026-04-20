@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import StatsTableByYear from "~/components/pages/stats/StatsTableByYear.vue";
+import StatsTableByYear from "~/components/pages/statistics/StatsTableByYear.vue";
 import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 
 const row: TeamStatPeriodDTO = {
@@ -16,7 +16,7 @@ const row: TeamStatPeriodDTO = {
   goalDifference: 25,
   goalRateFor: 1.83,
   goalRateAgainst: 1.0,
-  winRate: 0.6,
+  winRate: 60.0,
   pointsEarned: 59,
 };
 

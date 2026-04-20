@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import StatsTableByTournament from "~/components/pages/stats/StatsTableByTournament.vue";
+import StatsTableByTournament from "~/components/pages/statistics/StatsTableByTournament.vue";
 import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 
 const row: TeamStatPeriodDTO = {
@@ -16,7 +16,7 @@ const row: TeamStatPeriodDTO = {
   goalDifference: 14,
   goalRateFor: 2.0,
   goalRateAgainst: 1.0,
-  winRate: 0.64,
+  winRate: 64.0,
   pointsEarned: 29,
 };
 
@@ -38,8 +38,8 @@ describe("StatsTableByTournament", () => {
       props: { rows: [row], loading: false },
     });
     const text = wrapper.text();
-    expect(text).toContain("2023-03-01");
-    expect(text).toContain("2023-11-30");
+    expect(text).toContain("03/23");
+    expect(text).toContain("11/23");
   });
 
   it("maps row data", () => {
