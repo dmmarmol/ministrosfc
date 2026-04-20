@@ -3,6 +3,7 @@ app = "ministrosfc-frontend"
 primary_region = "gru"
 
 [build]
+  dockerfile = "packages/frontend/Dockerfile"
 
 [http_service]
   internal_port = 5103
