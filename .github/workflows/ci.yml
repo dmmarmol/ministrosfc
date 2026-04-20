@@ -3,12 +3,10 @@ name: CI/CD
 on:
   push:
     branches:
-      - main
-      - develop
+      - "**"
   pull_request:
     branches:
-      - main
-      - develop
+      - "**"
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
@@ -96,7 +94,7 @@ jobs:
   deploy-cms:
     name: Deploy CMS
     needs: [test-cms, test-frontend]
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}
 
@@ -116,7 +114,7 @@ jobs:
   deploy-frontend:
     name: Deploy Frontend
     needs: [deploy-cms]
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}
 
