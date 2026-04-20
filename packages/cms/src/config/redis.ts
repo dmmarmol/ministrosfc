@@ -28,15 +28,29 @@ export function getRedisClient(): Redis {
     return createNoopClient();
   }
   if (!redisClient) {
-    redisClient = new Redis({
-      host: process.env.REDIS_HOST ?? "localhost",
-      port: parseInt(process.env.REDIS_PORT ?? "5101", 10),
-      lazyConnect: true,
-      retryStrategy: (times) => {
-        if (times > 3) return null;
-        return Math.min(times * 200, 2000);
-      },
-    });
+    // REDIS_URL takes precedence (Upstash / any provider that gives a full
+    // rediss:// or redis:// connection string — used in all deployed environments).
+    // Fall back to individual host/port/password vars for local Docker Compose.
+    if (process.env.REDIS_URL) {
+      redisClient = new Redis(process.env.REDIS_URL, {
+        lazyConnect: true,
+        retryStrategy: (times) => {
+          if (times > 3) return null;
+          return Math.min(times * 200, 2000);
+        },
+      });
+    } else {
+      redisClient = new Redis({
+        host: process.env.REDIS_HOST ?? "localhost",
+        port: parseInt(process.env.REDIS_PORT ?? "5101", 10),
+        password: process.env.REDIS_PASSWORD || undefined,
+        lazyConnect: true,
+        retryStrategy: (times) => {
+          if (times > 3) return null;
+          return Math.min(times * 200, 2000);
+        },
+      });
+    }
 
     redisClient.on("error", (err) => {
       logger.error({ err }, "Redis connection error");

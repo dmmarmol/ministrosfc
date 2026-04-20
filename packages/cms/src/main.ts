@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { validateEnv } from "./config/env-validation";
 import { createApp, API_PORT } from "./config/server";
 import { connectDatabase, disconnectDatabase } from "./config/database";
 import { runTransitions } from "./jobs/GameStatusTransitionJob";
@@ -7,6 +8,12 @@ import { logger } from "./utils/logger";
 const JOB_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 async function bootstrap(): Promise<void> {
+  // Fail fast if any required env var is missing — surfaces config errors
+  // immediately on startup rather than as cryptic runtime failures later.
+  if (process.env.NODE_ENV !== "test") {
+    validateEnv();
+  }
+
   await connectDatabase();
   logger.info("Database connected");
 
