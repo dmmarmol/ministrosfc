@@ -66,19 +66,23 @@ describe("PlayerCard", () => {
     expect(wrapper.find("svg").exists()).toBe(true);
   });
 
-  it("renders GK position code as-is", () => {
+  it("renders UiPositionLabel when position is set", () => {
     const wrapper = mount(PlayerCard, {
       props: { player: { ...basePlayer, position: "GK" } },
-      global: { stubs: { NuxtLink: NuxtLinkStub } },
+      global: { stubs: { NuxtLink: NuxtLinkStub, UiPositionLabel: true } },
     });
-    expect(wrapper.text()).toContain("GK");
+    expect(wrapper.findComponent({ name: "UiPositionLabel" }).exists()).toBe(
+      true,
+    );
   });
 
-  it("shows em-dash when position is null", () => {
+  it("does not render UiPositionLabel when position is null", () => {
     const wrapper = mount(PlayerCard, {
       props: { player: { ...basePlayer, position: null } },
-      global: { stubs: { NuxtLink: NuxtLinkStub } },
+      global: { stubs: { NuxtLink: NuxtLinkStub, UiPositionLabel: true } },
     });
-    expect(wrapper.text()).toContain("—");
+    expect(wrapper.findComponent({ name: "UiPositionLabel" }).exists()).toBe(
+      false,
+    );
   });
 });
