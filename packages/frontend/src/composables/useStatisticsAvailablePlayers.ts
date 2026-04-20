@@ -8,7 +8,10 @@
 import { PlayerStatus } from "@ministrosfc/shared";
 import type { MaybeRef } from "vue";
 
-export function useStatisticsAvailablePlayers(status?: MaybeRef<string | undefined>, enabled: MaybeRef<boolean> = true) {
+export function useStatisticsAvailablePlayers(
+  status?: MaybeRef<string | undefined>,
+  enabled: MaybeRef<boolean> = true,
+) {
   const { $api } = useNuxtApp();
 
   const statusRef = toRef(status);
@@ -53,8 +56,10 @@ export function useStatisticsAvailablePlayers(status?: MaybeRef<string | undefin
       ]);
 
       const mergedById = new Map<string, (typeof activePlayers.data)[number]>();
-      for (const player of activePlayers.data) mergedById.set(player.id, player);
-      for (const player of inactivePlayers.data) mergedById.set(player.id, player);
+      for (const player of activePlayers.data)
+        mergedById.set(player.id, player);
+      for (const player of inactivePlayers.data)
+        mergedById.set(player.id, player);
 
       return { data: [...mergedById.values()] };
     },

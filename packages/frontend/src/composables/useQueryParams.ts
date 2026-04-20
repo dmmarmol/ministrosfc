@@ -32,5 +32,9 @@ export function useQueryParams() {
     await router.push({ query });
   }
 
-  return { get, set, remove };
+  async function reset() {
+    await router.push({ query: {} });
+  }
+
+  return { get, set, remove, reset };
 }

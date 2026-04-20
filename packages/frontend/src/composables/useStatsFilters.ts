@@ -1,5 +1,6 @@
 import { computed } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
+import { PlayerStatus } from "@ministrosfc/shared";
 
 export interface StatsFilters {
   mode: string;
@@ -7,37 +8,55 @@ export interface StatsFilters {
   tournament: string;
   rivalId: string;
   playerId: string;
+  playerStatus: string;
   playgroundId: string;
 }
 
 export function useStatsFilters() {
-  const route = useRoute();
   const router = useRouter();
+  const qp = useQueryParams();
+
+  function makeFilter(key: keyof StatsFilters, defaultValue = "") {
+    return computed({
+      get: () => qp.get(key) || defaultValue,
+      set: (v: string) => qp.set(key, v),
+    });
+  }
 
   const filters = computed<StatsFilters>(() => ({
-    mode: (route.query.mode as string) ?? "",
-    year: (route.query.year as string) ?? "",
-    tournament: (route.query.tournament as string) ?? "",
-    rivalId: (route.query.rivalId as string) ?? "",
-    playerId: (route.query.playerId as string) ?? "",
-    playgroundId: (route.query.playgroundId as string) ?? "",
+    mode: qp.get("mode"),
+    year: qp.get("year"),
+    tournament: qp.get("tournament"),
+    rivalId: qp.get("rivalId"),
+    playerId: qp.get("playerId"),
+    playerStatus: qp.get("playerStatus") || PlayerStatus.ACTIVE,
+    playgroundId: qp.get("playgroundId"),
   }));
 
+  const year = makeFilter("year");
+  const tournament = makeFilter("tournament");
+  const rivalId = makeFilter("rivalId");
+  const playerId = makeFilter("playerId");
+  const playerStatus = makeFilter("playerStatus", PlayerStatus.ACTIVE);
+  const playgroundId = makeFilter("playgroundId");
+
   async function setFilter(key: keyof StatsFilters, value: string) {
-    const query: Record<string, string | undefined> = {
-      ...(route.query as Record<string, string>),
-      [key]: value || undefined,
-    };
-    // Remove empty values
-    Object.keys(query).forEach((k) => {
-      if (!query[k]) delete query[k];
-    });
-    await router.push({ query });
+    await qp.set(key, value);
   }
 
   async function resetFilters() {
-    await router.push({ query: {} });
+    await qp.reset();
   }
 
-  return { filters, setFilter, resetFilters };
+  return {
+    filters,
+    setFilter,
+    resetFilters,
+    year,
+    tournament,
+    rivalId,
+    playerId,
+    playerStatus,
+    playgroundId,
+  };
 }

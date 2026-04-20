@@ -9,7 +9,11 @@
  *  - `getTopScorers(tournamentId?, limit)` — ranked list by goals scored.
  *  - `aggregateForTournament(tournamentId)` — all players' stats within a tournament.
  */
-import { PlayerRivalMatchDTO, PlayerRivalPeriodDTO, TeamStatMatchDTO } from "@ministrosfc/shared";
+import {
+  PlayerRivalMatchDTO,
+  PlayerRivalPeriodDTO,
+  TeamStatMatchDTO,
+} from "@ministrosfc/shared";
 import { prisma } from "../config/database";
 import { GameStatus, PlayerStatus } from "@prisma/client";
 
@@ -84,15 +88,44 @@ const StatisticsModel = {
     tournamentId?: string,
     limit = 10,
     status?: PlayerStatus,
+    year?: number,
   ) {
-    const gameWhere: any = { status: GameStatus.COMPLETED };
+    // Collect matching game IDs up front so the subsequent groupBy uses a
+    // scalar `gameId IN (...)` filter. Prisma groupBy doesn't reliably scope
+    // _sum/_count when the where clause contains relation filters (game: {...}),
+    // so building the id list first guarantees aggregations are correctly scoped.
+    const gameWhere: import("@prisma/client").Prisma.GameWhereInput = {
+      status: GameStatus.COMPLETED,
+    };
     if (tournamentId) gameWhere.tournamentId = tournamentId;
+    if (year) {
+      gameWhere.date = {
+        gte: new Date(`${year}-01-01`),
+        lt: new Date(`${year + 1}-01-01`),
+      };
+    }
+    const matchingGames = await prisma.game.findMany({
+      where: gameWhere,
+      select: { id: true },
+    });
+    const gameIds = matchingGames.map((g) => g.id);
+
+    // Also resolve eligible player IDs when status filter is active so we
+    // avoid another relation filter inside groupBy.
+    let playerIdFilter: string[] | undefined;
+    if (status) {
+      const eligiblePlayers = await prisma.player.findMany({
+        where: { status },
+        select: { id: true },
+      });
+      playerIdFilter = eligiblePlayers.map((p) => p.id);
+    }
 
     const results = await prisma.gameParticipant.groupBy({
       by: ["playerId"],
       where: {
-        game: gameWhere,
-        ...(status ? { player: { status } } : {}),
+        gameId: { in: gameIds },
+        ...(playerIdFilter ? { playerId: { in: playerIdFilter } } : {}),
       },
       _sum: { goalsScored: true, assists: true },
       _count: { id: true },
@@ -202,13 +235,31 @@ const StatisticsModel = {
     year?: number;
     rivalId?: string;
     tournamentName?: string;
+    playgroundId?: string;
   }) {
     const gameWhere: any = { status: GameStatus.COMPLETED };
     if (filters?.rivalId) gameWhere.opponentTeamId = filters.rivalId;
-    if (filters?.tournamentName)
-      gameWhere.tournament = {
+    if (filters?.tournamentName) {
+      // tournament name alone is not unique — also scope by year when provided
+      const tournamentFilter: any = {
         name: { equals: filters.tournamentName, mode: "insensitive" },
       };
+      if (filters.year) {
+        tournamentFilter.startDate = {
+          gte: new Date(`${filters.year}-01-01`),
+          lt: new Date(`${filters.year + 1}-01-01`),
+        };
+      }
+      gameWhere.tournament = tournamentFilter;
+    }
+    if (filters?.playgroundId) {
+      // filter by the playground the tournament was played at
+      if (gameWhere.tournament) {
+        gameWhere.tournament.playgroundId = filters.playgroundId;
+      } else {
+        gameWhere.tournament = { playgroundId: filters.playgroundId };
+      }
+    }
 
     const games = await prisma.game.findMany({
       where: gameWhere,
@@ -306,7 +357,10 @@ const StatisticsModel = {
     }));
   },
 
-  async getRivalBreakdown(rivalId: string, filters?: { year?: number; playgroundId?: string }) {
+  async getRivalBreakdown(
+    rivalId: string,
+    filters?: { year?: number; playgroundId?: string },
+  ) {
     const gameWhere: any = {
       status: GameStatus.COMPLETED,
       opponentTeamId: rivalId,
@@ -543,7 +597,8 @@ const StatisticsModel = {
       const rivalName = p.game.opponentTeam?.name ?? "?";
       const gf = p.game.homeTeamScore ?? 0;
       const ga = p.game.awayTeamScore ?? 0;
-      const result: PlayerRivalMatchDTO["result"] = gf > ga ? "W" : ga > gf ? "L" : "D";
+      const result: PlayerRivalMatchDTO["result"] =
+        gf > ga ? "W" : ga > gf ? "L" : "D";
 
       if (!byRival[rivalId]) {
         byRival[rivalId] = {
@@ -578,10 +633,12 @@ const StatisticsModel = {
       });
     }
 
-    return Object.entries(byRival).map(([rivalId, data]): PlayerRivalPeriodDTO => ({
-      rivalId,
-      ...data,
-    }));
+    return Object.entries(byRival).map(
+      ([rivalId, data]): PlayerRivalPeriodDTO => ({
+        rivalId,
+        ...data,
+      }),
+    );
   },
 
   async aggregatePlayersAll(filters?: {

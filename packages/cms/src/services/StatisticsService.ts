@@ -47,10 +47,11 @@ const StatisticsService = {
     tournamentId?: string,
     limit = 10,
     status?: PlayerStatus,
+    year?: number,
   ) {
-    const cacheKey = `cache:stats:topscorers:${tournamentId ?? "all"}:${limit}:${status ?? "all"}`;
+    const cacheKey = `cache:stats:topscorers:${tournamentId ?? "all"}:${limit}:${status ?? "all"}:${year ?? "all"}`;
     return withCache(cacheKey, () =>
-      StatisticsModel.getTopScorers(tournamentId, limit, status),
+      StatisticsModel.getTopScorers(tournamentId, limit, status, year),
     );
   },
 
@@ -117,8 +118,9 @@ const StatisticsService = {
     year?: number;
     rivalId?: string;
     tournamentName?: string;
+    playgroundId?: string;
   }) {
-    const key = `cache:stats:team:tournament:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}:${filters?.tournamentName ?? "all"}`;
+    const key = `cache:stats:team:tournament:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}:${filters?.tournamentName ?? "all"}:${filters?.playgroundId ?? "all"}`;
     return withCache(key, () =>
       StatisticsModel.aggregateTeamByTournament(filters),
     );
@@ -134,7 +136,10 @@ const StatisticsService = {
     return withCache(key, () => StatisticsModel.aggregateTeamByRival(filters));
   },
 
-  async getRivalStats(rivalId: string, filters?: { year?: number; playgroundId?: string }) {
+  async getRivalStats(
+    rivalId: string,
+    filters?: { year?: number; playgroundId?: string },
+  ) {
     const key = `cache:stats:team:rival:${rivalId}:${filters?.year ?? "all"}:${filters?.playgroundId ?? "all"}`;
     return withCache(key, () =>
       StatisticsModel.getRivalBreakdown(rivalId, filters),

@@ -5,7 +5,9 @@
  * Returns `availablePlaygrounds` as `{ value: string; label: string }[]`
  * sorted alphabetically by name.
  */
-export function useStatisticsAvailablePlaygrounds(enabled: MaybeRef<boolean> = true) {
+export function useStatisticsAvailablePlaygrounds(
+  enabled: MaybeRef<boolean> = true,
+) {
   const { $api } = useNuxtApp();
   const isEnabled = toRef(enabled);
 

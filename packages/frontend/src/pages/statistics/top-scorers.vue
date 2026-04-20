@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { PlayerStatus } from "@ministrosfc/shared";
 import type { ColumnDef } from "~/types/table";
+import YearFilter from "~/components/pages/statistics/StatsFilters/YearFilter.vue";
+import TournamentFilter from "~/components/pages/statistics/StatsFilters/TournamentFilter.vue";
+import PlayerStatusFilter from "~/components/pages/statistics/StatsFilters/PlayerStatusFilter.vue";
+import { useAuthStore } from "~/stores/auth";
 
 definePageMeta({ layout: "statistics", public: true });
 useHead({ title: "Goleadores – Ministros FC" });
@@ -21,19 +24,14 @@ interface TopScorerEntry {
 }
 
 const { $api } = useNuxtApp();
-const route = useRoute();
-const qp = useQueryParams();
+const authStore = useAuthStore();
+const {
+  playerStatus: playerStatusFilter,
+  tournament: tournamentFilter,
+  year: yearFilter,
+} = useStatsFilters();
 
 const playerSearch = ref("");
-const tournamentFilter = ref("");
-const playerStatusFilter = ref<PlayerStatus | "">(
-  (qp.get("playerStatus") as PlayerStatus) || PlayerStatus.ACTIVE,
-);
-
-const { data: tourData } = await useAsyncData("stats-tournaments", () =>
-  $api<{ data: { id: string; name: string }[] }>("/api/v1/tournaments"),
-);
-const tournaments = computed(() => tourData.value?.data ?? []);
 
 const { data, pending, refresh } = await useAsyncData(
   "top-scorers",
@@ -41,8 +39,9 @@ const { data, pending, refresh } = await useAsyncData(
     $api<{ data: TopScorerEntry[] }>("/api/v1/statistics/top-scorers", {
       query: {
         limit: 50,
+        ...(yearFilter.value ? { year: yearFilter.value } : {}),
         ...(tournamentFilter.value
-          ? { tournamentId: tournamentFilter.value }
+          ? { tournamentName: tournamentFilter.value }
           : {}),
         ...(playerStatusFilter.value
           ? { status: playerStatusFilter.value }
@@ -62,15 +61,8 @@ const filteredScorers = computed(() => {
 });
 
 watch(tournamentFilter, () => refresh());
-watch(playerStatusFilter, (v) => qp.set("playerStatus", v));
-watch(
-  () => route.query.playerStatus,
-  () => {
-    playerStatusFilter.value =
-      (qp.get("playerStatus") as PlayerStatus) || PlayerStatus.ACTIVE;
-    refresh();
-  },
-);
+watch(playerStatusFilter, () => refresh());
+watch(yearFilter, () => refresh());
 
 const columns: ColumnDef[] = [
   { key: "rank", label: "#", title: "Posición", sortable: false },
@@ -116,23 +108,15 @@ const tableRows = computed(() =>
         placeholder="Buscar jugador…"
         class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
       />
-      <select
+      <YearFilter v-model="yearFilter" />
+      <TournamentFilter
+        v-if="authStore.isAuthenticated"
         v-model="tournamentFilter"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-      >
-        <option value="">Todos los torneos</option>
-        <option v-for="t in tournaments" :key="t.id" :value="t.id">
-          {{ t.name }}
-        </option>
-      </select>
-      <select
+      />
+      <PlayerStatusFilter
+        v-if="authStore.isAuthenticated"
         v-model="playerStatusFilter"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-      >
-        <option :value="PlayerStatus.ACTIVE">Activos</option>
-        <option :value="PlayerStatus.INACTIVE">Inactivos</option>
-        <option value="">Todos los estados</option>
-      </select>
+      />
     </div>
 
     <!-- Table (loading and empty states handled internally by <UiStatsTable>) -->

@@ -5,7 +5,9 @@
  * Returns `availableRivals` as `{ value: string; label: string }[]`
  * sorted alphabetically by name.
  */
-export function useStatisticsAvailableRivals(enabled: MaybeRef<boolean> = true) {
+export function useStatisticsAvailableRivals(
+  enabled: MaybeRef<boolean> = true,
+) {
   const { $api } = useNuxtApp();
   const isEnabled = toRef(enabled);
 

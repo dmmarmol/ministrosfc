@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
-import StatsFilters from "../../../components/pages/stats/StatsFilters.vue";
 import StatsTitle from "~/components/pages/stats/StatsTitle.vue";
+import YearFilter from "~/components/pages/statistics/StatsFilters/YearFilter.vue";
+import PlaygroundFilter from "~/components/pages/statistics/StatsFilters/PlaygroundFilter.vue";
 
 definePageMeta({
   layout: "statistics",
@@ -13,7 +14,11 @@ const rivalId = route.params.id as string;
 useHead({ title: "Estadísticas – Ministros FC" });
 
 const { $api } = useNuxtApp();
-const { filters, setFilter } = useStatsFilters();
+const {
+  year: yearFilter,
+  playgroundId: playgroundFilter,
+  filters,
+} = useStatsFilters();
 
 const [{ data: teamData }, { data, pending, refresh }] = await Promise.all([
   useAsyncData(`rival-team-${rivalId}`, () =>
@@ -27,7 +32,9 @@ const [{ data: teamData }, { data, pending, refresh }] = await Promise.all([
         {
           query: {
             ...(filters.value.year ? { year: filters.value.year } : {}),
-            ...(filters.value.playgroundId ? { playgroundId: filters.value.playgroundId } : {}),
+            ...(filters.value.playgroundId
+              ? { playgroundId: filters.value.playgroundId }
+              : {}),
           },
         },
       ),
@@ -93,13 +100,10 @@ watch(
       Volver
     </NuxtLink>
     <StatsTitle>Estadísticas vs "{{ rivalName }}"</StatsTitle>
-    <StatsFilters
-      mode="rival"
-      :year="filters.year"
-      :playground="filters.playgroundId"
-      @change:year="(v) => setFilter('year', v)"
-      @change:playground="(v) => setFilter('playgroundId', v)"
-    />
+    <div class="flex flex-wrap gap-3">
+      <YearFilter v-model="yearFilter" />
+      <PlaygroundFilter v-model="playgroundFilter" />
+    </div>
 
     <div v-if="pending" class="text-center text-muted-foreground py-8">
       Cargando...

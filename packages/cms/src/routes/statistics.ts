@@ -6,6 +6,7 @@ import {
 } from "express";
 import { validate, uuidSchema } from "../middleware/validation";
 import { StatisticsService } from "../services/StatisticsService";
+import { TournamentModel } from "../models/Tournament";
 import { authenticate } from "../middleware/auth";
 import { z } from "zod";
 import { PlayerStatus } from "@prisma/client";
@@ -14,8 +15,10 @@ const router = Router();
 
 const topScorersSchema = z.object({
   tournamentId: z.uuid().optional(),
+  tournamentName: z.string().max(100).optional(),
   limit: z.coerce.number().int().min(1).max(50).default(10),
   status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
+  year: z.coerce.number().int().min(1900).max(2100).optional(),
 });
 
 const teamStatsQuerySchema = z.object({
@@ -77,13 +80,30 @@ router.get(
 // GET /api/v1/statistics/top-scorers - Top scorers list
 router.get(
   "/top-scorers",
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const query = topScorersSchema.parse(req.query);
+
+      let tournamentId = query.tournamentId;
+      if (!tournamentId && query.tournamentName) {
+        const tournament = await TournamentModel.findByNameAndYear(
+          query.tournamentName,
+          query.year,
+        );
+        if (!tournament) {
+          // tournamentName was explicitly provided but matched nothing — return empty
+          res.setHeader("Cache-Control", "public, max-age=60");
+          res.json({ data: [] });
+          return;
+        }
+        tournamentId = tournament.id;
+      }
+
       const data = await StatisticsService.getTopScorers(
-        query.tournamentId,
+        tournamentId,
         query.limit,
         query.status as PlayerStatus | undefined,
+        query.year,
       );
       res.setHeader("Cache-Control", "public, max-age=300");
       res.json({ data });
@@ -164,13 +184,13 @@ router.get(
   authenticate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { year, rivalId, tournamentName } = teamStatsQuerySchema.parse(
-        req.query,
-      );
+      const { year, rivalId, tournamentName, playgroundId } =
+        teamStatsQuerySchema.parse(req.query);
       const data = await StatisticsService.getTeamStatsByTournament({
         year,
         rivalId,
         tournamentName,
+        playgroundId,
       });
       res.setHeader("Cache-Control", "private, max-age=300");
       res.json({ data });
