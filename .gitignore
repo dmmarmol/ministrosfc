@@ -81,7 +81,6 @@ packages/cms/prisma/dev.db-journal
 .output/
 .nitro/
 .cache/
-.env
 
 # ============================================
 # IDE & Editor
@@ -168,3 +167,4 @@ packages/cms/data/imports/*.csv
 
 # APM dependencies
 apm_modules/
+data/

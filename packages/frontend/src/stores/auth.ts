@@ -39,7 +39,9 @@ export const useAuthStore = defineStore("auth", {
     fullName: (state) =>
       state.user ? `${state.user.firstName} ${state.user.lastName}` : "",
     needsOnboarding: (state) =>
-      state.user != null && !state.user.onboardingCompletedAt,
+      state.user != null &&
+      state.user.role === "PLAYER" &&
+      !state.user.onboardingCompletedAt,
   },
 
   actions: {

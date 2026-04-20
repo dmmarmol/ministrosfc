@@ -1,22 +1,21 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.8.0 → 1.9.0 (MINOR — Package Version Management: git tag MUST be created on every version bump)
+Version change: 1.9.1 → 1.9.2 (PATCH — Git conventions: semantic commit grouping rule added)
 Ratified: 2026-03-17
-Last Amended: 2026-04-10
+Last Amended: 2026-04-19
 
-Amendment: Principle V (Component Isolation and Reusability) extended with a mandatory
-"Page Meta Declaration" sub-rule. Every file in `pages/` MUST contain a `definePageMeta`
-call declaring visibility (public/auth-required/auth-page) and any applicable middleware
-options. Pages that are freely public MUST still declare `definePageMeta({ public: true })`
-to make intent explicit and prevent future middleware accidental-blocking.
+Amendment: Git Commit Conventions extended with a new "Semantic Commit Grouping"
+sub-rule. Files MUST be staged and committed in groups of semantic value; mixing
+unrelated changes in a single commit is forbidden.
 
 Modified sections:
-  ✅ Principle V — added "Page Meta Declaration" sub-rule
-  ✅ Code Review Standards — new gate: definePageMeta presence check
-  ✅ plan-template.md — Constitution Check bullet added for definePageMeta gate
+  ✅ Git and Commit Conventions — added "Semantic Commit Grouping" sub-rule
+  ✅ Code Review Standards — new gate: commits must not mix unrelated file changes
 
 Prior amendments (preserved):
+  ✅ v1.9.0 — Package Version Management: git tag MUST be created on every version bump
+  ✅ v1.8.0 — Principle V: Page Meta Declaration sub-rule
   ✅ v1.7.0 — Principle V: Page Component Decomposition sub-rule
   ✅ v1.6.0 — Principle VII: Shared Types and Cross-Package Contracts
   ✅ v1.5.0 — Branch naming convention updated
@@ -34,7 +33,7 @@ Follow-up TODOs:
 
 # Ministros FC Constitution
 
-**Version**: 1.9.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-16
+**Version**: 1.9.2 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-19
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -172,14 +171,14 @@ page-decomposition gate in plan-template.md Constitution Check
   access control; a missing declaration is treated as a policy gap, not a sensible default.
 - The required `definePageMeta` shape depends on the page's access category:
 
-  | Category | Required fields |
-  |---|---|
-  | **Public** (no sign-in needed) | `definePageMeta({ public: true })` |
-  | **Authenticated** (any signed-in user) | `definePageMeta({ middleware: "auth", requiresAuth: true })` |
-  | **Editor+** (EDITOR or ADMIN) | `definePageMeta({ layout: "admin", middleware: "auth", requiresAuth: true, requiresRole: "editor" })` |
-  | **Admin only** | `definePageMeta({ layout: "admin", middleware: "auth", requiresAuth: true, requiresRole: "admin" })` |
-  | **Auth pages** (login/register — redirect if already authenticated) | `definePageMeta({ layout: false, middleware: "auth", authPage: true })` |
-  | **Onboarding page** | `definePageMeta({ middleware: "auth", requiresAuth: true, onboardingPage: true })` |
+  | Category                                                            | Required fields                                                                                       |
+  | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+  | **Public** (no sign-in needed)                                      | `definePageMeta({ public: true })`                                                                    |
+  | **Authenticated** (any signed-in user)                              | `definePageMeta({ middleware: "auth", requiresAuth: true })`                                          |
+  | **Editor+** (EDITOR or ADMIN)                                       | `definePageMeta({ layout: "admin", middleware: "auth", requiresAuth: true, requiresRole: "editor" })` |
+  | **Admin only**                                                      | `definePageMeta({ layout: "admin", middleware: "auth", requiresAuth: true, requiresRole: "admin" })`  |
+  | **Auth pages** (login/register — redirect if already authenticated) | `definePageMeta({ layout: false, middleware: "auth", authPage: true })`                               |
+  | **Onboarding page**                                                 | `definePageMeta({ middleware: "auth", requiresAuth: true, onboardingPage: true })`                    |
 
 - `public: true` pages bypass the auth redirect but MUST still declare `definePageMeta`
   so intent is explicit and searchable. Omitting it entirely is forbidden even for public
@@ -223,6 +222,39 @@ presence check in plan-template.md Constitution Check
 - ❌ Bad: Update UI optimistically, hope the API succeeds later, silently fail on errors
 
 **Enforcement:** TypeScript strict types, code review audits, integration test coverage
+
+#### URL Query Parameter Management (NON-NEGOTIABLE)
+
+**MUST** use `useQueryParams` for all route query-parameter reads and writes in `packages/frontend`.
+
+- `src/composables/useQueryParams.ts` is the single, authorised abstraction for URL query state.
+  It exposes three methods:
+  - `get(key)` — returns the current string value, or `""` if absent
+  - `set(key, value)` — pushes to the router; an empty-string value removes the key
+  - `remove(key)` — removes the key from the URL
+- **MUST NOT** call `useRouter().push({ query: ... })` directly outside of `useQueryParams`.
+- **MUST NOT** read `useRoute().query[key]` directly in components or pages for the purpose of
+  filter/state management; use `useQueryParams().get(key)` instead.
+- `useRoute().query` MAY be used as a reactive watch source (e.g., `watch(() => route.query, ...)`) to
+  trigger re-fetches — this is read-only observation, not mutation, and is permitted.
+- The URL is the single source of truth for all filter state visible in the address bar; local `ref`
+  state MUST NOT duplicate URL-persisted filter values.
+
+**Context:** Scattering `router.push({ query })` calls across components creates invisible coupling
+between pages and the URL shape. `useQueryParams` provides a single change surface: any key-naming
+or serialisation change happens in one file. It also enforces the convention that empty strings
+clean up the URL rather than accumulate noise (`?year=` artifacts).
+
+**Examples:**
+
+- ✅ Good: `const qp = useQueryParams(); qp.set('year', '2025')` — sets `?year=2025`
+- ✅ Good: `qp.set('year', '')` — removes `year` from the URL cleanly
+- ✅ Good: `watch(() => route.query, () => refresh())` — reactive observation only
+- ❌ Bad: `router.push({ query: { ...route.query, year: '2025' } })` — direct mutation outside composable
+- ❌ Bad: `const year = ref(route.query.year)` — local ref that mirrors URL state
+
+**Enforcement:** Code review gate (see Code Review Standards); treat direct `router.push({ query })`
+calls outside `useQueryParams` as a constitution violation
 
 ---
 
@@ -489,6 +521,34 @@ chore(deps): upgrade typescript to 5.x
 - Secrets or credentials
 - Commented-out code (delete or explain in commit message)
 
+#### Semantic Commit Grouping (NON-NEGOTIABLE)
+
+**MUST** stage and commit files grouped by semantic value.
+
+- A commit MUST represent a single, coherent unit of change that can be described with one
+  conventional commit message. If a commit requires an "and" in the summary line, it likely
+  spans two semantic units and MUST be split.
+- When multiple related files change together as part of the same logical change (e.g., a route
+  handler + its service method + its model), they MUST be committed together in a single commit.
+- When unrelated concerns change in the same working session (e.g., a bug fix and a new feature),
+  they MUST be committed separately — each in its own atomic commit.
+- The `git add -p` (patch) workflow is the preferred tool for precise, semantic staging.
+- Formatting-only or whitespace-only changes MUST be isolated from logic changes.
+
+**Context:** Commits are the primary unit of code history and code review. Mixed commits make
+`git bisect`, `git blame`, and PR reviews harder to reason about. Atomic, semantically-grouped
+commits enable per-change revert, cherry-pick, and pinpointed blame.
+
+**Examples:**
+
+- ✅ Good: One commit for `useStatisticsAvailableTournaments.ts` + `StatsFilters.vue` (adding
+  the `enabled` guard to both as one semantic change)
+- ✅ Good: Separate commits for "fix(stats): conditionally fetch filter options by mode" and
+  "fix(rivals): watch route.query instead of individual filter fields"
+- ❌ Bad: A single commit touching a new composable, a bug fix in an unrelated page, and a
+  CSS tweak — three semantic units bundled together
+- ❌ Bad: Staging all modified files with `git add .` without reviewing what is included
+
 ### Code Review Standards
 
 **MUST verify in every PR:**
@@ -504,6 +564,8 @@ chore(deps): upgrade typescript to 5.x
 - [ ] Types used by more than one package are defined in `@ministrosfc/shared`, not duplicated locally
 - [ ] **Page decomposition (Principle V)**: No `pages/` file contains inline template blocks exceeding ~30 lines; feature areas extracted to `components/pages/<feature-path>/`
 - [ ] **Page meta declaration (Principle V)**: Every `pages/` file has a `definePageMeta` call with explicit visibility; public pages use `definePageMeta({ public: true })`
+- [ ] **URL query params (Principle VI)**: All query-param reads use `useQueryParams().get(key)`; all writes use `useQueryParams().set/remove()`; no direct `router.push({ query })` calls outside the composable
+- [ ] **Semantic commit grouping (Git Conventions)**: Each commit in the branch represents one coherent unit of change; commits mixing unrelated files MUST be flagged and rebased before merge
 
 **Review focus areas:**
 

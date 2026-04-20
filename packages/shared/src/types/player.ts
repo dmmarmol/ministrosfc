@@ -68,18 +68,18 @@ export interface Player {
   id: string;
   firstName: string;
   lastName: string;
-  nickname?: string | null;
-  address?: string | null;
+  nickname: string | null;
+  address: string | null;
   playerType: PlayerType;
   status: PlayerStatus;
-  invitedById?: string | null;
-  position?: Position | null;
-  jerseyNumber?: number | null;
-  dateOfBirth?: string | null;
-  height?: number | null;
-  dominantFoot?: Foot | null;
-  photoUrl?: string | null;
-  contactInfo?: Contact | null;
+  invitedById: string | null;
+  position: Position | null;
+  jerseyNumber: number | null;
+  dateOfBirth: string | null;
+  height: number | null;
+  dominantFoot: Foot | null;
+  photoUrl: string | null;
+  contactInfo: Contact | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -22,6 +22,7 @@ import { usersRouter } from "../routes/users";
 import { onboardingRouter } from "../routes/onboarding";
 import { playgroundRouter } from "../routes/playgrounds";
 import { addressRouter } from "../routes/address";
+import { importRouter } from "../routes/import";
 
 export function createApp(): Application {
   const app = express();
@@ -77,6 +78,7 @@ export function createApp(): Application {
   app.use("/api/v1/onboarding", onboardingRouter);
   app.use("/api/v1/playgrounds", playgroundRouter);
   app.use("/api/v1/address", addressRouter);
+  app.use("/api/v1/import", importRouter);
 
   // Global error handler (must be last)
   app.use(globalErrorHandler);

@@ -4,6 +4,7 @@ import { PlayerModel } from "../models/Player";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
 import { getRedisClient } from "../config/redis";
+import { PlayerStatus } from "@prisma/client";
 
 const CACHE_TTL = 300; // 5 min
 
@@ -25,22 +26,32 @@ async function withCache<T>(key: string, fn: () => Promise<T>): Promise<T> {
 }
 
 const StatisticsService = {
-  async getPlayerStats(playerId: string, tournamentId?: string) {
+  async getPlayerStats(playerId: string, tournamentId?: string, year?: number) {
     const player = await PlayerModel.findById(playerId);
     if (!player)
       throw createError("Player not found", 404, ErrorCode.PLAYER_NOT_FOUND);
 
-    const cacheKey = `cache:stats:player:${playerId}:${tournamentId ?? "all"}`;
-    const stats = await withCache(cacheKey, () =>
-      StatisticsModel.aggregateForPlayer(playerId, tournamentId),
-    );
-    return { player, stats };
+    const cacheKey = `cache:stats:player:${playerId}:${tournamentId ?? "all"}:${year ?? "all"}`;
+    const [stats, availableYears] = await Promise.all([
+      withCache(cacheKey, () =>
+        StatisticsModel.aggregateForPlayer(playerId, tournamentId, year),
+      ),
+      withCache(`cache:stats:player-years:${playerId}`, () =>
+        StatisticsModel.getGameYearsForPlayer(playerId),
+      ),
+    ]);
+    return { player, stats, availableYears };
   },
 
-  async getTopScorers(tournamentId?: string, limit = 10) {
-    const cacheKey = `cache:stats:topscorers:${tournamentId ?? "all"}:${limit}`;
+  async getTopScorers(
+    tournamentId?: string,
+    limit = 10,
+    status?: PlayerStatus,
+    year?: number,
+  ) {
+    const cacheKey = `cache:stats:topscorers:${tournamentId ?? "all"}:${limit}:${status ?? "all"}:${year ?? "all"}`;
     return withCache(cacheKey, () =>
-      StatisticsModel.getTopScorers(tournamentId, limit),
+      StatisticsModel.getTopScorers(tournamentId, limit, status, year),
     );
   },
 
@@ -81,6 +92,76 @@ const StatisticsService = {
     } catch {
       /* non-fatal */
     }
+  },
+
+  // ── Team stats (Feature 017) ──────────────────────────────────────────────
+
+  async getTeamSummary() {
+    return withCache("cache:stats:team:summary", () =>
+      StatisticsModel.getTeamSummaryHeader(),
+    );
+  },
+
+  async getGameYears() {
+    return withCache("cache:stats:years", () => StatisticsModel.getGameYears());
+  },
+
+  async getTeamStatsByYear(filters?: {
+    tournamentId?: string;
+    rivalId?: string;
+  }) {
+    const key = `cache:stats:team:year:${filters?.tournamentId ?? "all"}:${filters?.rivalId ?? "all"}`;
+    return withCache(key, () => StatisticsModel.aggregateTeamByYear(filters));
+  },
+
+  async getTeamStatsByTournament(filters?: {
+    year?: number;
+    rivalId?: string;
+    tournamentName?: string;
+    playgroundId?: string;
+  }) {
+    const key = `cache:stats:team:tournament:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}:${filters?.tournamentName ?? "all"}:${filters?.playgroundId ?? "all"}`;
+    return withCache(key, () =>
+      StatisticsModel.aggregateTeamByTournament(filters),
+    );
+  },
+
+  async getTeamStatsByRival(filters?: {
+    year?: number;
+    tournamentId?: string;
+    tournamentName?: string;
+    rivalId?: string;
+  }) {
+    const key = `cache:stats:team:rival:${filters?.year ?? "all"}:${filters?.tournamentId ?? "all"}:${filters?.tournamentName ?? "all"}:${filters?.rivalId ?? "all"}`;
+    return withCache(key, () => StatisticsModel.aggregateTeamByRival(filters));
+  },
+
+  async getRivalStats(
+    rivalId: string,
+    filters?: { year?: number; playgroundId?: string },
+  ) {
+    const key = `cache:stats:team:rival:${rivalId}:${filters?.year ?? "all"}:${filters?.playgroundId ?? "all"}`;
+    return withCache(key, () =>
+      StatisticsModel.getRivalBreakdown(rivalId, filters),
+    );
+  },
+
+  async getPlayerRivalStats(playerId: string) {
+    const key = `cache:stats:player:rivals:${playerId}`;
+    return withCache(key, () =>
+      StatisticsModel.getPlayerRivalBreakdown(playerId),
+    );
+  },
+
+  async getAllPlayerStats(filters?: {
+    year?: number;
+    rivalId?: string;
+    tournamentName?: string;
+    playerId?: string;
+    status?: PlayerStatus;
+  }) {
+    const key = `cache:stats:players:all:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}:${filters?.tournamentName ?? "all"}:${filters?.playerId ?? "all"}:${filters?.status ?? "all"}`;
+    return withCache(key, () => StatisticsModel.aggregatePlayersAll(filters));
   },
 };
 

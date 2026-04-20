@@ -23,7 +23,11 @@ const pesPositionClassMap = {
   [Position.LWF]: "border-red-500",
 };
 
-defineProps<Props>();
+const props = defineProps<Props>();
+
+const displayName = props.position
+  ? PositionDisplayName[props.position]
+  : "Sin posición";
 </script>
 <template>
   <span
@@ -31,10 +35,13 @@ defineProps<Props>();
       'inline-block w-10 flex-shrink-0 mt-0.5 py-0.5 rounded',
       'text-white text-[14px] text-center font-bold',
       'bg-gray-900 border-b-4',
-      `${position ? pesPositionClassMap[position] : 'text-gray-500'}`,
+      `${props.position ? pesPositionClassMap[props.position] : 'text-gray-500'}`,
     ]"
-    :title="position ? PositionDisplayName[position] : 'Sin posición definida'"
+    :title="displayName"
   >
-    {{ position ?? "—" }}
+    <template v-if="props.position">
+      {{ props.position }}
+    </template>
+    <template v-else>-</template>
   </span>
 </template>

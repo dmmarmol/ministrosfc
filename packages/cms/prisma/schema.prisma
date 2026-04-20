@@ -110,6 +110,7 @@ model User {
 
 model Player {
   id         String       @id @default(uuid())
+  externalId String?      @unique @db.VarChar(36)
   firstName  String       @db.VarChar(255)
   lastName   String       @db.VarChar(255)
   nickname   String?      @db.VarChar(100)
@@ -210,6 +211,9 @@ model Tournament {
   endDate     DateTime
   competitionType CompetitionType  @default(LEAGUE)
 
+  playgroundId String?
+  playground   Playground?  @relation(fields: [playgroundId], references: [id], onDelete: SetNull)
+
   games      Game[]       @relation("TournamentGames")
   statistics Statistics[] @relation("TournamentStats")
 
@@ -251,12 +255,19 @@ model Game {
   lineup     String    @default("4-4-2") @db.VarChar(10)
   endDate    DateTime
 
+  // --- FEATURE 017: CSV import fields ---
+  startTime String? @db.VarChar(5)
+  endTime   String? @db.VarChar(5)
+  coach     String? @db.VarChar(255)
+  photoUrl  String?
+
   participants GameParticipant[] @relation("GameParticipants")
   statistics   Statistics[]      @relation("GameStats")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([date, opponentTeamId, tournamentId])
   @@index([date])
   @@index([status])
   @@index([opponentTeamId])
@@ -285,6 +296,9 @@ model GameParticipant {
   yellowCards   Int? @default(0)
   redCards      Int? @default(0)
   minutesPlayed Int?
+
+  // --- FEATURE 017: starter flag ---
+  isStarter Boolean?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -344,7 +358,8 @@ model Playground {
   createdBy User  @relation("PlaygroundCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   updatedBy User? @relation("PlaygroundUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
-  games Game[]
+  games       Game[]
+  tournaments Tournament[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -161,7 +161,6 @@ function submitGuest() {
         </div>
         <!-- "Agregar invitado" trigger — rendered outside DropdownAddMore (plan.md C1 fix) -->
         <button
-          v-if="!isInteractionDisabled"
           data-testid="open-guest-form"
           class="mt-2 self-end text-sm text-brand hover:underline"
           :class="
@@ -169,6 +168,7 @@ function submitGuest() {
               ? 'opacity-50 cursor-not-allowed hover:no-underline'
               : ''
           "
+          :disabled="isInteractionDisabled"
           @click="openGuestForm"
         >
           + Agregar invitado

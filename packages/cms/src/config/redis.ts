@@ -3,7 +3,30 @@ import { logger } from "../utils/logger";
 
 let redisClient: Redis | null = null;
 
+// In development, return a no-op stub so every cache read is a miss and
+// writes are silently discarded — no Redis instance required locally.
+function createNoopClient(): Redis {
+  const noop = new Proxy({} as Redis, {
+    get(_target, prop) {
+      if (prop === "get") return async () => null;
+      if (prop === "setex") return async () => "OK";
+      if (prop === "keys") return async () => [];
+      if (prop === "del") return async () => 0;
+      if (prop === "on") return () => noop;
+      if (prop === "status") return "ready";
+      if (prop === "quit") return async () => "OK";
+      if (prop === "disconnect") return () => undefined;
+      if (prop === "removeAllListeners") return () => noop;
+      return async () => null;
+    },
+  });
+  return noop;
+}
+
 export function getRedisClient(): Redis {
+  if (process.env.NODE_ENV === "development") {
+    return createNoopClient();
+  }
   if (!redisClient) {
     redisClient = new Redis({
       host: process.env.REDIS_HOST ?? "localhost",

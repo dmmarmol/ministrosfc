@@ -1,6 +1,6 @@
 # Feature Specification: Table Filters, Query Params, and Admin Page Decomposition
 
-**Feature Branch**: `017-table-filters-query-params`
+**Feature Branch**: `018-table-filters-query-params`
 **Created**: 2026-04-09
 **Status**: Draft
 **Input**: User description: "Update /admin/players and /admin/games views to include a search bar to filter the list of players and games respectively. The search should be case-insensitive and should filter by name for players and by opponent for games. Connect the UI filters and the search bar to the frontend query-params so that a user can share a link to a filtered list of players or games." Scope update: split large admin page components into smaller units, move core page logic into `components/pages/admin`, and standardize table rendering patterns (prefer Nuxt UI Table as base when feasible).

@@ -7,7 +7,7 @@
     "scripts": {
         "build": "tsc",
         "dev": "tsc --watch",
-        "clean": "rm -rf dist",
+        "clean": "rm -rf dist && find src/ -name '*.js' -o -name '*.d.ts' -o -name '*.js.map' -o -name '*.d.ts.map' | xargs rm -f",
         "test": "jest",
         "lint": "eslint src --ext .ts"
     },

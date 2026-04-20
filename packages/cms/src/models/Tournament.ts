@@ -52,7 +52,8 @@ const TournamentModel = {
     const skip = (page - 1) * limit;
 
     const where: Prisma.TournamentWhereInput = {};
-    if (options.competitionType) where.competitionType = options.competitionType as any;
+    if (options.competitionType)
+      where.competitionType = options.competitionType as any;
 
     const [tournaments, total] = await Promise.all([
       prisma.tournament.findMany({
@@ -82,6 +83,25 @@ const TournamentModel = {
 
   async delete(id: string): Promise<Tournament> {
     return prisma.tournament.delete({ where: { id } });
+  },
+
+  async findByNameAndYear(
+    name: string,
+    year?: number,
+  ): Promise<Tournament | null> {
+    const where: Prisma.TournamentWhereInput = {
+      name: { equals: name, mode: "insensitive" },
+    };
+    if (year) {
+      where.startDate = {
+        gte: new Date(`${year}-01-01`),
+        lt: new Date(`${year + 1}-01-01`),
+      };
+    }
+    return prisma.tournament.findFirst({
+      where,
+      orderBy: { startDate: "desc" },
+    });
   },
 
   async hasGames(id: string): Promise<boolean> {

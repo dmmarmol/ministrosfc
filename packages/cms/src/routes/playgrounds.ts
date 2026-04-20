@@ -1,4 +1,9 @@
-import { Router, type Request, type Response, type NextFunction } from "express";
+import {
+  Router,
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 import { z } from "zod";
 import { authenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/rbac";
@@ -10,7 +15,10 @@ const router = Router();
 const playgroundCreateSchema = z
   .object({
     name: z.string().min(1).max(255, "Name must be 255 characters or less"),
-    address: z.string().min(1).max(500, "Address must be 500 characters or less"),
+    address: z
+      .string()
+      .min(1)
+      .max(500, "Address must be 500 characters or less"),
     latitude: z.number().optional(),
     longitude: z.number().optional(),
   })
@@ -64,7 +72,10 @@ router.post(
   validate(playgroundCreateSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const playground = await PlaygroundService.create(req.body, req.user!.userId);
+      const playground = await PlaygroundService.create(
+        req.body,
+        req.user!.userId,
+      );
       res.status(201).json({ data: playground });
     } catch (err) {
       next(err);

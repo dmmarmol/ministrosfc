@@ -85,6 +85,7 @@ describe("StatisticsService", () => {
       expect(MockStatisticsModel.aggregateForPlayer).toHaveBeenCalledWith(
         "player-1",
         undefined,
+        undefined,
       );
     });
 
@@ -111,6 +112,7 @@ describe("StatisticsService", () => {
       expect(MockStatisticsModel.aggregateForPlayer).toHaveBeenCalledWith(
         "player-1",
         "tournament-1",
+        undefined,
       );
     });
 
@@ -188,6 +190,8 @@ describe("StatisticsService", () => {
       expect(MockStatisticsModel.getTopScorers).toHaveBeenCalledWith(
         undefined,
         10,
+        undefined,
+        undefined,
       );
     });
 
@@ -199,6 +203,8 @@ describe("StatisticsService", () => {
       expect(MockStatisticsModel.getTopScorers).toHaveBeenCalledWith(
         "tournament-1",
         5,
+        undefined,
+        undefined,
       );
     });
   });
@@ -274,6 +280,161 @@ describe("StatisticsService", () => {
       await StatisticsService.invalidateCacheFor("p1", "t1");
 
       expect(mockRedis.keys).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe("getTopScorers — filter combinations", () => {
+    const topScorers = [
+      {
+        player: {
+          id: "p1",
+          firstName: "A",
+          lastName: "B",
+          nickname: null,
+          jerseyNumber: 9,
+          position: "STRIKER",
+          photoUrl: null,
+        },
+        appearances: 8,
+        goalsScored: 10,
+        assists: 2,
+      },
+    ];
+
+    beforeEach(() => {
+      MockStatisticsModel.getTopScorers.mockResolvedValue(topScorers as any);
+    });
+
+    it("passes status filter to model", async () => {
+      await StatisticsService.getTopScorers(
+        undefined,
+        10,
+        "ACTIVE" as any,
+        undefined,
+      );
+
+      expect(MockStatisticsModel.getTopScorers).toHaveBeenCalledWith(
+        undefined,
+        10,
+        "ACTIVE",
+        undefined,
+      );
+    });
+
+    it("passes year filter to model", async () => {
+      await StatisticsService.getTopScorers(undefined, 10, undefined, 2023);
+
+      expect(MockStatisticsModel.getTopScorers).toHaveBeenCalledWith(
+        undefined,
+        10,
+        undefined,
+        2023,
+      );
+    });
+
+    it("passes all filters together to model", async () => {
+      await StatisticsService.getTopScorers(
+        "tournament-1",
+        25,
+        "INACTIVE" as any,
+        2022,
+      );
+
+      expect(MockStatisticsModel.getTopScorers).toHaveBeenCalledWith(
+        "tournament-1",
+        25,
+        "INACTIVE",
+        2022,
+      );
+    });
+
+    it("uses distinct cache keys for different filter combinations", async () => {
+      await StatisticsService.getTopScorers(
+        undefined,
+        10,
+        "ACTIVE" as any,
+        2023,
+      );
+      await StatisticsService.getTopScorers(
+        undefined,
+        10,
+        "INACTIVE" as any,
+        2023,
+      );
+      await StatisticsService.getTopScorers(
+        undefined,
+        10,
+        "ACTIVE" as any,
+        2024,
+      );
+
+      // Each combo must have attempted its own cache key
+      expect(mockRedis.get).toHaveBeenCalledWith(
+        "cache:stats:topscorers:all:10:ACTIVE:2023",
+      );
+      expect(mockRedis.get).toHaveBeenCalledWith(
+        "cache:stats:topscorers:all:10:INACTIVE:2023",
+      );
+      expect(mockRedis.get).toHaveBeenCalledWith(
+        "cache:stats:topscorers:all:10:ACTIVE:2024",
+      );
+    });
+  });
+
+  describe("getTeamStatsByTournament — filter combinations", () => {
+    beforeEach(() => {
+      MockStatisticsModel.aggregateTeamByTournament = jest
+        .fn()
+        .mockResolvedValue([]) as any;
+    });
+
+    it("passes year, rivalId, tournamentName, and playgroundId to model", async () => {
+      await StatisticsService.getTeamStatsByTournament({
+        year: 2023,
+        rivalId: "rival-1",
+        tournamentName: "Copa de Oro",
+        playgroundId: "pg-1",
+      });
+
+      expect(
+        MockStatisticsModel.aggregateTeamByTournament,
+      ).toHaveBeenCalledWith({
+        year: 2023,
+        rivalId: "rival-1",
+        tournamentName: "Copa de Oro",
+        playgroundId: "pg-1",
+      });
+    });
+
+    it("uses distinct cache keys for different playgroundId values", async () => {
+      await StatisticsService.getTeamStatsByTournament({
+        year: 2023,
+        tournamentName: "Liga",
+        playgroundId: "pg-A",
+      });
+      await StatisticsService.getTeamStatsByTournament({
+        year: 2023,
+        tournamentName: "Liga",
+        playgroundId: "pg-B",
+      });
+
+      expect(mockRedis.get).toHaveBeenCalledWith(
+        "cache:stats:team:tournament:2023:all:Liga:pg-A",
+      );
+      expect(mockRedis.get).toHaveBeenCalledWith(
+        "cache:stats:team:tournament:2023:all:Liga:pg-B",
+      );
+    });
+
+    it("omits playgroundId from cache key when not provided", async () => {
+      await StatisticsService.getTeamStatsByTournament({
+        year: 2023,
+        tournamentName: "Liga",
+      });
+
+      expect(mockRedis.get).toHaveBeenCalledWith(
+        "cache:stats:team:tournament:2023:all:Liga:all",
+      );
     });
   });
 });

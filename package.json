@@ -19,6 +19,7 @@
     "dev:all": "concurrently --kill-others-on-fail --names \"cms,frontend\" \"npm run dev --workspace=@ministrosfc/cms\" \"npm run dev --workspace=@ministrosfc/frontend\"",
     "test:all": "npm test --workspaces --if-present",
     "gen:prisma": "npm run prisma:generate --workspace=@ministrosfc/cms",
+    "db:reset": "npm run db:reset --workspace=@ministrosfc/cms",
     "lint:all": "npm run lint --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
     "install:all": "npm install",

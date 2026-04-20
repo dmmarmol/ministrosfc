@@ -9,17 +9,49 @@
  *  - `getTopScorers(tournamentId?, limit)` — ranked list by goals scored.
  *  - `aggregateForTournament(tournamentId)` — all players' stats within a tournament.
  */
+import {
+  PlayerRivalMatchDTO,
+  PlayerRivalPeriodDTO,
+  TeamStatMatchDTO,
+} from "@ministrosfc/shared";
 import { prisma } from "../config/database";
-import { GameStatus } from "@prisma/client";
+import { GameStatus, PlayerStatus } from "@prisma/client";
 
 const StatisticsModel = {
-  async aggregateForPlayer(playerId: string, tournamentId?: string) {
+  async getGameYearsForPlayer(playerId: string): Promise<number[]> {
+    const participants = await prisma.gameParticipant.findMany({
+      where: { playerId, game: { status: GameStatus.COMPLETED } },
+      select: { game: { select: { date: true } } },
+    });
+    const years = [
+      ...new Set(
+        participants
+          .map((p) =>
+            p.game.date ? new Date(p.game.date).getFullYear() : null,
+          )
+          .filter((y): y is number => y !== null),
+      ),
+    ];
+    return years.sort((a, b) => b - a);
+  },
+
+  async aggregateForPlayer(
+    playerId: string,
+    tournamentId?: string,
+    year?: number,
+  ) {
     // Sum from GameParticipant records for completed games
     const where: any = {
       playerId,
       game: { status: GameStatus.COMPLETED },
     };
     if (tournamentId) where.game.tournamentId = tournamentId;
+    if (year) {
+      where.game.date = {
+        gte: new Date(`${year}-01-01`),
+        lt: new Date(`${year + 1}-01-01`),
+      };
+    }
 
     const participants = await prisma.gameParticipant.findMany({
       where,
@@ -52,13 +84,49 @@ const StatisticsModel = {
     );
   },
 
-  async getTopScorers(tournamentId?: string, limit = 10) {
-    const gameWhere: any = { status: GameStatus.COMPLETED };
+  async getTopScorers(
+    tournamentId?: string,
+    limit = 10,
+    status?: PlayerStatus,
+    year?: number,
+  ) {
+    // Collect matching game IDs up front so the subsequent groupBy uses a
+    // scalar `gameId IN (...)` filter. Prisma groupBy doesn't reliably scope
+    // _sum/_count when the where clause contains relation filters (game: {...}),
+    // so building the id list first guarantees aggregations are correctly scoped.
+    const gameWhere: import("@prisma/client").Prisma.GameWhereInput = {
+      status: GameStatus.COMPLETED,
+    };
     if (tournamentId) gameWhere.tournamentId = tournamentId;
+    if (year) {
+      gameWhere.date = {
+        gte: new Date(`${year}-01-01`),
+        lt: new Date(`${year + 1}-01-01`),
+      };
+    }
+    const matchingGames = await prisma.game.findMany({
+      where: gameWhere,
+      select: { id: true },
+    });
+    const gameIds = matchingGames.map((g) => g.id);
+
+    // Also resolve eligible player IDs when status filter is active so we
+    // avoid another relation filter inside groupBy.
+    let playerIdFilter: string[] | undefined;
+    if (status) {
+      const eligiblePlayers = await prisma.player.findMany({
+        where: { status },
+        select: { id: true },
+      });
+      playerIdFilter = eligiblePlayers.map((p) => p.id);
+    }
 
     const results = await prisma.gameParticipant.groupBy({
       by: ["playerId"],
-      where: { game: gameWhere },
+      where: {
+        gameId: { in: gameIds },
+        ...(playerIdFilter ? { playerId: { in: playerIdFilter } } : {}),
+      },
       _sum: { goalsScored: true, assists: true },
       _count: { id: true },
       orderBy: { _sum: { goalsScored: "desc" } },
@@ -129,6 +197,652 @@ const StatisticsModel = {
       redCards: r._sum.redCards ?? 0,
     }));
   },
+
+  // ── General metadata ──────────────────────────────────────────────────────
+
+  async getGameYears(): Promise<number[]> {
+    const games = await prisma.game.findMany({
+      where: { status: GameStatus.COMPLETED },
+      select: { date: true },
+    });
+    const years = [
+      ...new Set(games.map((g) => new Date(g.date).getUTCFullYear())),
+    ];
+    return years.sort((a, b) => b - a);
+  },
+
+  // ── Team stat aggregations (Feature 017) ────────────────────────────────────
+
+  async aggregateTeamByYear(filters?: {
+    tournamentId?: string;
+    rivalId?: string;
+  }) {
+    const gameWhere: any = { status: GameStatus.COMPLETED };
+    if (filters?.tournamentId) gameWhere.tournamentId = filters.tournamentId;
+    if (filters?.rivalId) gameWhere.opponentTeamId = filters.rivalId;
+
+    const games = await prisma.game.findMany({
+      where: gameWhere,
+      select: { date: true, homeTeamScore: true, awayTeamScore: true },
+    });
+
+    return groupTeamStatsByKey(games, (g) =>
+      String(new Date(g.date).getUTCFullYear()),
+    );
+  },
+
+  async aggregateTeamByTournament(filters?: {
+    year?: number;
+    rivalId?: string;
+    tournamentName?: string;
+    playgroundId?: string;
+  }) {
+    const gameWhere: any = { status: GameStatus.COMPLETED };
+    if (filters?.rivalId) gameWhere.opponentTeamId = filters.rivalId;
+    if (filters?.tournamentName) {
+      // tournament name alone is not unique — also scope by year when provided
+      const tournamentFilter: any = {
+        name: { equals: filters.tournamentName, mode: "insensitive" },
+      };
+      if (filters.year) {
+        tournamentFilter.startDate = {
+          gte: new Date(`${filters.year}-01-01`),
+          lt: new Date(`${filters.year + 1}-01-01`),
+        };
+      }
+      gameWhere.tournament = tournamentFilter;
+    }
+    if (filters?.playgroundId) {
+      // filter by the playground the tournament was played at
+      if (gameWhere.tournament) {
+        gameWhere.tournament.playgroundId = filters.playgroundId;
+      } else {
+        gameWhere.tournament = { playgroundId: filters.playgroundId };
+      }
+    }
+
+    const games = await prisma.game.findMany({
+      where: gameWhere,
+      select: {
+        date: true,
+        homeTeamScore: true,
+        awayTeamScore: true,
+        tournament: {
+          select: {
+            id: true,
+            name: true,
+            startDate: true,
+            endDate: true,
+            playground: { select: { name: true } },
+          },
+        },
+      },
+    });
+
+    const filtered = filters?.year
+      ? games.filter((g) => new Date(g.date).getUTCFullYear() === filters.year)
+      : games;
+
+    return groupTeamStatsByKey(
+      filtered,
+      (g) =>
+        g.tournament?.id ??
+        `no-tournament-${new Date(g.date).getUTCFullYear()}`,
+      (g) => ({
+        periodStart: g.tournament?.startDate
+          ? new Date(g.tournament.startDate).toISOString()
+          : undefined,
+        periodEnd: g.tournament?.endDate
+          ? new Date(g.tournament.endDate).toISOString()
+          : undefined,
+        playgroundName: g.tournament?.playground?.name ?? "",
+      }),
+      (g) => g.tournament?.name ?? "Sin torneo",
+    );
+  },
+
+  async aggregateTeamByRival(filters?: {
+    year?: number;
+    tournamentId?: string;
+    tournamentName?: string;
+    rivalId?: string;
+  }) {
+    const gameWhere: any = { status: GameStatus.COMPLETED };
+    if (filters?.tournamentId) gameWhere.tournamentId = filters.tournamentId;
+    if (filters?.tournamentName)
+      gameWhere.tournament = {
+        name: { equals: filters.tournamentName, mode: "insensitive" },
+      };
+    if (filters?.rivalId) gameWhere.opponentTeamId = filters.rivalId;
+
+    const games = await prisma.game.findMany({
+      where: gameWhere,
+      select: {
+        date: true,
+        homeTeamScore: true,
+        awayTeamScore: true,
+        opponentTeam: { select: { id: true, name: true } },
+        tournament: { select: { playground: { select: { name: true } } } },
+      },
+    });
+
+    const filtered = filters?.year
+      ? games.filter((g) => new Date(g.date).getUTCFullYear() === filters.year)
+      : games;
+
+    // Compute most common playground per rival (keyed by ID)
+    const playgroundFreq: Record<string, Record<string, number>> = {};
+    for (const g of filtered) {
+      const rivalId = g.opponentTeam?.id ?? "?";
+      const pg = g.tournament?.playground?.name;
+      if (!pg) continue;
+      if (!playgroundFreq[rivalId]) playgroundFreq[rivalId] = {};
+      playgroundFreq[rivalId]![pg] = (playgroundFreq[rivalId]![pg] ?? 0) + 1;
+    }
+    const mostCommonPlayground = (rivalId: string): string | null => {
+      const freq = playgroundFreq[rivalId];
+      if (!freq) return null;
+      return Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+    };
+
+    const rows = groupTeamStatsByKey(
+      filtered,
+      (g) => g.opponentTeam?.id ?? "?",
+      undefined,
+      (g) => g.opponentTeam?.name ?? "?",
+    );
+    return rows.map((r) => ({
+      ...r,
+      playgroundName: mostCommonPlayground(r.key) ?? "",
+    }));
+  },
+
+  async getRivalBreakdown(
+    rivalId: string,
+    filters?: { year?: number; playgroundId?: string },
+  ) {
+    const gameWhere: any = {
+      status: GameStatus.COMPLETED,
+      opponentTeamId: rivalId,
+    };
+    if (filters?.playgroundId)
+      gameWhere.tournament = { playgroundId: filters.playgroundId };
+
+    const games = await prisma.game.findMany({
+      where: gameWhere,
+      select: {
+        date: true,
+        homeTeamScore: true,
+        awayTeamScore: true,
+        slug: true,
+        tournament: { select: { name: true } },
+      },
+      orderBy: { date: "asc" },
+    });
+
+    const filtered = filters?.year
+      ? games.filter((g) => new Date(g.date).getUTCFullYear() === filters.year)
+      : games;
+
+    const matchesByYear: Record<string, Array<TeamStatMatchDTO>> = {};
+    for (const g of filtered) {
+      const year = String(new Date(g.date).getUTCFullYear());
+      const gf = g.homeTeamScore ?? 0;
+      const ga = g.awayTeamScore ?? 0;
+      if (!matchesByYear[year]) matchesByYear[year] = [];
+      matchesByYear[year]!.push({
+        date: new Date(g.date).toISOString().slice(0, 10),
+        homeScore: gf,
+        awayScore: ga,
+        tournament: g.tournament?.name ?? null,
+        result: gf > ga ? "W" : ga > gf ? "L" : "D",
+        slug: g.slug ?? null,
+      });
+    }
+
+    const stats = groupTeamStatsByKey(filtered, (g) =>
+      String(new Date(g.date).getUTCFullYear()),
+    );
+
+    return stats.map((s) => ({
+      ...s,
+      matches: matchesByYear[s.key] ?? [],
+    }));
+  },
+
+  async getTeamSummaryHeader() {
+    const games = await prisma.game.findMany({
+      where: { status: GameStatus.COMPLETED },
+      select: {
+        date: true,
+        homeTeamScore: true,
+        awayTeamScore: true,
+        opponentTeam: { select: { id: true, name: true } },
+        tournament: { select: { name: true } },
+      },
+    });
+
+    const totals = { games: 0, wins: 0, losses: 0, draws: 0, gf: 0, ga: 0 };
+    const rivalStats: Record<
+      string,
+      {
+        name: string;
+        games: number;
+        wins: number;
+        losses: number;
+        draws: number;
+        gf: number;
+        ga: number;
+      }
+    > = {};
+
+    let bestWinDiff = -Infinity;
+    let worstLossDiff = Infinity;
+    let bestWin: any = null;
+    let worstLoss: any = null;
+
+    for (const g of games) {
+      const gf = g.homeTeamScore ?? 0;
+      const ga = g.awayTeamScore ?? 0;
+      totals.games++;
+      totals.gf += gf;
+      totals.ga += ga;
+
+      const rid = g.opponentTeam?.id ?? "?";
+      if (!rivalStats[rid]) {
+        rivalStats[rid] = {
+          name: g.opponentTeam?.name ?? "?",
+          games: 0,
+          wins: 0,
+          losses: 0,
+          draws: 0,
+          gf: 0,
+          ga: 0,
+        };
+      }
+      rivalStats[rid]!.games++;
+      rivalStats[rid]!.gf += gf;
+      rivalStats[rid]!.ga += ga;
+
+      if (gf > ga) {
+        totals.wins++;
+        rivalStats[rid]!.wins++;
+        const diff = gf - ga;
+        if (diff > bestWinDiff) {
+          bestWinDiff = diff;
+          bestWin = {
+            rival: g.opponentTeam?.name ?? "?",
+            tournament: g.tournament?.name ?? "",
+            date: new Date(g.date).toISOString().slice(0, 10),
+            score: `${gf}-${ga}`,
+          };
+        }
+      } else if (ga > gf) {
+        totals.losses++;
+        rivalStats[rid]!.losses++;
+        const diff = ga - gf;
+        if (diff > -worstLossDiff) {
+          worstLossDiff = -diff;
+          worstLoss = {
+            rival: g.opponentTeam?.name ?? "?",
+            tournament: g.tournament?.name ?? "",
+            date: new Date(g.date).toISOString().slice(0, 10),
+            score: `${gf}-${ga}`,
+          };
+        }
+      } else {
+        totals.draws++;
+        rivalStats[rid]!.draws++;
+      }
+    }
+
+    const rivalList = Object.values(rivalStats);
+
+    const byGames = [...rivalList].sort((a, b) => b.games - a.games)[0];
+    const byWins = [...rivalList].sort((a, b) => b.wins - a.wins)[0];
+    const byLosses = [...rivalList].sort((a, b) => b.losses - a.losses)[0];
+    const byDraws = [...rivalList].sort((a, b) => b.draws - a.draws)[0];
+    const byGf = [...rivalList].sort((a, b) => b.gf - a.gf)[0];
+    const byGa = [...rivalList].sort((a, b) => b.ga - a.ga)[0];
+
+    // Top scorer
+    const topScorerData = await prisma.gameParticipant.groupBy({
+      by: ["playerId"],
+      where: { game: { status: GameStatus.COMPLETED } },
+      _sum: { goalsScored: true },
+      orderBy: { _sum: { goalsScored: "desc" } },
+      take: 1,
+    });
+
+    let topScorerName = "";
+    let topScorerGoals = 0;
+    let topScorerId = "";
+    if (topScorerData[0]?.playerId) {
+      const p = await prisma.player.findUnique({
+        where: { id: topScorerData[0].playerId },
+        select: { firstName: true, lastName: true },
+      });
+      topScorerName = p ? `${p.firstName} ${p.lastName}` : "";
+      topScorerGoals = topScorerData[0]._sum?.goalsScored ?? 0;
+      topScorerId = topScorerData[0].playerId;
+    }
+
+    return {
+      totalGames: totals.games,
+      totalWins: totals.wins,
+      totalLosses: totals.losses,
+      totalDraws: totals.draws,
+      totalGoalsFor: totals.gf,
+      totalGoalsAgainst: totals.ga,
+      winRate:
+        totals.games > 0
+          ? Math.round((totals.wins / totals.games) * 1000) / 10
+          : 0,
+      rivalMostPlayed: {
+        name: byGames?.name ?? "",
+        count: byGames?.games ?? 0,
+      },
+      rivalMostWins: { name: byWins?.name ?? "", count: byWins?.wins ?? 0 },
+      rivalMostLosses: {
+        name: byLosses?.name ?? "",
+        count: byLosses?.losses ?? 0,
+      },
+      rivalMostDraws: { name: byDraws?.name ?? "", count: byDraws?.draws ?? 0 },
+      bestWin: bestWin ?? { rival: "", tournament: "", date: "", score: "" },
+      worstLoss: worstLoss ?? {
+        rival: "",
+        tournament: "",
+        date: "",
+        score: "",
+      },
+      rivalMostGoalsFor: { name: byGf?.name ?? "", totalGoals: byGf?.gf ?? 0 },
+      rivalMostGoalsAgainst: {
+        name: byGa?.name ?? "",
+        totalGoals: byGa?.ga ?? 0,
+      },
+      topScorer: {
+        id: topScorerId,
+        name: topScorerName,
+        goals: topScorerGoals,
+      },
+    };
+  },
+
+  async getPlayerRivalBreakdown(playerId: string) {
+    const participants = await prisma.gameParticipant.findMany({
+      where: { playerId, game: { status: GameStatus.COMPLETED } },
+      select: {
+        goalsScored: true,
+        game: {
+          select: {
+            date: true,
+            homeTeamScore: true,
+            awayTeamScore: true,
+            slug: true,
+            opponentTeam: { select: { id: true, name: true } },
+            tournament: { select: { name: true } },
+          },
+        },
+      },
+      orderBy: { game: { date: "asc" } },
+    });
+
+    const byRival: Record<
+      string,
+      Omit<PlayerRivalPeriodDTO, "rivalId"> & { matches: PlayerRivalMatchDTO[] }
+    > = {};
+
+    for (const p of participants) {
+      const rivalId = p.game.opponentTeam?.id ?? "?";
+      const rivalName = p.game.opponentTeam?.name ?? "?";
+      const gf = p.game.homeTeamScore ?? 0;
+      const ga = p.game.awayTeamScore ?? 0;
+      const result: PlayerRivalMatchDTO["result"] =
+        gf > ga ? "W" : ga > gf ? "L" : "D";
+
+      if (!byRival[rivalId]) {
+        byRival[rivalId] = {
+          rivalName,
+          gamesPlayed: 0,
+          wins: 0,
+          losses: 0,
+          draws: 0,
+          goalsFor: 0,
+          goalsAgainst: 0,
+          playerGoals: 0,
+          matches: [],
+        };
+      }
+      const r = byRival[rivalId]!;
+      r.gamesPlayed++;
+      r.goalsFor += gf;
+      r.goalsAgainst += ga;
+      r.playerGoals += p.goalsScored ?? 0;
+      if (result === "W") r.wins++;
+      else if (result === "L") r.losses++;
+      else r.draws++;
+
+      r.matches.push({
+        date: new Date(p.game.date).toISOString().slice(0, 10),
+        homeScore: gf,
+        awayScore: ga,
+        tournament: p.game.tournament?.name ?? null,
+        result,
+        slug: p.game.slug ?? null,
+        playerGoals: p.goalsScored ?? 0,
+      });
+    }
+
+    return Object.entries(byRival).map(
+      ([rivalId, data]): PlayerRivalPeriodDTO => ({
+        rivalId,
+        ...data,
+      }),
+    );
+  },
+
+  async aggregatePlayersAll(filters?: {
+    year?: number;
+    rivalId?: string;
+    tournamentName?: string;
+    playerId?: string;
+    status?: PlayerStatus;
+  }) {
+    const gameWhere: any = { status: GameStatus.COMPLETED };
+    if (filters?.rivalId) gameWhere.opponentTeamId = filters.rivalId;
+    if (filters?.tournamentName)
+      gameWhere.tournament = {
+        name: { equals: filters.tournamentName, mode: "insensitive" },
+      };
+
+    const participantWhere: any = { game: gameWhere };
+    if (filters?.playerId) participantWhere.playerId = filters.playerId;
+    if (filters?.status) participantWhere.player = { status: filters.status };
+
+    const allCompletedGames = await prisma.game.count({ where: gameWhere });
+
+    const participants = await prisma.gameParticipant.findMany({
+      where: participantWhere,
+      select: {
+        playerId: true,
+        goalsScored: true,
+        assists: true,
+        yellowCards: true,
+        redCards: true,
+        game: {
+          select: {
+            date: true,
+            homeTeamScore: true,
+            awayTeamScore: true,
+          },
+        },
+      },
+    });
+
+    const filtered = filters?.year
+      ? participants.filter(
+          (p) => new Date(p.game.date).getUTCFullYear() === filters.year,
+        )
+      : participants;
+
+    const byPlayer: Record<
+      string,
+      {
+        games: number;
+        wins: number;
+        losses: number;
+        draws: number;
+        goals: number;
+        assists: number;
+        yc: number;
+        rc: number;
+      }
+    > = {};
+
+    for (const p of filtered) {
+      if (!p.playerId) continue;
+      if (!byPlayer[p.playerId]) {
+        byPlayer[p.playerId] = {
+          games: 0,
+          wins: 0,
+          losses: 0,
+          draws: 0,
+          goals: 0,
+          assists: 0,
+          yc: 0,
+          rc: 0,
+        };
+      }
+      const s = byPlayer[p.playerId]!;
+      s.games++;
+      s.goals += p.goalsScored ?? 0;
+      s.assists += p.assists ?? 0;
+      s.yc += p.yellowCards ?? 0;
+      s.rc += p.redCards ?? 0;
+      const gf = p.game.homeTeamScore ?? 0;
+      const ga = p.game.awayTeamScore ?? 0;
+      if (gf > ga) s.wins++;
+      else if (ga > gf) s.losses++;
+      else s.draws++;
+    }
+
+    const playerIds = Object.keys(byPlayer);
+    const players = await prisma.player.findMany({
+      where: { id: { in: playerIds } },
+      select: { id: true, firstName: true, lastName: true, nickname: true },
+    });
+    const playerMap = new Map(players.map((p) => [p.id, p]));
+
+    return playerIds.map((pid) => {
+      const s = byPlayer[pid]!;
+      const p = playerMap.get(pid);
+      return {
+        playerId: pid,
+        playerName: p ? `${p.firstName} ${p.lastName}` : pid,
+        playerNickname: p?.nickname ?? undefined,
+        gamesPlayed: s.games,
+        wins: s.wins,
+        losses: s.losses,
+        draws: s.draws,
+        goals: s.goals,
+        assists: s.assists,
+        yellowCards: s.yc,
+        redCards: s.rc,
+        winRate: s.games > 0 ? Math.round((s.wins / s.games) * 1000) / 10 : 0,
+        goalRate: s.games > 0 ? Math.round((s.goals / s.games) * 100) / 100 : 0,
+        participationRate:
+          allCompletedGames > 0
+            ? Math.round((s.games / allCompletedGames) * 1000) / 10
+            : 0,
+      };
+    });
+  },
 };
+
+// ── helper ────────────────────────────────────────────────────────────────────
+
+type GameRow = {
+  date: Date;
+  homeTeamScore: number | null;
+  awayTeamScore: number | null;
+  [key: string]: any;
+};
+
+function groupTeamStatsByKey(
+  games: GameRow[],
+  keyFn: (g: GameRow) => string,
+  extraFn?: (g: GameRow) => {
+    periodStart?: string;
+    periodEnd?: string;
+    playgroundName?: string;
+  },
+  labelFn?: (g: GameRow) => string,
+) {
+  const map: Record<
+    string,
+    {
+      label: string;
+      games: number;
+      wins: number;
+      losses: number;
+      draws: number;
+      gf: number;
+      ga: number;
+      minDate: Date | null;
+      maxDate: Date | null;
+      extra?: any;
+    }
+  > = {};
+
+  for (const g of games) {
+    const key = keyFn(g);
+    const label = labelFn ? labelFn(g) : key;
+    if (!map[key]) {
+      map[key] = {
+        label,
+        games: 0,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        gf: 0,
+        ga: 0,
+        minDate: null,
+        maxDate: null,
+      };
+      if (extraFn) map[key]!.extra = extraFn(g);
+    }
+    const s = map[key]!;
+    const gf = g.homeTeamScore ?? 0;
+    const ga = g.awayTeamScore ?? 0;
+    s.games++;
+    s.gf += gf;
+    s.ga += ga;
+    if (gf > ga) s.wins++;
+    else if (ga > gf) s.losses++;
+    else s.draws++;
+    const d = new Date(g.date);
+    if (!s.minDate || d < s.minDate) s.minDate = d;
+    if (!s.maxDate || d > s.maxDate) s.maxDate = d;
+  }
+
+  return Object.entries(map).map(([key, s]) => ({
+    key,
+    label: s.label,
+    periodStart: s.extra?.periodStart ?? s.minDate?.toISOString(),
+    periodEnd: s.extra?.periodEnd ?? s.maxDate?.toISOString(),
+    playgroundName: s.extra?.playgroundName ?? "",
+    gamesPlayed: s.games,
+    wins: s.wins,
+    losses: s.losses,
+    draws: s.draws,
+    goalsFor: s.gf,
+    goalsAgainst: s.ga,
+    goalDifference: s.gf - s.ga,
+    goalRateFor: s.games > 0 ? Math.round((s.gf / s.games) * 100) / 100 : 0,
+    goalRateAgainst: s.games > 0 ? Math.round((s.ga / s.games) * 100) / 100 : 0,
+    winRate: s.games > 0 ? Math.round((s.wins / s.games) * 1000) / 10 : 0,
+    pointsEarned: s.wins * 3 + s.draws,
+  }));
+}
 
 export { StatisticsModel };
