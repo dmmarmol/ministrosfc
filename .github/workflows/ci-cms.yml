@@ -78,7 +78,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci
+        run: npm ci --ignore-scripts
         timeout-minutes: 10
 
       - name: Generate Prisma client
