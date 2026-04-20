@@ -10,6 +10,7 @@ on:
       - "packages/shared/**"
       - "package.json"
       - "package-lock.json"
+      - ".github/workflows/ci-frontend.yml"
   pull_request:
     branches:
       - "**"
@@ -18,6 +19,7 @@ on:
       - "packages/shared/**"
       - "package.json"
       - "package-lock.json"
+      - ".github/workflows/ci-frontend.yml"
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
