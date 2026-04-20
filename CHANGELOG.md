@@ -7,6 +7,43 @@ Versioning follows [Semantic Versioning](https://semver.org/) at the project lev
 
 ---
 
+## [0.10.0] — 2026-04-20
+
+### Added
+
+- **Spec 017 — Team Statistics Views**: full statistics system for team, player, and historical data.
+  - CMS `POST /api/v1/import/csv` endpoint: batch-imports `historial.csv`, `jugadores.csv`, `apariciones.csv` (and optional `canchas.csv`) via multipart upload; idempotent upsert on natural keys; maps `G/P/E` outcome codes, `DD/MM/YYYY` and `YYYY/MM/DD` date formats, `Titular/Suplente` → `isStarter`.
+  - `canchas.csv` import: upserts Playground records by name (case-insensitive) and links historical games to their playground via `Game.playgroundId`; unmatched games emit a warning in `CsvImportResultDTO`.
+  - CMS statistics endpoints: `GET /api/v1/statistics/team/summary`, `/team/by-year`, `/team/by-tournament`, `/team/by-rival`, `/team/rivals/:rivalId`, `/players` (optional `year`, `rivalId`, `status` params), `/players/:id` — all backed by Redis cache (5-min TTL).
+  - `TeamStatPeriodDTO`, `TeamSummaryHeaderDTO`, `PlayerStatRowDTO`, `CsvImportResultDTO` shared TypeScript types in `@ministrosfc/shared`.
+  - Frontend `/statistics` route with persistent side-nav (`statistics` Nuxt layout): two public links ("General" → `/statistics`, "Goleadores" → `/statistics/top-scorers`) always visible; four auth-gated links ("Por año", "Por torneo", "Por rival", "Por jugador") shown only when authenticated.
+  - `/statistics/top-scorers`: publicly accessible all-time top-scorers table — no login required.
+  - `/statistics`: authenticated team-summary dashboard showing `StatsHeader` with 10 all-time records; anonymous users see a login prompt and the summary API is not called.
+  - Private sub-pages: `/statistics/years`, `/statistics/tournaments`, `/statistics/rivals`, `/statistics/rivals/:rivalId`, `/statistics/players`, `/statistics/players/:playerId` — all require authentication.
+  - `StatsHeader.vue`: renders all 10 all-time records (rival most played/won/lost/drawn, best victory, worst defeat, top scorer, all-time totals).
+  - `StatsFilters.vue`: self-loads option lists via `useStatisticsAvailableYears`, `useStatisticsAvailableTournaments`, `useStatisticsAvailableRivals`, `useStatisticsAvailablePlayers` composables; `mode` prop controls which controls are shown.
+  - `StatsFocusSelector.vue`, `StatsTableByYear.vue`, `StatsTableByTournament.vue`, `StatsTableByRival.vue`, `StatsTableByPlayer.vue` components.
+  - `useStatsFilters.ts` composable: reactive filter state backed by URL query params; `setFilter` updates URL without a full page reload; restores state on mount from `useRoute().query`.
+  - `useQueryParams.ts` composable: single mutation point for URL query params — exposes `get`, `set`, `remove`; direct `router.push({ query })` calls outside this composable are a constitution violation.
+  - Player public profile (`/players/:id`) extended with career stats (wins, losses, draws, win rate) and a year filter — publicly visible without authentication.
+  - Main nav "Estadísticas" link: routes authenticated users to `/statistics`, anonymous users to `/statistics/top-scorers`.
+  - `GET /api/v1/statistics/players` extended with optional `status` query param (`ACTIVE` | `INACTIVE`); frontend defaults to `status=ACTIVE`; "Estado" filter in `StatsFilters` constrains the player dropdown.
+  - Prisma schema: `startTime`, `endTime`, `coach`, `photoUrl` added to `Game`; `isStarter` added to `GameParticipant`; `@@unique([date, opponentTeamId, tournamentId])` composite index on `Game`.
+
+### Changed
+
+- **Statistics route prefix**: `/stats/*` removed entirely; all statistics content now lives under `/statistics/*`. Requests to `/stats/*` return 404.
+- **`winRate` API format**: returned as a percentage float (e.g. `60.0` = 60%), not a decimal fraction. Frontend renders with `.toFixed(1)%` — no `* 100` multiplication.
+- **`StatsFilters` sub-components**: renamed from `*Filter.vue` to `*Select.vue` (e.g. `PlayerFilter.vue` → `PlayerSelect.vue`) for naming consistency.
+
+### Tests
+
+- CMS integration: `csv-import.test.ts` (happy path, idempotency, missing optional fields, unknown player auto-create, malformed date 422) and `team-stats.test.ts` (summary header, by-year, by-tournament, by-rival, single rival, 401 for unauthenticated).
+- Frontend unit: `useStatsFilters.spec.ts` (URL param init, `setFilter`, `resetFilters`, invalid param guard); `StatsHeader.spec.ts`, `StatsFilters.spec.ts`, stats table component specs.
+- Frontend E2E: `player-public-stats.spec.ts` (anonymous access, year filter URL update, shared URL restore).
+
+---
+
 ## [0.9.0] — 2026-04-16
 
 ### Added
