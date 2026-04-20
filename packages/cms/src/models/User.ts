@@ -15,7 +15,7 @@
  * Google-only users have passwordHash = null.
  */
 import { prisma } from "../config/database";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import type { User, Prisma, Role } from "@prisma/client";
 
 const UserModel = {
