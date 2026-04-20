@@ -11,18 +11,18 @@
 
 **⚠️ CRITICAL**: No other phases can begin until this phase is complete and the repository is published.
 
-- [X] T001 Run `truffleHog git file://$(pwd) --json > /tmp/findings.json` from repo root to produce the full history audit report; review `/tmp/findings.json` for true positives (secrets, credentials, CSV files)
-- [X] T002 If any CSV files are found in history, remove them with `git filter-repo --path data/ --invert-paths` (run on a clean mirror clone to preserve local working copy)
-- [X] T003 If any hardcoded secrets are found in history, create `/tmp/replacements.txt` with `ACTUAL_VALUE==>REDACTED` entries and run `git filter-repo --replace-text /tmp/replacements.txt`
-- [X] T004 Re-run `truffleHog git file://$(pwd) --json` and confirm zero findings before proceeding
+- [x] T001 Run `truffleHog git file://$(pwd) --json > /tmp/findings.json` from repo root to produce the full history audit report; review `/tmp/findings.json` for true positives (secrets, credentials, CSV files)
+- [x] T002 If any CSV files are found in history, remove them with `git filter-repo --path data/ --invert-paths` (run on a clean mirror clone to preserve local working copy)
+- [x] T003 If any hardcoded secrets are found in history, create `/tmp/replacements.txt` with `ACTUAL_VALUE==>REDACTED` entries and run `git filter-repo --replace-text /tmp/replacements.txt`
+- [x] T004 Re-run `truffleHog git file://$(pwd) --json` and confirm zero findings before proceeding
 - [x] T005 Add missing `.gitignore` patterns to `.gitignore`: `.env.*`, `!.env.example`, `.fly/`, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `secrets.json`, `credentials.json`, `service-account.json`
 - [x] T006 [P] Create `.gitleaks.toml` at repo root with a custom rule blocking all `.env*` file patterns in addition to gitleaks defaults. **Do NOT add a CSV rule here** — gitleaks `regex` matches file content, not filenames; a CSV file would not trigger a content regex. CSV blocking is handled in T007 via a `local` pre-commit hook instead.
 - [x] T007 Create `.pre-commit-config.yaml` at repo root with two hook repositories:
   1. `https://github.com/gitleaks/gitleaks` pinned at latest stable tag (secret scanning)
   2. A `local` repo with a `no-csv-data-files` hook using `language: fail` and `files: ^data/.*\.csv$` with entry message `"CSV files in data/ contain player personal data and must not be committed"` — this is the only reliable way to block files by name pattern
 - [x] T008 Add `"prepare": "pre-commit install || true"` to the `scripts` block in root `package.json`; run `npm install` to trigger the hook installation locally and verify `.git/hooks/pre-commit` exists
-- [X] T009 Verify the pre-commit hook works: stage a file containing a fake secret pattern → `git commit` → confirm the commit is blocked with a gitleaks error message → unstage the file
-- [X] T010 Verify clean commits pass: stage a real code change with no secrets → `git commit` → confirm the commit succeeds
+- [x] T009 Verify the pre-commit hook works: stage a file containing a fake secret pattern → `git commit` → confirm the commit is blocked with a gitleaks error message → unstage the file
+- [x] T010 Verify clean commits pass: stage a real code change with no secrets → `git commit` → confirm the commit succeeds
 
 **Checkpoint**: History is clean, `.gitignore` covers all sensitive patterns, pre-commit hook is blocking bad commits. Repository is safe to publish.
 
@@ -34,12 +34,12 @@
 
 **⚠️ CRITICAL**: No deployment phases can begin until this phase is complete.
 
-- [ ] T011 **Before collecting any secrets**: open a local password manager session (e.g., Bitwarden, 1Password) and create a `ministrosfc-infra-secrets` entry. Record every URL, token, and key collected in the steps below into that entry. Do NOT write any secret value to any file in the repo or to shell history (use `read -s VAR` instead of inline values in terminal commands). Then: create Neon account at neon.tech → create project `ministrosfc` → copy the `main` branch `DATABASE_URL` connection string (PROD database) into the password manager entry.
-- [ ] T012 In the Neon console, create a `dev` branch from `main` → copy its `DATABASE_URL` (DEV database)
-- [ ] T013 Create Upstash account at upstash.com → create Redis database `ministrosfc-prod` (region: São Paulo or us-east-1) → copy the `rediss://` connection URL
-- [ ] T014 Create a second Upstash Redis database `ministrosfc-dev` → copy its `rediss://` URL
-- [ ] T015 Run `flyctl auth login`; create all four Fly.io apps: `flyctl apps create ministrosfc-cms`, `ministrosfc-frontend`, `ministrosfc-cms-dev`, `ministrosfc-frontend-dev`
-- [ ] T016 Set all required secrets on `ministrosfc-cms` via `flyctl secrets set` per the secrets inventory in `specs/018-deployment-process/plan.md` §1.4 (DATABASE_URL, JWT_SECRET, REDIS_URL, CORS_ORIGINS, Cloudinary vars, Google OAuth vars)
+- [x] T011 **Before collecting any secrets**: open a local password manager session (e.g., Bitwarden, 1Password) and create a `ministrosfc-infra-secrets` entry. Record every URL, token, and key collected in the steps below into that entry. Do NOT write any secret value to any file in the repo or to shell history (use `read -s VAR` instead of inline values in terminal commands). Then: create Neon account at neon.tech → create project `ministrosfc` → copy the `main` branch `DATABASE_URL` connection string (PROD database) into the password manager entry.
+- [x] T012 In the Neon console, create a `dev` branch from `main` → copy its `DATABASE_URL` (DEV database)
+- [x] T013 Create Upstash account at upstash.com → create Redis database `ministrosfc-prod` (region: São Paulo or us-east-1) → copy the `rediss://` connection URL
+- [~] T014 Create a second Upstash Redis database `ministrosfc-dev` → copy its `rediss://` URL — **SKIPPED: Upstash free tier allows 1 DB; PROD Redis shared across both environments**
+- [X] T015 Run `flyctl auth login`; create all four Fly.io apps: `flyctl apps create ministrosfc-cms`, `ministrosfc-frontend`, `ministrosfc-cms-dev`, `ministrosfc-frontend-dev`
+- [X] T016 Set all required secrets on `ministrosfc-cms` via `flyctl secrets set` per the secrets inventory in `specs/018-deployment-process/plan.md` §1.4 (DATABASE_URL, JWT_SECRET, REDIS_URL, CORS_ORIGINS, Cloudinary vars, Google OAuth vars)
 - [ ] T017 Set all required secrets on `ministrosfc-cms-dev` via `flyctl secrets set` (same keys, DEV-scoped values — Neon dev branch, Upstash dev DB, dev CORS origin)
 - [ ] T018 Set secrets on `ministrosfc-frontend` via `flyctl secrets set`: `NUXT_PUBLIC_API_BASE_URL=https://ministrosfc-cms.fly.dev`, `NUXT_PUBLIC_APP_URL=https://ministrosfc-frontend.fly.dev`
   > The canonical env var name is `NUXT_PUBLIC_API_BASE_URL` (confirmed in `packages/frontend/nuxt.config.ts` line 17). Do NOT use `NUXT_PUBLIC_API_BASE`.

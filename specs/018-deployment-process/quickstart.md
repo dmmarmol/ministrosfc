@@ -253,3 +253,86 @@ This should only be used in genuine emergencies. The CI pipeline is the expected
 | **Database**     | Local Docker PostgreSQL    | Neon `dev` branch                          | Neon `main` branch                     |
 | **Redis**        | Local Docker Redis         | Upstash `dev` DB                           | Upstash `prod` DB                      |
 | **Migrations**   | `npm run migrate` (manual) | Auto on deploy (`migrate deploy`)          | Auto on deploy (`migrate deploy`)      |
+
+---
+
+## Services Reference
+
+A summary of every external service used by this project — dashboards, free tier limits, account details, and key decisions.
+
+### Neon (PostgreSQL)
+
+| Field            | Value                                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------- |
+| Dashboard        | [console.neon.tech](https://console.neon.tech)                                                    |
+| Account          | diegomartinmarmol@gmail.com                                                                       |
+| Project          | `ministrosfc`                                                                                     |
+| Region           | AWS US East 1 (N. Virginia)                                                                       |
+| Postgres version | 17                                                                                                |
+| PROD branch      | `main`                                                                                            |
+| DEV branch       | `dev` (branched from `main`)                                                                      |
+| Free tier        | 0.5 GB storage, 190 compute hours/month                                                           |
+| Env var          | `DATABASE_URL` (connection string with `?sslmode=require`)                                        |
+| Key decision     | Chosen for free-forever tier and DB branching (PROD/DEV isolation without two separate instances) |
+
+### Upstash (Redis)
+
+| Field        | Value                                                                                                                                        |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dashboard    | [console.upstash.com](https://console.upstash.com)                                                                                           |
+| Account      | diegomartinmarmol@gmail.com                                                                                                                  |
+| Database     | `ministrosfc-prod`                                                                                                                           |
+| Region       | US East 1                                                                                                                                    |
+| Free tier    | 10,000 commands/day, 256 MB max data                                                                                                         |
+| Env var      | `REDIS_URL` (single `rediss://` connection string)                                                                                           |
+| Note         | Free tier allows 1 database only — PROD Redis is shared across PROD and DEV environments                                                     |
+| Key decision | TLS-only (`rediss://`) required; CMS `redis.ts` reads `REDIS_URL` first and falls back to `REDIS_HOST`/`REDIS_PORT` for local Docker Compose |
+
+### Cloudinary (Image Storage)
+
+| Field        | Value                                                                                                    |
+| ------------ | -------------------------------------------------------------------------------------------------------- |
+| Dashboard    | [console.cloudinary.com](https://console.cloudinary.com)                                                 |
+| Account      | diegomartinmarmol@gmail.com                                                                              |
+| Free tier    | 25 GB storage, 25 GB bandwidth/month, 25K transformations                                                |
+| Env vars     | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`                                   |
+| Key decision | Used the default API key (full access); no sub-accounts or restricted keys needed for a personal project |
+
+### Fly.io (Hosting)
+
+| Field        | Value                                                                                                                  |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| Dashboard    | [fly.io/dashboard](https://fly.io/dashboard)                                                                           |
+| Account      | diegomartinmarmol@gmail.com                                                                                            |
+| Organization | Personal                                                                                                               |
+| Apps         | `ministrosfc-cms` (PROD), `ministrosfc-frontend` (PROD), `ministrosfc-cms-dev` (DEV), `ministrosfc-frontend-dev` (DEV) |
+| Region       | `gru` (São Paulo) — set in `fly.toml` for both packages                                                                |
+| Free tier    | 3 shared-cpu-1x 256MB VMs always free; outbound 160 GB/month                                                           |
+| Env vars     | Set via `flyctl secrets set` — never in `fly.toml` or repo files                                                       |
+| Key decision | `min_machines_running=0` (scale to zero when idle) to stay within free tier                                            |
+
+### GitHub (Source Control + CI/CD)
+
+| Field        | Value                                                                                                       |
+| ------------ | ----------------------------------------------------------------------------------------------------------- |
+| Repository   | [github.com/dmmarmol/ministrosfc](https://github.com/dmmarmol/ministrosfc)                                  |
+| Account      | diegomartinmarmol@gmail.com                                                                                 |
+| Visibility   | Public                                                                                                      |
+| CI/CD        | GitHub Actions — `.github/workflows/ci.yml`                                                                 |
+| Environments | `production` (deploy to PROD apps), `development` (deploy to DEV apps)                                      |
+| Secrets      | `FLY_API_TOKEN`, `CMS_APP_NAME`, `FRONTEND_APP_NAME` per environment                                        |
+| Key decision | GitHub Environments used for secret scoping so the same workflow file handles both PROD and DEV deployments |
+
+### Google OAuth (User Authentication)
+
+| Field              | Value                                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Console            | [console.cloud.google.com](https://console.cloud.google.com)                                                       |
+| Account            | diegomartinmarmol@gmail.com                                                                                        |
+| Project            | `ministrosfc`                                                                                                      |
+| OAuth client       | `ministrosfc-web` (Web application)                                                                                |
+| Env vars           | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`                                                  |
+| LOCAL redirect URI | `http://localhost:5102/api/v1/auth/google/callback`                                                                |
+| PROD redirect URI  | `https://ministrosfc-cms.fly.dev/api/v1/auth/google/callback`                                                      |
+| DEV redirect URI   | `https://ministrosfc-cms-dev.fly.dev/api/v1/auth/google/callback`                                                  |
+| Key decision       | All three redirect URIs are registered in the OAuth client. Consent screen is "External" with status "Testing" — add test users at console.cloud.google.com → APIs & Services → OAuth consent screen → Test users |
