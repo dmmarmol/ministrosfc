@@ -64,7 +64,8 @@ const tableRows = computed(() =>
       <NuxtLink
         :to="`/statistics/rivals/${row.rivalId}`"
         class="font-medium hover:text-brand transition-colors"
-      >{{ row.rival }}</NuxtLink>
+        >{{ row.rival }}</NuxtLink
+      >
     </template>
     <template #wins-data="{ row }">
       <span class="text-green-600">{{ row.wins }}</span>
