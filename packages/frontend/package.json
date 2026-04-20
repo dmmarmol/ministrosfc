@@ -12,7 +12,7 @@
         "clean": "rm -rf .nuxt .output dist",
         "test": "vitest",
         "test:e2e": "playwright test",
-        "lint": "eslint ."
+        "lint": "eslint . --ext .ts"
     },
     "dependencies": {
         "@heroicons/vue": "^2.2.0",
