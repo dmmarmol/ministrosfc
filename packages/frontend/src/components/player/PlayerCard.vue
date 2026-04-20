@@ -2,18 +2,24 @@
 import type { PlayerPublic, Position } from "@ministrosfc/shared";
 
 defineProps<{ player: PlayerPublic }>();
-
-function formatPosition(pos: Position | null): string {
-  if (!pos) return "—";
-  return pos;
-}
 </script>
 
 <template>
   <NuxtLink
     :to="`/players/${player.id}`"
-    class="group bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-100"
+    class="relative group bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-100"
   >
+    <div class="absolute left-0 top-0 z-20 p-3 flex flex-col gap-y-2">
+      <!-- Position Label -->
+      <UiPositionLabel v-if="player.position" :position="player.position" />
+      <!-- Jersey badge -->
+      <span
+        v-if="player.jerseyNumber"
+        class="text-center bg-brand text-gray-900 text-xs font-bold px-2 py-0.5 rounded-full"
+      >
+        #{{ player.jerseyNumber }}
+      </span>
+    </div>
     <!-- Photo -->
     <div class="aspect-square bg-gray-100 relative overflow-hidden">
       <img
@@ -32,13 +38,6 @@ function formatPosition(pos: Position | null): string {
           />
         </svg>
       </div>
-      <!-- Jersey badge -->
-      <span
-        v-if="player.jerseyNumber"
-        class="absolute top-2 right-2 bg-brand text-gray-900 text-xs font-bold px-2 py-0.5 rounded-full"
-      >
-        #{{ player.jerseyNumber }}
-      </span>
     </div>
     <!-- Info -->
     <div class="p-3">
@@ -47,9 +46,6 @@ function formatPosition(pos: Position | null): string {
       </p>
       <p v-if="player.nickname" class="text-xs text-gray-400 italic truncate">
         {{ player.nickname }}
-      </p>
-      <p class="text-xs text-gray-500 mt-0.5">
-        {{ formatPosition(player.position) }}
       </p>
     </div>
   </NuxtLink>
