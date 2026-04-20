@@ -38,7 +38,7 @@ const mobileOpen = ref(false);
             >Calendario</NuxtLink
           >
         </li>
-        <li>
+        <li class="hidden">
           <NuxtLink
             to="/tournaments"
             class="hover:text-brand transition-colors"
