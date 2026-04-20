@@ -1,5 +1,5 @@
 import { prisma } from "../../config/database";
-import { Foot, PlayerStatus, PlayerType } from "@prisma/client";
+import { Foot, PlayerType } from "@prisma/client";
 import type { CsvImportResultDTO } from "@ministrosfc/shared";
 import {
   parseCsv,
