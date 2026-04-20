@@ -1,12 +1,22 @@
-name: CI/CD
+name: CMS CI/CD
 
 on:
   push:
     branches:
       - "**"
+    paths:
+      - "packages/cms/**"
+      - "packages/shared/**"
+      - "package.json"
+      - "package-lock.json"
   pull_request:
     branches:
       - "**"
+    paths:
+      - "packages/cms/**"
+      - "packages/shared/**"
+      - "package.json"
+      - "package-lock.json"
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
@@ -58,34 +68,6 @@ jobs:
           REDIS_PORT: 6379
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Frontend unit tests (Vitest — no external services needed)
-  # ─────────────────────────────────────────────────────────────────────────────
-  test-frontend:
-    name: Test Frontend
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "23"
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build shared package
-        working-directory: packages/shared
-        run: npm run build
-
-      - name: Run frontend tests
-        working-directory: packages/frontend
-        run: npm test -- --run
-        env:
-          NODE_ENV: test
-
-  # ─────────────────────────────────────────────────────────────────────────────
   # Deploy CMS — runs only on push to main or develop (not on pull_request)
   # Uses GitHub Environments for scoped secrets:
   #   main    → environment: production → ministrosfc-cms
@@ -93,7 +75,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────────
   deploy-cms:
     name: Deploy CMS
-    needs: [test-cms, test-frontend]
+    needs: [test-cms]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}
@@ -105,25 +87,5 @@ jobs:
 
       - name: Deploy CMS to Fly.io
         run: flyctl deploy --config packages/cms/fly.toml --app ${{ secrets.CMS_APP_NAME }} --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-  # ─────────────────────────────────────────────────────────────────────────────
-  # Deploy Frontend — runs after CMS deploy so the new API is live first
-  # ─────────────────────────────────────────────────────────────────────────────
-  deploy-frontend:
-    name: Deploy Frontend
-    needs: [deploy-cms]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
-    runs-on: ubuntu-latest
-    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-
-      - name: Deploy Frontend to Fly.io
-        run: flyctl deploy --config packages/frontend/fly.toml --app ${{ secrets.FRONTEND_APP_NAME }} --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
