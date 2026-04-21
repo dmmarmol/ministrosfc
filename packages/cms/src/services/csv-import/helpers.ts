@@ -5,7 +5,7 @@
 import { parse } from "csv-parse/sync";
 import { randomUUID } from "crypto";
 import { Foot, PlayerStatus } from "@prisma/client";
-import { Position } from "@ministrosfc/shared";
+import { Position, positionMap, spanishPositionMap } from "@ministrosfc/shared";
 
 // ─── CSV parsing ──────────────────────────────────────────────────────────────
 
@@ -205,50 +205,6 @@ export function mapFoot(raw: string): Foot | null {
   if (v === "ambidiestro" || v === "ambidextro") return Foot.AMBIDEXTROUS;
   return null;
 }
-const positionMap: Record<Position, string> = {
-  [Position.GK]: "GK",
-  [Position.CB]: "CB",
-  [Position.RB]: "RB",
-  [Position.LB]: "LB",
-  [Position.RWB]: "RWB",
-  [Position.LWB]: "LWB",
-  [Position.DMF]: "DMF",
-  [Position.CMF]: "CMF",
-  [Position.AMF]: "AMF",
-  [Position.RMF]: "RMF",
-  [Position.LMF]: "LMF",
-  [Position.SS]: "SS",
-  [Position.CF]: "CF",
-  [Position.RWF]: "RWF",
-  [Position.LWF]: "LWF",
-};
-
-/** Spanish informal position names → Position enum. */
-const spanishPositionMap: Record<string, Position> = {
-  portero: Position.GK,
-  arquero: Position.GK,
-  golero: Position.GK,
-  "defensa central": Position.CB,
-  defensa: Position.CB,
-  zaguero: Position.CB,
-  central: Position.CB,
-  "lateral derecho": Position.RB,
-  "lateral izquierdo": Position.LB,
-  "carrilero derecho": Position.RWB,
-  "carrilero izquierdo": Position.LWB,
-  "mediocampista defensivo": Position.DMF,
-  "mediocampista central": Position.CMF,
-  mediocampista: Position.CMF,
-  "mediocampista ofensivo": Position.AMF,
-  enganche: Position.AMF,
-  "mediocampista derecho": Position.RMF,
-  "mediocampista izquierdo": Position.LMF,
-  "segundo delantero": Position.SS,
-  "delantero centro": Position.CF,
-  delantero: Position.CF,
-  "extremo derecho": Position.RWF,
-  "extremo izquierdo": Position.LWF,
-};
 
 /**
  * Map a raw position string to a position code.
@@ -261,7 +217,8 @@ export function mapPosition(raw: string): string | null {
   const v = first.trim();
 
   // Direct short-code match (e.g. "CF", "DMF")
-  if (positionMap[v as Position] !== undefined) return positionMap[v as Position]!;
+  if (positionMap[v as Position] !== undefined)
+    return positionMap[v as Position]!;
 
   // Spanish name lookup (case-insensitive)
   const enumVal = spanishPositionMap[v.toLowerCase()];
