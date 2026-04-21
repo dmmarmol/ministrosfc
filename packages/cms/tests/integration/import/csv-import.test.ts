@@ -13,11 +13,11 @@ jest.mock("../../../src/middleware/rate-limiter", () => ({
 
 const app = createApp();
 
-// Minimal valid CSV fixtures
+// Minimal valid CSV fixtures — headers match the real data/ directory format
 const JUGADORES_CSV = Buffer.from(
-  `Jugador (2),Apodo,Invitado Por,Nacimiento,Edad,Altura,Numero,Pie,Posición,DNI,Telefono,Imagen (URL)
-Juan Pérez,Juancho,,01/01/1990,,175,10,Diestro,delantero,,
-María González,Maru,,,,,,,,
+  `Nombre,Apodo,Invitado Por,Nacimiento,Edad,Altura,Numero,Pie,Posición,DNI,Telefono,Imagen (URL),Status
+Juan Pérez,Juancho,,01/01/1990,,175,10,Diestro,delantero,,,, ACTIVE
+María González,Maru,,,,,,,,,,,ACTIVE
 `,
 );
 
@@ -29,7 +29,7 @@ const HISTORIAL_CSV = Buffer.from(
 );
 
 const APARICIONES_CSV = Buffer.from(
-  `Fecha,Rival,Torneo,Resultado,G/P/E,Jugador,Apodo,Goles,Amarilla,Roja,Asistencia,Titular/Suplente,Comentarios
+  `Fecha,Rival,Torneo,Resultado,,Jugador,Jugador,Goles,Amarilla,Roja,Asistencia,Titular/Suplente,Comentarios
 2024/03/10,Rival FC,Liga Test,2-1,G,Juan Pérez,Juancho,1,0,0,0,Titular,
 2024/03/17,Rival FC,Liga Test,1-1,E,Juan Pérez,Juancho,0,0,0,1,Titular,
 `,
@@ -118,8 +118,8 @@ describe("CSV Import (integration)", () => {
 
   it("POST /api/v1/import/csv → missing optional fields does not cause 500", async () => {
     const sparseJugadores = Buffer.from(
-      `Jugador (1),Apodo,Invitado Por,Nacimiento,Edad,Altura,Numero,Pie,Posición,DNI,Telefono,Imagen (URL)
-Carlos Minimal,,,,,,,,,,
+      `Nombre,Apodo,Invitado Por,Nacimiento,Edad,Altura,Numero,Pie,Posición,DNI,Telefono,Imagen (URL),Status
+Carlos Minimal,,,,,,,,,,,, ACTIVE
 `,
     );
     const sparseHistorial = Buffer.from(
@@ -144,7 +144,7 @@ Carlos Minimal,,,,,,,,,,
 
   it("POST /api/v1/import/csv → aparición with no matching game is skipped with warning", async () => {
     const aparicionesNoMatch = Buffer.from(
-      `Fecha,Rival,Torneo,Resultado,G/P/E,Jugador,Apodo,Goles,Amarilla,Roja,Asistencia,Titular/Suplente,Comentarios
+      `Fecha,Rival,Torneo,Resultado,,Jugador,Jugador,Goles,Amarilla,Roja,Asistencia,Titular/Suplente,Comentarios
 2099/01/01,Ghost Team,Nonexistent Liga,1-0,G,Juan Pérez,Juancho,0,0,0,0,Titular,
 `,
     );
@@ -168,7 +168,7 @@ Carlos Minimal,,,,,,,,,,
 // ─── T048: canchas.csv extension ────────────────────────────────────────────
 
 const CANCHAS_CSV = Buffer.from(
-  `Cancha,Dirección
+  `Nombre,Dirección
 Estadio Prueba,Calle Falsa 123
 Cancha Norte,Av. Norte 456
 `,
@@ -302,12 +302,12 @@ describe("CSV Import – jugadores.csv column mapping corrections (T055)", () =>
 
   it("(a) player import with Nombre column → single player record, correct firstName/lastName split", async () => {
     const jugadoresNombre = Buffer.from(
-      `Nombre,Apodo,Invitado Por,Nacimiento,Edad,Altura,Numero,Pie,Posición,DNI,Telefono,Imagen (URL)
-Carlos Alberto López,Carlitos,,15/06/1992,,178,7,Diestro,Mediocampista,,
+      `Nombre,Apodo,Invitado Por,Nacimiento,Edad,Altura,Numero,Pie,Posición,DNI,Telefono,Imagen (URL),Status
+Carlos Alberto López,Carlitos,,15/06/1992,,178,7,Diestro,Mediocampista,,,, ACTIVE
 `,
     );
     const emptyApariciones = Buffer.from(
-      `Fecha,Rival,Torneo,Resultado,G/P/E,Jugador,Apodo,Goles,Amarilla,Roja,Asistencia,Titular/Suplente,Comentarios
+      `Fecha,Rival,Torneo,Resultado,,Jugador,Jugador,Goles,Amarilla,Roja,Asistencia,Titular/Suplente,Comentarios
 `,
     );
 
@@ -331,12 +331,12 @@ Carlos Alberto López,Carlitos,,15/06/1992,,178,7,Diestro,Mediocampista,,
 
   it("(b) player with Posición = 'Delantero, Mediocampista' → position is CF, no error", async () => {
     const jugadoresMultiPos = Buffer.from(
-      `Nombre,Apodo,Invitado Por,Nacimiento,Edad,Altura,Numero,Pie,Posición,DNI,Telefono,Imagen (URL)
-Pedro Ríos,Pedrito,,,,,,,"Delantero, Mediocampista",,
+      `Nombre,Apodo,Invitado Por,Nacimiento,Edad,Altura,Numero,Pie,Posición,DNI,Telefono,Imagen (URL),Status
+Pedro Ríos,Pedrito,,,,,,,"Delantero, Mediocampista",,,,ACTIVE
 `,
     );
     const emptyApariciones = Buffer.from(
-      `Fecha,Rival,Torneo,Resultado,G/P/E,Jugador,Apodo,Goles,Amarilla,Roja,Asistencia,Titular/Suplente,Comentarios
+      `Fecha,Rival,Torneo,Resultado,,Jugador,Jugador,Goles,Amarilla,Roja,Asistencia,Titular/Suplente,Comentarios
 `,
     );
 
@@ -360,12 +360,12 @@ Pedro Ríos,Pedrito,,,,,,,"Delantero, Mediocampista",,
 
   it("(c) player with Telefono → Contact record created with phone + whatsapp", async () => {
     const jugadoresTelefono = Buffer.from(
-      `Nombre,Apodo,Invitado Por,Nacimiento,Edad,Altura,Numero,Pie,Posición,DNI,Telefono,Imagen (URL)
-Luis Suárez,El Pistolero,,,,,,,,, +54911234567,
+      `Nombre,Apodo,Invitado Por,Nacimiento,Edad,Altura,Numero,Pie,Posición,DNI,Telefono,Imagen (URL),Status
+Luis Suárez,El Pistolero,,,,,,,,, +54911234567,,ACTIVE
 `,
     );
     const emptyApariciones = Buffer.from(
-      `Fecha,Rival,Torneo,Resultado,G/P/E,Jugador,Apodo,Goles,Amarilla,Roja,Asistencia,Titular/Suplente,Comentarios
+      `Fecha,Rival,Torneo,Resultado,,Jugador,Jugador,Goles,Amarilla,Roja,Asistencia,Titular/Suplente,Comentarios
 `,
     );
 
@@ -381,21 +381,21 @@ Luis Suárez,El Pistolero,,,,,,,,, +54911234567,
     const { prisma } = await import("../../../src/config/database");
     const player = await prisma.player.findFirst({
       where: { lastName: "Suárez" },
-      include: { contacts: true },
+      include: { contactInfo: true },
     });
     expect(player).not.toBeNull();
-    expect(player?.contacts.length).toBeGreaterThanOrEqual(1);
-    expect(player?.contacts[0].phone).toBeTruthy();
+    expect(player?.contactInfo).not.toBeNull();
+    expect(player?.contactInfo?.phone).toBeTruthy();
   });
 
   it("(d) re-import same player with Telefono → no duplicate Contact records", async () => {
     const jugadoresTelefono = Buffer.from(
-      `Nombre,Apodo,Invitado Por,Nacimiento,Edad,Altura,Numero,Pie,Posición,DNI,Telefono,Imagen (URL)
-Luis Suárez,El Pistolero,,,,,,,,, +54911234567,
+      `Nombre,Apodo,Invitado Por,Nacimiento,Edad,Altura,Numero,Pie,Posición,DNI,Telefono,Imagen (URL),Status
+Luis Suárez,El Pistolero,,,,,,,,, +54911234567,,ACTIVE
 `,
     );
     const emptyApariciones = Buffer.from(
-      `Fecha,Rival,Torneo,Resultado,G/P/E,Jugador,Apodo,Goles,Amarilla,Roja,Asistencia,Titular/Suplente,Comentarios
+      `Fecha,Rival,Torneo,Resultado,,Jugador,Jugador,Goles,Amarilla,Roja,Asistencia,Titular/Suplente,Comentarios
 `,
     );
 
@@ -410,21 +410,21 @@ Luis Suárez,El Pistolero,,,,,,,,, +54911234567,
     const { prisma } = await import("../../../src/config/database");
     const player = await prisma.player.findFirst({
       where: { lastName: "Suárez" },
-      include: { contacts: true },
+      include: { contactInfo: true },
     });
     // Must still be exactly one Contact record (upsert, not duplicate create)
-    expect(player?.contacts.length).toBe(1);
+    expect(player?.contactInfo).not.toBeNull();
   });
 
   it("(e) apariciones referencing player nickname → no ghost player created", async () => {
     const jugadoresApodo = Buffer.from(
-      `Nombre,Apodo,Invitado Por,Nacimiento,Edad,Altura,Numero,Pie,Posición,DNI,Telefono,Imagen (URL)
-Roberto Gómez,Tito,,,,,,,,,,
+      `Nombre,Apodo,Invitado Por,Nacimiento,Edad,Altura,Numero,Pie,Posición,DNI,Telefono,Imagen (URL),Status
+Roberto Gómez,Tito,,,,,,,,,,,ACTIVE
 `,
     );
     // Aparicion references "Tito" (nickname) not "Roberto Gómez"
     const aparicionesApodo = Buffer.from(
-      `Fecha,Rival,Torneo,Resultado,G/P/E,Jugador,Apodo,Goles,Amarilla,Roja,Asistencia,Titular/Suplente,Comentarios
+      `Fecha,Rival,Torneo,Resultado,,Jugador,Jugador,Goles,Amarilla,Roja,Asistencia,Titular/Suplente,Comentarios
 2024/03/10,Rival FC,Liga Test,2-1,G,Tito,,1,0,0,0,Titular,
 `,
     );
