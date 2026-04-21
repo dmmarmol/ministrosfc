@@ -27,7 +27,7 @@ WORKDIR /app
 
 # Copy node_modules from dependencies stage
 COPY --from=dependencies /app/node_modules ./node_modules
-COPY --from=dependencies /app/packages/*/node_modules ./packages/*/node_modules
+COPY --from=dependencies /app/packages/cms/node_modules ./packages/cms/node_modules
 
 # Copy source code
 COPY . .
@@ -53,7 +53,7 @@ RUN apk add --no-cache dumb-init curl
 
 # Copy node modules for production only (prune devDependencies)
 COPY --from=dependencies /app/node_modules ./node_modules
-COPY --from=dependencies /app/packages/*/node_modules ./packages/*/node_modules
+COPY --from=dependencies /app/packages/cms/node_modules ./packages/cms/node_modules
 
 # Copy built application from builder stage
 COPY --from=builder /app/packages/cms/dist ./packages/cms/dist
