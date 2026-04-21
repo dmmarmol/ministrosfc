@@ -9,6 +9,19 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+---
+
+## [0.10.0] — 2026-04-21
+
+### Added
+
+- `POST /api/v1/import/csv`: batch-imports `historial.csv`, `jugadores.csv`, `apariciones.csv`, and optional `canchas.csv` via multipart upload; idempotent upsert on natural keys; maps `G/P/E` outcome codes and `DD/MM/YYYY` / `YYYY/MM/DD` date formats.
+- `canchas.csv` import: upserts Playground records by name; links historical games via `Game.playgroundId`; unmatched games emit a warning in `CsvImportResultDTO`.
+- Statistics endpoints: `GET /api/v1/statistics/team/summary`, `/team/by-year`, `/team/by-tournament`, `/team/by-rival`, `/team/rivals/:rivalId`, `/players`, `/players/:id` — Redis-cached (5-min TTL).
+- `GET /api/v1/statistics/players` accepts optional `status` query param (`ACTIVE` | `INACTIVE`).
+- Prisma schema: `startTime`, `endTime`, `coach`, `photoUrl` on `Game`; `isStarter` on `GameParticipant`; `@@unique([date, opponentTeamId, tournamentId])` composite index on `Game`.
+- Integration tests: `csv-import.test.ts` and `team-stats.test.ts` suites.
+
 ### Changed
 
 - `positionMap` and `spanishPositionMap` moved to `@ministrosfc/shared`; `helpers.ts` now imports them from shared.
@@ -25,19 +38,6 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - CSV import: jugadores idempotency (name fallback after externalId miss), Spanish position mapping, `splitName` last-token strategy.
 - CSV import: `ZodError` now returns HTTP 400 with `.issues` (Zod v4) instead of 500.
 - CI Redis port: `env-setup.js` reads `REDIS_HOST`/`REDIS_PORT` env vars with local-dev fallbacks.
-
----
-
-## [0.10.0] — 2026-04-20
-
-### Added
-
-- `POST /api/v1/import/csv`: batch-imports `historial.csv`, `jugadores.csv`, `apariciones.csv`, and optional `canchas.csv` via multipart upload; idempotent upsert on natural keys; maps `G/P/E` outcome codes and `DD/MM/YYYY` / `YYYY/MM/DD` date formats.
-- `canchas.csv` import: upserts Playground records by name; links historical games via `Game.playgroundId`; unmatched games emit a warning in `CsvImportResultDTO`.
-- Statistics endpoints: `GET /api/v1/statistics/team/summary`, `/team/by-year`, `/team/by-tournament`, `/team/by-rival`, `/team/rivals/:rivalId`, `/players`, `/players/:id` — Redis-cached (5-min TTL).
-- `GET /api/v1/statistics/players` accepts optional `status` query param (`ACTIVE` | `INACTIVE`).
-- Prisma schema: `startTime`, `endTime`, `coach`, `photoUrl` on `Game`; `isStarter` on `GameParticipant`; `@@unique([date, opponentTeamId, tournamentId])` composite index on `Game`.
-- Integration tests: `csv-import.test.ts` and `team-stats.test.ts` suites.
 
 ---
 

@@ -13,7 +13,7 @@ For project-level release notes covering all packages, see the root [CHANGELOG.m
 
 ---
 
-## [0.10.0] — 2026-04-20
+## [0.10.0] — 2026-04-21
 
 ### Added
 

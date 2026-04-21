@@ -9,17 +9,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+---
+
+## [0.10.0] — 2026-04-21
+
 ### Added
 
 - `positionMap`: `Position` enum → short code string (e.g. `Position.CF → "CF"`). Moved from `@ministrosfc/cms` csv-import helpers.
 - `spanishPositionMap`: Spanish informal position names (lowercase) → `Position` enum. Moved from `@ministrosfc/cms` csv-import helpers.
-
----
-
-## [0.10.0] — 2026-04-20
-
-### Added
-
 - `TeamStatPeriodDTO`, `TeamSummaryHeaderDTO`, `PlayerStatRowDTO`, `CsvImportResultDTO` types for team and player statistics API contracts.
 
 ---

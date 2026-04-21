@@ -1,6 +1,6 @@
 {
     "name": "@ministrosfc/frontend",
-    "version": "0.0.1",
+    "version": "0.10.0",
     "description": "Ministros FC Frontend - Nuxt 4 Application",
     "type": "module",
     "scripts": {
