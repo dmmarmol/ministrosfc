@@ -36,7 +36,6 @@ ENV API_URL_PUBLIC=$API_URL_PUBLIC
 # Copy node_modules from dependencies stage
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=dependencies /app/packages/frontend/node_modules ./packages/frontend/node_modules
-COPY --from=dependencies /app/packages/shared/node_modules ./packages/shared/node_modules
 
 # Copy source code
 COPY . .
@@ -62,7 +61,6 @@ RUN apk add --no-cache dumb-init curl
 # Copy node_modules for production (production dependencies only)
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=dependencies /app/packages/frontend/node_modules ./packages/frontend/node_modules
-COPY --from=dependencies /app/packages/shared/node_modules ./packages/shared/node_modules
 
 # Copy built application from builder stage
 COPY --from=builder /app/packages/frontend/.output ./packages/frontend/.output
