@@ -1,19 +1,22 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.9.1 → 1.9.2 (PATCH — Git conventions: semantic commit grouping rule added)
+Version change: 1.9.2 → 1.10.0 (MINOR — new principle: Changelog Management)
 Ratified: 2026-03-17
-Last Amended: 2026-04-19
+Last Amended: 2026-04-21
 
-Amendment: Git Commit Conventions extended with a new "Semantic Commit Grouping"
-sub-rule. Files MUST be staged and committed in groups of semantic value; mixing
-unrelated changes in a single commit is forbidden.
+Amendment: Added Principle VIII — Changelog Management. Establishes the
+dual-changelog pattern: a root project CHANGELOG and per-package CHANGELOGs
+in each packages/* directory. Both MUST be updated on every version bump.
 
 Modified sections:
-  ✅ Git and Commit Conventions — added "Semantic Commit Grouping" sub-rule
-  ✅ Code Review Standards — new gate: commits must not mix unrelated file changes
+  ✅ Principle VIII (new) — Changelog Management
+  ✅ Code Review Standards — added CHANGELOG gate
+  ✅ Package Version Management — clarified per-package changelog update step
+  ✅ Merge and Deploy lifecycle step — updated CHANGELOG wording
 
 Prior amendments (preserved):
+  ✅ v1.9.2 — Git Commit Conventions: semantic commit grouping rule
   ✅ v1.9.0 — Package Version Management: git tag MUST be created on every version bump
   ✅ v1.8.0 — Principle V: Page Meta Declaration sub-rule
   ✅ v1.7.0 — Principle V: Page Component Decomposition sub-rule
@@ -33,7 +36,7 @@ Follow-up TODOs:
 
 # Ministros FC Constitution
 
-**Version**: 1.9.2 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-19
+**Version**: 1.10.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-21
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -281,7 +284,49 @@ calls outside `useQueryParams` as a constitution violation
 
 ---
 
-## Development Stack and Constraints
+### VIII. Changelog Management
+
+**MUST** maintain both a root project changelog and a per-package changelog for every workspace package.
+
+#### Root Changelog (`CHANGELOG.md` at repo root)
+
+- Serves as the **authoritative project-level release log** covering all packages and all features.
+- MUST document every version with high-level summaries of what changed, grouped by version tag.
+- Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) with sections: `Added`, `Changed`, `Fixed`, `Removed`.
+- MUST be updated as part of every version bump commit — no version bump without a root changelog entry.
+
+#### Per-Package Changelogs (`packages/*/CHANGELOG.md`)
+
+- Every workspace package (`packages/cms`, `packages/frontend`, `packages/shared`) MUST have its own `CHANGELOG.md` at its root.
+- Per-package changelogs document **only the changes relevant to that package** at each version — not cross-package entries.
+- MUST mirror the same version tags as the root changelog for the versions that affected that package.
+- An `## [Unreleased]` section MUST be maintained at the top and promoted to a versioned entry on every release.
+- Package changelogs SHOULD reference the root changelog for full project context.
+
+#### Release Process Integration
+
+- On every version bump:
+  1. Promote `## [Unreleased]` → `## [X.Y.Z] — YYYY-MM-DD` in the root `CHANGELOG.md`.
+  2. Do the same in each `packages/*/CHANGELOG.md` that has unreleased entries.
+  3. Add a fresh empty `## [Unreleased]` section above the new versioned entry in all files.
+  4. Commit all changelog updates together with the version bump in a single atomic commit.
+- **MUST NOT** bump a package version without updating its `CHANGELOG.md`.
+- **MUST NOT** update a `CHANGELOG.md` in a separate commit from the version bump it documents.
+
+**Context:** Per-package changelogs enable consumers of individual packages to track their exact
+upgrade surface. The root changelog gives maintainers and stakeholders a single-document view
+of the project's release history. Without both layers, version bumps lose traceability.
+
+**Examples:**
+
+- ✅ Good: Version bump commit touches `package.json`, `packages/cms/CHANGELOG.md`, and root `CHANGELOG.md` atomically.
+- ✅ Good: `packages/shared/CHANGELOG.md` lists only type additions; root `CHANGELOG.md` cross-references the same release with full context.
+- ❌ Bad: Version bumped in `package.json` with no changelog entry anywhere.
+- ❌ Bad: Root changelog updated but `packages/cms/CHANGELOG.md` left at the old version with stale `[Unreleased]` content.
+- ❌ Bad: Changelog update committed separately from the version bump.
+
+**Enforcement:** Code review gate (see Code Review Standards); treat a version bump without a
+corresponding changelog update as a constitution violation.
 
 ### Technology Standards
 
@@ -398,7 +443,7 @@ packages/frontend/
    - Squash merge to main (one commit per feature)
    - Verify deployment in staging
    - Tag release version for production
-   - Update CHANGELOG
+   - Update root `CHANGELOG.md` and affected per-package `CHANGELOG.md` files
 
 ### Speckit Workflow Continuity
 
@@ -445,8 +490,9 @@ a constitution violation in PR reviews.
   > **A) Minor** (X.Y+1.0) — new feature or capability
   > **B) Patch** (X.Y.Z+1) — improvement, fix, or refinement
   > **C) Skip** — do not bump version now"
-- If the user chooses A or B, the agent MUST update the `version` field in the **root** `package.json`
-  and commit the change together with the spec (or as a follow-up commit on the same branch).
+- If the user chooses A or B, the agent MUST update the `version` field in the **root** `package.json`,
+  update the root `CHANGELOG.md` and any relevant `packages/*/CHANGELOG.md` (promoting `[Unreleased]`
+  to the new version), and commit all changes together.
 - **MUST** create an annotated git tag matching the new version immediately after the version commit:
   ```bash
   git tag -a vX.Y.Z -m "Release vX.Y.Z"
@@ -560,7 +606,7 @@ commits enable per-change revert, cherry-pick, and pinpointed blame.
 - [ ] Naming conventions followed
 - [ ] New code has adequate tests
 - [ ] Breaking changes are documented
-- [ ] CHANGELOG updated if user-facing
+- [ ] **Changelog updated**: root `CHANGELOG.md` updated for any user-facing change; per-package `CHANGELOG.md` updated for any change to that package
 - [ ] Types used by more than one package are defined in `@ministrosfc/shared`, not duplicated locally
 - [ ] **Page decomposition (Principle V)**: No `pages/` file contains inline template blocks exceeding ~30 lines; feature areas extracted to `components/pages/<feature-path>/`
 - [ ] **Page meta declaration (Principle V)**: Every `pages/` file has a `definePageMeta` call with explicit visibility; public pages use `definePageMeta({ public: true })`
