@@ -9,25 +9,73 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `positionMap`: `Position` enum → short code string (e.g. `Position.CF → "CF"`). Moved from `@ministrosfc/cms` csv-import helpers.
+- `spanishPositionMap`: Spanish informal position names (lowercase) → `Position` enum. Moved from `@ministrosfc/cms` csv-import helpers.
+
 ---
 
-## [0.0.1] — 2026-04-21
+## [0.10.0] — 2026-04-20
 
 ### Added
 
-- **Player types**: `Player`, `PlayerPublic`, `PlayerCreateDTO`, `PlayerUpdateDTO`, `PlayerStatus`, `PlayerType`, `Position`, `Foot`, `Contact`.
-- **`PositionDisplayName`**: map from `Position` enum → Spanish display name.
-- **`positionMap`**: map from `Position` enum → short code string (e.g. `Position.CF → "CF"`). Moved from `@ministrosfc/cms` csv-import helpers.
-- **`spanishPositionMap`**: map from Spanish informal position names (lowercase) → `Position` enum. Moved from `@ministrosfc/cms` csv-import helpers.
-- **Game types**: `Game`, `GameCreateDTO`, `GameUpdateDTO`, `GameStatus`, `GameWithParticipants`.
-- **Game participant types**: `GameParticipant`, `GameParticipantCreateDTO`.
-- **Tournament types**: `Tournament`, `TournamentCreateDTO`, `CompetitionType`.
-- **Opponent team types**: `OpponentTeam`, `OpponentTeamCreateDTO`.
-- **Playground types**: `Playground`, `PlaygroundCreateDTO`, `PlaygroundUpdateDTO`.
-- **Statistics types**: `TeamStatPeriodDTO`, `TeamSummaryHeaderDTO`, `PlayerStatRowDTO`, `CsvImportResultDTO`.
-- **User types**: `User`, `UserCreateDTO`, `UserRole`.
-- **Address types**: `Address`, `AddressCreateDTO`.
-- **Utility functions**: `formatDate`, `formatDateTime`, `formatTime` (datetime), `getInitials` (strings), `toISOWithOffset` (ISO 8601 with timezone offset), jersey number helpers.
-- **Validation**: `validatePassword` (password strength rules).
-- **Constants**: `DEFAULT_MAX_PLAYERS`, game and player constants.
-- **Zod v4** as runtime dependency for schema validation utilities.
+- `TeamStatPeriodDTO`, `TeamSummaryHeaderDTO`, `PlayerStatRowDTO`, `CsvImportResultDTO` types for team and player statistics API contracts.
+
+---
+
+## [0.9.0] — 2026-04-16
+
+### Changed
+
+- `formatDate`, `formatDateTime`, `formatTime` (date formatting) and `getInitials` (string initials) moved from frontend-local utils into `src/utils/datetime.ts` and `src/utils/strings.ts` and re-exported from the package. Deleted `packages/frontend/src/utils/formatDate.ts` and `initials.ts`.
+
+---
+
+## [0.8.1] — 2026-04-13
+
+### Added
+
+- `toISOWithOffset`: utility for consistent ISO 8601 datetime with timezone offset formatting (used by game create/edit API payloads).
+
+---
+
+## [0.8.0] — 2026-04-13
+
+### Added
+
+- `DEFAULT_MAX_PLAYERS` constant and shared game/player constants; tightened participant typing around position values.
+
+---
+
+## [0.7.0] — 2026-04-07
+
+### Added
+
+- `Playground`, `PlaygroundCreateDTO`, `PlaygroundUpdateDTO` types.
+
+---
+
+## [0.6.4] — prior
+
+### Added
+
+- `PlayerProfileResponse` and `UpdatePlayerProfilePayload` types migrated from frontend.
+
+---
+
+## [0.6.3] — prior
+
+### Added
+
+- Jersey number utility helpers (`src/utils/jersey.ts`).
+
+---
+
+## [0.6.0] — prior
+
+### Added
+
+- `UserRole` enum, password validation schema (`src/validation/password.ts`).
+- User types updated: `firstName`/`lastName` split (replacing `name`), `googleSubjectId` field.
+- Initial package: `Player`, `PlayerPublic`, `PlayerCreateDTO`, `PlayerUpdateDTO`, `PlayerStatus`, `PlayerType`, `Position`, `Foot`, `Contact`, `Game`, `GameParticipant`, `Tournament`, `OpponentTeam`, `User` types and related DTOs.
