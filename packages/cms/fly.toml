@@ -8,7 +8,7 @@ primary_region = "gru"
 [deploy]
   # Run Prisma migrations atomically before traffic switches to the new version.
   # If the migration fails, the release is aborted and the old version stays live.
-  release_command = "npx prisma migrate deploy"
+  release_command = "node_modules/.bin/prisma migrate deploy"
 
 [http_service]
   internal_port = 5102
