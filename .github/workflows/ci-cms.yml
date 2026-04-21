@@ -4,13 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: "Deployment environment"
+        description: "Deployment environment (manual deploys are development only)"
         required: true
         default: "development"
         type: choice
         options:
           - development
-          - production
+  release:
+    types: [published]
   push:
     branches:
       - "**"
@@ -108,22 +109,21 @@ jobs:
           REDIS_PORT: 6379
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Deploy CMS — runs only on push to main or develop (not on pull_request)
-  # Uses GitHub Environments for scoped secrets:
-  #   main    → environment: production → ministrosfc-cms
-  #   develop → environment: development → ministrosfc-cms-dev
+  # Deploy CMS
+  #   release (published) → environment: production → ministrosfc-cms
+  #   push to develop     → environment: development → ministrosfc-cms-dev
+  #   workflow_dispatch   → environment: development → ministrosfc-cms-dev
+  # Production is ONLY reachable via a published GitHub Release.
   # ─────────────────────────────────────────────────────────────────────────────
   deploy-cms:
     name: Deploy CMS
     needs: [build-cms]
     if: |
+      github.event_name == 'release' ||
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'))
+      (github.event_name == 'push' && github.ref == 'refs/heads/develop')
     runs-on: ubuntu-latest
-    environment: >-
-      ${{ github.event_name == 'workflow_dispatch'
-          && inputs.environment
-          || (github.ref == 'refs/heads/main' && 'production' || 'development') }}
+    environment: ${{ github.event_name == 'release' && 'production' || 'development' }}
 
     steps:
       - uses: actions/checkout@v4
