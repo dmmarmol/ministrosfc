@@ -34,7 +34,7 @@ export function getRedisClient(): Redis {
     if (process.env.REDIS_URL) {
       redisClient = new Redis(process.env.REDIS_URL, {
         lazyConnect: true,
-        retryStrategy: (times) => {
+        retryStrategy: (times: number) => {
           if (times > 3) return null;
           return Math.min(times * 200, 2000);
         },
@@ -45,14 +45,14 @@ export function getRedisClient(): Redis {
         port: parseInt(process.env.REDIS_PORT ?? "5101", 10),
         password: process.env.REDIS_PASSWORD || undefined,
         lazyConnect: true,
-        retryStrategy: (times) => {
+        retryStrategy: (times: number) => {
           if (times > 3) return null;
           return Math.min(times * 200, 2000);
         },
       });
     }
 
-    redisClient.on("error", (err) => {
+    redisClient.on("error", (err: Error) => {
       logger.error({ err }, "Redis connection error");
     });
 
