@@ -20,6 +20,7 @@ export async function cleanDatabase() {
     prisma.gameParticipant.deleteMany(),
     prisma.statistics.deleteMany(),
     prisma.game.deleteMany(),
+    prisma.playground.deleteMany(),
     prisma.player.deleteMany(),
     prisma.opponentTeam.deleteMany(),
     prisma.tournament.deleteMany(),
