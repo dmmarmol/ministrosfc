@@ -34,10 +34,11 @@ COPY . .
 
 # Build both shared and cms packages
 RUN npm run build -w packages/shared
-RUN npm run build -w packages/cms
 
-# Generate Prisma client
-RUN npm generate -w packages/cms
+# Generate Prisma client before CMS build so @prisma/client types are available
+RUN npm run prisma:generate -w packages/cms
+
+RUN npm run build -w packages/cms
 
 # ============================================
 # Stage 3: Production
