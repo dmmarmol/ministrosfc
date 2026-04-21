@@ -2,6 +2,15 @@ name: Frontend CI/CD
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment"
+        required: true
+        default: "development"
+        type: choice
+        options:
+          - development
+          - production
   push:
     branches:
       - "**"
@@ -73,9 +82,14 @@ jobs:
   deploy-frontend:
     name: Deploy Frontend
     needs: [build-frontend]
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'))
     runs-on: ubuntu-latest
-    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}
+    environment: >-
+      ${{ github.event_name == 'workflow_dispatch'
+          && inputs.environment
+          || (github.ref == 'refs/heads/main' && 'production' || 'development') }}
 
     steps:
       - uses: actions/checkout@v4
