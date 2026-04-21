@@ -56,19 +56,25 @@ export async function importJugadores(
     const { firstName, lastName } = splitName(cleanName);
     const externalId = row[JugadoresCols.id]?.trim() || null;
 
-    // Prefer lookup by stable externalId; fall back to name match for legacy rows
-    const existing = externalId
-      ? await prisma.player.findFirst({
-          where: { externalId },
-          select: { id: true },
-        })
-      : await prisma.player.findFirst({
-          where: {
-            firstName: { equals: firstName, mode: "insensitive" },
-            lastName: { equals: lastName, mode: "insensitive" },
-          },
-          select: { id: true },
-        });
+    // Two-step lookup: prefer externalId when present; always fall back to name
+    // match in case the CSV has no persistent ID column and ensureExternalIds
+    // generated a fresh UUID on this upload (idempotency guard).
+    let existing: { id: string } | null = null;
+    if (externalId) {
+      existing = await prisma.player.findFirst({
+        where: { externalId },
+        select: { id: true },
+      });
+    }
+    if (!existing) {
+      existing = await prisma.player.findFirst({
+        where: {
+          firstName: { equals: firstName, mode: "insensitive" },
+          lastName: { equals: lastName, mode: "insensitive" },
+        },
+        select: { id: true },
+      });
+    }
 
     const playerData = {
       externalId,

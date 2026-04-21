@@ -174,8 +174,8 @@ export function stripCountAnnotation(header: string): string {
 
 /**
  * Split a full name into firstName + lastName.
- * First whitespace-separated token → firstName; remainder → lastName.
- * Example: "Juan García López" → { firstName: "Juan", lastName: "García López" }
+ * Last whitespace-separated token → lastName; everything before → firstName.
+ * Example: "Juan García López" → { firstName: "Juan García", lastName: "López" }
  */
 export function splitName(full: string): {
   firstName: string;
@@ -183,8 +183,8 @@ export function splitName(full: string): {
 } {
   const parts = full.trim().split(/\s+/);
   if (parts.length === 1) return { firstName: parts[0]!, lastName: "-" };
-  const firstName = parts[0]!;
-  const lastName = parts.slice(1).join(" ");
+  const lastName = parts[parts.length - 1]!;
+  const firstName = parts.slice(0, -1).join(" ");
   return { firstName, lastName };
 }
 
@@ -223,14 +223,47 @@ const positionMap: Record<Position, string> = {
   [Position.LWF]: "LWF",
 };
 
+/** Spanish informal position names → Position enum. */
+const spanishPositionMap: Record<string, Position> = {
+  portero: Position.GK,
+  arquero: Position.GK,
+  golero: Position.GK,
+  "defensa central": Position.CB,
+  defensa: Position.CB,
+  zaguero: Position.CB,
+  central: Position.CB,
+  "lateral derecho": Position.RB,
+  "lateral izquierdo": Position.LB,
+  "carrilero derecho": Position.RWB,
+  "carrilero izquierdo": Position.LWB,
+  "mediocampista defensivo": Position.DMF,
+  "mediocampista central": Position.CMF,
+  mediocampista: Position.CMF,
+  "mediocampista ofensivo": Position.AMF,
+  enganche: Position.AMF,
+  "mediocampista derecho": Position.RMF,
+  "mediocampista izquierdo": Position.LMF,
+  "segundo delantero": Position.SS,
+  "delantero centro": Position.CF,
+  delantero: Position.CF,
+  "extremo derecho": Position.RWF,
+  "extremo izquierdo": Position.LWF,
+};
+
 /**
  * Map a raw position string to a position code.
  * Accepts a comma-separated list — only the first value is used.
+ * Recognises both short enum codes (e.g. "CF") and Spanish names (e.g. "Delantero").
  * Example: "Delantero, Mediocampista" → "CF"
  */
 export function mapPosition(raw: string): string | null {
   const first = raw?.split(",")[0] ?? "";
-  const v = first.trim() as Position;
+  const v = first.trim();
 
-  return positionMap[v] ?? null;
+  // Direct short-code match (e.g. "CF", "DMF")
+  if (positionMap[v as Position] !== undefined) return positionMap[v as Position]!;
+
+  // Spanish name lookup (case-insensitive)
+  const enumVal = spanishPositionMap[v.toLowerCase()];
+  return enumVal !== undefined ? positionMap[enumVal]! : null;
 }
