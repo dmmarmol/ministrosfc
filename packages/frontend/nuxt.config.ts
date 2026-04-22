@@ -28,8 +28,15 @@ export default defineNuxtConfig({
   // Server-side rendering enabled for public SEO
   ssr: true,
 
+  // Production runtimes like Fly commonly provide PORT/HOST (or Nitro variants).
+  // Keep local development on NUXT_PORT/NUXT_HOST while allowing deploy-time
+  // overrides without changing the local .env workflow.
   nitro: {
-    port: parseInt(process.env.NUXT_PORT ?? "5103", 10),
+    port: parseInt(
+      process.env.NITRO_PORT ?? process.env.PORT ?? process.env.NUXT_PORT ?? "5103",
+      10,
+    ),
+    host: process.env.NITRO_HOST ?? process.env.HOST ?? process.env.NUXT_HOST ?? "0.0.0.0",
   },
 
   // Bind the Vite dev server to the configured host.

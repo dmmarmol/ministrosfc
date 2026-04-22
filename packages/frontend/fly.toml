@@ -6,14 +6,18 @@ primary_region = "gru"
   dockerfile = "Dockerfile"
 
 [http_service]
-  internal_port = 5103
+  internal_port = 3000
   force_https = true
   auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 0
 
 [env]
-  APP_PORT = "5103"
+  APP_PORT = "3000"
+  PORT = "3000"
+  NITRO_PORT = "3000"
+  HOST = "0.0.0.0"
+  NITRO_HOST = "0.0.0.0"
   NODE_ENV = "production"
   # Secrets injected at deploy time via `flyctl secrets set` — never hardcode here:
   #   NUXT_PUBLIC_API_BASE_URL  → https://ministrosfc-cms.fly.dev (PROD) or https://ministrosfc-cms-dev.fly.dev (DEV)
