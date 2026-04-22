@@ -1,6 +1,10 @@
 name: Seed CMS Admin
 
 on:
+  workflow_run:
+    workflows: ["CMS CI/CD"]
+    types: [completed]
+
   workflow_dispatch:
     inputs:
       environment:
@@ -15,8 +19,16 @@ on:
 jobs:
   seed-admin:
     name: Seed admin user in CMS DB
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'develop'
+      )
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    # workflow_dispatch -> selected environment; workflow_run -> development
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'development' }}
 
     steps:
       - uses: superfly/flyctl-actions/setup-flyctl@master
