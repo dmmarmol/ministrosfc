@@ -1,0 +1,76 @@
+name: Seed CMS Admin
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        default: development
+        type: choice
+        options:
+          - development
+          - production
+
+jobs:
+  seed-admin:
+    name: Seed admin user in CMS DB
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Upsert admin user on Fly app
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          CMS_APP_NAME: ${{ secrets.CMS_APP_NAME }}
+          CMS_ADMIN_EMAIL: ${{ secrets.CMS_ADMIN_EMAIL }}
+          CMS_ADMIN_PASSWORD: ${{ secrets.CMS_ADMIN_PASSWORD }}
+        run: |
+          if [ -z "$CMS_ADMIN_EMAIL" ] || [ -z "$CMS_ADMIN_PASSWORD" ]; then
+            echo "Missing required secrets: CMS_ADMIN_EMAIL and/or CMS_ADMIN_PASSWORD"
+            exit 1
+          fi
+
+          JS="$(cat <<'NODE'
+          const { PrismaClient, Role } = require("@prisma/client");
+          const bcrypt = require("bcryptjs");
+
+          (async () => {
+            const adminEmail = process.env.ADMIN_EMAIL;
+            const adminPassword = process.env.ADMIN_PASSWORD;
+
+            if (!adminEmail || !adminPassword) {
+              throw new Error("Missing ADMIN_EMAIL or ADMIN_PASSWORD env vars");
+            }
+
+            const prisma = new PrismaClient();
+            try {
+              const passwordHash = await bcrypt.hash(adminPassword, 12);
+              const user = await prisma.user.upsert({
+                where: { email: adminEmail },
+                update: { passwordHash, role: Role.ADMIN },
+                create: {
+                  email: adminEmail,
+                  passwordHash,
+                  firstName: "Admin",
+                  lastName: "User",
+                  role: Role.ADMIN,
+                },
+              });
+
+              console.log(`Admin user ready: ${user.email}`);
+            } finally {
+              await prisma.$disconnect();
+            }
+          })().catch((e) => {
+            console.error(e);
+            process.exit(1);
+          });
+          NODE
+          )"
+
+          ENCODED="$(printf '%s' "$JS" | base64 | tr -d '\n')"
+
+          flyctl ssh console --app "$CMS_APP_NAME" --command "cd /app/packages/cms && echo '$ENCODED' | base64 -d > /tmp/seed-admin.js && ADMIN_EMAIL='$CMS_ADMIN_EMAIL' ADMIN_PASSWORD='$CMS_ADMIN_PASSWORD' node /tmp/seed-admin.js"
