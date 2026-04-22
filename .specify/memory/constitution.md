@@ -1,19 +1,18 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.9.2 → 1.10.0 (MINOR — new principle: Changelog Management)
+Version change: 1.10.0 → 1.10.1 (PATCH — security hardening for public repositories)
 Ratified: 2026-03-17
-Last Amended: 2026-04-21
+Last Amended: 2026-04-22
 
-Amendment: Added Principle VIII — Changelog Management. Establishes the
-dual-changelog pattern: a root project CHANGELOG and per-package CHANGELOGs
-in each packages/* directory. Both MUST be updated on every version bump.
+Amendment: Added public-repository secret hygiene rule. Hardcoded default
+credentials (including seed/admin credentials) are forbidden in source files,
+workflows, and scripts. Runtime credentials MUST come from environment variables
+or protected CI/environment secrets.
 
 Modified sections:
-  ✅ Principle VIII (new) — Changelog Management
-  ✅ Code Review Standards — added CHANGELOG gate
-  ✅ Package Version Management — clarified per-package changelog update step
-  ✅ Merge and Deploy lifecycle step — updated CHANGELOG wording
+  ✅ Git and Commit Conventions — clarified no hardcoded default credentials
+  ✅ Code Review Standards — added public-repo secret hygiene checklist gate
 
 Prior amendments (preserved):
   ✅ v1.9.2 — Git Commit Conventions: semantic commit grouping rule
@@ -36,7 +35,7 @@ Follow-up TODOs:
 
 # Ministros FC Constitution
 
-**Version**: 1.10.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-21
+**Version**: 1.10.1 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-22
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -565,6 +564,7 @@ chore(deps): upgrade typescript to 5.x
 - Disabled tests or skipped tests in main
 - Console.log() statements (use proper logging)
 - Secrets or credentials
+- Hardcoded default credentials (e.g., seed/admin emails or passwords)
 - Commented-out code (delete or explain in commit message)
 
 #### Semantic Commit Grouping (NON-NEGOTIABLE)
@@ -612,6 +612,7 @@ commits enable per-change revert, cherry-pick, and pinpointed blame.
 - [ ] **Page meta declaration (Principle V)**: Every `pages/` file has a `definePageMeta` call with explicit visibility; public pages use `definePageMeta({ public: true })`
 - [ ] **URL query params (Principle VI)**: All query-param reads use `useQueryParams().get(key)`; all writes use `useQueryParams().set/remove()`; no direct `router.push({ query })` calls outside the composable
 - [ ] **Semantic commit grouping (Git Conventions)**: Each commit in the branch represents one coherent unit of change; commits mixing unrelated files MUST be flagged and rebased before merge
+- [ ] **Public-repo secret hygiene**: No hardcoded credentials in source/workflows (including seed defaults); runtime credentials loaded from env vars or protected GitHub/Fly secrets
 
 **Review focus areas:**
 
