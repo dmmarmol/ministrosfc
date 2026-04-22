@@ -49,8 +49,8 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init curl
+# Install dumb-init & openssl for proper signal handling
+RUN apk add --no-cache dumb-init curl openssl
 
 # Copy node modules for production only (prune devDependencies)
 COPY --from=dependencies /app/node_modules ./node_modules
@@ -80,6 +80,10 @@ RUN mkdir -p ./packages/cms/uploads && chmod -R 755 ./packages/cms/uploads
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001
+
+# Prisma CLI may need to refresh/download engine binaries at release-command time.
+# Ensure the runtime user can write under node_modules if that happens.
+RUN chown -R nestjs:nodejs /app/node_modules /app/packages/cms/node_modules
 USER nestjs
 
 # Expose CMS port
