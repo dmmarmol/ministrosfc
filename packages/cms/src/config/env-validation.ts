@@ -10,7 +10,11 @@
 const BASE_REQUIRED_ENV_VARS = [
   "DATABASE_URL",
   "JWT_SECRET",
+  //   "REDIS_URL",
   "CORS_ORIGINS",
+  //   "CLOUDINARY_CLOUD_NAME",
+  //   "CLOUDINARY_API_KEY",
+  //   "CLOUDINARY_API_SECRET",
 ] as const;
 
 function hasValue(value: string | undefined): boolean {
