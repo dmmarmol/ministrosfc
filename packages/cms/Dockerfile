@@ -56,6 +56,11 @@ RUN apk add --no-cache dumb-init curl
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=dependencies /app/packages/cms/node_modules ./packages/cms/node_modules
 
+# Override @prisma/client with the one generated in the builder stage
+# (includes the linux-musl-openssl-3.0.x engine binary for Alpine runtime)
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
 # Copy built application from builder stage
 COPY --from=builder /app/packages/cms/dist ./packages/cms/dist
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
