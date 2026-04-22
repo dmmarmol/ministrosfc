@@ -7,7 +7,7 @@ import { GameStatus } from "@ministrosfc/shared";
  *   SCHEDULED → IN_PROGRESS  (when date <= now)
  *   IN_PROGRESS → COMPLETED  (when endDate <= now, or date < now - 24h if endDate is null)
  */
-export async function runTransitions(): Promise<void> {
+export async function runGameStatusTransitions(): Promise<void> {
   try {
     const now = new Date();
 

@@ -2,7 +2,7 @@ import "dotenv/config";
 import { validateEnv } from "./config/env-validation";
 import { createApp, API_PORT } from "./config/server";
 import { connectDatabase, disconnectDatabase } from "./config/database";
-import { runTransitions } from "./jobs/GameStatusTransitionJob";
+import { runGameStatusTransitions } from "./jobs/GameStatusTransitionJob";
 import { logger } from "./utils/logger";
 
 const JOB_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
@@ -18,8 +18,8 @@ async function bootstrap(): Promise<void> {
   logger.info("Database connected");
 
   // Run game status transitions on startup and every 5 minutes
-  await runTransitions();
-  const jobInterval = setInterval(runTransitions, JOB_INTERVAL_MS);
+  await runGameStatusTransitions();
+  const jobInterval = setInterval(runGameStatusTransitions, JOB_INTERVAL_MS);
 
   const app = createApp();
 
