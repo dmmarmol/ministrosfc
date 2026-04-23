@@ -26,6 +26,18 @@
       "command": "gh workflow run seed-cms-admin.yml --ref ${input:gitRef} -f environment=production && gh run list --workflow=seed-cms-admin.yml --limit=1"
     },
     {
+      "name": "Pipeline: Reset CMS DB (development)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "gh workflow run reset-cms-db.yml --ref ${input:gitRef} -f environment=development -f confirmation=${input:resetConfirmation} && gh run list --workflow=reset-cms-db.yml --limit=1"
+    },
+    {
+      "name": "Pipeline: Reset CMS DB (production)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "gh workflow run reset-cms-db.yml --ref ${input:gitRef} -f environment=production -f confirmation=${input:resetConfirmation} && gh run list --workflow=reset-cms-db.yml --limit=1"
+    },
+    {
       "name": "Pipeline: Watch latest CMS run",
       "type": "node-terminal",
       "request": "launch",
@@ -44,6 +56,12 @@
       "type": "promptString",
       "description": "Git ref to run workflow from (branch, tag, or SHA)",
       "default": "develop"
+    },
+    {
+      "id": "resetConfirmation",
+      "type": "promptString",
+      "description": "Type RESET_DB to confirm destructive DB reset",
+      "default": ""
     }
   ]
 }
