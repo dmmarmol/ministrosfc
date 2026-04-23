@@ -47,10 +47,26 @@ async function main(): Promise<void> {
   const redis = createClient({
     ...redisConfig,
   });
-  await redis.connect();
-  await redis.flushAll();
-  await redis.quit();
-  console.log("Redis cache flushed");
+  redis.on("error", (error) => {
+    console.warn("Redis client error during admin seed:", error);
+  });
+
+  try {
+    await redis.connect();
+    await redis.flushAll();
+    console.log("Redis cache flushed");
+  } catch (error) {
+    console.warn("Skipping Redis cache flush; continuing admin seed.", error);
+  } finally {
+    try {
+      if (redis.isOpen) {
+        await redis.quit();
+      }
+    } catch {
+      redis.disconnect();
+    }
+  }
+
   const passwordHash = await bcrypt.hash(adminPassword, 12);
 
   const user = await prisma.user.upsert({
