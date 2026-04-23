@@ -3,6 +3,7 @@
 set -euo pipefail
 
 dry_run="${DRY_RUN:-0}"
+seed_script_path="dist/public/scripts/seed-admin.js"
 
 if [[ -z "${CMS_ADMIN_EMAIL:-}" ]] || [[ -z "${CMS_ADMIN_PASSWORD:-}" ]]; then
   echo "Missing required secrets: CMS_ADMIN_EMAIL and/or CMS_ADMIN_PASSWORD"
@@ -70,12 +71,12 @@ fi
 
 admin_email_escaped="$(printf '%q' "$CMS_ADMIN_EMAIL")"
 admin_password_escaped="$(printf '%q' "$CMS_ADMIN_PASSWORD")"
-remote_command="cd /app/packages/cms && ADMIN_EMAIL=$admin_email_escaped ADMIN_PASSWORD=$admin_password_escaped node dist/public/scripts/seed-admin.js"
+remote_command="sh -lc 'cd /app/packages/cms && ADMIN_EMAIL=$admin_email_escaped ADMIN_PASSWORD=$admin_password_escaped node $seed_script_path'"
 
 if [[ "$dry_run" == "1" ]]; then
   echo "Dry run enabled. Skipping remote admin seed execution."
   echo "Target machine: $machine_id"
-  echo "Remote command: cd /app/packages/cms && ADMIN_EMAIL=[REDACTED] ADMIN_PASSWORD=[REDACTED] node dist/public/scripts/seed-admin.js"
+  echo "Remote command: sh -lc 'cd /app/packages/cms && ADMIN_EMAIL=[REDACTED] ADMIN_PASSWORD=[REDACTED] node $seed_script_path'"
   exit 0
 fi
 
