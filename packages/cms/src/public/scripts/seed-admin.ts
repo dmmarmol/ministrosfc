@@ -4,6 +4,13 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
+
 function getRedisConfig():
   | { url: string }
   | {
@@ -63,8 +70,10 @@ async function main(): Promise<void> {
           },
         },
   );
+  let lastRedisError: unknown;
+  // Prevent unhandled error events from crashing the process.
   redis.on("error", (error) => {
-    console.warn("Redis client error during admin seed:", error);
+    lastRedisError = error;
   });
 
   try {
@@ -72,7 +81,20 @@ async function main(): Promise<void> {
     await redis.flushAll();
     console.log("Redis cache flushed");
   } catch (error) {
-    console.warn("Skipping Redis cache flush; continuing admin seed.", error);
+    const reason = getErrorMessage(error);
+    const socketReason =
+      typeof lastRedisError !== "undefined"
+        ? getErrorMessage(lastRedisError)
+        : null;
+    if (socketReason && socketReason !== reason) {
+      console.warn(
+        `Skipping Redis cache flush; continuing admin seed (${reason}; socket: ${socketReason}).`,
+      );
+    } else {
+      console.warn(
+        `Skipping Redis cache flush; continuing admin seed (${reason}).`,
+      );
+    }
   } finally {
     try {
       if (redis.isOpen) {
