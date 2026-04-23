@@ -2,17 +2,10 @@
 
 set -euo pipefail
 
-script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-payload_file="$script_dir/upsert-admin.cjs"
 dry_run="${DRY_RUN:-0}"
 
 if [[ -z "${CMS_ADMIN_EMAIL:-}" ]] || [[ -z "${CMS_ADMIN_PASSWORD:-}" ]]; then
   echo "Missing required secrets: CMS_ADMIN_EMAIL and/or CMS_ADMIN_PASSWORD"
-  exit 1
-fi
-
-if [[ ! -f "$payload_file" ]]; then
-  echo "Missing payload file: $payload_file"
   exit 1
 fi
 
@@ -50,12 +43,14 @@ if [[ "$machine_state" != "started" ]]; then
   attempts=0
   current_state="${machine_state:-}"
   until [[ "$attempts" -ge 12 ]]; do
-    current_state="$(flyctl machine status "$machine_id" --app "$CMS_APP_NAME" --json | node -e '
-const status = JSON.parse(require("fs").readFileSync(0, "utf8"));
-if (status.state) {
-  process.stdout.write(status.state);
+    current_state="$(flyctl machine list --app "$CMS_APP_NAME" --json | node -e '
+const machines = JSON.parse(require("fs").readFileSync(0, "utf8"));
+const machineId = process.argv[1];
+const machine = machines.find((entry) => entry.id === machineId);
+if (machine?.state) {
+  process.stdout.write(machine.state);
 }
-')"
+' "$machine_id")"
 
     if [[ "$current_state" == "started" ]]; then
       break
@@ -73,13 +68,14 @@ if (status.state) {
   fi
 fi
 
-encoded="$(base64 < "$payload_file" | tr -d '\n')"
-remote_command="cd /app/packages/cms && echo '$encoded' | base64 -d > /tmp/upsert-admin.cjs && ADMIN_EMAIL='$CMS_ADMIN_EMAIL' ADMIN_PASSWORD='$CMS_ADMIN_PASSWORD' node /tmp/upsert-admin.cjs"
+admin_email_escaped="$(printf '%q' "$CMS_ADMIN_EMAIL")"
+admin_password_escaped="$(printf '%q' "$CMS_ADMIN_PASSWORD")"
+remote_command="cd /app/packages/cms && ADMIN_EMAIL=$admin_email_escaped ADMIN_PASSWORD=$admin_password_escaped node dist/public/scripts/seed-admin.js"
 
 if [[ "$dry_run" == "1" ]]; then
-  echo "Dry run enabled. Skipping remote admin upsert."
+  echo "Dry run enabled. Skipping remote admin seed execution."
   echo "Target machine: $machine_id"
-  echo "Remote command: $remote_command"
+  echo "Remote command: cd /app/packages/cms && ADMIN_EMAIL=[REDACTED] ADMIN_PASSWORD=[REDACTED] node dist/public/scripts/seed-admin.js"
   exit 0
 fi
 

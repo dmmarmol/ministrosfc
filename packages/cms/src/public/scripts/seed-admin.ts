@@ -4,6 +4,33 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+function getRedisConfig():
+  | { url: string }
+  | {
+      socket: { host: string; port: number };
+      password: string | undefined;
+    } {
+  const redisUrl = process.env.REDIS_URL?.trim();
+
+  if (redisUrl && /^rediss?:\/\//.test(redisUrl)) {
+    return { url: redisUrl };
+  }
+
+  if (redisUrl) {
+    console.warn(
+      "Ignoring REDIS_URL because it is not a redis:// or rediss:// connection string.",
+    );
+  }
+
+  return {
+    socket: {
+      host: process.env.REDIS_HOST ?? "localhost",
+      port: parseInt(process.env.REDIS_PORT ?? "5101", 10),
+    },
+    password: process.env.REDIS_PASSWORD || undefined,
+  };
+}
+
 async function main(): Promise<void> {
   const adminEmail = process.env.ADMIN_EMAIL;
   const adminPassword = process.env.ADMIN_PASSWORD;
@@ -15,16 +42,7 @@ async function main(): Promise<void> {
   }
 
   // Flush Redis so stale cached responses don't survive the DB reset
-  const redisUrl = process.env.REDIS_URL;
-  const redisConfig = redisUrl
-    ? { url: redisUrl }
-    : {
-        socket: {
-          host: process.env.REDIS_HOST ?? "localhost",
-          port: parseInt(process.env.REDIS_PORT ?? "5101", 10),
-        },
-        password: process.env.REDIS_PASSWORD || undefined,
-      };
+  const redisConfig = getRedisConfig();
 
   const redis = createClient({
     ...redisConfig,
@@ -32,7 +50,7 @@ async function main(): Promise<void> {
   await redis.connect();
   await redis.flushAll();
   await redis.quit();
-  console.log("✓ Redis cache flushed");
+  console.log("Redis cache flushed");
   const passwordHash = await bcrypt.hash(adminPassword, 12);
 
   const user = await prisma.user.upsert({
@@ -47,7 +65,7 @@ async function main(): Promise<void> {
     },
   });
 
-  console.log(`✓ Admin user ready: ${user.email}`);
+  console.log(`Admin user ready: ${user.email}`);
 }
 
 main()

@@ -39,6 +39,7 @@ RUN npm run build -w packages/shared
 RUN npm run prisma:generate -w packages/cms
 
 RUN npm run build -w packages/cms
+RUN npm run build:public-scripts -w packages/cms
 
 # ============================================
 # Stage 3: Production

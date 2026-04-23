@@ -23,6 +23,7 @@
     "node_modules",
     "dist",
     "src/scripts/**",
+    "src/public/scripts/**",
     "**/*.test.ts",
     "**/*.spec.ts"
   ]
