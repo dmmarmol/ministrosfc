@@ -45,7 +45,8 @@ async function main(): Promise<void> {
   const redisConfig = getRedisConfig();
   const redisSocketOptions = {
     connectTimeout: 5000,
-    reconnectStrategy: () => new Error("Redis reconnect disabled during admin seed"),
+    reconnectStrategy: () =>
+      new Error("Redis reconnect disabled during admin seed"),
   };
 
   const redis = createClient(
@@ -76,11 +77,11 @@ async function main(): Promise<void> {
     try {
       if (redis.isOpen) {
         await redis.quit();
-      } else {
-        redis.disconnect();
       }
     } catch {
-      redis.disconnect();
+      if (redis.isOpen) {
+        redis.disconnect();
+      }
     }
   }
 
@@ -98,7 +99,11 @@ async function main(): Promise<void> {
     },
   });
 
-  console.log(`Admin user ready: ${user.email}`);
+  console.log(`Admin user ready`);
+  console.log(`└─ username: ${user.email}`);
+  console.log(
+    `└─ password: ${adminPassword.slice(0, 3)}${adminPassword.length > 6 ? adminPassword.slice(3).replace(/./g, "*") : ""}`,
+  );
 }
 
 main()
