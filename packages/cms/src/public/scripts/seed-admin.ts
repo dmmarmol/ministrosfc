@@ -43,10 +43,25 @@ async function main(): Promise<void> {
 
   // Flush Redis so stale cached responses don't survive the DB reset
   const redisConfig = getRedisConfig();
+  const redisSocketOptions = {
+    connectTimeout: 5000,
+    reconnectStrategy: () => new Error("Redis reconnect disabled during admin seed"),
+  };
 
-  const redis = createClient({
-    ...redisConfig,
-  });
+  const redis = createClient(
+    "url" in redisConfig
+      ? {
+          ...redisConfig,
+          socket: redisSocketOptions,
+        }
+      : {
+          ...redisConfig,
+          socket: {
+            ...redisConfig.socket,
+            ...redisSocketOptions,
+          },
+        },
+  );
   redis.on("error", (error) => {
     console.warn("Redis client error during admin seed:", error);
   });
@@ -61,6 +76,8 @@ async function main(): Promise<void> {
     try {
       if (redis.isOpen) {
         await redis.quit();
+      } else {
+        redis.disconnect();
       }
     } catch {
       redis.disconnect();

@@ -19,6 +19,20 @@ on:
 jobs:
   seed-admin:
     name: Seed admin user in CMS DB
+    # Execution model:
+    #   This job does NOT compile TypeScript. The compiled seed script
+    #   (dist/public/scripts/seed-admin.js) is baked into the Docker image
+    #   during the CMS deploy step (packages/cms/Dockerfile runs
+    #   `npm run build:public-scripts` in the builder stage).
+    #
+    #   This job only SSHes into the already-running Fly container and
+    #   executes the pre-compiled file. It will work correctly whether
+    #   triggered automatically (after CMS CI/CD) or manually via
+    #   workflow_dispatch, as long as the app was deployed at least once
+    #   with the current Dockerfile.
+    #
+    #   Credentials (ADMIN_EMAIL, ADMIN_PASSWORD) are injected as env vars
+    #   at runtime — they are never written to disk or logged.
     if: |
       github.event_name == 'workflow_dispatch' ||
       (

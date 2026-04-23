@@ -1,0 +1,49 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Pipeline: CMS CI/CD (manual dispatch)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "gh workflow run ci-cms.yml --ref ${input:gitRef} -f environment=development && gh run list --workflow=ci-cms.yml --limit=1"
+    },
+    {
+      "name": "Pipeline: Frontend CI/CD (manual dispatch)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "gh workflow run ci-frontend.yml --ref ${input:gitRef} -f environment=development && gh run list --workflow=ci-frontend.yml --limit=1"
+    },
+    {
+      "name": "Pipeline: Seed CMS Admin (development)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "gh workflow run seed-cms-admin.yml --ref ${input:gitRef} -f environment=development && gh run list --workflow=seed-cms-admin.yml --limit=1"
+    },
+    {
+      "name": "Pipeline: Seed CMS Admin (production)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "gh workflow run seed-cms-admin.yml --ref ${input:gitRef} -f environment=production && gh run list --workflow=seed-cms-admin.yml --limit=1"
+    },
+    {
+      "name": "Pipeline: Watch latest CMS run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "gh run watch $(gh run list --workflow=ci-cms.yml --limit=1 --json databaseId -q '.[0].databaseId')"
+    },
+    {
+      "name": "Pipeline: Watch latest Seed Admin run",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "gh run watch $(gh run list --workflow=seed-cms-admin.yml --limit=1 --json databaseId -q '.[0].databaseId')"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "gitRef",
+      "type": "promptString",
+      "description": "Git ref to run workflow from (branch, tag, or SHA)",
+      "default": "develop"
+    }
+  ]
+}
