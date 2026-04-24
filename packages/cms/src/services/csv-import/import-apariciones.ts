@@ -104,7 +104,30 @@ export async function importApariciones(
     const game = opponentId
       ? await prisma.game.findFirst({
           where: {
-            date,
+            date: {
+              gte: new Date(
+                Date.UTC(
+                  date.getUTCFullYear(),
+                  date.getUTCMonth(),
+                  date.getUTCDate(),
+                  0,
+                  0,
+                  0,
+                  0,
+                ),
+              ),
+              lt: new Date(
+                Date.UTC(
+                  date.getUTCFullYear(),
+                  date.getUTCMonth(),
+                  date.getUTCDate() + 1,
+                  0,
+                  0,
+                  0,
+                  0,
+                ),
+              ),
+            },
             opponentTeamId: opponentId,
             tournamentId: tournamentId ?? null,
           },

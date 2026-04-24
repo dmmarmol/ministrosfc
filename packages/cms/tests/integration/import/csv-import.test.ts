@@ -102,6 +102,17 @@ describe("CSV Import (integration)", () => {
     expect(data.games.created).toBe(2);
     expect(data.appearances.created).toBe(2);
     expect(Array.isArray(data.warnings)).toBe(true);
+
+    const { prisma } = await import("../../../src/config/database");
+    const importedGame = await prisma.game.findFirst({
+      where: { opponentTeam: { name: "Rival FC" } },
+      orderBy: { date: "asc" },
+    });
+
+    expect(importedGame).not.toBeNull();
+    expect(importedGame!.date.toISOString()).toContain("T10:00:00.000Z");
+    expect(importedGame!.startTime).toBe("10:00");
+    expect(importedGame!.endTime).toBe("11:30");
   });
 
   it("POST /api/v1/import/csv → idempotent: re-import creates 0 new records", async () => {

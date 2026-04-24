@@ -1,8 +1,10 @@
 import { prisma } from "../../config/database";
 import { CompetitionType, GameStatus } from "@prisma/client";
 import type { CsvImportResultDTO } from "@ministrosfc/shared";
-import { parseCsv, parseDate } from "./helpers";
+import { applyTimeToDate, parseCsv, parseDate } from "./helpers";
 import { HistorialCols } from "./column-maps";
+
+const DEFAULT_GAME_DURATION_MS = 100 * 60 * 1000;
 
 /**
  * Parse historial.csv and upsert Game + Tournament + OpponentTeam records.
@@ -22,16 +24,25 @@ export async function importHistorial(
 
   for (const row of rows) {
     const fechaRaw = row[HistorialCols.fecha]?.trim();
+    const startTimeRaw = row[HistorialCols.comienzo]?.trim() || null;
+    const endTimeRaw = row[HistorialCols.finalizacion]?.trim() || null;
 
     // Skip completely empty rows (e.g. spreadsheet padding rows with no date or rival)
     if (!fechaRaw && !row[HistorialCols.rival]?.trim()) continue;
 
-    const date = parseDate(fechaRaw ?? "");
-    if (!date) {
+    const dateOnly = parseDate(fechaRaw ?? "");
+    if (!dateOnly) {
       warnings.push(`historial: invalid date "${fechaRaw}" — row skipped`);
       result.games.skipped++;
       continue;
     }
+
+    const date = startTimeRaw
+      ? applyTimeToDate(dateOnly, startTimeRaw)
+      : dateOnly;
+    const endDate = endTimeRaw
+      ? applyTimeToDate(dateOnly, endTimeRaw)
+      : new Date(date.getTime() + DEFAULT_GAME_DURATION_MS);
 
     const rivalName = row[HistorialCols.rival]?.trim();
     if (!rivalName) {
@@ -41,7 +52,7 @@ export async function importHistorial(
     }
 
     const tournamentName = row[HistorialCols.torneo]?.trim() || null;
-    const gameYear = date.getUTCFullYear();
+    const gameYear = dateOnly.getUTCFullYear();
 
     // Upsert tournament — matched by (name, year) so editions in different
     // calendar years are kept as separate Tournament records.
@@ -60,16 +71,16 @@ export async function importHistorial(
         tournamentId = existingTournament.id;
         // Extend the tournament's endDate if this game is later than the current one.
         await prisma.tournament.updateMany({
-          where: { id: tournamentId, endDate: { lt: date } },
-          data: { endDate: date },
+          where: { id: tournamentId, endDate: { lt: dateOnly } },
+          data: { endDate: dateOnly },
         });
       } else {
         const newTournament = await prisma.tournament.create({
           data: {
             name: tournamentName,
             competitionType: CompetitionType.LEAGUE,
-            startDate: date,
-            endDate: date,
+            startDate: dateOnly,
+            endDate: dateOnly,
           },
           select: { id: true },
         });
@@ -108,6 +119,7 @@ export async function importHistorial(
 
     const gameData = {
       date,
+      endDate,
       opponentTeamId: opponent.id,
       tournamentId,
       homeTeamScore: isNaN(homeScore ?? NaN) ? null : homeScore,
@@ -116,8 +128,8 @@ export async function importHistorial(
       competitionType: CompetitionType.LEAGUE,
       location: locationRaw,
       playgroundId,
-      startTime: row[HistorialCols.comienzo]?.trim() || null,
-      endTime: row[HistorialCols.finalizacion]?.trim() || null,
+      startTime: startTimeRaw,
+      endTime: endTimeRaw,
       coach: row[HistorialCols.dt]?.trim() || null,
       notes: row[HistorialCols.comentarios]?.trim() || null,
       photoUrl: row[HistorialCols.foto]?.trim() || null,
@@ -125,7 +137,30 @@ export async function importHistorial(
 
     const existing = await prisma.game.findFirst({
       where: {
-        date,
+        date: {
+          gte: new Date(
+            Date.UTC(
+              dateOnly.getUTCFullYear(),
+              dateOnly.getUTCMonth(),
+              dateOnly.getUTCDate(),
+              0,
+              0,
+              0,
+              0,
+            ),
+          ),
+          lt: new Date(
+            Date.UTC(
+              dateOnly.getUTCFullYear(),
+              dateOnly.getUTCMonth(),
+              dateOnly.getUTCDate() + 1,
+              0,
+              0,
+              0,
+              0,
+            ),
+          ),
+        },
         opponentTeamId: opponent.id,
         tournamentId: tournamentId ?? null,
       },
@@ -137,7 +172,7 @@ export async function importHistorial(
       result.games.updated++;
     } else {
       await prisma.game.create({
-        data: { ...gameData, slug: slugUnique, endDate: date, lineup: "4-4-2" },
+        data: { ...gameData, slug: slugUnique, lineup: "4-4-2" },
       });
       result.games.created++;
     }

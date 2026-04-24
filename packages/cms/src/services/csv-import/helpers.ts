@@ -158,6 +158,47 @@ export function parseDate(raw: string): Date | null {
   return null;
 }
 
+/** Parse HH:MM into 24h UTC components. Returns null for blank/invalid. */
+export function parseTime(raw: string): { hours: number; minutes: number } | null {
+  if (!raw || raw.trim() === "") return null;
+
+  const match = raw.trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return null;
+
+  const hours = Number.parseInt(match[1] ?? "", 10);
+  const minutes = Number.parseInt(match[2] ?? "", 10);
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    return null;
+  }
+
+  return { hours, minutes };
+}
+
+/** Return a new UTC datetime by applying HH:MM onto an existing UTC date. */
+export function applyTimeToDate(date: Date, rawTime: string): Date {
+  const parsed = parseTime(rawTime);
+  if (!parsed) return new Date(date.getTime());
+
+  return new Date(
+    Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      parsed.hours,
+      parsed.minutes,
+      0,
+      0,
+    ),
+  );
+}
+
 /** Parse a date of birth string → "YYYY-MM-DD" string, or null. */
 export function parseDOB(raw: string): string | null {
   const d = parseDate(raw);

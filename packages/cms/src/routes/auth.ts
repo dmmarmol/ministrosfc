@@ -44,6 +44,21 @@ const refreshSchema = z.object({
   refreshToken: z.string().min(1),
 });
 
+function getFrontendOrigin(): string {
+  const explicit =
+    process.env.FRONTEND_URL?.trim() ||
+    process.env.NUXT_PUBLIC_APP_URL?.trim();
+  if (explicit) return explicit.replace(/\/$/, "");
+
+  const firstCorsOrigin = (process.env.CORS_ORIGINS ?? "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .find(Boolean);
+  if (firstCorsOrigin) return firstCorsOrigin.replace(/\/$/, "");
+
+  return "http://localhost:5103";
+}
+
 // POST /api/v1/auth/login
 router.post(
   "/login",
@@ -106,8 +121,6 @@ router.post(
   },
 );
 
-const FRONTEND_ORIGIN = process.env.FRONTEND_URL ?? "http://localhost:5103";
-
 // GET /api/v1/auth/google — initiate Google OAuth flow
 router.get("/google", (_req: Request, res: Response) => {
   const state = crypto.randomBytes(32).toString("hex");
@@ -131,6 +144,7 @@ router.get("/google", (_req: Request, res: Response) => {
 
 // GET /api/v1/auth/google/callback — handle Google OAuth callback
 router.get("/google/callback", async (req: Request, res: Response) => {
+  const frontendOrigin = getFrontendOrigin();
   const {
     code,
     state,
@@ -143,13 +157,13 @@ router.get("/google/callback", async (req: Request, res: Response) => {
 
   // User cancelled consent
   if (oauthError === "access_denied") {
-    return res.redirect(`${FRONTEND_ORIGIN}/login?error=google_cancelled`);
+    return res.redirect(`${frontendOrigin}/login?error=google_cancelled`);
   }
 
   // CSRF validation
   const storedState = (req as any).cookies?.google_oauth_state;
   if (!state || !storedState || state !== storedState) {
-    return res.redirect(`${FRONTEND_ORIGIN}/login?error=csrf_mismatch`);
+    return res.redirect(`${frontendOrigin}/login?error=csrf_mismatch`);
   }
 
   // Clear state cookie
@@ -164,7 +178,7 @@ router.get("/google/callback", async (req: Request, res: Response) => {
     });
     const payload = ticket.getPayload();
     if (!payload || !payload.email) {
-      return res.redirect(`${FRONTEND_ORIGIN}/login?error=google_failed`);
+      return res.redirect(`${frontendOrigin}/login?error=google_failed`);
     }
 
     const result = await AuthService.googleAuth({
@@ -175,10 +189,10 @@ router.get("/google/callback", async (req: Request, res: Response) => {
     });
 
     res.redirect(
-      `${FRONTEND_ORIGIN}/auth/google/callback?token=${result.accessToken}&refresh=${result.refreshToken}`,
+      `${frontendOrigin}/auth/google/callback?token=${result.accessToken}&refresh=${result.refreshToken}`,
     );
   } catch {
-    res.redirect(`${FRONTEND_ORIGIN}/login?error=google_failed`);
+    res.redirect(`${frontendOrigin}/login?error=google_failed`);
   }
 });
 
