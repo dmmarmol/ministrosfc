@@ -1,8 +1,19 @@
 import { prisma } from "../../config/database";
 import { ConfirmationStatus, PlayerStatus, PlayerType } from "@prisma/client";
 import type { CsvImportResultDTO } from "@ministrosfc/shared";
+import { logger } from "../../utils/logger";
 import { parseCsv, parseDate, splitName, ensureExternalIds } from "./helpers";
 import { AparicionesCols } from "./column-maps";
+
+export interface AparicionesProgress {
+  processedRows: number;
+  totalRows: number;
+  elapsedMs: number;
+  created: number;
+  updated: number;
+  skipped: number;
+  warnings: number;
+}
 
 /**
  * Parse apariciones.csv and upsert GameParticipant records.
@@ -17,6 +28,7 @@ export async function importApariciones(
   result: CsvImportResultDTO,
   warnings: string[],
   playerNameToId: Map<string, string>,
+  onProgress?: (progress: AparicionesProgress) => void,
 ): Promise<void> {
   // Ensure every row has a stable JugadorID UUID.
   // Also disambiguates the duplicate "Jugador" header (col 5 = full name, col 6 = nickname → JugadorNickname).
@@ -24,8 +36,29 @@ export async function importApariciones(
     { header: "Jugador", occurrenceIndex: 1, newName: "JugadorNickname" },
   ]);
   const rows = parseCsv(normalised);
+  const totalRows = rows.length;
+  const stageStartMs = Date.now();
+  const progressEveryRows = 100;
 
-  for (const row of rows) {
+  const emitProgress = (processedRows: number): void => {
+    const progress: AparicionesProgress = {
+      processedRows,
+      totalRows,
+      elapsedMs: Date.now() - stageStartMs,
+      created: result.appearances.created,
+      updated: result.appearances.updated,
+      skipped: result.appearances.skipped,
+      warnings: warnings.length,
+    };
+
+    logger.info(progress, "CSV import apariciones progress");
+    onProgress?.(progress);
+  };
+
+  emitProgress(0);
+
+  for (let index = 0; index < rows.length; index++) {
+    const row = rows[index];
     const fechaRaw = row[AparicionesCols.fecha]?.trim();
     const date = parseDate(fechaRaw ?? "");
     if (!date) {
@@ -182,6 +215,14 @@ export async function importApariciones(
         },
       });
       result.appearances.created++;
+    }
+
+    const processedRows = index + 1;
+    if (
+      processedRows % progressEveryRows === 0 ||
+      processedRows === totalRows
+    ) {
+      emitProgress(processedRows);
     }
   }
 }

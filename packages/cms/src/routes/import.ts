@@ -7,7 +7,10 @@ import {
 import multer from "multer";
 import { authenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/rbac";
-import { CsvImportService } from "../services/CsvImportService";
+import {
+  CsvImportService,
+  type CsvImportProgress,
+} from "../services/CsvImportService";
 import { getRedisClient } from "../config/redis";
 
 const router = Router();
@@ -16,6 +19,11 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB per file
 });
+
+const CSV_IMPORT_SOFT_TIMEOUT_MS = Number.parseInt(
+  process.env.CSV_IMPORT_SOFT_TIMEOUT_MS ?? "180000",
+  10,
+);
 
 // POST /api/v1/import/csv
 // Admin-only: upload historial, jugadores, apariciones CSV files
@@ -33,6 +41,11 @@ router.post(
     try {
       const startMs = Date.now();
       const userId = (req as any).user?.userId;
+      const softTimeoutMs =
+        Number.isFinite(CSV_IMPORT_SOFT_TIMEOUT_MS) &&
+        CSV_IMPORT_SOFT_TIMEOUT_MS > 0
+          ? CSV_IMPORT_SOFT_TIMEOUT_MS
+          : 180000;
       const files = req.files as
         | Record<string, Express.Multer.File[]>
         | undefined;
@@ -64,13 +77,84 @@ router.post(
         return;
       }
 
-      const result = await CsvImportService.parseAndImport({
+      let latestProgress: CsvImportProgress | null = null;
+
+      const importPromise = CsvImportService.parseAndImport({
         historial: historialFile.buffer,
         jugadores: jugadoresFile.buffer,
         apariciones: aparicionesFile.buffer,
         canchas: canchasFile?.buffer,
         adminUserId: userId,
+        onProgress: (progress) => {
+          latestProgress = progress;
+        },
       });
+
+      const raceResult = await Promise.race<
+        | { type: "done"; result: Awaited<typeof importPromise> }
+        | { type: "timeout" }
+      >([
+        importPromise.then((result) => ({ type: "done", result })),
+        new Promise<{ type: "timeout" }>((resolve) => {
+          setTimeout(() => resolve({ type: "timeout" }), softTimeoutMs);
+        }),
+      ]);
+
+      const flushRedisCache = async () => {
+        try {
+          await getRedisClient().flushall();
+        } catch {
+          // Non-fatal — import succeeded even if cache flush fails
+        }
+      };
+
+      if (raceResult.type === "timeout") {
+        req.log?.warn(
+          {
+            route: "POST /api/v1/import/csv",
+            userId,
+            elapsedMs: Date.now() - startMs,
+            softTimeoutMs,
+            progress: latestProgress,
+          },
+          "CSV import still running after soft timeout",
+        );
+
+        importPromise
+          .then(async (finalResult) => {
+            req.log?.info(
+              {
+                route: "POST /api/v1/import/csv",
+                userId,
+                elapsedMs: Date.now() - startMs,
+                result: finalResult,
+              },
+              "CSV import completed after soft-timeout response",
+            );
+            await flushRedisCache();
+          })
+          .catch((backgroundErr: any) => {
+            req.log?.error(
+              {
+                route: "POST /api/v1/import/csv",
+                message: backgroundErr?.message,
+              },
+              "CSV import failed after soft-timeout response",
+            );
+          });
+
+        res.status(202).json({
+          data: {
+            status: "processing",
+            elapsedMs: Date.now() - startMs,
+            softTimeoutMs,
+            progress: latestProgress,
+          },
+        });
+        return;
+      }
+
+      const result = raceResult.result;
 
       req.log?.info(
         {
@@ -82,12 +166,7 @@ router.post(
         "CSV import completed",
       );
 
-      // Flush Redis so stale cached stats don't survive a re-import
-      try {
-        await getRedisClient().flushall();
-      } catch {
-        // Non-fatal — import succeeded even if cache flush fails
-      }
+      await flushRedisCache();
 
       res.status(200).json({ data: result });
     } catch (err: any) {
