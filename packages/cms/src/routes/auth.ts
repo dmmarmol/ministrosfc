@@ -45,9 +45,13 @@ const refreshSchema = z.object({
 });
 
 function getFrontendOrigin(): string {
-  const explicit =
-    process.env.FRONTEND_URL?.trim() ||
-    process.env.NUXT_PUBLIC_APP_URL?.trim();
+  if (!process.env.FRONTEND_URL) {
+    console.warn(
+      "Warning: FRONTEND_URL not set in environment. Defaulting to http://localhost:5103. " +
+        "Set FRONTEND_URL explicitly to avoid this warning.",
+    );
+  }
+  const explicit = process.env.FRONTEND_URL?.trim();
   if (explicit) return explicit.replace(/\/$/, "");
 
   const firstCorsOrigin = (process.env.CORS_ORIGINS ?? "")

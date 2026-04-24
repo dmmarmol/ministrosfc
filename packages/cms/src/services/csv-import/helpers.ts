@@ -159,7 +159,9 @@ export function parseDate(raw: string): Date | null {
 }
 
 /** Parse HH:MM into 24h UTC components. Returns null for blank/invalid. */
-export function parseTime(raw: string): { hours: number; minutes: number } | null {
+export function parseTime(
+  raw: string,
+): { hours: number; minutes: number } | null {
   if (!raw || raw.trim() === "") return null;
 
   const match = raw.trim().match(/^(\d{1,2}):(\d{2})$/);
