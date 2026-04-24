@@ -7,11 +7,9 @@ import {
 import multer from "multer";
 import { authenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/rbac";
-import {
-  CsvImportService,
-  type CsvImportProgress,
-} from "../services/CsvImportService";
+import { CsvImportService } from "../services/CsvImportService";
 import { getRedisClient } from "../config/redis";
+import { type CsvImportProgress } from "src/services/csv-import/handler";
 
 const router = Router();
 
