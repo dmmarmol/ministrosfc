@@ -69,37 +69,43 @@ export async function importApariciones(
     const rivalName = row[AparicionesCols.rival]?.trim();
     const tournamentName = row[AparicionesCols.torneo]?.trim() || null;
 
-    // Resolve tournament id — must be year-scoped so same-named tournaments in
-    // different calendar years are kept distinct (mirrors import-historial logic).
-    let tournamentId: string | null = null;
-    if (tournamentName) {
-      const gameYear = date.getUTCFullYear();
-      const yearStart = new Date(Date.UTC(gameYear, 0, 1));
-      const yearEnd = new Date(Date.UTC(gameYear, 11, 31));
-      const t = await prisma.tournament.findFirst({
-        where: {
-          name: { equals: tournamentName, mode: "insensitive" },
-          startDate: { gte: yearStart, lte: yearEnd },
-        },
-        select: { id: true },
-      });
-      tournamentId = t?.id ?? null;
-    }
+    // Resolve tournament and opponent in parallel
+    const [tournamentIdResult, opponentIdResult] = await Promise.all([
+      tournamentName
+        ? (async () => {
+            const gameYear = date.getUTCFullYear();
+            const yearStart = new Date(Date.UTC(gameYear, 0, 1));
+            const yearEnd = new Date(Date.UTC(gameYear, 11, 31));
+            const t = await prisma.tournament.findFirst({
+              where: {
+                name: { equals: tournamentName, mode: "insensitive" },
+                startDate: { gte: yearStart, lte: yearEnd },
+              },
+              select: { id: true },
+            });
+            return t?.id ?? null;
+          })()
+        : Promise.resolve(null),
+      rivalName
+        ? (async () => {
+            const opponent = await prisma.opponentTeam.findFirst({
+              where: { name: { equals: rivalName, mode: "insensitive" } },
+              select: { id: true },
+            });
+            return opponent?.id ?? null;
+          })()
+        : Promise.resolve(null),
+    ]);
 
-    // Resolve opponent id
-    const opponent = rivalName
-      ? await prisma.opponentTeam.findFirst({
-          where: { name: { equals: rivalName, mode: "insensitive" } },
-          select: { id: true },
-        })
-      : null;
+    const tournamentId = tournamentIdResult;
+    const opponentId = opponentIdResult;
 
-    // Lookup game
-    const game = opponent
+    // Lookup game — only if we have opponent
+    const game = opponentId
       ? await prisma.game.findFirst({
           where: {
             date,
-            opponentTeamId: opponent.id,
+            opponentTeamId: opponentId,
             tournamentId: tournamentId ?? null,
           },
           select: { id: true },
