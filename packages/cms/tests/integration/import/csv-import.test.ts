@@ -3,7 +3,9 @@
  * Requires: TEST_DATABASE_URL env pointing at a test PostgreSQL database
  */
 import request from "supertest";
+import jwt from "jsonwebtoken";
 import { createApp } from "../../../src/config/server";
+import { authConfig } from "../../../src/config/auth";
 
 jest.mock("../../../src/middleware/rate-limiter", () => ({
   authLimiter: (_req: any, _res: any, next: any) => next(),
@@ -53,16 +55,17 @@ describe("CSV Import (integration)", () => {
 
     // Promote to ADMIN directly via DB
     const { prisma } = await import("../../../src/config/database");
-    await prisma.user.update({
+    const adminUser = await prisma.user.update({
       where: { email },
       data: { role: "ADMIN" },
+      select: { id: true, role: true },
     });
 
-    // Re-login to get ADMIN token
-    const login = await request(app)
-      .post("/api/v1/auth/login")
-      .send({ email, password });
-    adminToken = login.body.data?.accessToken;
+    adminToken = jwt.sign(
+      { userId: adminUser.id, role: adminUser.role },
+      authConfig.jwtSecret,
+      { expiresIn: "24h" },
+    );
   });
 
   it("POST /api/v1/import/csv → 401 without auth", async () => {
@@ -190,12 +193,17 @@ describe("CSV Import – canchas.csv extension (T048)", () => {
     adminToken = reg.body.data?.accessToken;
 
     const { prisma } = await import("../../../src/config/database");
-    await prisma.user.update({ where: { email }, data: { role: "ADMIN" } });
+    const adminUser = await prisma.user.update({
+      where: { email },
+      data: { role: "ADMIN" },
+      select: { id: true, role: true },
+    });
 
-    const login = await request(app)
-      .post("/api/v1/auth/login")
-      .send({ email, password });
-    adminToken = login.body.data?.accessToken;
+    adminToken = jwt.sign(
+      { userId: adminUser.id, role: adminUser.role },
+      authConfig.jwtSecret,
+      { expiresIn: "24h" },
+    );
   });
 
   it("(a) canchas happy path: POST all 4 CSVs → playgrounds.created > 0 and matched games have playgroundId", async () => {
@@ -292,12 +300,17 @@ describe("CSV Import – jugadores.csv column mapping corrections (T055)", () =>
     adminToken = reg.body.data?.accessToken;
 
     const { prisma } = await import("../../../src/config/database");
-    await prisma.user.update({ where: { email }, data: { role: "ADMIN" } });
+    const adminUser = await prisma.user.update({
+      where: { email },
+      data: { role: "ADMIN" },
+      select: { id: true, role: true },
+    });
 
-    const login = await request(app)
-      .post("/api/v1/auth/login")
-      .send({ email, password });
-    adminToken = login.body.data?.accessToken;
+    adminToken = jwt.sign(
+      { userId: adminUser.id, role: adminUser.role },
+      authConfig.jwtSecret,
+      { expiresIn: "24h" },
+    );
   });
 
   it("(a) player import with Nombre column → single player record, correct firstName/lastName split", async () => {

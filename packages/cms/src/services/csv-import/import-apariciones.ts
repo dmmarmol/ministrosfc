@@ -57,8 +57,7 @@ export async function importApariciones(
 
   emitProgress(0);
 
-  for (let index = 0; index < rows.length; index++) {
-    const row = rows[index];
+  for (const [index, row] of rows.entries()) {
     const fechaRaw = row[AparicionesCols.fecha]?.trim();
     const date = parseDate(fechaRaw ?? "");
     if (!date) {
