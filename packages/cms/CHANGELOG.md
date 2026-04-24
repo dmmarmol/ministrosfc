@@ -11,6 +11,23 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.11.0] — 2026-04-24
+
+### Added
+
+- `FRONTEND_URL` documented as an explicit CMS runtime variable for environment-specific auth redirects.
+- Google OAuth integration coverage for frontend-origin fallback behavior.
+
+### Changed
+
+- CSV import date handling now applies kickoff time to persisted `Game.date` values instead of storing midnight-only datetimes.
+- CSV import game matching was aligned around calendar-day lookup so `historial.csv` and `apariciones.csv` remain idempotent even when kickoff times are normalized.
+
+### Fixed
+
+- Google OAuth callback redirect now prefers explicit `FRONTEND_URL`, then falls back to the first configured CORS origin before using localhost.
+- DEV import flows no longer lose match time information during persistence.
+
 ## [0.10.0] — 2026-04-21
 
 ### Added

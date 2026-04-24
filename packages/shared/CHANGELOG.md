@@ -11,6 +11,13 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.11.0] — 2026-04-24
+
+### Changed
+
+- No public API additions were required in this release; package version advanced to keep the shared workspace aligned with the monorepo `0.11.0` release.
+- Shared player/position contracts continue to serve as the source of truth for the CMS import/auth flows and the frontend runtime.
+
 ## [0.10.0] — 2026-04-21
 
 ### Added

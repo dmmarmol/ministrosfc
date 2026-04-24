@@ -13,6 +13,17 @@ For project-level release notes covering all packages, see the root [CHANGELOG.m
 
 ---
 
+## [0.11.0] — 2026-04-24
+
+### Changed
+
+- Production runtime configuration now honors deploy-provided `PORT` / `HOST` and Nitro equivalents while preserving the existing local `NUXT_PORT` / `NUXT_HOST` workflow.
+- Fly.io frontend runtime was normalized around port `3000` for container startup, internal service routing, and health checks.
+
+### Fixed
+
+- Deployed Nuxt instances now boot with the same host/port contract expected by Fly.io, reducing environment-specific startup mismatches between local and hosted runs.
+
 ## [0.10.0] — 2026-04-21
 
 ### Added
