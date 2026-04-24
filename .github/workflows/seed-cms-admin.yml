@@ -2,7 +2,7 @@ name: Seed CMS Admin
 
 on:
   workflow_run:
-    workflows: ["CMS CI/CD"]
+    workflows: ["CMS CI/CD", "Reset CMS Database"]
     types: [completed]
 
   workflow_dispatch:
