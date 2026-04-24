@@ -31,6 +31,8 @@ router.post(
   ]),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const startMs = Date.now();
+      const userId = (req as any).user?.userId;
       const files = req.files as
         | Record<string, Express.Multer.File[]>
         | undefined;
@@ -39,6 +41,20 @@ router.post(
       const jugadoresFile = files?.["jugadores"]?.[0];
       const aparicionesFile = files?.["apariciones"]?.[0];
       const canchasFile = files?.["canchas"]?.[0];
+
+      req.log?.info(
+        {
+          route: "POST /api/v1/import/csv",
+          userId,
+          files: {
+            historialBytes: historialFile?.size ?? 0,
+            jugadoresBytes: jugadoresFile?.size ?? 0,
+            aparicionesBytes: aparicionesFile?.size ?? 0,
+            canchasBytes: canchasFile?.size ?? 0,
+          },
+        },
+        "CSV import request received",
+      );
 
       if (!historialFile || !jugadoresFile || !aparicionesFile) {
         res.status(422).json({
@@ -53,8 +69,18 @@ router.post(
         jugadores: jugadoresFile.buffer,
         apariciones: aparicionesFile.buffer,
         canchas: canchasFile?.buffer,
-        adminUserId: (req as any).user?.userId,
+        adminUserId: userId,
       });
+
+      req.log?.info(
+        {
+          route: "POST /api/v1/import/csv",
+          userId,
+          elapsedMs: Date.now() - startMs,
+          result,
+        },
+        "CSV import completed",
+      );
 
       // Flush Redis so stale cached stats don't survive a re-import
       try {
@@ -69,9 +95,24 @@ router.post(
         err?.code === "CSV_INVALID_CLOSING_QUOTE" ||
         err?.code?.startsWith("CSV_")
       ) {
+        req.log?.warn(
+          {
+            route: "POST /api/v1/import/csv",
+            message: err?.message,
+          },
+          "CSV import rejected due to parse error",
+        );
         res.status(422).json({ error: `CSV parse error: ${err.message}` });
         return;
       }
+
+      req.log?.error(
+        {
+          route: "POST /api/v1/import/csv",
+          message: err?.message,
+        },
+        "CSV import failed with unexpected error",
+      );
       next(err);
     }
   },
