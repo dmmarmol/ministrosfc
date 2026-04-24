@@ -73,13 +73,16 @@ if (machine?.state) {
   fi
 fi
 
-remote_command="sh -lc 'cd /app/packages/cms && npx prisma migrate reset --force --skip-seed'"
+remote_reset_command="sh -lc 'cd /app/packages/cms && npx prisma migrate reset --force --skip-seed'"
+remote_flush_command="sh -lc 'cd /app/packages/cms && node -e \"const { createClient } = require(\\\"redis\\\"); (async () => { const redisUrl = (process.env.REDIS_URL || \\\"\\\").trim(); const client = redisUrl && /^rediss?:\\\\/\\\\//.test(redisUrl) ? createClient({ url: redisUrl }) : createClient({ socket: { host: process.env.REDIS_HOST || \\\"localhost\\\", port: parseInt(process.env.REDIS_PORT || \\\"5101\\\", 10) }, password: process.env.REDIS_PASSWORD || undefined }); client.on(\\\"error\\\", () => {}); await client.connect(); await client.flushAll(); await client.quit(); console.log(\\\"Redis cache flushed after DB reset\\\"); })().catch((error) => { console.warn(\\\"Warning: Redis flush after DB reset failed:\\\", error?.message || error); process.exit(0); });\"'"
 
 if [[ "$dry_run" == "1" ]]; then
   echo "Dry run enabled. Skipping remote DB reset execution."
   echo "Target machine: $machine_id"
-  echo "Remote command: sh -lc 'cd /app/packages/cms && npx prisma migrate reset --force --skip-seed'"
+  echo "Remote reset command: sh -lc 'cd /app/packages/cms && npx prisma migrate reset --force --skip-seed'"
+  echo "Remote redis flush command: sh -lc 'cd /app/packages/cms && node -e \"<redis-flush-script>\"'"
   exit 0
 fi
 
-flyctl ssh console --app "$CMS_APP_NAME" --command "$remote_command"
+flyctl ssh console --app "$CMS_APP_NAME" --command "$remote_reset_command"
+flyctl ssh console --app "$CMS_APP_NAME" --command "$remote_flush_command"
