@@ -28,12 +28,20 @@ const statusFilter = ref<PlayerStatus | typeof PLAYER_STATUS_FILTER_ALL>(
   PLAYER_STATUS_FILTER_ALL,
 );
 const posFilter = ref("");
+type AdminPlayer = Player & {
+  invitedById?: string | null;
+  invitedByName?: string | null;
+};
 
 const { data, pending, refresh } = await useAsyncData(
   "admin-players",
   async () => {
-    return $api<{ data: any[] }>("/api/v1/players", {
-      query: { status: statusFilter.value, limit: 200 },
+    return $api<{ data: AdminPlayer[] }>("/api/v1/players", {
+      query: {
+        status: statusFilter.value,
+        limit: 200,
+        extend: ["invitedById", "invitedByName"],
+      },
     });
   },
 );
@@ -192,20 +200,29 @@ async function confirmDelete() {
       <table v-else class="w-full text-sm">
         <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
           <tr>
+            <th class="px-4 py-3 text-left">#</th>
+            <th class="px-4 py-3 text-left">Posición</th>
+            <th class="px-4 py-3 text-left">Img</th>
             <th class="px-4 py-3 text-left">Jugador</th>
-            <th class="px-4 py-3 text-left hidden sm:table-cell">Posición</th>
-            <th class="px-4 py-3 text-right hidden sm:table-cell">#</th>
+            <th class="px-4 py-3 text-left">Invitado</th>
+            <th class="px-4 py-3 text-center">Dorsal</th>
             <th class="px-4 py-3 text-center">Estado</th>
             <th class="px-4 py-3 text-right">Acciones</th>
           </tr>
         </thead>
         <tbody>
           <tr
-            v-for="p in filteredPlayers"
+            v-for="(p, index) in filteredPlayers"
             :key="p.id"
             class="border-t border-gray-100 hover:bg-gray-50"
           >
-            <td class="px-4 py-3 flex items-center gap-3">
+            <td class="px-4 py-3 w-10 text-gray-400">
+              {{ index + 1 }}
+            </td>
+            <td class="px-4 py-3 w-10 text-gray-600 hidden lg:table-cell">
+              <UiPositionLabel :position="p.position" />
+            </td>
+            <td class="px-4 py-3 w-10 text-gray-600 hidden lg:table-cell">
               <div
                 class="w-8 h-8 rounded-full bg-gray-100 overflow-hidden flex-shrink-0"
               >
@@ -221,63 +238,72 @@ async function confirmDelete() {
                   >👤</span
                 >
               </div>
-              <div class="min-w-0">
-                <span class="font-medium text-gray-900 block truncate"
-                  >{{ p.firstName }} {{ p.lastName }}</span
-                >
-                <div class="flex items-center gap-1 mt-0.5 flex-wrap">
-                  <!-- T040: guest badge -->
-                  <span
-                    v-if="p.playerType === 'GUEST'"
-                    class="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full"
-                    >Invitado</span
-                  >
-                  <!-- T041: deleted inviter warning -->
-                  <span
-                    v-if="
-                      p.playerType === 'GUEST' &&
-                      p.invitedById &&
-                      !p.invitedByName
-                    "
-                    class="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full"
-                    >Invitante eliminado</span
-                  >
-                </div>
+            </td>
+            <td class="px-4">
+              <div class="min-w-0 flex items-center">
+                <p class="truncate">
+                  <NuxtLink
+                    :to="`/admin/players/${p.id}/edit`"
+                    class="font-medium text-brand hover:underline"
+                    >{{ p.firstName }} {{ p.lastName }}</NuxtLink
+                  >{{ " " }}
+                  <span class="italic text-gray-400">{{ p.nickname }}</span>
+                </p>
               </div>
             </td>
-            <td class="px-4 py-3 text-gray-600 hidden sm:table-cell">
-              <UiPositionLabel :position="p.position" />
+            <td>
+              <div class="flex items-center gap-1 mt-0.5 flex-wrap">
+                <!-- T040: guest badge -->
+                <span
+                  v-if="p.playerType === 'GUEST'"
+                  class="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full"
+                  >Invitado</span
+                >
+                <span class="text-gray-600" v-if="p.invitedById">
+                  Invitado por
+                  <a
+                    v-if="p.invitedByName"
+                    :href="`/admin/players/${p.invitedById}/edit`"
+                    class="text-xs text-gray-500 hover:underline"
+                    >{{ p.invitedByName }}</a
+                  >
+                  <template v-else> (invitante eliminado) </template>
+                </span>
+                <!-- T041: deleted inviter warning -->
+                <span
+                  v-if="
+                    p.playerType === 'GUEST' &&
+                    p.invitedById &&
+                    !p.invitedByName
+                  "
+                  class="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full"
+                  >Invitante eliminado</span
+                >
+              </div>
             </td>
-            <td class="px-4 py-3 text-right text-gray-600 hidden sm:table-cell">
-              <UiPositionNumber
-                :jersey-number="p.jerseyNumber"
-                :is-guest="p.playerType === 'GUEST'"
-                :is-jersey="true"
-              />
+            <td class="py-3 hidden lg:table-cell">
+              <div class="w-full lg:flex lg:justify-center">
+                <UiPositionNumber
+                  :jersey-number="p.jerseyNumber ?? null"
+                  :is-guest="p.playerType === 'GUEST'"
+                  :is-jersey="true"
+                />
+              </div>
             </td>
             <td class="px-4 py-3 text-center">
-              <span
+              <button
                 :class="
                   p.status === 'ACTIVE'
                     ? 'bg-green-100 text-green-700'
                     : 'bg-gray-100 text-gray-500'
                 "
-                class="text-xs px-2 py-0.5 rounded-full font-medium"
-                >{{ p.status === "ACTIVE" ? "Activo" : "Inactivo" }}</span
-              >
-            </td>
-            <td class="px-4 py-3 text-right space-x-3">
-              <NuxtLink
-                :to="`/admin/players/${p.id}/edit`"
-                class="text-xs text-brand hover:underline"
-                >Editar</NuxtLink
-              >
-              <button
-                class="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                class="text-xs px-2 py-0.5 rounded-full font-medium cursor-pointer hover:outline-double transition-all"
                 @click="askToggleStatus(p, $event)"
               >
-                {{ p.status === "ACTIVE" ? "Desactivar" : "Activar" }}
+                {{ p.status === "ACTIVE" ? "Activo" : "Inactivo" }}
               </button>
+            </td>
+            <td class="px-4 py-3 text-right space-x-3">
               <button
                 v-if="authStore.isAdmin"
                 data-testid="delete-player-btn"

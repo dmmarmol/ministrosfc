@@ -11,7 +11,7 @@ import { getRedisClient, redisKeys } from "../config/redis";
 import { logger } from "../utils/logger";
 
 const CACHE_TTL_SECONDS = 600; // 10 minutes
-const PLAYER_LIST_CACHE_VERSION = "v3";
+const PLAYER_LIST_CACHE_VERSION = "v4";
 
 export const PlayerService = {
   async createPlayer(
@@ -32,6 +32,7 @@ export const PlayerService = {
         whatsapp?: string;
         emergencyContact?: string;
       };
+      extend?: ("invitedById" | "invitedByName")[];
     },
     photoFile?: UploadedFile,
   ) {

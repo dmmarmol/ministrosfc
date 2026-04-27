@@ -2,7 +2,7 @@
 import { Position, PositionDisplayName } from "@ministrosfc/shared";
 
 type Props = {
-  position: Position | null;
+  position?: Position | null;
 };
 
 const pesPositionClassMap = {

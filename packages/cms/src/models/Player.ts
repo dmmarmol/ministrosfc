@@ -42,6 +42,7 @@ export interface PlayerFilters {
   search?: string;
   page?: number;
   limit?: number;
+  extend?: ("invitedById" | "invitedByName")[];
 }
 
 export const PlayerModel = {
@@ -67,7 +68,9 @@ export const PlayerModel = {
       search,
       page = 1,
       limit = 20,
+      extend = [],
     } = filters;
+    const includeInvitedByName = extend.includes("invitedByName");
     const where: Prisma.PlayerWhereInput = {
       ...(status ? { status } : {}),
       ...(playerType ? { playerType } : {}),
@@ -91,7 +94,10 @@ export const PlayerModel = {
     const [rawPlayers, total] = await Promise.all([
       prisma.player.findMany({
         where,
-        include: { contactInfo: true },
+        include: {
+          contactInfo: true,
+          invitedBy: { select: { firstName: true, lastName: true } },
+        },
         orderBy,
         skip: (page - 1) * limit,
         take: limit,
@@ -100,7 +106,9 @@ export const PlayerModel = {
     ]);
 
     // Sort: status (ACTIVE first) → position group (GK → DEF → MID → FWD) → jerseyNumber → firstName
-    const players = rawPlayers.slice().sort((a, b) => {
+    const players = rawPlayers
+      .slice()
+      .sort((a, b) => {
       const sA = a.status === PlayerStatus.ACTIVE ? 0 : 1;
       const sB = b.status === PlayerStatus.ACTIVE ? 0 : 1;
       if (sA !== sB) return sA - sB;
@@ -111,7 +119,19 @@ export const PlayerModel = {
       const jB = b.jerseyNumber ?? 999;
       if (jA !== jB) return jA - jB;
       return a.firstName.localeCompare(b.firstName);
-    });
+      })
+      .map(({ invitedBy, ...player }) => ({
+        ...player,
+        ...(includeInvitedByName
+          ? {
+              invitedByName: invitedBy
+                ? `${invitedBy.firstName} ${invitedBy.lastName}`.trim()
+                : player.invitedById
+                  ? null
+                  : null,
+            }
+          : {}),
+      }));
 
     return {
       players,

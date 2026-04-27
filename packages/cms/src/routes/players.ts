@@ -5,7 +5,7 @@ import {
   type NextFunction,
 } from "express";
 import multer from "multer";
-import { authenticate } from "../middleware/auth";
+import { authenticate, optionalAuthenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/rbac";
 import {
   validate,
@@ -68,6 +68,14 @@ const playerStatusSchema = z.object({
   status: z.enum(PlayerStatus),
 });
 
+const playerExtendSchema = z.preprocess(
+  (value) => {
+    if (value === undefined) return [];
+    return Array.isArray(value) ? value : [value];
+  },
+  z.array(z.enum(["invitedById", "invitedByName"])).default([]),
+);
+
 const playerFilterSchema = paginationSchema.extend({
   status: z
     .union([z.enum(PlayerStatus), z.literal(PLAYER_STATUS_FILTER_ALL)])
@@ -75,13 +83,42 @@ const playerFilterSchema = paginationSchema.extend({
   position: z.string().optional(),
   search: z.string().optional(),
   playerType: z.enum(PlayerType).optional(),
+  extend: playerExtendSchema,
 });
 
 // GET /api/v1/players - Public
-router.get("/", async (req: Request, res: Response, next: NextFunction) => {
+router.get(
+  "/",
+  optionalAuthenticate,
+  async (req: Request, res: Response, next: NextFunction) => {
   try {
     const query = playerFilterSchema.parse(req.query);
-    const { status, position, search, playerType } = query;
+    const { status, position, search, playerType, extend } = query;
+    const hasExtend = extend.length > 0;
+
+    if (hasExtend && !req.user) {
+      res.status(401).json({
+        code: "UNAUTHORIZED",
+        message: "Authentication required when using extend",
+        statusCode: 401,
+      });
+      return;
+    }
+
+    if (
+      hasExtend &&
+      req.user &&
+      req.user.role !== "ADMIN" &&
+      req.user.role !== "EDITOR"
+    ) {
+      res.status(403).json({
+        code: "FORBIDDEN",
+        message: "Insufficient permissions to use extend",
+        statusCode: 403,
+      });
+      return;
+    }
+
     const effectiveStatus =
       status === PLAYER_STATUS_FILTER_ALL
         ? null
@@ -94,9 +131,13 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
       playerType,
       page: query.page,
       limit: query.limit,
+      extend,
     });
 
-    res.setHeader("Cache-Control", "public, max-age=300");
+    res.setHeader(
+      "Cache-Control",
+      hasExtend ? "private, no-store" : "public, max-age=300",
+    );
     res.json({
       data: result.players,
       meta: {
@@ -109,7 +150,8 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   } catch (err) {
     next(err);
   }
-});
+  },
+);
 
 // GET /api/v1/players/:id - Public
 router.get(
