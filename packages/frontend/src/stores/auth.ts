@@ -73,20 +73,19 @@ export const useAuthStore = defineStore("auth", {
     }) {
       const config = useRuntimeConfig();
       const data = await $fetch<{
-        data: { accessToken: string; refreshToken: string; user: UserInfo };
+        data: { status: "pending"; message: string; userId: string };
       }>(`${config.public.apiBaseUrl}/api/v1/auth/register`, {
         method: "POST",
         body: dto,
       });
-      this.accessToken = data.data.accessToken;
-      this.refreshToken = data.data.refreshToken;
-      this.user = data.data.user;
-      if (useRuntime().isClient) {
-        sessionStorage.setItem("accessToken", data.data.accessToken);
-        sessionStorage.setItem("refreshToken", data.data.refreshToken);
-        sessionStorage.setItem("user", JSON.stringify(data.data.user));
-      }
+
+      // Register no longer authenticates the user automatically.
+      this.user = null;
+      this.accessToken = null;
+      this.refreshToken = null;
       this.hydrated = true;
+
+      return data.data;
     },
 
     async logout() {
