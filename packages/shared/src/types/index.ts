@@ -8,6 +8,8 @@ export * from "./statistics";
 export * from "./api";
 export * from "./playground";
 export * from "./address";
+export * from "./notification";
+export * from "./approval";
 // Admin Users Governance DTOs (explicit re-export for clarity)
 export type {
   AdminUserListItem,
