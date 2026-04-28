@@ -6,6 +6,7 @@ definePageMeta({
   middleware: "auth",
   requiresAuth: true,
   requiresRole: "editor",
+  pageTitle: "Dashboard",
 });
 useHead({ title: "Dashboard – Admin" });
 

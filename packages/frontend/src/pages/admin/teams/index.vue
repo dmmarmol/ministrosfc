@@ -7,6 +7,7 @@ definePageMeta({
   middleware: "auth",
   requiresAuth: true,
   requiresRole: "editor",
+  pageTitle: "Equipos",
 });
 useHead({ title: "Teams – Admin" });
 

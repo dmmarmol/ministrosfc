@@ -9,6 +9,7 @@ definePageMeta({
   middleware: "auth",
   requiresAuth: true,
   requiresRole: "editor",
+  pageTitle: "Crear Partido",
 });
 useHead({ title: "Schedule Game – Admin" });
 

@@ -8,6 +8,7 @@ definePageMeta({
   middleware: "auth",
   requiresAuth: true,
   requiresRole: "editor",
+  pageTitle: "Editar Partido",
 });
 
 const { $api } = useNuxtApp();

@@ -9,6 +9,7 @@ definePageMeta({
   middleware: "auth",
   requiresAuth: true,
   requiresRole: "editor",
+  pageTitle: "Editar Cancha",
 });
 
 const router = useRouter();

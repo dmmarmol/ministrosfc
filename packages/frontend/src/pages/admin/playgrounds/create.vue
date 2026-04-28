@@ -9,6 +9,7 @@ definePageMeta({
   middleware: "auth",
   requiresAuth: true,
   requiresRole: "editor",
+  pageTitle: "Crear Cancha",
 });
 useHead({ title: "Nueva Cancha – Admin" });
 

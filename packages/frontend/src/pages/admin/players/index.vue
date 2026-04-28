@@ -10,6 +10,7 @@ definePageMeta({
   middleware: "auth",
   requiresAuth: true,
   requiresRole: "editor",
+  pageTitle: "Jugadores",
 });
 useHead({ title: "Players – Admin" });
 
@@ -28,10 +29,12 @@ const statusFilter = ref<PlayerStatus | typeof PLAYER_STATUS_FILTER_ALL>(
   PLAYER_STATUS_FILTER_ALL,
 );
 const posFilter = ref("");
-type AdminPlayer = Player & {
+
+type ExtendPlayerAttributes = {
   invitedById?: string | null;
   invitedByName?: string | null;
 };
+type AdminPlayer = Player & ExtendPlayerAttributes;
 
 const { data, pending, refresh } = await useAsyncData(
   "admin-players",
@@ -40,7 +43,10 @@ const { data, pending, refresh } = await useAsyncData(
       query: {
         status: statusFilter.value,
         limit: 200,
-        extend: ["invitedById", "invitedByName"],
+        extend: [
+          "invitedById",
+          "invitedByName",
+        ] as (keyof ExtendPlayerAttributes)[],
       },
     });
   },
@@ -292,12 +298,12 @@ async function confirmDelete() {
             </td>
             <td class="px-4 py-3 text-center">
               <button
-                :class="
+                :class="[
+                  'text-xs px-2 py-0.5 rounded-full font-medium cursor-pointer transition-colors',
                   p.status === 'ACTIVE'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-gray-100 text-gray-500'
-                "
-                class="text-xs px-2 py-0.5 rounded-full font-medium cursor-pointer hover:outline-double transition-all"
+                    ? 'bg-green-100 hover:bg-green-200 text-green-700'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-500',
+                ]"
                 @click="askToggleStatus(p, $event)"
               >
                 {{ p.status === "ACTIVE" ? "Activo" : "Inactivo" }}

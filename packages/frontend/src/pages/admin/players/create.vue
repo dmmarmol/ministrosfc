@@ -4,6 +4,7 @@ definePageMeta({
   middleware: "auth",
   requiresAuth: true,
   requiresRole: "editor",
+  pageTitle: "Crear Jugador",
 });
 useHead({ title: "Add Player – Admin" });
 

@@ -7,6 +7,7 @@ definePageMeta({
   middleware: "auth",
   requiresAuth: true,
   requiresRole: "editor",
+  pageTitle: "Torneos",
 });
 useHead({ title: "Tournaments – Admin" });
 
