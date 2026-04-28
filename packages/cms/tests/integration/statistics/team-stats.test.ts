@@ -4,6 +4,7 @@
  */
 import request from "supertest";
 import { createApp } from "../../../src/config/server";
+import { prisma } from "../../../src/config/database";
 
 jest.mock("../../../src/middleware/rate-limiter", () => ({
   authLimiter: (_req: any, _res: any, next: any) => next(),
@@ -26,7 +27,14 @@ describe("Team Statistics (integration)", () => {
       firstName: "Stats",
       lastName: "User",
     });
-    userToken = reg.body.data?.accessToken;
+    await prisma.user.update({
+      where: { email },
+      data: { registrationStatus: "APPROVED" },
+    });
+    const loginRes = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email, password });
+    userToken = loginRes.body.data?.accessToken;
   });
 
   describe("Authentication guard", () => {

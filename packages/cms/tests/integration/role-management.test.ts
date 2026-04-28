@@ -28,9 +28,13 @@ async function registerAndLogin(
     firstName: "Test",
     lastName: role,
   });
-  if (role !== "PLAYER") {
-    await prisma.user.update({ where: { email }, data: { role } });
-  }
+  await prisma.user.update({
+    where: { email },
+    data: {
+      registrationStatus: "APPROVED",
+      ...(role !== "PLAYER" ? { role } : {}),
+    },
+  });
   const user = await prisma.user.findUnique({ where: { email } });
   if (createPlayer) {
     await prisma.player.create({

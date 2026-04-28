@@ -45,7 +45,7 @@ describe("RBAC (integration)", () => {
     });
     await prisma.user.update({
       where: { email: adminEmail },
-      data: { role: "ADMIN" },
+      data: { role: "ADMIN", registrationStatus: "APPROVED" },
     });
     const la = await request(app)
       .post("/api/v1/auth/login")
@@ -62,7 +62,7 @@ describe("RBAC (integration)", () => {
     });
     await prisma.user.update({
       where: { email: editorEmail },
-      data: { role: "EDITOR" },
+      data: { role: "EDITOR", registrationStatus: "APPROVED" },
     });
     const le = await request(app)
       .post("/api/v1/auth/login")
@@ -79,7 +79,7 @@ describe("RBAC (integration)", () => {
     });
     await prisma.user.update({
       where: { email: dtEmail },
-      data: { role: "DT" },
+      data: { role: "DT", registrationStatus: "APPROVED" },
     });
     const ldt = await request(app)
       .post("/api/v1/auth/login")
@@ -87,13 +87,20 @@ describe("RBAC (integration)", () => {
     dtToken = ldt.body.data.accessToken;
 
     // Player
-    const lp = await request(app).post("/api/v1/auth/register").send({
+    await request(app).post("/api/v1/auth/register").send({
       email: playerEmail,
       password: "Player!Rbac99",
       passwordConfirmation: "Player!Rbac99",
       firstName: "Player",
       lastName: "RBAC",
     });
+    await prisma.user.update({
+      where: { email: playerEmail },
+      data: { registrationStatus: "APPROVED" },
+    });
+    const lp = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: playerEmail, password: "Player!Rbac99" });
     playerToken = lp.body.data.accessToken;
 
     // Opponent team (for game creation)

@@ -34,7 +34,7 @@ describe("Game CRUD (integration)", () => {
     });
     await prisma.user.update({
       where: { email: adminEmail },
-      data: { role: "ADMIN" },
+      data: { role: "ADMIN", registrationStatus: "APPROVED" },
     });
     const loginAdmin = await request(app)
       .post("/api/v1/auth/login")
@@ -51,7 +51,7 @@ describe("Game CRUD (integration)", () => {
     });
     await prisma.user.update({
       where: { email: editorEmail },
-      data: { role: "EDITOR" },
+      data: { role: "EDITOR", registrationStatus: "APPROVED" },
     });
     const loginEditor = await request(app)
       .post("/api/v1/auth/login")

@@ -40,11 +40,11 @@ describe("Player CRUD (integration)", () => {
       firstName: "Admin",
       lastName: "Player Test",
     });
-    expect(reg.status).toBe(201);
+    expect(reg.status).toBe(202);
 
     await prisma.user.update({
       where: { email: adminEmail },
-      data: { role: "ADMIN" },
+      data: { role: "ADMIN", registrationStatus: "APPROVED" },
     });
 
     const loginAdmin = await request(app)
@@ -60,11 +60,11 @@ describe("Player CRUD (integration)", () => {
       firstName: "Editor",
       lastName: "Player Test",
     });
-    expect(regEditor.status).toBe(201);
+    expect(regEditor.status).toBe(202);
 
     await prisma.user.update({
       where: { email: editorEmail },
-      data: { role: "EDITOR" },
+      data: { role: "EDITOR", registrationStatus: "APPROVED" },
     });
 
     const loginEditor = await request(app)
@@ -79,11 +79,11 @@ describe("Player CRUD (integration)", () => {
       firstName: "DT",
       lastName: "Player Test",
     });
-    expect(regDt.status).toBe(201);
+    expect(regDt.status).toBe(202);
 
     await prisma.user.update({
       where: { email: dtEmail },
-      data: { role: "DT" },
+      data: { role: "DT", registrationStatus: "APPROVED" },
     });
 
     const loginDt = await request(app)
@@ -158,7 +158,9 @@ describe("Player CRUD (integration)", () => {
     expect(res.status).toBe(200);
     expect(res.headers["cache-control"]).toBe("private, no-store");
 
-    const guest = res.body.data.find((p: any) => p.id === guestRes.body.data.id);
+    const guest = res.body.data.find(
+      (p: any) => p.id === guestRes.body.data.id,
+    );
     expect(guest).toBeTruthy();
     expect(guest.invitedById).toBe(inviterRes.body.data.id);
     expect(guest.invitedByName).toBe("Carlos Invitador");
