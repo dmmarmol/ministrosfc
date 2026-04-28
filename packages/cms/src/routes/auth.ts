@@ -88,7 +88,7 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await AuthService.register(req.body);
-      res.status(201).json({ data: result });
+      res.status(202).json({ data: result });
     } catch (err) {
       next(err);
     }

@@ -45,6 +45,12 @@ export interface PlayerFilters {
   extend?: ("invitedById" | "invitedByName")[];
 }
 
+export interface OrphanPlayerFilters {
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
 export const PlayerModel = {
   async create(data: Prisma.PlayerCreateInput) {
     return prisma.player.create({ data, include: { contactInfo: true } });
@@ -109,16 +115,16 @@ export const PlayerModel = {
     const players = rawPlayers
       .slice()
       .sort((a, b) => {
-      const sA = a.status === PlayerStatus.ACTIVE ? 0 : 1;
-      const sB = b.status === PlayerStatus.ACTIVE ? 0 : 1;
-      if (sA !== sB) return sA - sB;
-      const pA = posGroupRank(a.position);
-      const pB = posGroupRank(b.position);
-      if (pA !== pB) return pA - pB;
-      const jA = a.jerseyNumber ?? 999;
-      const jB = b.jerseyNumber ?? 999;
-      if (jA !== jB) return jA - jB;
-      return a.firstName.localeCompare(b.firstName);
+        const sA = a.status === PlayerStatus.ACTIVE ? 0 : 1;
+        const sB = b.status === PlayerStatus.ACTIVE ? 0 : 1;
+        if (sA !== sB) return sA - sB;
+        const pA = posGroupRank(a.position);
+        const pB = posGroupRank(b.position);
+        if (pA !== pB) return pA - pB;
+        const jA = a.jerseyNumber ?? 999;
+        const jB = b.jerseyNumber ?? 999;
+        if (jA !== jB) return jA - jB;
+        return a.firstName.localeCompare(b.firstName);
       })
       .map(({ invitedBy, ...player }) => ({
         ...player,
@@ -181,5 +187,42 @@ export const PlayerModel = {
 
   async deleteById(id: string): Promise<void> {
     await prisma.player.delete({ where: { id } });
+  },
+
+  async findOrphans(filters: OrphanPlayerFilters = {}) {
+    const page = Math.max(filters.page ?? 1, 1);
+    const limit = Math.min(Math.max(filters.limit ?? 20, 1), 100);
+    const skip = (page - 1) * limit;
+    const search = filters.search?.trim();
+
+    const where: Prisma.PlayerWhereInput = {
+      user: null,
+      ...(search
+        ? {
+            OR: [
+              { firstName: { contains: search, mode: "insensitive" } },
+              { lastName: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    };
+
+    const [players, total] = await Promise.all([
+      prisma.player.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+      }),
+      prisma.player.count({ where }),
+    ]);
+
+    return {
+      players,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   },
 };

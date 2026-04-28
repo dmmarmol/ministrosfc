@@ -91,6 +91,14 @@ const AuthService = {
         ErrorCode.INVALID_CREDENTIALS,
       );
 
+    if (user.registrationStatus === "PENDING_APPROVAL") {
+      throw createError(
+        "Tu cuenta está pendiente de aprobación",
+        403,
+        ErrorCode.PENDING_APPROVAL,
+      );
+    }
+
     const { accessToken, refreshToken } = AuthService.generateTokens({
       userId: user.id,
       role: user.role,
@@ -142,29 +150,13 @@ const AuthService = {
       firstName: dto.firstName,
       lastName: dto.lastName,
       role: "PLAYER",
+      registrationStatus: "PENDING_APPROVAL",
     });
-
-    const { accessToken, refreshToken } = AuthService.generateTokens({
-      userId: user.id,
-      role: user.role,
-    });
-
-    await runWithRedisRetry((redis) =>
-      redis.setex(`${REFRESH_TOKEN_PREFIX}${refreshToken}`, 2592000, user.id),
-    );
 
     return {
-      accessToken,
-      refreshToken,
-      user: {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        onboardingCompletedAt: user.onboardingCompletedAt ?? null,
-      },
-      nextStep: "/auth/onboarding",
+      status: "pending" as const,
+      message: "Tu cuenta está pendiente de aprobación",
+      userId: user.id,
     };
   },
 

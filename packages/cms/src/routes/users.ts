@@ -8,11 +8,41 @@ import { z } from "zod";
 import { authenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/rbac";
 import { UserService } from "../services/UserService";
+import { UserApprovalService } from "../services/UserApprovalService";
 import { Role } from "@prisma/client";
 
 const router = Router();
 
 const VALID_ROLES = Object.values(Role);
+
+const pendingApprovalsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  search: z.string().trim().optional(),
+});
+
+const reviewActionSchema = z.object({
+  expectedUpdatedAt: z.string().datetime().optional(),
+});
+
+const approveMergeSchema = reviewActionSchema.extend({
+  mergePlayerId: z.string().uuid(),
+});
+
+const denySchema = reviewActionSchema.extend({
+  reason: z.string().min(1),
+});
+
+const orphanPlayersQuerySchema = z.object({
+  search: z.string().trim().optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+});
+
+const postApprovalMergeSchema = z.object({
+  mergePlayerId: z.string().uuid(),
+  expectedUpdatedAt: z.string().datetime().optional(),
+});
 
 // GET /api/v1/admin/users — paginated list (EDITOR+)
 router.get(
@@ -120,6 +150,216 @@ router.delete(
     try {
       await UserService.deletePlayer(req.params.id!);
       res.status(204).end();
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.get(
+  "/pending-approvals",
+  authenticate,
+  requireRole("EDITOR"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parsed = pendingApprovalsQuerySchema.safeParse(req.query);
+      if (!parsed.success) {
+        res.status(400).json({
+          code: "VALIDATION_ERROR",
+          message: parsed.error.issues.map((i) => i.message).join(", "),
+          statusCode: 400,
+        });
+        return;
+      }
+
+      const result = await UserApprovalService.getPendingApprovals(parsed.data);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.get(
+  "/orphan-players",
+  authenticate,
+  requireRole("EDITOR"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parsed = orphanPlayersQuerySchema.safeParse(req.query);
+      if (!parsed.success) {
+        res.status(400).json({
+          code: "VALIDATION_ERROR",
+          message: parsed.error.issues.map((i) => i.message).join(", "),
+          statusCode: 400,
+        });
+        return;
+      }
+
+      const result = await UserApprovalService.listOrphanPlayersGlobal(
+        parsed.data,
+      );
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.get(
+  "/pending-approvals/:userId/orphan-players",
+  authenticate,
+  requireRole("EDITOR"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parsed = orphanPlayersQuerySchema.safeParse(req.query);
+      if (!parsed.success) {
+        res.status(400).json({
+          code: "VALIDATION_ERROR",
+          message: parsed.error.issues.map((i) => i.message).join(", "),
+          statusCode: 400,
+        });
+        return;
+      }
+
+      const result = await UserApprovalService.listOrphanPlayers(
+        req.params.userId!,
+        parsed.data,
+      );
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.post(
+  "/pending-approvals/:userId/approve",
+  authenticate,
+  requireRole("EDITOR"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parsed = reviewActionSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({
+          code: "VALIDATION_ERROR",
+          message: parsed.error.issues.map((i) => i.message).join(", "),
+          statusCode: 400,
+        });
+        return;
+      }
+
+      const data = await UserApprovalService.approveWithoutMerge(
+        req.params.userId!,
+        req.user!.userId,
+        parsed.data.expectedUpdatedAt,
+      );
+
+      res.json({ data });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.post(
+  "/pending-approvals/:userId/approve-merge",
+  authenticate,
+  requireRole("EDITOR"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parsed = approveMergeSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({
+          code: "VALIDATION_ERROR",
+          message: parsed.error.issues.map((i) => i.message).join(", "),
+          statusCode: 400,
+        });
+        return;
+      }
+
+      const data = await UserApprovalService.approveWithMerge(
+        req.params.userId!,
+        parsed.data.mergePlayerId,
+        req.user!.userId,
+        parsed.data.expectedUpdatedAt,
+      );
+
+      res.json({ data });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.post(
+  "/pending-approvals/:userId/deny",
+  authenticate,
+  requireRole("EDITOR"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parsed = denySchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({
+          code: "VALIDATION_ERROR",
+          message: parsed.error.issues.map((i) => i.message).join(", "),
+          statusCode: 400,
+        });
+        return;
+      }
+
+      await UserApprovalService.deny(
+        req.params.userId!,
+        req.user!.userId,
+        parsed.data.reason,
+        parsed.data.expectedUpdatedAt,
+      );
+
+      res.status(204).end();
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.post(
+  "/:userId/merge-player",
+  authenticate,
+  requireRole("EDITOR"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parsed = postApprovalMergeSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({
+          code: "VALIDATION_ERROR",
+          message: parsed.error.issues.map((i) => i.message).join(", "),
+          statusCode: 400,
+        });
+        return;
+      }
+
+      const data = await UserApprovalService.mergeApprovedUser(
+        req.params.userId!,
+        parsed.data.mergePlayerId,
+        req.user!.userId,
+        parsed.data.expectedUpdatedAt,
+      );
+
+      res.json({ data });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.get(
+  "/:id",
+  authenticate,
+  requireRole("EDITOR"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = await UserService.getUserById(req.params.id!);
+      res.json({ data: user });
     } catch (err) {
       next(err);
     }

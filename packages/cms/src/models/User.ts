@@ -16,7 +16,7 @@
  */
 import { prisma } from "../config/database";
 import bcrypt from "bcryptjs";
-import type { User, Prisma, Role } from "@prisma/client";
+import type { User, Prisma, Role, RegistrationStatus } from "@prisma/client";
 
 const UserModel = {
   async create(data: {
@@ -26,6 +26,7 @@ const UserModel = {
     lastName: string;
     role?: Role;
     googleSubjectId?: string;
+    registrationStatus?: RegistrationStatus;
   }): Promise<User> {
     const passwordHash = data.password
       ? await bcrypt.hash(data.password, 12)
@@ -38,8 +39,53 @@ const UserModel = {
         lastName: data.lastName,
         role: data.role ?? "PLAYER",
         googleSubjectId: data.googleSubjectId ?? null,
+        registrationStatus: data.registrationStatus ?? "PENDING_APPROVAL",
       },
     });
+  },
+
+  async findPendingApprovals(
+    options: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    } = {},
+  ) {
+    const page = Math.max(options.page ?? 1, 1);
+    const limit = Math.min(Math.max(options.limit ?? 20, 1), 100);
+    const skip = (page - 1) * limit;
+    const search = options.search?.trim();
+
+    const where: Prisma.UserWhereInput = {
+      registrationStatus: "PENDING_APPROVAL",
+      ...(search
+        ? {
+            OR: [
+              { firstName: { contains: search, mode: "insensitive" } },
+              { lastName: { contains: search, mode: "insensitive" } },
+              { email: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    };
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "asc" },
+      }),
+      prisma.user.count({ where }),
+    ]);
+
+    return {
+      users,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   },
 
   async findByEmail(email: string): Promise<User | null> {
