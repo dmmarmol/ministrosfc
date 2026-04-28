@@ -192,6 +192,7 @@ const UserService = {
           firstName: true,
           lastName: true,
           role: true,
+          registrationStatus: true,
           createdAt: true,
           lastLoginAt: true,
           player: {

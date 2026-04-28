@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import ConfirmationModal from "../ui/ConfirmationModal.vue";
+import RegistrationStatusBadge from "./RegistrationStatusBadge.vue";
 import { useAuthStore } from "~/stores/auth";
 
 import type { AdminUserListItem } from "@ministrosfc/shared/src/types/api";
@@ -352,6 +353,7 @@ onMounted(fetchUsers);
           <tr>
             <th class="px-4 py-3 text-left">Usuario</th>
             <th class="px-4 py-3 text-left">Rol</th>
+            <th class="px-4 py-3 text-left">Activación</th>
             <th class="px-4 py-3 text-left">Estado jugador</th>
             <th class="px-4 py-3 text-right">Acciones</th>
           </tr>
@@ -402,6 +404,9 @@ onMounted(fetchUsers);
               >
                 {{ user.role }}
               </span>
+            </td>
+            <td class="px-4 py-3">
+              <RegistrationStatusBadge :status="user.registrationStatus" />
             </td>
             <td class="px-4 py-3">
               <span

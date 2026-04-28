@@ -31,15 +31,20 @@ const UserModel = {
     const passwordHash = data.password
       ? await bcrypt.hash(data.password, 12)
       : null;
+    const role = data.role ?? "PLAYER";
+    const registrationStatus =
+      data.registrationStatus ??
+      (role === "ADMIN" ? "APPROVED" : "PENDING_APPROVAL");
+
     return prisma.user.create({
       data: {
         email: data.email,
         passwordHash,
         firstName: data.firstName,
         lastName: data.lastName,
-        role: data.role ?? "PLAYER",
+        role,
         googleSubjectId: data.googleSubjectId ?? null,
-        registrationStatus: data.registrationStatus ?? "PENDING_APPROVAL",
+        registrationStatus,
       },
     });
   },

@@ -6,6 +6,7 @@ export interface AdminUserListItem {
   firstName: string;
   lastName: string;
   role: UserRole;
+  registrationStatus: RegistrationStatus;
   createdAt: string;
   lastLoginAt: string | null;
   player: {
@@ -46,6 +47,7 @@ export interface AdminUserDeleteResponse {
 import { PlayerStatus, PlayerType, Position } from "./player";
 import { UserRole } from "./user";
 
+import { RegistrationStatus, UserRole } from "./user";
 export interface PlayerProfileResponse {
   user: {
     id: string;
