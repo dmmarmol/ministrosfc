@@ -9,10 +9,7 @@ const noPadding = computed(
 );
 
 const pageTitle = computed(() => {
-  const segments = route.path.split("/").filter(Boolean);
-  const last = segments[segments.length - 1];
-  if (!last || last === "admin") return "Dashboard";
-  return last.charAt(0).toUpperCase() + last.slice(1);
+  return (route.meta.pageTitle as string) || "Dashboard";
 });
 </script>
 
@@ -97,9 +94,18 @@ const pageTitle = computed(() => {
         class="bg-white shadow-sm px-6 py-4 flex items-center justify-between"
       >
         <h1 class="text-lg font-semibold text-gray-800">{{ pageTitle }}</h1>
-        <span class="text-sm text-gray-500 capitalize">{{
-          authStore.user?.role?.toLowerCase()
-        }}</span>
+        <div class="flex flex-col text-right">
+          <p class="text-sm text-gray-800">
+            Bienvenido,
+            <span
+              >{{ authStore.user?.firstName }}
+              {{ authStore.user?.lastName }}</span
+            >
+          </p>
+          <p class="text-[12px] text-gray-500 capitalize">
+            <strong>Rol:</strong> {{ authStore.user?.role?.toLowerCase() }}
+          </p>
+        </div>
       </header>
       <main class="flex-1 overflow-y-auto" :class="noPadding ? '' : 'p-6'">
         <slot />
