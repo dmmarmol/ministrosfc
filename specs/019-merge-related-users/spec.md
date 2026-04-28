@@ -36,7 +36,7 @@ As an Admin or Editor, I can approve or deny pending sign-ups and, before approv
 1. **Given** a pending user exists, **When** a reviewer opens the request, **Then** the system shows suggested related players ordered by match confidence.
 2. **Given** suggested related players are shown, **When** a reviewer selects one, **Then** the reviewer can approve and merge in a single confirmed action.
 3. **Given** no suitable related player exists, **When** a reviewer approves without merge, **Then** approval still succeeds and user activation is completed as a standalone identity. The reviewer can later link the user to a player from the user edition screen at `/admin/users/{userId}`.
-4. **Given** a pending user should not be admitted, **When** a reviewer denies the request, **Then** denial reason is recorded, the user account is permanently erased from the system, and the person may only re-enter the system by completing sign-up again.
+4. **Given** a pending user should not be admitted, **When** a reviewer denies the request, **Then** a denial reason is required in the confirmation flow, the user account is permanently erased from the system, and rejected-application data is not retained. The person may only re-enter the system by completing sign-up again.
 
 ---
 
@@ -88,16 +88,16 @@ As a developer, I need a notification service interface contract so approval/den
 
 - **FR-001**: System MUST create new sign-ups in a `PENDING_APPROVAL` state by default.
 - **FR-002**: System MUST prevent pending users from accessing approved-user functionality until a reviewer decision is made.
-- **FR-003**: System MUST provide Admin and Editor roles with a review queue of pending user requests. Each entry in the queue MUST display: full name, email address, submission date, and the top match suggestions for that user.
+- **FR-003**: System MUST provide Admin and Editor roles with a review queue of pending user requests. Each entry in the queue MUST display: full name, email address, submission date, and up to the top 5 match suggestions for that user.
 - **FR-004**: System MUST allow Admin and Editor reviewers to approve or deny pending requests.
-- **FR-005**: System MUST present a curated list of related existing players during pending-user review. Matching MUST rank candidates by: (1) `firstName` + `lastName` similarity first, then (2) `email` match if available. The list MUST include ONLY players not currently linked to any user account (orphan players). Reviewers MUST also be able to manually search the full orphan-player directory to find a merge target that was not surfaced automatically.
+- **FR-005**: System MUST present a curated list of related existing players during pending-user review. Matching MUST rank candidates by: (1) `firstName` + `lastName` similarity first, then (2) `email` match if available. The curated suggestion list MUST include ONLY players not currently linked to any user account (orphan players) and MUST include only candidates with `matchScore >= 0.30`. Reviewers MUST also be able to manually search the full orphan-player directory to find a merge target that was not surfaced automatically.
 - **FR-006**: System MUST allow reviewers to approve with merge, approve without merge, or deny the request.
-- **FR-007**: System MUST require an explicit reviewer confirmation before executing a merge action.
+- **FR-007**: System MUST require an explicit reviewer confirmation before executing a merge action, using a dedicated confirmation modal that clearly states the selected merge target and consequence.
 - **FR-008**: When merge is approved, system MUST produce one resulting active user-player identity and avoid duplicate active identities for the same person.
 - **FR-009**: During merge, user account fields `firstName`, `lastName`, `email`, and `password` from the pending user MUST prevail over corresponding values in the pre-existing player-linked identity.
 - **FR-010**: During merge, player-domain data from the pre-existing player record MUST be preserved and attached to the resulting approved identity.
-- **FR-011**: System MUST keep an auditable record of reviewer decision, decision type (approve/deny/approve+merge), reviewer identity, and timestamp.
-- **FR-012**: Denial decisions MUST store a reviewer-provided reason, then permanently erase the user account from the system. A denied person may reapply only by completing a new sign-up.
+- **FR-011**: System MUST keep an auditable record of approval decisions (approve/approve+merge), reviewer identity, and timestamp. Post-approval merge actions from `/admin/users/{userId}` MUST also be audited with `approvedBy` and `approvedAt`.
+- **FR-012**: Denial decisions MUST require a reviewer-provided reason in the denial request, then permanently erase the user account from the system without retaining rejected-application data. A denied person may reapply only by completing a new sign-up.
 - **FR-017**: System MUST reject any approve/deny submission if a decision has already been recorded for the same pending request (optimistic lock). The concurrent reviewer MUST receive an explicit conflict error.
 - **FR-018**: System MUST expose a user edition screen at `/admin/users/{userId}` accessible only to Admin and Editor roles, containing editable fields for `firstName`, `lastName`, and `email`, plus the same merge-player UI used in the pending-approval flow. This allows post-approval merge linking to be performed at any time.
 - **FR-013**: System MUST expose a notification service interface contract for approval-flow notifications even if actual email delivery is not implemented in this feature.
@@ -119,8 +119,8 @@ As a developer, I need a notification service interface contract so approval/den
 
 - **SC-001**: 100% of newly registered users enter a pending state and remain blocked from approved-only actions until reviewer decision.
 - **SC-002**: There is no mandatory time limit for reviewing pending registrations. Queue age visibility (submission date) is surfaced in FR-003 to support operational SLA decisions.
-- **SC-003**: At least 90% of reviewer-confirmed merge candidates result in a merged identity with no duplicate active user-player records.
-- **SC-004**: 100% of approve/deny decisions include reviewer identity, decision type, and timestamp in audit records.
+- **SC-003**: At least 90% of reviewer-confirmed merge candidates result in a merged identity with no duplicate active user-player records, with automated integration assertions that each successful merge leaves exactly one active user linked to the selected player.
+- **SC-004**: 100% of approval decisions (approve/approve+merge) include reviewer identity, decision type, and timestamp in audit records.
 - **SC-005**: For all approval-flow notification attempts, the workflow can invoke the notification contract methods successfully without dependency on a concrete email provider.
 
 ## Assumptions

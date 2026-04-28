@@ -3,7 +3,7 @@
 **Feature Branch**: `018-table-filters-query-params`
 **Created**: 2026-04-09
 **Status**: Draft
-**Input**: User description: "Update /admin/players and /admin/games views to include a search bar to filter the list of players and games respectively. The search should be case-insensitive and should filter by name for players and by opponent for games. Connect the UI filters and the search bar to the frontend query-params so that a user can share a link to a filtered list of players or games." Scope update: split large admin page components into smaller units, move core page logic into `components/pages/admin`, and standardize table rendering patterns (prefer Nuxt UI Table as base when feasible).
+**Input**: User description: "Update /admin/players and /admin/games views to include a search bar to filter the list of players and games respectively. The search should be case-insensitive and should filter by name for players and by opponent for games. Connect the UI filters and the search bar to the frontend query-params so that a user can share a link to a filtered list of players or games." Scope update: split large admin page components into smaller units, move core page logic into `components/pages/admin`, and standardize table rendering patterns (prefer Nuxt UI Table as base when feasible). Additional scope update: in `/admin/games/{id}/edit`, allow Admin users to capture per-goal scorer and assist rows using game-roster player selectors, with dynamic row addition.
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -62,6 +62,25 @@ An Admin-facing table page is maintained through small, focused UI units instead
 
 ---
 
+### User Story 4 — Admin Captures Goal Scorer and Assist Per Goal (Priority: P1)
+
+An Admin editing a game can record each goal event with a scorer and optional assist, using player selectors populated only from that specific game's registered participant list.
+
+**Why this priority**: Match-event quality is required for accurate player attribution and downstream statistics trust.
+
+**Independent Test**: Open `/admin/games/{id}/edit`, add score values, record one or more goal rows with scorer and assist selectors, save, then reload and verify the same rows are preserved.
+
+**Acceptance Scenarios**:
+
+1. **Given** an Admin is on `/admin/games/{id}/edit`, **When** score inputs are available, **Then** a goal-contribution row appears below score inputs with a scorer selector and an assist selector.
+2. **Given** a contribution row is shown, **When** the Admin opens either selector, **Then** options include only players registered to that game roster.
+3. **Given** at least one contribution row exists, **When** the Admin clicks the plus action, **Then** a new empty contribution row is added below existing rows.
+4. **Given** a game has multiple goals by the same player, **When** the Admin records rows, **Then** the same scorer may be selected in multiple rows.
+5. **Given** an assist is unknown or does not apply, **When** the Admin records a goal, **Then** the row can be saved with scorer only.
+6. **Given** contribution rows are saved, **When** the Admin reopens the same game edit page, **Then** previously saved scorer/assist rows are displayed for review and editing.
+
+---
+
 ### Edge Cases
 
 - What happens when the user navigates back/forward using the browser? The filter state should be restored from the URL history entry.
@@ -69,6 +88,9 @@ An Admin-facing table page is maintained through small, focused UI units instead
 - What if both a search filter and a sort column are active simultaneously? Both state values should coexist in the URL as separate query params.
 - What if one admin page needs custom columns/actions that do not fit the shared default? The shared table units should allow per-page slot or config extension without forking base behavior.
 - What if migration happens incrementally page-by-page? Existing pages should remain functional during transition with no broken navigation or missing actions.
+- What happens if the recorded number of scorer rows does not match the team goals entered for the game? The UI should prevent inconsistent save or require explicit correction before finalizing results.
+- What happens if a player previously selected in a contribution row is no longer registered for the game at edit time? The row should be flagged and require reassignment before save.
+- What happens if a game has no registered participants? Contribution selectors should be disabled and a clear guidance message shown.
 
 ## Requirements _(mandatory)_
 
@@ -86,6 +108,14 @@ An Admin-facing table page is maintained through small, focused UI units instead
 - **FR-010**: Shared table behavior (headers, empty states, loading placeholders, common actions/slots wiring) MUST be centralized in reusable components instead of duplicated per page.
 - **FR-011**: Refactoring to extracted admin page components MUST preserve existing user-visible behavior (filters, actions, labels, and row outcomes) unless explicitly changed by this spec.
 - **FR-012**: For reusable table foundations, implementation SHOULD prefer Nuxt UI Table as the base component when it satisfies required behaviors; exceptions MUST be documented in spec artifacts.
+- **FR-013**: The `/admin/games/{id}/edit` page MUST provide a goal-contribution section below score inputs where each row represents one goal event.
+- **FR-014**: Each goal-contribution row MUST include a scorer selector and an assist selector.
+- **FR-015**: Scorer and assist selectors MUST be populated only with players registered in that specific game's roster.
+- **FR-016**: The goal-contribution section MUST include an add-row action that appends new empty rows while preserving existing row selections.
+- **FR-017**: The system MUST allow recording repeated scorer selections across multiple rows and optional assist values.
+- **FR-018**: The system MUST persist goal-contribution rows so they can be reviewed and edited on later visits to the same game edit page.
+- **FR-019**: The system MUST enforce consistency between entered team goals and recorded scorer rows before finalizing a completed-result save.
+- **FR-020**: If a game has no registered players available, the contribution selectors MUST be non-interactive and the page MUST display a clear explanatory message.
 
 ## Success Criteria _(mandatory)_
 
@@ -98,6 +128,9 @@ An Admin-facing table page is maintained through small, focused UI units instead
 - **SC-005**: All targeted admin table pages render through extracted units in `components/pages/admin`, and no targeted page relies on a duplicated inline table implementation.
 - **SC-006**: At least one shared table base used by multiple admin pages is implemented and reused, with Nuxt UI Table adopted where compatible.
 - **SC-007**: Regression verification for targeted admin pages confirms parity for core actions (search/filter, row actions, empty/loading states).
+- **SC-008**: 100% of saved goal-contribution rows reference players that belong to the same game's registered roster.
+- **SC-009**: At least 95% of completed games with team goals greater than zero have scorer-row counts aligned with team goals at save time.
+- **SC-010**: An Admin can record scorer/assist data for a 5-goal game in under 2 minutes, including adding rows and saving.
 
 ## Assumptions
 
@@ -106,3 +139,5 @@ An Admin-facing table page is maintained through small, focused UI units instead
 - "Full name" for players means the `firstName + lastName` concatenation.
 - Scope includes admin table pages under `packages/frontend/src/pages/admin/`: `games`, `players`, `playgrounds`, `teams`, `tournaments`, and `users`.
 - Existing visual design should be preserved while decomposing structure into reusable units.
+- Goal-contribution capture in this scope is focused on team goals attributed to Ministros players; opponent-goal attribution is out of scope.
+- Assist attribution may be omitted for a goal when unavailable.
