@@ -77,6 +77,17 @@ enum ConfirmationStatus {
   DECLINED
 }
 
+enum RegistrationStatus {
+  PENDING_APPROVAL
+  APPROVED
+  DENIED
+}
+
+enum ApprovalDecisionType {
+  APPROVE_NO_MERGE
+  APPROVE_WITH_MERGE
+}
+
 // ─────────────────────────────────────────
 // USER
 // ─────────────────────────────────────────
@@ -89,9 +100,13 @@ model User {
   lastName        String    @db.VarChar(255)
   googleSubjectId String?   @unique
   role            Role      @default(PLAYER)
+  registrationStatus RegistrationStatus @default(PENDING_APPROVAL)
   player          Player?   @relation(fields: [playerId], references: [id], onDelete: SetNull)
   playerId        String?   @unique
   onboardingCompletedAt DateTime?
+
+  approvalDecisions         UserApprovalDecision[] @relation("ApprovedUserDecisions")
+  reviewedApprovalDecisions UserApprovalDecision[] @relation("ReviewerDecisions")
 
   playgroundsCreated Playground[] @relation("PlaygroundCreatedBy")
   playgroundsUpdated Playground[] @relation("PlaygroundUpdatedBy")
@@ -102,7 +117,23 @@ model User {
 
   @@index([email])
   @@index([role])
+  @@index([registrationStatus])
   @@index([googleSubjectId])
+}
+
+model UserApprovalDecision {
+  id           String               @id @default(uuid())
+  user         User                 @relation("ApprovedUserDecisions", fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  reviewer     User                 @relation("ReviewerDecisions", fields: [reviewerId], references: [id], onDelete: Restrict)
+  reviewerId   String
+  decisionType ApprovalDecisionType
+  mergePlayerId String?
+  createdAt    DateTime             @default(now())
+
+  @@index([userId])
+  @@index([reviewerId])
+  @@index([createdAt])
 }
 
 // ─────────────────────────────────────────
