@@ -1,6 +1,7 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { PlayerStatus } from "@ministrosfc/shared";
+import { useQueryParams } from "~/composables/useQueryParams";
 
 export interface StatsFilters {
   mode: string;
