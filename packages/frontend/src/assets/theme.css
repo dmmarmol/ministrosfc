@@ -1,0 +1,16 @@
+/* Nuxt UI v2 theme customization
+   
+   For Nuxt UI v2, theming is configured via:
+   1. app.config.ts — semantic colors (primary, secondary, success, error, etc.)
+   2. tailwind.config.js — custom color palette and utilities
+   3. This file — global CSS variable overrides (optional)
+   
+   Note: @theme directive requires Nuxt UI v4 + Tailwind CSS v4.
+   This project uses v2 + Tailwind v3, so @theme is not supported.
+*/
+
+/* Optional: Override global CSS variables for consistent styling */
+:root {
+  /* You can define custom CSS variables here if needed */
+  /* They won't conflict with Nuxt UI's color system */
+}

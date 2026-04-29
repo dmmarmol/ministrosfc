@@ -5,18 +5,20 @@ export default defineNuxtConfig({
 
   modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt", "@nuxt/image", "@nuxt/ui"],
 
+  ui: {
+    colorMode: false,
+  },
+
   css: [
-    "leaflet/dist/leaflet.css",
-    "vue-select/dist/vue-select.css",
-    "~/assets/base.css",
+    // "leaflet/dist/leaflet.css",  // Disabled: check if conflicts with Nuxt UI
+    // "vue-select/dist/vue-select.css",  // Disabled: check if conflicts with Nuxt UI
+    "~/assets/main.css",
   ],
 
   runtimeConfig: {
     public: {
       apiBaseUrl:
         process.env.NUXT_PUBLIC_API_BASE_URL ?? "http://localhost:5102",
-      brandColor: process.env.NUXT_PUBLIC_BRAND_COLOR ?? "#D4AF37",
-      teamName: process.env.NUXT_PUBLIC_TEAM_NAME ?? "Ministros F.C.",
     },
   },
 
@@ -33,10 +35,17 @@ export default defineNuxtConfig({
   // overrides without changing the local .env workflow.
   nitro: {
     port: parseInt(
-      process.env.NITRO_PORT ?? process.env.PORT ?? process.env.NUXT_PORT ?? "5103",
+      process.env.NITRO_PORT ??
+        process.env.PORT ??
+        process.env.NUXT_PORT ??
+        "5103",
       10,
     ),
-    host: process.env.NITRO_HOST ?? process.env.HOST ?? process.env.NUXT_HOST ?? "0.0.0.0",
+    host:
+      process.env.NITRO_HOST ??
+      process.env.HOST ??
+      process.env.NUXT_HOST ??
+      "0.0.0.0",
   },
 
   // Bind the Vite dev server to the configured host.

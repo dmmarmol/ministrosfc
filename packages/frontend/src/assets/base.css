@@ -1,6 +1,6 @@
 /* Temporary fix: restore browser-default styling for form elements.
    @nuxt/ui resets backgrounds to transparent/dark which causes black-on-black inputs. */
-input,
+/* input,
 textarea,
 select {
   background-color: #ffffff;
@@ -17,4 +17,4 @@ main a {
 }
 main a:hover {
   text-decoration: underline;
-}
+} */
