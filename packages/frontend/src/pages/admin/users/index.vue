@@ -14,12 +14,13 @@ definePageMeta({
   <div>
     <div class="mb-6 flex items-center justify-between">
       <h2 class="text-base font-semibold text-gray-700">Usuarios</h2>
-      <NuxtLink
+      <UiButton
         to="/admin/users/pending-approvals"
-        class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50"
+        variant="solid"
+        color="secondary"
       >
         Revisar aprobaciones pendientes
-      </NuxtLink>
+      </UiButton>
     </div>
 
     <UserRoleManager />

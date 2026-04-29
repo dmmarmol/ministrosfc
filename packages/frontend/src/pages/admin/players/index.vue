@@ -297,27 +297,27 @@ async function confirmDelete() {
               </div>
             </td>
             <td class="px-4 py-3 text-center">
-              <button
-                :class="[
-                  'text-xs px-2 py-0.5 rounded-full font-medium cursor-pointer transition-colors',
-                  p.status === 'ACTIVE'
-                    ? 'bg-green-100 hover:bg-green-200 text-green-700'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-500',
-                ]"
+              <UButton
+                :variant="p.status === 'ACTIVE' ? 'soft' : 'outline'"
+                :color="p.status === 'ACTIVE' ? 'emerald' : 'gray'"
+                size="xs"
+                class="font-medium"
                 @click="askToggleStatus(p, $event)"
               >
                 {{ p.status === "ACTIVE" ? "Activo" : "Inactivo" }}
-              </button>
+              </UButton>
             </td>
             <td class="px-4 py-3 text-right space-x-3">
-              <button
+              <UButton
                 v-if="authStore.isAdmin"
                 data-testid="delete-player-btn"
-                class="text-xs text-red-400 hover:text-red-600 transition-colors"
+                variant="link"
+                color="red"
+                size="xs"
                 @click="playerToDelete = p"
               >
                 Eliminar
-              </button>
+              </UButton>
             </td>
           </tr>
           <tr v-if="!filteredPlayers.length">

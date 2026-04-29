@@ -1,6 +1,6 @@
 // --- Governance Helper Functions ---
 
-import { UserRole } from "@ministrosfc/shared/src/types/user";
+import { UserRole } from "@ministrosfc/shared";
 
 export function canPromote(
   actor: UserRole,

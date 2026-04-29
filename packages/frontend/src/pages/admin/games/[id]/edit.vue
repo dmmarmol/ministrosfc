@@ -253,13 +253,16 @@ async function submit() {
         {{ error }}
       </p>
       <div class="flex gap-3 pt-2">
-        <button
+        <UButton
           type="submit"
+          color="primary"
+          variant="solid"
+          size="md"
           :disabled="loading"
-          class="bg-brand text-gray-900 font-semibold text-sm px-5 py-2.5 rounded-lg hover:opacity-90 disabled:opacity-60"
+          class="font-semibold"
         >
           {{ loading ? "Guardando…" : "Guardar Cambios" }}
-        </button>
+        </UButton>
         <NuxtLink
           to="/admin/games"
           class="text-sm text-gray-500 px-5 py-2.5 rounded-lg border border-gray-200 hover:bg-gray-50"

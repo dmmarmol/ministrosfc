@@ -71,15 +71,12 @@ async function confirmDeny() {
           Sugerencias automáticas
         </h4>
         <div class="space-y-2">
-          <button
+          <UButton
             v-for="s in selected.suggestions"
             :key="s.playerId"
-            class="w-full rounded-lg border px-3 py-2 text-left text-sm"
-            :class="
-              selectedMergePlayerId === s.playerId
-                ? 'border-amber-500 bg-amber-50'
-                : 'border-gray-200 hover:bg-gray-50'
-            "
+            class="w-full text-left text-sm"
+            :variant="selectedMergePlayerId === s.playerId ? 'soft' : 'outline'"
+            :color="selectedMergePlayerId === s.playerId ? 'amber' : 'gray'"
             @click="chooseSuggestion(s.playerId)"
           >
             <div class="flex items-center justify-between gap-2">
@@ -88,7 +85,7 @@ async function confirmDeny() {
                 >score {{ s.matchScore }}</span
               >
             </div>
-          </button>
+          </UButton>
           <p
             v-if="selected.suggestions.length === 0"
             class="text-xs text-gray-500"
@@ -111,56 +108,61 @@ async function confirmDeny() {
             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             placeholder="Nombre o apellido"
           />
-          <button
-            class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50"
+          <UButton
+            variant="outline"
+            color="gray"
+            size="sm"
             @click="handleOrphanSearch"
           >
             Buscar
-          </button>
+          </UButton>
         </div>
 
         <div class="max-h-40 overflow-y-auto space-y-2">
-          <button
+          <UButton
             v-for="p in orphanPlayers"
             :key="p.playerId"
-            class="w-full rounded-lg border px-3 py-2 text-left text-sm"
-            :class="
-              selectedMergePlayerId === p.playerId
-                ? 'border-amber-500 bg-amber-50'
-                : 'border-gray-200 hover:bg-gray-50'
-            "
+            class="w-full text-left text-sm"
+            :variant="selectedMergePlayerId === p.playerId ? 'soft' : 'outline'"
+            :color="selectedMergePlayerId === p.playerId ? 'amber' : 'gray'"
             @click="selectedMergePlayerId = p.playerId"
           >
             {{ p.firstName }} {{ p.lastName }}
             <span class="ml-2 text-xs text-gray-500">{{ p.status }}</span>
-          </button>
+          </UButton>
         </div>
       </div>
 
       <div class="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
-        <button
-          class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+        <UButton
+          color="emerald"
+          variant="solid"
+          size="sm"
           :disabled="actionLoading"
           @click="emit('approve')"
         >
           Aprobar sin merge
-        </button>
+        </UButton>
 
-        <button
-          class="rounded-lg bg-amber-600 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-60"
+        <UButton
+          color="amber"
+          variant="solid"
+          size="sm"
           :disabled="!canApproveMerge || actionLoading"
           @click="showApproveMergeConfirm = true"
         >
           Aprobar con merge
-        </button>
+        </UButton>
 
-        <button
-          class="rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+        <UButton
+          color="red"
+          variant="solid"
+          size="sm"
           :disabled="actionLoading"
           @click="showDenyConfirm = true"
         >
           Denegar
-        </button>
+        </UButton>
       </div>
 
       <div class="space-y-2">

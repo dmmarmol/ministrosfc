@@ -197,16 +197,24 @@ await fetchQueue();
         />
       </div>
 
-      <button
-        class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50"
+      <UButton
+        variant="outline"
+        color="primary"
+        size="sm"
         @click="handleSearch"
       >
         Aplicar filtros
-      </button>
+      </UButton>
     </div>
 
     <p
-      v-if="error"
+      v-if="loading"
+      class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-700"
+    >
+      Cargando...
+    </p>
+    <p
+      v-else-if="error"
       class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
     >
       {{ error }}

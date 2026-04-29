@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import UiBadge from "../ui/Badge.vue";
-import { RegistrationStatus } from "@ministrosfc/shared/src/types/user";
+import { RegistrationStatus } from "@ministrosfc/shared";
 
 const props = defineProps<{
   status: RegistrationStatus;

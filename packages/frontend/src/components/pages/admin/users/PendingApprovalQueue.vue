@@ -62,12 +62,14 @@ const emit = defineEmits<{
             <span v-else class="text-xs text-gray-400">Sin sugerencias</span>
           </td>
           <td class="px-4 py-3 text-right">
-            <button
-              class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs hover:bg-gray-50"
+            <UButton
+              variant="solid"
+              color="primary"
+              size="xs"
               @click="emit('select', item)"
             >
               Revisar
-            </button>
+            </UButton>
           </td>
         </tr>
       </tbody>

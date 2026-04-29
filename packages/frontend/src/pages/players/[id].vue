@@ -6,6 +6,7 @@ import PlayerHeader from "~/components/pages/player/PlayerHeader.vue";
 import PlayerCareerStats from "~/components/pages/player/PlayerCareerStats.vue";
 import PlayerStatsByRival from "~/components/pages/player/PlayerStatsByRival.vue";
 import { useAuthStore } from "~/stores/auth";
+import { useQueryParams } from "~/composables/useQueryParams";
 
 const route = useRoute();
 const qp = useQueryParams();

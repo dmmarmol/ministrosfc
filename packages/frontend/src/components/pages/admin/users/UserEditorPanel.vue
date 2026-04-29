@@ -117,13 +117,15 @@ async function confirmMerge() {
         />
       </div>
 
-      <button
-        class="rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-gray-900 disabled:opacity-60"
+      <UButton
+        color="primary"
+        variant="solid"
+        size="sm"
         :disabled="loading"
         @click="saveProfile"
       >
         Guardar perfil
-      </button>
+      </UButton>
 
       <div class="border-t border-gray-100 pt-4 space-y-3">
         <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -137,38 +139,43 @@ async function confirmMerge() {
             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             placeholder="Buscar jugador huérfano"
           />
-          <button
-            class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50"
+          <UButton
+            variant="outline"
+            color="gray"
+            size="sm"
             @click="searchOrphans"
           >
             Buscar
-          </button>
+          </UButton>
         </div>
 
         <div class="max-h-40 space-y-2 overflow-y-auto">
-          <button
+          <UButton
             v-for="player in orphanPlayers"
             :key="player.playerId"
-            class="w-full rounded-lg border px-3 py-2 text-left text-sm"
-            :class="
-              selectedMergePlayerId === player.playerId
-                ? 'border-amber-500 bg-amber-50'
-                : 'border-gray-200 hover:bg-gray-50'
+            class="w-full text-left text-sm"
+            :variant="
+              selectedMergePlayerId === player.playerId ? 'soft' : 'outline'
+            "
+            :color="
+              selectedMergePlayerId === player.playerId ? 'amber' : 'gray'
             "
             @click="selectedMergePlayerId = player.playerId"
           >
             {{ player.firstName }} {{ player.lastName }}
             <span class="ml-2 text-xs text-gray-500">{{ player.status }}</span>
-          </button>
+          </UButton>
         </div>
 
-        <button
-          class="rounded-lg bg-amber-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
+        <UButton
+          color="amber"
+          variant="solid"
+          size="sm"
           :disabled="!canMerge || loading"
           @click="showMergeConfirm = true"
         >
           Mergear usuario con jugador
-        </button>
+        </UButton>
       </div>
     </template>
 

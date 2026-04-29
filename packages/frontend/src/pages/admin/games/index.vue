@@ -226,9 +226,11 @@ function canShareSignup(g: any): boolean {
             <td class="px-4 py-3 text-right">
               <div class="flex items-center justify-end gap-2 flex-wrap">
                 <!-- T012: share-signup link (SCHEDULED + not full) -->
-                <button
+                <UButton
                   v-if="canShareSignup(g)"
-                  class="text-xs text-emerald-600 hover:text-emerald-800 transition-colors"
+                  variant="link"
+                  color="emerald"
+                  size="xs"
                   :title="'Copiar link de convocatoria'"
                   @click="
                     shareLink(
@@ -238,27 +240,31 @@ function canShareSignup(g: any): boolean {
                   "
                 >
                   📋 Convocatoria
-                </button>
+                </UButton>
                 <!-- T013: share-detail link (all statuses with slug) -->
-                <button
+                <UButton
                   v-if="g.slug"
-                  class="text-xs text-blue-500 hover:text-blue-700 transition-colors"
+                  variant="link"
+                  color="primary"
+                  size="xs"
                   :title="'Copiar link del partido'"
                   @click="shareLink(`${baseUrl()}/games/${g.slug}`, 'Partido')"
                 >
                   🔗 Link
-                </button>
+                </UButton>
                 <NuxtLink
                   :to="`/admin/games/${g.id}/edit`"
                   class="text-xs text-brand hover:underline"
                   >Editar</NuxtLink
                 >
-                <button
-                  class="text-xs text-red-400 hover:text-red-600 transition-colors"
+                <UButton
+                  variant="link"
+                  color="red"
+                  size="xs"
                   @click="askDeleteGame(g, $event)"
                 >
                   Eliminar
-                </button>
+                </UButton>
               </div>
             </td>
           </tr>

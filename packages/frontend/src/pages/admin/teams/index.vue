@@ -91,12 +91,15 @@ async function deleteTeam() {
 
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-base font-semibold text-gray-700">Opponent Teams</h2>
-      <button
-        class="bg-brand text-gray-900 font-semibold text-sm px-4 py-2 rounded-lg hover:opacity-90"
+      <UButton
+        color="primary"
+        variant="solid"
+        size="md"
+        class="font-semibold"
         @click="showCreate = true"
       >
         + Add Team
-      </button>
+      </UButton>
     </div>
 
     <!-- Create modal -->
@@ -129,22 +132,27 @@ async function deleteTeam() {
         </div>
         <p v-if="createError" class="text-sm text-red-600">{{ createError }}</p>
         <div class="flex gap-3">
-          <button
+          <UButton
             :disabled="createLoading"
-            class="bg-brand text-gray-900 font-semibold text-sm px-4 py-2 rounded-lg hover:opacity-90 disabled:opacity-60"
+            color="primary"
+            variant="solid"
+            size="md"
+            class="font-semibold"
             @click="createTeam"
           >
             {{ createLoading ? "Creating…" : "Create" }}
-          </button>
-          <button
-            class="text-sm text-gray-500"
+          </UButton>
+          <UButton
+            variant="ghost"
+            color="gray"
+            size="md"
             @click="
               showCreate = false;
               createError = '';
             "
           >
             Cancel
-          </button>
+          </UButton>
         </div>
       </div>
     </div>
@@ -179,12 +187,14 @@ async function deleteTeam() {
               {{ t.colors ?? "—" }}
             </td>
             <td class="px-4 py-3 text-right">
-              <button
-                class="text-xs text-red-400 hover:text-red-600 transition-colors"
+              <UButton
+                variant="link"
+                color="red"
+                size="xs"
                 @click="askDeleteTeam(t, $event)"
               >
                 Delete
-              </button>
+              </UButton>
             </td>
           </tr>
           <tr v-if="!teams.length">

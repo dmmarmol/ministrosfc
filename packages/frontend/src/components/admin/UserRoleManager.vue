@@ -4,7 +4,7 @@ import ConfirmationModal from "../ui/ConfirmationModal.vue";
 import RegistrationStatusBadge from "./RegistrationStatusBadge.vue";
 import { useAuthStore } from "~/stores/auth";
 
-import type { AdminUserListItem } from "@ministrosfc/shared/src/types/api";
+import type { AdminUserListItem } from "@ministrosfc/shared";
 
 const authStore = useAuthStore();
 
@@ -374,18 +374,24 @@ onMounted(fetchUsers);
                   v-model="editFields.email"
                   class="border rounded px-1 py-0.5 text-xs w-36"
                 />
-                <button
-                  class="ml-2 text-xs px-2 py-1 rounded bg-green-100 text-green-700"
+                <UButton
+                  variant="soft"
+                  color="emerald"
+                  size="xs"
+                  class="ml-2"
                   @click="saveEdit(user.id)"
                 >
                   Guardar
-                </button>
-                <button
-                  class="ml-1 text-xs px-2 py-1 rounded bg-gray-100 text-gray-600"
+                </UButton>
+                <UButton
+                  variant="outline"
+                  color="gray"
+                  size="xs"
+                  class="ml-1"
                   @click="cancelEdit"
                 >
                   Cancelar
-                </button>
+                </UButton>
               </div>
               <div v-else>
                 <span
@@ -451,27 +457,26 @@ onMounted(fetchUsers);
               </select>
 
               <!-- Toggle player status -->
-              <button
+              <UButton
                 v-if="user.player"
-                class="text-xs px-2 py-1 rounded border"
-                :class="
-                  user.player.status === 'ACTIVE'
-                    ? 'border-orange-300 text-orange-600 hover:bg-orange-50'
-                    : 'border-green-300 text-green-600 hover:bg-green-50'
-                "
+                variant="outline"
+                :color="user.player.status === 'ACTIVE' ? 'amber' : 'emerald'"
+                size="xs"
                 @click="requestStatusToggle(user)"
               >
                 {{ user.player.status === "ACTIVE" ? "Desactivar" : "Activar" }}
-              </button>
+              </UButton>
 
               <!-- Delete player -->
-              <button
+              <UButton
                 v-if="user.player"
-                class="text-xs px-2 py-1 rounded border border-red-300 text-red-600 hover:bg-red-50"
+                variant="outline"
+                color="red"
+                size="xs"
                 @click="confirmDelete(user)"
               >
                 Eliminar
-              </button>
+              </UButton>
             </td>
           </tr>
         </tbody>
@@ -484,21 +489,23 @@ onMounted(fetchUsers);
       >
         <span>{{ meta.total }} usuarios</span>
         <div class="flex gap-2">
-          <button
+          <UButton
             :disabled="page <= 1"
-            class="px-3 py-1 border rounded disabled:opacity-40"
+            variant="outline"
+            color="gray"
             @click="goPage(page - 1)"
           >
             ← Anterior
-          </button>
+          </UButton>
           <span class="px-2 py-1">{{ page }} / {{ meta.totalPages }}</span>
-          <button
+          <UButton
             :disabled="page >= meta.totalPages"
-            class="px-3 py-1 border rounded disabled:opacity-40"
+            variant="outline"
+            color="gray"
             @click="goPage(page + 1)"
           >
             Siguiente →
-          </button>
+          </UButton>
         </div>
       </div>
     </div>

@@ -72,13 +72,15 @@ async function copySignupLink() {
       >
       <div v-if="game" class="flex items-center gap-3">
         <!-- T011: share-signup link — SCHEDULED only + slug present -->
-        <button
+        <UButton
           v-if="game.status === GameStatus.SCHEDULED && game.slug"
-          class="text-sm text-emerald-600 hover:text-emerald-800 font-medium transition-colors"
+          variant="link"
+          color="emerald"
+          class="text-sm font-medium"
           @click="copySignupLink"
         >
           📋 Copiar link de convocatoria
-        </button>
+        </UButton>
         <NuxtLink
           :to="`/admin/games/${id}/edit`"
           class="text-sm text-brand hover:underline font-medium"

@@ -244,13 +244,15 @@ async function confirmDelete() {
               class="w-full h-full object-cover"
             />
           </div>
-          <button
+          <UButton
             type="button"
-            class="text-sm text-brand hover:underline"
+            variant="link"
+            color="primary"
+            size="sm"
             @click="photoInput?.click()"
           >
             Cambiar foto
-          </button>
+          </UButton>
           <input
             ref="photoInput"
             type="file"
@@ -268,36 +270,38 @@ async function confirmDelete() {
         {{ error }}
       </p>
       <div class="flex flex-wrap gap-3 pt-2">
-        <button
+        <UButton
           type="submit"
+          color="primary"
+          variant="solid"
+          size="md"
           :disabled="loading"
-          class="bg-brand text-gray-900 font-semibold text-sm px-5 py-2.5 rounded-lg hover:opacity-90 disabled:opacity-60"
+          class="font-semibold"
         >
           {{ loading ? "Guardando…" : "Guardar Cambios" }}
-        </button>
-        <button
+        </UButton>
+        <UButton
           type="button"
           :disabled="loading"
-          :class="
-            player.status === 'ACTIVE'
-              ? 'border-red-200 text-red-600 hover:bg-red-50'
-              : 'border-green-200 text-green-600 hover:bg-green-50'
-          "
-          class="text-sm px-5 py-2.5 rounded-lg border"
+          variant="outline"
+          :color="player.status === 'ACTIVE' ? 'red' : 'emerald'"
+          size="md"
           @click="toggleStatus"
         >
           {{ player.status === "ACTIVE" ? "Desactivar" : "Activar" }}
-        </button>
-        <button
+        </UButton>
+        <UButton
           v-if="authStore.isAdmin"
           data-testid="delete-player-btn"
           type="button"
           :disabled="loading"
-          class="text-sm px-5 py-2.5 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+          variant="outline"
+          color="red"
+          size="md"
           @click="showDeleteModal = true"
         >
           Eliminar Jugador
-        </button>
+        </UButton>
       </div>
     </form>
   </div>
