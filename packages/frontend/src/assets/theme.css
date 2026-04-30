@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Satoshi", "sans-serif";
+  --breakpoint-3xl: 120rem;
+  --color-avocado-100: oklch(0.99 0 0);
+  --color-avocado-200: oklch(0.98 0.04 113.22);
+  --color-avocado-300: oklch(0.94 0.11 115.03);
+  --color-avocado-400: oklch(0.92 0.19 114.08);
+  --color-avocado-500: oklch(0.84 0.18 117.33);
+  --color-avocado-600: oklch(0.53 0.12 118.34);
+  --ease-fluid: cubic-bezier(0.3, 0, 0, 1);
+  --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
+
+  --color-brand: #d4af37;
+  --color-brand-100: oklch(0.99 0 0);
+  --color-brand-200: oklch(0.98 0.04 113.22);
+  --color-brand-300: oklch(0.94 0.11 115.03);
+  --color-brand-400: oklch(0.92 0.19 114.08);
+  --color-brand-500: oklch(0.84 0.18 117.33);
+  --color-brand-600: oklch(0.53 0.12 118.34);
+  --color-brand-700: oklch(0.42 0.11 118.34);
+  --color-brand-800: oklch(0.32 0.1 118.34);
+  --color-brand-900: oklch(0.21 0.09 118.34);
+}

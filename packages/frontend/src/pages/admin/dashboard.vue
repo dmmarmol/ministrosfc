@@ -72,20 +72,14 @@ const recentGames = computed(() => recentData.value?.data ?? []);
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
       <h2 class="text-sm font-semibold text-gray-700 mb-4">Acciones Rápidas</h2>
       <div class="flex flex-wrap gap-3">
-        <NuxtLink
-          to="/admin/players/create"
-          class="bg-brand text-gray-900 font-semibold text-sm px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
-          >+ Agregar Jugador</NuxtLink
+        <UButton to="/admin/players/create" variant="solid" color="primary"
+          >+ Agregar Jugador</UButton
         >
-        <NuxtLink
-          to="/admin/games/create"
-          class="bg-gray-900 text-white font-semibold text-sm px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
-          >+ Programar Partido</NuxtLink
+        <UButton to="/admin/games/create" variant="solid" color="secondary"
+          >+ Programar Partido</UButton
         >
-        <NuxtLink
-          to="/admin/tournaments"
-          class="border border-gray-200 text-gray-700 font-semibold text-sm px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-          >Gestionar Torneos</NuxtLink
+        <UButton to="/admin/tournaments" variant="solid" color="neutral"
+          >Gestionar Torneos</UButton
         >
       </div>
     </div>
