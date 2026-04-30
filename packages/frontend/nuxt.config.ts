@@ -1,3 +1,5 @@
+import tailwindcss from "@tailwindcss/vite";
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   srcDir: "src/",
@@ -6,8 +8,8 @@ export default defineNuxtConfig({
   modules: ["@pinia/nuxt", "@nuxt/image", "@nuxt/ui"],
 
   css: [
-    "leaflet/dist/leaflet.css",
-    "vue-select/dist/vue-select.css",
+    // "leaflet/dist/leaflet.css",
+    // "vue-select/dist/vue-select.css",
     "~/assets/base.css",
   ],
 
@@ -46,6 +48,7 @@ export default defineNuxtConfig({
   // Whitelist the custom dev hostname so the browser can connect.
   // Resolve workspace CJS package to its TS source so Vite serves ESM natively.
   vite: {
+    plugins: [tailwindcss()],
     resolve: {
       alias: {
         "@ministrosfc/shared": new URL(

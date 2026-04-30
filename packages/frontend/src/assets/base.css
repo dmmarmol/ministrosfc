@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 /* Temporary fix: restore browser-default styling for form elements.
    @nuxt/ui resets backgrounds to transparent/dark which causes black-on-black inputs. */
 input,
