@@ -1,6 +1,6 @@
 import { PrismaClient, Role } from "@prisma/client";
 import { createClient } from "redis";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
