@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   srcDir: "src/",
   devtools: { enabled: true },
 
-  modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt", "@nuxt/image", "@nuxt/ui"],
+  modules: ["@pinia/nuxt", "@nuxt/image", "@nuxt/ui"],
 
   css: [
     "leaflet/dist/leaflet.css",
@@ -18,11 +18,6 @@ export default defineNuxtConfig({
       brandColor: process.env.NUXT_PUBLIC_BRAND_COLOR ?? "#D4AF37",
       teamName: process.env.NUXT_PUBLIC_TEAM_NAME ?? "Ministros F.C.",
     },
-  },
-
-  tailwindcss: {
-    configPath: "~/tailwind.config.js",
-    exposeConfig: true,
   },
 
   // Server-side rendering enabled for public SEO
