@@ -20,6 +20,12 @@ out/
 # TypeScript
 *.tsbuildinfo
 
+# Shared package generated artifacts (emitted during CMS build/typecheck workflows)
+packages/shared/src/**/*.js
+packages/shared/src/**/*.js.map
+packages/shared/src/**/*.d.ts
+packages/shared/src/**/*.d.ts.map
+
 # ============================================
 # Environment Variables
 # ============================================
