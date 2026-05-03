@@ -3,6 +3,8 @@ import { createClient } from "redis";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
+const USERNAME = "admin@ministrosfc.com";
+const PASSWORD = "cm2JhSYzL0XTqRUogU"; // "Admin1234!";
 
 async function main(): Promise<void> {
   // Flush Redis so stale cached responses don't survive the DB reset
@@ -17,13 +19,13 @@ async function main(): Promise<void> {
   await redis.flushAll();
   await redis.quit();
   console.log("✓ Redis cache flushed");
-  const passwordHash = await bcrypt.hash("Admin1234!", 12);
+  const passwordHash = await bcrypt.hash(PASSWORD, 12);
 
   const user = await prisma.user.upsert({
-    where: { email: "admin@ministrosfc.com" },
+    where: { email: USERNAME },
     update: { passwordHash, role: Role.ADMIN },
     create: {
-      email: "admin@ministrosfc.com",
+      email: USERNAME,
       passwordHash,
       firstName: "Admin",
       lastName: "User",
