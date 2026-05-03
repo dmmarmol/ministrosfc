@@ -14,13 +14,14 @@ definePageMeta({
   <div>
     <div class="mb-6 flex items-center justify-between">
       <h2 class="text-base font-semibold text-gray-700">Usuarios</h2>
-      <UiButton
+      <UButton
         to="/admin/users/pending-approvals"
         variant="solid"
-        color="secondary"
+        color="primary"
+        icon="mdi:account-search"
       >
         Revisar aprobaciones pendientes
-      </UiButton>
+      </UButton>
     </div>
 
     <UserRoleManager />

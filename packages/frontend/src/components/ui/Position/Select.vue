@@ -5,6 +5,7 @@ import {
   PositionDisplayName,
   PLAYER_POSITION_FILTER_ALL,
 } from "@ministrosfc/shared";
+import Label from "./Label.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -39,8 +40,65 @@ const items: SelectItem[] = props.includeAll
   ? [optionAll, ...positionItems]
   : positionItems;
 
+const positionValues = Object.values(Position) as Position[];
+
+function isPositionValue(value: unknown): value is Position {
+  return (
+    typeof value === "string" && positionValues.includes(value as Position)
+  );
+}
+
+function extractItemValue(item: unknown): unknown {
+  if (item && typeof item === "object" && "value" in item) {
+    return (item as { value?: unknown }).value;
+  }
+  return item;
+}
+
+function getItemPosition(item: unknown): Position | null {
+  const value = extractItemValue(item);
+  return isPositionValue(value) ? value : null;
+}
+
+function isAllItem(item: unknown): boolean {
+  return extractItemValue(item) === PLAYER_POSITION_FILTER_ALL;
+}
+
+function getItemLabel(item: unknown): string {
+  if (item && typeof item === "object" && "label" in item) {
+    const label = (item as { label?: unknown }).label;
+    if (typeof label === "string") {
+      return label;
+    }
+  }
+
+  const value = extractItemValue(item);
+  if (value === PLAYER_POSITION_FILTER_ALL) {
+    return optionAll.label;
+  }
+  if (isPositionValue(value)) {
+    return PositionDisplayName[value];
+  }
+  return "";
+}
+
+function resolveSelectedValue(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value && typeof value === "object" && "value" in value) {
+    const maybeValue = (value as { value?: unknown }).value;
+    return typeof maybeValue === "string" ? maybeValue : undefined;
+  }
+
+  return undefined;
+}
+
 function handleUpdate(value: unknown) {
-  if (typeof value !== "string") {
+  const selectedValue = resolveSelectedValue(value);
+
+  if (!selectedValue) {
     emit(
       "update:modelValue",
       props.includeAll ? PLAYER_POSITION_FILTER_ALL : undefined,
@@ -48,13 +106,13 @@ function handleUpdate(value: unknown) {
     return;
   }
 
-  if (value === PLAYER_POSITION_FILTER_ALL && props.includeAll) {
+  if (selectedValue === PLAYER_POSITION_FILTER_ALL && props.includeAll) {
     emit("update:modelValue", PLAYER_POSITION_FILTER_ALL);
     return;
   }
 
-  if (Object.values(Position).includes(value as Position)) {
-    emit("update:modelValue", value as Position);
+  if (isPositionValue(selectedValue)) {
+    emit("update:modelValue", selectedValue);
     return;
   }
 
@@ -63,13 +121,38 @@ function handleUpdate(value: unknown) {
     props.includeAll ? PLAYER_POSITION_FILTER_ALL : undefined,
   );
 }
+const selectedLabel = computed(() => {
+  if (!props.modelValue || props.modelValue === PLAYER_POSITION_FILTER_ALL) {
+    return props.includeAll ? optionAll.label : undefined;
+  }
+  return isPositionValue(props.modelValue)
+    ? PositionDisplayName[props.modelValue]
+    : undefined;
+});
 </script>
 <template>
-  <USelect
+  <USelectMenu
+    v-bind="$attrs"
     :model-value="props.modelValue"
     @update:model-value="handleUpdate"
-    class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-48"
     :items="items"
+    value-key="value"
     :placeholder="props.placeholder"
-  />
+    :label="selectedLabel"
+    :ui="{ content: 'min-w-fit', base: 'justify-between' }"
+  >
+    <template #item-leading="{ item }">
+      <div
+        v-if="!isAllItem(item) && getItemPosition(item)"
+        class="flex items-center"
+      >
+        <Label :position="getItemPosition(item)!" />
+      </div>
+    </template>
+    <template #item-label="{ item }">
+      <div class="flex items-center py-1">
+        <span class="truncate">{{ getItemLabel(item) }}</span>
+      </div>
+    </template>
+  </USelectMenu>
 </template>

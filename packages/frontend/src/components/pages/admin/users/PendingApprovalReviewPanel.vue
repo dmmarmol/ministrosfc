@@ -76,7 +76,9 @@ async function confirmDeny() {
             :key="s.playerId"
             class="w-full text-left text-sm"
             :variant="selectedMergePlayerId === s.playerId ? 'soft' : 'outline'"
-            :color="selectedMergePlayerId === s.playerId ? 'amber' : 'gray'"
+            :color="
+              selectedMergePlayerId === s.playerId ? 'primary' : 'neutral'
+            "
             @click="chooseSuggestion(s.playerId)"
           >
             <div class="flex items-center justify-between gap-2">
@@ -110,7 +112,7 @@ async function confirmDeny() {
           />
           <UButton
             variant="outline"
-            color="gray"
+            color="neutral"
             size="sm"
             @click="handleOrphanSearch"
           >
@@ -124,7 +126,9 @@ async function confirmDeny() {
             :key="p.playerId"
             class="w-full text-left text-sm"
             :variant="selectedMergePlayerId === p.playerId ? 'soft' : 'outline'"
-            :color="selectedMergePlayerId === p.playerId ? 'amber' : 'gray'"
+            :color="
+              selectedMergePlayerId === p.playerId ? 'primary' : 'neutral'
+            "
             @click="selectedMergePlayerId = p.playerId"
           >
             {{ p.firstName }} {{ p.lastName }}
@@ -135,7 +139,7 @@ async function confirmDeny() {
 
       <div class="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
         <UButton
-          color="emerald"
+          color="neutral"
           variant="solid"
           size="sm"
           :disabled="actionLoading"
@@ -145,7 +149,7 @@ async function confirmDeny() {
         </UButton>
 
         <UButton
-          color="amber"
+          color="neutral"
           variant="solid"
           size="sm"
           :disabled="!canApproveMerge || actionLoading"
@@ -155,7 +159,7 @@ async function confirmDeny() {
         </UButton>
 
         <UButton
-          color="red"
+          color="error"
           variant="solid"
           size="sm"
           :disabled="actionLoading"

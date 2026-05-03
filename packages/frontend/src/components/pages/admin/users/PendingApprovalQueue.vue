@@ -13,14 +13,16 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="rounded-xl border border-gray-200 bg-white overflow-hidden">
+  <div
+    class="relative rounded-xl border border-gray-200 bg-white overflow-hidden"
+  >
     <div class="px-4 py-3 border-b border-gray-100">
       <h3 class="text-sm font-semibold text-gray-800">
         Solicitudes pendientes
       </h3>
     </div>
 
-    <div v-if="loading" class="p-4 text-sm text-gray-500">Cargando…</div>
+    <UiLoadingOverlay v-if="loading" />
     <div v-else-if="rows.length === 0" class="p-4 text-sm text-gray-500">
       No hay solicitudes pendientes.
     </div>

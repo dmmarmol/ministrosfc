@@ -76,7 +76,7 @@ async function fetchOrphanPlayers(searchQuery = "") {
     selected.value.userId,
     {
       page: 1,
-      limit: 20,
+      limit: 100,
       search: normalizedSearch,
     },
   );

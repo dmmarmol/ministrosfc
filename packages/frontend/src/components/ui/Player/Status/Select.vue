@@ -62,9 +62,10 @@ function handleUpdate(value: unknown) {
 
 <template>
   <USelect
+    v-bind="$attrs"
     :model-value="props.modelValue"
     @update:model-value="handleUpdate"
-    class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-48"
     :items="items"
+    :ui="{ content: 'min-w-fit' }"
   />
 </template>

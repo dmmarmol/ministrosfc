@@ -97,19 +97,19 @@ async function confirmMerge() {
       </div>
 
       <div class="grid gap-3 sm:grid-cols-3">
-        <input
+        <UInput
           v-model="localFirstName"
           type="text"
           class="rounded-lg border border-gray-300 px-3 py-2 text-sm"
           placeholder="Nombre"
         />
-        <input
+        <UInput
           v-model="localLastName"
           type="text"
           class="rounded-lg border border-gray-300 px-3 py-2 text-sm"
           placeholder="Apellido"
         />
-        <input
+        <UInput
           v-model="localEmail"
           type="email"
           class="rounded-lg border border-gray-300 px-3 py-2 text-sm"
@@ -133,7 +133,7 @@ async function confirmMerge() {
         </h4>
 
         <div class="flex gap-2">
-          <input
+          <UInput
             v-model="orphanSearch"
             type="text"
             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
@@ -141,7 +141,7 @@ async function confirmMerge() {
           />
           <UButton
             variant="outline"
-            color="gray"
+            color="neutral"
             size="sm"
             @click="searchOrphans"
           >
@@ -158,7 +158,7 @@ async function confirmMerge() {
               selectedMergePlayerId === player.playerId ? 'soft' : 'outline'
             "
             :color="
-              selectedMergePlayerId === player.playerId ? 'amber' : 'gray'
+              selectedMergePlayerId === player.playerId ? 'primary' : 'neutral'
             "
             @click="selectedMergePlayerId = player.playerId"
           >
@@ -168,7 +168,7 @@ async function confirmMerge() {
         </div>
 
         <UButton
-          color="amber"
+          color="primary"
           variant="solid"
           size="sm"
           :disabled="!canMerge || loading"

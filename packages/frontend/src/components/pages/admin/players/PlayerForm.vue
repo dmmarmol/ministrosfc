@@ -13,6 +13,7 @@ export type PlayerFormData = {
   position?: Position;
   jerseyNumber?: string;
   dateOfBirth?: string;
+  invitedById?: string;
   photo?: File | string;
 };
 
@@ -44,6 +45,7 @@ const form = reactive({
   position: "" as Position | undefined,
   jerseyNumber: null as number | null,
   dateOfBirth: "",
+  invitedById: "",
   status: PlayerStatus.ACTIVE,
 });
 
@@ -58,6 +60,7 @@ watch(
       ? Number(initial.jerseyNumber)
       : null;
     form.dateOfBirth = initial.dateOfBirth ?? "";
+    form.invitedById = initial.invitedById ?? "";
 
     if (initial.photo instanceof File) {
       photoFile.value = initial.photo;
@@ -103,6 +106,8 @@ async function handleSubmit() {
     formData.append("jerseyNumber", String(form.jerseyNumber));
   if (form.dateOfBirth) formData.append("dateOfBirth", form.dateOfBirth);
   if (photoFile.value) formData.append("photo", photoFile.value);
+  if (form.invitedById) formData.append("invitedById", form.invitedById);
+  if (form.status) formData.append("status", form.status);
 
   // Casting to unknown first is the recommended way to emit FormData without TypeScript errors
   emit("submit", formData as unknown as PlayerFormData);
@@ -175,13 +180,31 @@ async function handleSubmit() {
           class="w-full"
         />
       </div>
-    </div>
-    <div>
-      <UiPlayerStatusSelect
-        v-model="form.status"
-        :single-player="true"
-        class="w-full"
-      />
+      <!-- Player Status -->
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1" for="status"
+          >Estado</label
+        >
+        <UiPlayerStatusSelect
+          id="status"
+          v-model="form.status"
+          :single-player="true"
+          class="w-full"
+        />
+      </div>
+      <div>
+        <label
+          class="block text-xs font-medium text-gray-700 mb-1"
+          for="invitedById"
+          >Invitado por</label
+        >
+        <UiPlayerSelect
+          id="invitedById"
+          v-model="form.invitedById"
+          placeholder="Seleccionar jugador"
+          class="w-full"
+        />
+      </div>
     </div>
 
     <!-- Photo upload -->

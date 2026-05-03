@@ -4,7 +4,11 @@ import ConfirmationModal from "../ui/ConfirmationModal.vue";
 import RegistrationStatusBadge from "./RegistrationStatusBadge.vue";
 import { useAuthStore } from "~/stores/auth";
 
-import type { AdminUserListItem } from "@ministrosfc/shared";
+import {
+  type AdminUserListItem,
+  type UserRole,
+  USER_ROLE_FILTER_ALL,
+} from "@ministrosfc/shared";
 
 const authStore = useAuthStore();
 
@@ -181,7 +185,9 @@ const meta = ref<Meta | null>(null);
 const loading = ref(false);
 const error = ref("");
 const search = ref("");
-const roleFilter = ref("");
+const roleFilter = ref<UserRole | typeof USER_ROLE_FILTER_ALL>(
+  USER_ROLE_FILTER_ALL,
+);
 const page = ref(1);
 const deleteTarget = ref<AdminUserListItem | null>(null);
 
@@ -318,24 +324,15 @@ onMounted(fetchUsers);
   <div>
     <!-- Filters -->
     <div class="flex flex-col sm:flex-row gap-3 mb-4">
-      <input
+      <UInput
         v-model="search"
         type="text"
         placeholder="Buscar por nombre o email…"
-        class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+        class="flex-1"
         @input="debouncedFetch"
+        size="lg"
       />
-      <select
-        v-model="roleFilter"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-        @change="fetchUsers"
-      >
-        <option value="">Todos los roles</option>
-        <option value="ADMIN">Admin</option>
-        <option value="EDITOR">Editor</option>
-        <option value="DT">DT</option>
-        <option value="PLAYER">Player</option>
-      </select>
+      <UiUserRoleSelect v-model="roleFilter" class="w-48" size="lg" />
     </div>
 
     <!-- Loading -->
@@ -492,7 +489,7 @@ onMounted(fetchUsers);
           <UButton
             :disabled="page <= 1"
             variant="outline"
-            color="gray"
+            color="neutral"
             @click="goPage(page - 1)"
           >
             ← Anterior
@@ -501,7 +498,7 @@ onMounted(fetchUsers);
           <UButton
             :disabled="page >= meta.totalPages"
             variant="outline"
-            color="gray"
+            color="neutral"
             @click="goPage(page + 1)"
           >
             Siguiente →

@@ -172,9 +172,9 @@ async function confirmDelete() {
 
     <!-- Filters -->
     <div class="flex flex-col sm:flex-row gap-3 mb-4">
-      <UInput v-model="search" placeholder="Buscar…" class="flex-1" />
-      <UiPlayerStatusSelect v-model="statusFilter" />
-      <UiPositionSelect v-model="posFilter" />
+      <UInput v-model="search" placeholder="Buscar…" class="flex-1" size="xl" />
+      <UiPlayerStatusSelect v-model="statusFilter" size="xl" />
+      <UiPositionSelect v-model="posFilter" size="xl" />
     </div>
 
     <!-- Table -->
@@ -192,13 +192,13 @@ async function confirmDelete() {
         <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
           <tr>
             <th class="px-4 py-3 text-left">#</th>
-            <th class="px-4 py-3 text-left">Posición</th>
-            <th class="px-4 py-3 text-left">Img</th>
-            <th class="px-4 py-3 text-left">Jugador</th>
-            <th class="px-4 py-3 text-left">Invitado</th>
-            <th class="px-4 py-3 text-center">Dorsal</th>
-            <th class="px-4 py-3 text-center">Estado</th>
-            <th class="px-4 py-3 text-right">Acciones</th>
+            <th class="px-2 py-3 text-left">Posición</th>
+            <th class="px-2 py-3 text-left">Img</th>
+            <th class="px-2 py-3 text-left">Jugador</th>
+            <th class="px-2 py-3 text-left">Invitado por</th>
+            <th class="px-2 py-3 text-center">Dorsal</th>
+            <th class="px-2 py-3 text-center">Estado</th>
+            <th class="px-2 py-3 text-right">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -207,13 +207,16 @@ async function confirmDelete() {
             :key="p.id"
             class="border-t border-gray-100 hover:bg-gray-50"
           >
+            <!-- Player # -->
             <td class="px-4 py-3 w-10 text-gray-400">
               {{ index + 1 }}
             </td>
-            <td class="px-4 py-3 w-10 text-gray-600 hidden lg:table-cell">
+            <!-- Position -->
+            <td class="px-2 py-3 w-10 text-gray-600 hidden lg:table-cell">
               <UiPositionLabel :position="p.position" />
             </td>
-            <td class="px-4 py-3 w-10 text-gray-600 hidden lg:table-cell">
+            <!-- Player Image -->
+            <td class="px-2 py-3 w-10 text-gray-600 hidden lg:table-cell">
               <div
                 class="w-8 h-8 rounded-full bg-gray-100 overflow-hidden flex-shrink-0"
               >
@@ -229,6 +232,9 @@ async function confirmDelete() {
                   >👤</span
                 >
               </div>
+            </td>
+            <!-- Player Name -->
+            <td class="text-gray-600 hidden lg:table-cell">
               <div class="min-w-0">
                 <UButton
                   :to="`/admin/players/${p.id}/edit`"
@@ -237,6 +243,9 @@ async function confirmDelete() {
                   color="neutral"
                   >{{ p.firstName }} {{ p.lastName }}</UButton
                 >
+                <span v-if="p.nickname" class="text-sm text-gray-400">{{
+                  p.nickname
+                }}</span>
                 <div class="flex items-center gap-1 mt-0.5 flex-wrap">
                   <!-- T040: guest badge -->
                   <span
@@ -257,7 +266,8 @@ async function confirmDelete() {
                 </div>
               </div>
             </td>
-            <td>
+            <!-- Invited By -->
+            <td class="py-3 hidden lg:table-cell">
               <div class="flex items-center gap-1 mt-0.5 flex-wrap">
                 <!-- T040: guest badge -->
                 <span
@@ -266,7 +276,6 @@ async function confirmDelete() {
                   >Invitado</span
                 >
                 <span class="text-gray-600" v-if="p.invitedById">
-                  Invitado por
                   <a
                     v-if="p.invitedByName"
                     :href="`/admin/players/${p.invitedById}/edit`"
@@ -287,6 +296,7 @@ async function confirmDelete() {
                 >
               </div>
             </td>
+            <!-- Jersey Number -->
             <td class="py-3 hidden lg:table-cell">
               <div class="w-full lg:flex lg:justify-center">
                 <UiPositionNumber
@@ -296,32 +306,40 @@ async function confirmDelete() {
                 />
               </div>
             </td>
-            <td class="px-4 py-3 text-center">
+            <!-- Status -->
+            <td class="px-2 py-3 text-center">
               <UButton
                 variant="soft"
-                :color="p.status === 'ACTIVE' ? 'success' : 'neutral'"
+                :color="
+                  p.status === PlayerStatus.ACTIVE ? 'success' : 'neutral'
+                "
+                :title="
+                  p.status === PlayerStatus.ACTIVE
+                    ? 'Presiona para desactivar jugador'
+                    : 'Presiona para activar jugador'
+                "
                 @click="askToggleStatus(p, $event)"
                 size="xs"
                 class="font-medium"
               >
-                {{ p.status === "ACTIVE" ? "Activo" : "Inactivo" }}
+                {{ p.status === PlayerStatus.ACTIVE ? "Activo" : "Inactivo" }}
               </UButton>
             </td>
-            <td class="px-4 py-3 text-right space-x-3">
+            <td class="px-2 py-3 text-right space-x-3">
               <UButton
                 v-if="authStore.isAdmin"
                 data-testid="delete-player-btn"
                 variant="ghost"
                 color="error"
-                size="xs"
+                size="xl"
                 @click="playerToDelete = p"
-              >
-                Eliminar
-              </UButton>
+                icon="mdi:trash-can-outline"
+                title="Eliminar jugador"
+              />
             </td>
           </tr>
           <tr v-if="!filteredPlayers.length">
-            <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+            <td colspan="5" class="px-2 py-8 text-center text-gray-500">
               No se encontraron jugadores.
             </td>
           </tr>
