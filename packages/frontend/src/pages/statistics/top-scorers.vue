@@ -2,7 +2,6 @@
 import type { ColumnDef } from "~/types/table";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
 import TournamentSelect from "~/components/pages/statistics/StatsFilters/TournamentSelect.vue";
-import PlayerStatusSelect from "~/components/pages/statistics/StatsFilters/PlayerStatusSelect.vue";
 import { useAuthStore } from "~/stores/auth";
 
 definePageMeta({ layout: "statistics", public: true });
@@ -113,7 +112,7 @@ const tableRows = computed(() =>
         v-if="authStore.isAuthenticated"
         v-model="tournamentFilter"
       />
-      <PlayerStatusSelect
+      <UiPlayerStatusSelect
         v-if="authStore.isAuthenticated"
         v-model="playerStatusFilter"
       />
