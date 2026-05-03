@@ -3,18 +3,18 @@ import type { SelectItem } from "#ui/types";
 import {
   Position,
   PositionDisplayName,
-  PLAYER_POSITION_FILTER_ALL,
+  OPTION_FILTER_ALL,
 } from "@ministrosfc/shared";
 import Label from "./Label.vue";
 
 const props = withDefaults(
   defineProps<{
-    modelValue?: Position | typeof PLAYER_POSITION_FILTER_ALL;
+    modelValue?: Position | typeof OPTION_FILTER_ALL;
     includeAll?: boolean;
     placeholder?: string;
   }>(),
   {
-    modelValue: PLAYER_POSITION_FILTER_ALL,
+    modelValue: OPTION_FILTER_ALL,
     includeAll: true,
     placeholder: undefined,
   },
@@ -23,7 +23,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   (
     e: "update:modelValue",
-    value: Position | typeof PLAYER_POSITION_FILTER_ALL | undefined,
+    value: Position | typeof OPTION_FILTER_ALL | undefined,
   ): void;
 }>();
 
@@ -33,7 +33,7 @@ const positionItems: SelectItem[] = Object.values(Position).map((pos) => ({
 }));
 
 const optionAll: SelectItem = {
-  value: PLAYER_POSITION_FILTER_ALL,
+  value: OPTION_FILTER_ALL,
   label: "Todas las posiciones",
 };
 const items: SelectItem[] = props.includeAll
@@ -61,7 +61,7 @@ function getItemPosition(item: unknown): Position | null {
 }
 
 function isAllItem(item: unknown): boolean {
-  return extractItemValue(item) === PLAYER_POSITION_FILTER_ALL;
+  return extractItemValue(item) === OPTION_FILTER_ALL;
 }
 
 function getItemLabel(item: unknown): string {
@@ -73,8 +73,8 @@ function getItemLabel(item: unknown): string {
   }
 
   const value = extractItemValue(item);
-  if (value === PLAYER_POSITION_FILTER_ALL) {
-    return optionAll.label;
+  if (value === OPTION_FILTER_ALL) {
+    return optionAll!.label as string;
   }
   if (isPositionValue(value)) {
     return PositionDisplayName[value];
@@ -99,15 +99,12 @@ function handleUpdate(value: unknown) {
   const selectedValue = resolveSelectedValue(value);
 
   if (!selectedValue) {
-    emit(
-      "update:modelValue",
-      props.includeAll ? PLAYER_POSITION_FILTER_ALL : undefined,
-    );
+    emit("update:modelValue", props.includeAll ? OPTION_FILTER_ALL : undefined);
     return;
   }
 
-  if (selectedValue === PLAYER_POSITION_FILTER_ALL && props.includeAll) {
-    emit("update:modelValue", PLAYER_POSITION_FILTER_ALL);
+  if (selectedValue === OPTION_FILTER_ALL && props.includeAll) {
+    emit("update:modelValue", OPTION_FILTER_ALL);
     return;
   }
 
@@ -116,13 +113,10 @@ function handleUpdate(value: unknown) {
     return;
   }
 
-  emit(
-    "update:modelValue",
-    props.includeAll ? PLAYER_POSITION_FILTER_ALL : undefined,
-  );
+  emit("update:modelValue", props.includeAll ? OPTION_FILTER_ALL : undefined);
 }
 const selectedLabel = computed(() => {
-  if (!props.modelValue || props.modelValue === PLAYER_POSITION_FILTER_ALL) {
+  if (!props.modelValue || props.modelValue === OPTION_FILTER_ALL) {
     return props.includeAll ? optionAll.label : undefined;
   }
   return isPositionValue(props.modelValue)

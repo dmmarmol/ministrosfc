@@ -135,3 +135,8 @@ export interface SortParams {
 }
 
 export type QueryParams = PaginationParams & FilterParams & SortParams;
+
+export type OptionItem = {
+  id: string;
+  name: string | null;
+};

@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { nextTick } from "vue";
-import {
-  PlayerStatus,
-  PLAYER_STATUS_FILTER_ALL,
-  PLAYER_POSITION_FILTER_ALL,
-  Position,
-} from "@ministrosfc/shared";
+import { PlayerStatus, OPTION_FILTER_ALL, Position } from "@ministrosfc/shared";
 import { useAuthStore } from "~/stores/auth";
 import PlayerDeleteModal from "~/components/player/PlayerDeleteModal.vue";
 import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
@@ -30,13 +25,11 @@ const playerToToggleStatus = ref<any | null>(null);
 const toggleStatusModalOpen = ref(false);
 const toggleStatusInvoker = ref<HTMLElement | null>(null);
 const search = ref("");
-const statusFilter = ref<PlayerStatus | typeof PLAYER_STATUS_FILTER_ALL>(
-  PLAYER_STATUS_FILTER_ALL,
+const statusFilter = ref<PlayerStatus | typeof OPTION_FILTER_ALL>(
+  OPTION_FILTER_ALL,
 );
 
-const posFilter = ref<Position | typeof PLAYER_POSITION_FILTER_ALL>(
-  PLAYER_POSITION_FILTER_ALL,
-);
+const posFilter = ref<Position | typeof OPTION_FILTER_ALL>(OPTION_FILTER_ALL);
 
 type ExtendPlayerAttributes = {
   invitedById?: string | null;
@@ -69,7 +62,7 @@ watch(toggleStatusModalOpen, (isOpen) => {
 const players = computed(() => data.value?.data ?? []);
 const filteredPlayers = computed(() => {
   let list = players.value;
-  if (posFilter.value && posFilter.value !== PLAYER_POSITION_FILTER_ALL) {
+  if (posFilter.value && posFilter.value !== OPTION_FILTER_ALL) {
     list = list.filter((p: any) => p.position === posFilter.value);
   }
   if (search.value.trim()) {
@@ -239,7 +232,7 @@ async function confirmDelete() {
                 <UButton
                   :to="`/admin/players/${p.id}/edit`"
                   class="truncate"
-                  variant="ghost"
+                  variant="link"
                   color="neutral"
                   >{{ p.firstName }} {{ p.lastName }}</UButton
                 >
@@ -331,7 +324,6 @@ async function confirmDelete() {
                 data-testid="delete-player-btn"
                 variant="ghost"
                 color="error"
-                size="xl"
                 @click="playerToDelete = p"
                 icon="mdi:trash-can-outline"
                 title="Eliminar jugador"

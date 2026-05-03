@@ -7,7 +7,7 @@ import { useAuthStore } from "~/stores/auth";
 import {
   type AdminUserListItem,
   type UserRole,
-  USER_ROLE_FILTER_ALL,
+  OPTION_FILTER_ALL,
 } from "@ministrosfc/shared";
 
 const authStore = useAuthStore();
@@ -185,9 +185,7 @@ const meta = ref<Meta | null>(null);
 const loading = ref(false);
 const error = ref("");
 const search = ref("");
-const roleFilter = ref<UserRole | typeof USER_ROLE_FILTER_ALL>(
-  USER_ROLE_FILTER_ALL,
-);
+const roleFilter = ref<UserRole | typeof OPTION_FILTER_ALL>(OPTION_FILTER_ALL);
 const page = ref(1);
 const deleteTarget = ref<AdminUserListItem | null>(null);
 

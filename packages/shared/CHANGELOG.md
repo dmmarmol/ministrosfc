@@ -18,7 +18,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - `RegistrationStatus` enum (`PENDING_APPROVAL | APPROVED | DENIED`) and `ApprovalDecisionType` enum (`APPROVE_NO_MERGE | APPROVE_WITH_MERGE`) in `src/types/user.ts`.
 - `NotificationRecipient`, `NotificationSender`, and `NotificationSenderFactory` interfaces in new `src/types/notification.ts` — transport-agnostic contract for approval-flow email notifications.
 - `PendingApprovalQueueItem`, `RelatedPlayerSuggestion`, `OrphanPlayerItem`, and `MergeResolution` DTOs in new `src/types/approval.ts` — shared API contract between CMS approval endpoints and frontend review UI.
-- `PLAYER_POSITION_FILTER_ALL` constant (`"ALL"`) in `src/constants/players.ts` for position filter dropdowns that include an all-positions option.
+- `OPTION_FILTER_ALL` constant (`"ALL"`) in `src/constants/players.ts` for position filter dropdowns that include an all-positions option.
 
 ### Changed
 

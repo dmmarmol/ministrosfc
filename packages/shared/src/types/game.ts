@@ -1,3 +1,6 @@
+import { OptionItem } from "./api";
+import { PlaygroundOption } from "./playground";
+
 export enum GameStatus {
   SCHEDULED = "SCHEDULED",
   IN_PROGRESS = "IN_PROGRESS",
@@ -53,13 +56,7 @@ export interface Game {
   date: string;
   location?: string | null;
   playgroundId?: string | null;
-  playground?: {
-    id: string;
-    name: string;
-    address: string;
-    latitude: number | null;
-    longitude: number | null;
-  } | null;
+  playground?: PlaygroundOption | null;
   competitionType: CompetitionType;
   status: GameStatus;
   homeTeamScore?: number | null;
@@ -77,6 +74,12 @@ export interface Game {
   currentPlayerStatus?: GameSignupState | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AdminGame extends Game {
+  opponentTeam: OptionItem | null;
+  tournament: OptionItem | null;
+  confirmedCount: number | null;
 }
 
 export interface GameCreateDTO {

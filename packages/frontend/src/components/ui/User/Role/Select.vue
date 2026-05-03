@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import type { SelectItem } from "#ui/types";
-import { USER_ROLE_FILTER_ALL, UserRole } from "@ministrosfc/shared";
+import { OPTION_FILTER_ALL, UserRole } from "@ministrosfc/shared";
 
 const props = withDefaults(
   defineProps<{
-    modelValue?: UserRole | typeof USER_ROLE_FILTER_ALL;
+    modelValue?: UserRole | typeof OPTION_FILTER_ALL;
     includeAll?: boolean;
   }>(),
   {
-    modelValue: USER_ROLE_FILTER_ALL,
+    modelValue: OPTION_FILTER_ALL,
     includeAll: true,
   },
 );
@@ -16,12 +16,12 @@ const props = withDefaults(
 const emit = defineEmits<{
   (
     e: "update:modelValue",
-    value: UserRole | typeof USER_ROLE_FILTER_ALL | undefined,
+    value: UserRole | typeof OPTION_FILTER_ALL | undefined,
   ): void;
 }>();
 
 const optionAll: SelectItem = {
-  value: USER_ROLE_FILTER_ALL,
+  value: OPTION_FILTER_ALL,
   label: "Todos los roles",
 };
 const statusItems: SelectItem[] = [
@@ -48,12 +48,12 @@ const items: SelectItem[] = props.includeAll
 
 function handleUpdate(value: unknown) {
   if (typeof value !== "string") {
-    emit("update:modelValue", USER_ROLE_FILTER_ALL);
+    emit("update:modelValue", OPTION_FILTER_ALL);
     return;
   }
 
-  if (value === USER_ROLE_FILTER_ALL) {
-    emit("update:modelValue", USER_ROLE_FILTER_ALL);
+  if (value === OPTION_FILTER_ALL) {
+    emit("update:modelValue", OPTION_FILTER_ALL);
     return;
   }
 
@@ -62,7 +62,7 @@ function handleUpdate(value: unknown) {
     return;
   }
 
-  emit("update:modelValue", USER_ROLE_FILTER_ALL);
+  emit("update:modelValue", OPTION_FILTER_ALL);
 }
 </script>
 <template>
