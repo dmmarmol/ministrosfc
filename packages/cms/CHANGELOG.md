@@ -11,7 +11,30 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [0.11.0] — 2026-04-24
+## [0.12.0] — 2026-05-03
+
+### Added
+
+- `registrationStatus RegistrationStatus @default(PENDING_APPROVAL)` field on Prisma `User` model; `UserApprovalDecision` model (id, userId, reviewerId, decisionType, mergePlayerId, createdAt) with Prisma migration `add-registration-approval`.
+- `UserApprovalService` with `matchOrphanPlayers`, `getPendingApprovals`, `approveWithoutMerge`, `approveWithMerge`, `deny`, and `mergeApprovedUser` methods. Merge is executed as a Prisma transaction with orphan validation and optimistic lock enforcement.
+- `NoOpNotificationSender` implementing `NotificationSender` from `@ministrosfc/shared`: `send`/`sendCC`/`sendCCO` resolve silently; `sendSafe` swallows errors and logs a warning.
+- Approval API endpoints under existing admin-users surface: `GET /api/v1/admin/users/pending-approvals`, `GET .../pending-approvals/:userId/orphan-players`, `POST .../pending-approvals/:userId/approve`, `POST .../pending-approvals/:userId/deny`, `POST .../pending-approvals/:userId/approve-merge`, `POST /api/v1/admin/users/:userId/merge-player`.
+- `PlayerModel.findOrphans(options)` paginated query for players with no linked user account.
+- `UserModel.findPendingApprovals(options)` paginated query.
+- `PENDING_APPROVAL` error code in `src/utils/error-codes.ts`.
+- Approval flow integration tests: `approval-queue.test.ts`, `approval-merge.test.ts`, `user-merge.test.ts`.
+- Unit tests: `UserApprovalService.test.ts`, `NoOpNotificationSender.test.ts`.
+
+### Changed
+
+- `AuthService.register` now returns `202 { status: "pending", message: "Tu cuenta está pendiente de aprobación" }` without issuing JWT tokens.
+- `AuthService.login` rejects users with `registrationStatus === PENDING_APPROVAL` with `403 { code: "PENDING_APPROVAL" }`.
+- Admin auto-approve logic: users with role `ADMIN` are created with `APPROVED` status directly.
+
+### Fixed
+
+- Replaced `bcrypt` (native addon) with `bcryptjs` to fix CI build hangs on ARM/musl environments.
+- Admin seed credentials now sourced from environment variables, removing hardcoded defaults.
 
 ### Added
 
