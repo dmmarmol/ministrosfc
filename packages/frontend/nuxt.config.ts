@@ -1,11 +1,15 @@
-import tailwindcss from "@tailwindcss/vite";
-
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  future: { compatibilityVersion: 4 },
   srcDir: "src/",
   devtools: { enabled: true },
 
-  modules: ["@pinia/nuxt", "@nuxt/image", "@nuxt/ui"],
+  modules: [
+    "@pinia/nuxt",
+    "@nuxt/image",
+    "@nuxt/ui",
+    /** "@nuxtjs/color-mode", */
+  ],
 
   css: [
     // "leaflet/dist/leaflet.css",
@@ -48,7 +52,6 @@ export default defineNuxtConfig({
   // Whitelist the custom dev hostname so the browser can connect.
   // Resolve workspace CJS package to its TS source so Vite serves ESM natively.
   vite: {
-    plugins: [tailwindcss()],
     resolve: {
       alias: {
         "@ministrosfc/shared": new URL(
@@ -79,5 +82,16 @@ export default defineNuxtConfig({
 
   experimental: {
     appManifest: false,
+  },
+
+  colorMode: {
+    // Use an app-specific key to avoid stale values from previous runs on the same origin.
+    storageKey: "ministrosfc-color-mode",
+    preference: "light",
+    fallback: "light",
+  },
+
+  ui: {
+    colorMode: false,
   },
 });
