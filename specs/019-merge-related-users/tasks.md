@@ -131,8 +131,10 @@
 - [ ] T038 Create `/admin/users/[userId].vue` page displaying `UserEditorPanel` in `packages/frontend/src/pages/admin/users/[userId].vue` with `definePageMeta({ layout: "admin", middleware: "auth", requiresAuth: true, requiresRole: "editor" })`
 - [ ] T039 [P] Add integration test for post-approval merge endpoint (`409` if player already linked, `404` if player not orphan) in `packages/cms/tests/integration/user-merge.test.ts`
 - [ ] T040 [P] Add navigation link to pending-approvals queue in admin sidebar or users index page in `packages/frontend/src/components/admin/` (exact component depends on current sidebar implementation)
-- [ ] T041 [P] Run quickstart.md manual verification flow to confirm full end-to-end scenario works
+- [ ] T041 [P] Run quickstart.md manual verification flow to confirm full end-to-end scenario works; verification PASSES only when all of the following are confirmed by the quickstart checklist steps: SC-001 (new user blocked until decision), SC-003 (no duplicate active identity post-merge, exactly one active user linked to selected player), SC-004 (audit record present with reviewer identity, decision type, timestamp), and SC-005 (notification contract callable without concrete transport)
 - [ ] T042 [P] Update changelogs for this feature scope: root `CHANGELOG.md` plus `packages/cms/CHANGELOG.md`, `packages/frontend/CHANGELOG.md`, and `packages/shared/CHANGELOG.md`
+- [ ] T043 [P] Measure response times for approval queue (`GET /api/v1/admin/users/pending-approvals`) and all decision endpoints (`POST .../approve`, `.../deny`, `.../approve-merge`) under representative load; assert all are under 300ms average (plan performance goal); document measured results in `specs/019-merge-related-users/quickstart.md` validation section
+- [ ] T044 [P] Bump minor version in `packages/shared/package.json`, `packages/cms/package.json`, and `packages/frontend/package.json`; promote `## [Unreleased]` to `## [X.Y.Z] — YYYY-MM-DD` in root `CHANGELOG.md` and each affected `packages/*/CHANGELOG.md` in a single atomic commit (Constitution Principle VIII release process)
 
 ---
 
@@ -172,7 +174,7 @@
 **Phase 4**: T019 can run in parallel with T018; T024 should be written before T023, while T025/T026 can run in parallel with T023  
 **Phase 5**: T030 and T031 should be written before T028 and can run in parallel with each other  
 **Phase 6**: T034 can run in parallel with T033  
-**Phase 7**: T035/T036/T037/T039/T040/T042 can run in parallel
+**Phase 7**: T035/T036/T037/T039/T040/T042/T043/T044 can run in parallel; T041 must run last (validates end-to-end state)
 
 ---
 
