@@ -16,7 +16,8 @@
  */
 import { prisma } from "../config/database";
 import bcrypt from "bcryptjs";
-import type { User, Prisma, Role, RegistrationStatus } from "@prisma/client";
+import type { User, Prisma, Role } from "@prisma/client";
+import { RegistrationStatus } from "@ministrosfc/shared";
 
 const UserModel = {
   async create(data: {
@@ -34,7 +35,9 @@ const UserModel = {
     const role = data.role ?? "PLAYER";
     const registrationStatus =
       data.registrationStatus ??
-      (role === "ADMIN" ? "APPROVED" : "PENDING_APPROVAL");
+      (role === "ADMIN"
+        ? RegistrationStatus.APPROVED
+        : RegistrationStatus.PENDING_APPROVAL);
 
     return prisma.user.create({
       data: {
@@ -62,7 +65,7 @@ const UserModel = {
     const search = options.search?.trim();
 
     const where: Prisma.UserWhereInput = {
-      registrationStatus: "PENDING_APPROVAL",
+      registrationStatus: RegistrationStatus.PENDING_APPROVAL,
       ...(search
         ? {
             OR: [

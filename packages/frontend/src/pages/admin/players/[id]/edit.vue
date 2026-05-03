@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { useAuthStore } from "~/stores/auth";
 import PlayerDeleteModal from "~/components/player/PlayerDeleteModal.vue";
+import PlayerForm, {
+  type PlayerFormData,
+} from "~/components/pages/admin/players/PlayerForm.vue";
+import { PlayerStatus } from "@ministrosfc/shared";
 
 definePageMeta({
   layout: "admin",
@@ -22,28 +26,23 @@ const { data, pending, refresh } = await useAsyncData(`edit-player-${id}`, () =>
 );
 const player = computed(() => data.value?.data ?? null);
 
-const form = reactive({
-  firstName: "",
-  lastName: "",
-  nickname: "",
-  position: "",
-  jerseyNumber: null as number | null,
-  dateOfBirth: "",
-});
+const initialFormData = computed(() => {
+  if (!player.value) return {};
 
-watch(
-  player,
-  (p) => {
-    if (!p) return;
-    form.firstName = p.firstName ?? "";
-    form.lastName = p.lastName ?? "";
-    form.nickname = p.nickname ?? "";
-    form.position = p.position ?? "";
-    form.jerseyNumber = p.jerseyNumber ?? null;
-    form.dateOfBirth = p.dateOfBirth ? p.dateOfBirth.split("T")[0] : "";
-  },
-  { immediate: true },
-);
+  return {
+    firstName: player.value.firstName ?? "",
+    lastName: player.value.lastName ?? "",
+    nickname: player.value.nickname ?? "",
+    position: player.value.position ?? undefined,
+    jerseyNumber: player.value.jerseyNumber
+      ? String(player.value.jerseyNumber)
+      : undefined,
+    dateOfBirth: player.value.dateOfBirth
+      ? player.value.dateOfBirth.split("T")[0]
+      : "",
+    photo: player.value.photoUrl ?? undefined,
+  };
+});
 
 useHead(() => ({
   title: player.value
@@ -51,53 +50,17 @@ useHead(() => ({
     : "Edit Player",
 }));
 
-const photoInput = ref<HTMLInputElement | null>(null);
-const photoFile = ref<File | null>(null);
-const photoPreview = ref<string | null>(null);
 const loading = ref(false);
 const error = ref("");
 
-function onFileChange(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0];
-  if (file) {
-    photoFile.value = file;
-    photoPreview.value = URL.createObjectURL(file);
-  }
-}
-
-async function submit() {
+async function submit(data: PlayerFormData) {
   error.value = "";
   loading.value = true;
   try {
-    const fd = new FormData();
-    fd.append("firstName", form.firstName);
-    fd.append("lastName", form.lastName);
-    if (form.nickname !== undefined) fd.append("nickname", form.nickname);
-    if (form.position) fd.append("position", form.position);
-    if (form.jerseyNumber) fd.append("jerseyNumber", String(form.jerseyNumber));
-    if (form.dateOfBirth) fd.append("dateOfBirth", form.dateOfBirth);
-    if (photoFile.value) fd.append("photo", photoFile.value);
-    await $api(`/api/v1/players/${id}`, { method: "PATCH", body: fd });
+    await $api(`/api/v1/players/${id}`, { method: "PATCH", body: data });
     await router.push("/admin/players");
   } catch (e: any) {
     error.value = e?.message ?? "No se pudo guardar el jugador.";
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function toggleStatus() {
-  if (!player.value) return;
-  loading.value = true;
-  try {
-    const newStatus = player.value.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-    await $api(`/api/v1/players/${id}/status`, {
-      method: "PATCH",
-      body: { status: newStatus },
-    });
-    await refresh();
-  } catch (e: any) {
-    error.value = e?.message ?? "No se pudo actualizar el estado.";
   } finally {
     loading.value = false;
   }
@@ -120,11 +83,9 @@ async function confirmDelete() {
 
 <template>
   <div class="max-w-xl">
-    <NuxtLink
-      to="/admin/players"
-      class="text-sm text-gray-500 hover:text-brand mb-4 inline-block"
-      >← Volver a Jugadores</NuxtLink
-    >
+    <div class="mb-4">
+      <UiBackButton to="/admin/players" label="Volver a Jugadores" />
+    </div>
     <h2 class="text-lg font-bold text-gray-900 mb-6">Editar Jugador</h2>
 
     <!-- Delete confirmation modal (admin only) -->
@@ -146,163 +107,33 @@ async function confirmDelete() {
         class="h-10 bg-gray-200 animate-pulse rounded-lg"
       />
     </div>
-    <form
-      v-else-if="player"
-      class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
-      @submit.prevent="submit"
-    >
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1"
-            >Nombre *</label
-          >
-          <input
-            v-model="form.firstName"
-            required
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1"
-            >Apellido *</label
-          >
-          <input
-            v-model="form.lastName"
-            required
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1"
-            >Apodo</label
-          >
-          <input
-            v-model="form.nickname"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1"
-            >Posición</label
-          >
-          <select
-            v-model="form.position"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          >
-            <option value="">—</option>
-            <option value="GK">Portero</option>
-            <option value="CB">Defensa Central</option>
-            <option value="RB">Lateral Derecho</option>
-            <option value="LB">Lateral Izquierdo</option>
-            <option value="RWB">Carrilero Derecho</option>
-            <option value="LWB">Carrilero Izquierdo</option>
-            <option value="DMF">Mediocampista Defensivo</option>
-            <option value="CMF">Mediocampista Central</option>
-            <option value="AMF">Mediocampista Ofensivo</option>
-            <option value="RMF">Mediocampista Derecho</option>
-            <option value="LMF">Mediocampista Izquierdo</option>
-            <option value="SS">Segundo Delantero</option>
-            <option value="CF">Delantero Centro</option>
-            <option value="RWF">Extremo Derecho</option>
-            <option value="LWF">Extremo Izquierdo</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1"
-            >Dorsal #</label
-          >
-          <input
-            v-model.number="form.jerseyNumber"
-            type="number"
-            min="1"
-            max="99"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1"
-            >Fecha de Nacimiento</label
-          >
-          <input
-            v-model="form.dateOfBirth"
-            type="date"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          />
-        </div>
-      </div>
-
-      <!-- Photo -->
-      <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">Foto</label>
-        <div class="flex items-center gap-4">
-          <div
-            class="w-16 h-16 rounded-full bg-gray-100 overflow-hidden flex-shrink-0"
-          >
-            <img
-              :src="photoPreview ?? player.photoUrl ?? undefined"
-              :alt="`${player.firstName} ${player.lastName}`"
-              class="w-full h-full object-cover"
-            />
-          </div>
+    <div v-else-if="player" class="form-wrapper relative">
+      <PlayerForm
+        :initial-data="initialFormData"
+        submit-label="Guardar Cambios"
+        @submit="submit"
+        :playerId="player.id"
+      >
+        <template #buttons>
           <UButton
-            type="button"
-            variant="link"
-            color="primary"
-            size="sm"
-            @click="photoInput?.click()"
+            v-if="authStore.isAdmin"
+            variant="outline"
+            color="error"
+            @click="showDeleteModal = true"
           >
-            Cambiar foto
+            Eliminar
           </UButton>
-          <input
-            ref="photoInput"
-            type="file"
-            accept="image/jpeg,image/png"
-            class="hidden"
-            @change="onFileChange"
-          />
-        </div>
-      </div>
+        </template>
+      </PlayerForm>
+
+      <UiLoadingOverlay v-if="loading" />
 
       <p
         v-if="error"
-        class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2"
+        class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mt-3"
       >
         {{ error }}
       </p>
-      <div class="flex flex-wrap gap-3 pt-2">
-        <UButton
-          type="submit"
-          color="primary"
-          variant="solid"
-          size="md"
-          :disabled="loading"
-          class="font-semibold"
-        >
-          {{ loading ? "Guardando…" : "Guardar Cambios" }}
-        </UButton>
-        <UButton
-          type="button"
-          :disabled="loading"
-          variant="outline"
-          :color="player.status === 'ACTIVE' ? 'red' : 'emerald'"
-          size="md"
-          @click="toggleStatus"
-        >
-          {{ player.status === "ACTIVE" ? "Desactivar" : "Activar" }}
-        </UButton>
-        <UButton
-          v-if="authStore.isAdmin"
-          data-testid="delete-player-btn"
-          type="button"
-          :disabled="loading"
-          variant="outline"
-          color="red"
-          size="md"
-          @click="showDeleteModal = true"
-        >
-          Eliminar Jugador
-        </UButton>
-      </div>
-    </form>
+    </div>
   </div>
 </template>

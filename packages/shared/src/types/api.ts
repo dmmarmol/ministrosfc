@@ -1,4 +1,6 @@
 // --- Admin Users Governance DTOs ---
+import { PlayerStatus, PlayerType, Position } from "./player";
+import { RegistrationStatus, UserRole } from "./user";
 
 export interface AdminUserListItem {
   id: string;
@@ -44,10 +46,7 @@ export interface AdminUserPlayerStatusPayload {
 export interface AdminUserDeleteResponse {
   success: boolean;
 }
-import { PlayerStatus, PlayerType, Position } from "./player";
-import { UserRole } from "./user";
 
-import { RegistrationStatus, UserRole } from "./user";
 export interface PlayerProfileResponse {
   user: {
     id: string;

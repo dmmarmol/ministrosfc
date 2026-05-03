@@ -16,53 +16,32 @@ const pageTitle = computed(() => {
 <template>
   <div class="min-h-screen flex bg-gray-100">
     <!-- Sidebar -->
-    <aside class="w-64 bg-gray-900 text-white flex flex-col">
+    <aside class="w-64 bg-admin-ui-sidebar-bg text-white flex flex-col">
       <div class="p-4 border-b border-gray-700">
         <span class="text-brand font-bold text-lg">Ministros FC</span>
         <p class="text-xs text-gray-400 mt-1">Admin Panel</p>
       </div>
-      <nav class="flex-1 p-4 space-y-1">
-        <NuxtLink
-          to="/admin/dashboard"
-          class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
-          active-class="bg-gray-700 text-brand"
-          >Inicio</NuxtLink
+      <nav class="flex-1 flex flex-col p-4 space-y-2">
+        <UButton to="/admin/dashboard" variant="solid" color="secondary"
+          >Inicio</UButton
         >
-        <NuxtLink
-          to="/admin/players"
-          class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
-          active-class="bg-gray-700 text-brand"
-          >Jugadores</NuxtLink
+        <UButton to="/admin/players" variant="solid" color="secondary"
+          >Jugadores</UButton
         >
-        <NuxtLink
-          to="/admin/games"
-          class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
-          active-class="bg-gray-700 text-brand"
-          >Partidos</NuxtLink
+        <UButton to="/admin/games" variant="solid" color="secondary"
+          >Partidos</UButton
         >
-        <NuxtLink
-          to="/admin/playgrounds"
-          class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
-          active-class="bg-gray-700 text-brand"
-          >Canchas</NuxtLink
+        <UButton to="/admin/playgrounds" variant="solid" color="secondary"
+          >Canchas</UButton
         >
-        <NuxtLink
-          to="/admin/teams"
-          class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
-          active-class="bg-gray-700 text-brand"
-          >Equipos</NuxtLink
+        <UButton to="/admin/teams" variant="solid" color="secondary"
+          >Equipos</UButton
         >
-        <NuxtLink
-          to="/admin/tournaments"
-          class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
-          active-class="bg-gray-700 text-brand"
-          >Torneos</NuxtLink
+        <UButton to="/admin/tournaments" variant="solid" color="secondary"
+          >Torneos</UButton
         >
-        <NuxtLink
-          to="/admin/users"
-          class="block px-3 py-2 rounded text-sm hover:bg-gray-700 transition-colors"
-          active-class="bg-gray-700 text-brand"
-          >Usuarios</NuxtLink
+        <UButton to="/admin/users" variant="solid" color="secondary"
+          >Usuarios</UButton
         >
       </nav>
       <!-- User info + logout -->

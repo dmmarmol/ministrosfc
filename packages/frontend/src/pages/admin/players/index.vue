@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { nextTick } from "vue";
-import { PlayerStatus, PLAYER_STATUS_FILTER_ALL } from "@ministrosfc/shared";
+import {
+  PlayerStatus,
+  PLAYER_STATUS_FILTER_ALL,
+  PLAYER_POSITION_FILTER_ALL,
+  Position,
+} from "@ministrosfc/shared";
 import { useAuthStore } from "~/stores/auth";
 import PlayerDeleteModal from "~/components/player/PlayerDeleteModal.vue";
 import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
@@ -28,7 +33,10 @@ const search = ref("");
 const statusFilter = ref<PlayerStatus | typeof PLAYER_STATUS_FILTER_ALL>(
   PLAYER_STATUS_FILTER_ALL,
 );
-const posFilter = ref("");
+
+const posFilter = ref<Position | typeof PLAYER_POSITION_FILTER_ALL>(
+  PLAYER_POSITION_FILTER_ALL,
+);
 
 type ExtendPlayerAttributes = {
   invitedById?: string | null;
@@ -61,8 +69,9 @@ watch(toggleStatusModalOpen, (isOpen) => {
 const players = computed(() => data.value?.data ?? []);
 const filteredPlayers = computed(() => {
   let list = players.value;
-  if (posFilter.value)
+  if (posFilter.value && posFilter.value !== PLAYER_POSITION_FILTER_ALL) {
     list = list.filter((p: any) => p.position === posFilter.value);
+  }
   if (search.value.trim()) {
     const q = search.value.trim().toLowerCase();
     list = list.filter((p: any) =>
@@ -80,14 +89,18 @@ function askToggleStatus(player: any, event: Event) {
 
 function getToggleStatusDescription(player: any | null): string {
   if (!player) return "";
-  const action = player.status === "ACTIVE" ? "desactivar" : "activar";
+  const action =
+    player.status === PlayerStatus.ACTIVE ? "desactivar" : "activar";
   return `¿Confirmás ${action} a ${player.firstName} ${player.lastName}?`;
 }
 
 async function toggleStatus() {
   if (!playerToToggleStatus.value) return;
   const player = playerToToggleStatus.value;
-  const newStatus = player.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+  const newStatus =
+    player.status === PlayerStatus.ACTIVE
+      ? PlayerStatus.INACTIVE
+      : PlayerStatus.ACTIVE;
   await $api(`/api/v1/players/${player.id}/status`, {
     method: "PATCH",
     body: { status: newStatus },
@@ -117,13 +130,15 @@ async function confirmDelete() {
     <ConfirmationModal
       :open="toggleStatusModalOpen"
       :title="
-        playerToToggleStatus?.status === 'ACTIVE'
+        playerToToggleStatus?.status === PlayerStatus.ACTIVE
           ? 'Desactivar jugador'
           : 'Activar jugador'
       "
       :description="getToggleStatusDescription(playerToToggleStatus)"
       :confirm-text="
-        playerToToggleStatus?.status === 'ACTIVE' ? 'Desactivar' : 'Activar'
+        playerToToggleStatus?.status === PlayerStatus.ACTIVE
+          ? 'Desactivar'
+          : 'Activar'
       "
       cancel-text="Cancelar"
       :on-confirm="toggleStatus"
@@ -146,50 +161,20 @@ async function confirmDelete() {
 
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-base font-semibold text-gray-700">Jugadores</h2>
-      <NuxtLink
+      <UButton
         to="/admin/players/create"
-        class="bg-brand text-gray-900 font-semibold text-sm px-4 py-2 rounded-lg hover:opacity-90"
-        >+ Agregar Jugador</NuxtLink
+        variant="solid"
+        color="primary"
+        icon="mdi:account-plus"
+        >Agregar Jugador</UButton
       >
     </div>
 
     <!-- Filters -->
     <div class="flex flex-col sm:flex-row gap-3 mb-4">
-      <input
-        v-model="search"
-        type="text"
-        placeholder="Buscar…"
-        class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
-      />
-      <select
-        v-model="statusFilter"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-      >
-        <option :value="PlayerStatus.ACTIVE">Activo</option>
-        <option :value="PlayerStatus.INACTIVE">Inactivo</option>
-        <option :value="PLAYER_STATUS_FILTER_ALL">Todos</option>
-      </select>
-      <select
-        v-model="posFilter"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-      >
-        <option value="">Todas las posiciones</option>
-        <option value="GK">Portero</option>
-        <option value="CB">Defensa Central</option>
-        <option value="RB">Lateral Derecho</option>
-        <option value="LB">Lateral Izquierdo</option>
-        <option value="RWB">Carrilero Derecho</option>
-        <option value="LWB">Carrilero Izquierdo</option>
-        <option value="DMF">Mediocampista Defensivo</option>
-        <option value="CMF">Mediocampista Central</option>
-        <option value="AMF">Mediocampista Ofensivo</option>
-        <option value="RMF">Mediocampista Derecho</option>
-        <option value="LMF">Mediocampista Izquierdo</option>
-        <option value="SS">Segundo Delantero</option>
-        <option value="CF">Delantero Centro</option>
-        <option value="RWF">Extremo Derecho</option>
-        <option value="LWF">Extremo Izquierdo</option>
-      </select>
+      <UInput v-model="search" placeholder="Buscar…" class="flex-1" />
+      <UiPlayerStatusSelect v-model="statusFilter" />
+      <UiPositionSelect v-model="posFilter" />
     </div>
 
     <!-- Table -->
@@ -244,17 +229,32 @@ async function confirmDelete() {
                   >👤</span
                 >
               </div>
-            </td>
-            <td class="px-4">
-              <div class="min-w-0 flex items-center">
-                <p class="truncate">
-                  <NuxtLink
-                    :to="`/admin/players/${p.id}/edit`"
-                    class="font-medium text-brand hover:underline"
-                    >{{ p.firstName }} {{ p.lastName }}</NuxtLink
-                  >{{ " " }}
-                  <span class="italic text-gray-400">{{ p.nickname }}</span>
-                </p>
+              <div class="min-w-0">
+                <UButton
+                  :to="`/admin/players/${p.id}/edit`"
+                  class="truncate"
+                  variant="ghost"
+                  color="neutral"
+                  >{{ p.firstName }} {{ p.lastName }}</UButton
+                >
+                <div class="flex items-center gap-1 mt-0.5 flex-wrap">
+                  <!-- T040: guest badge -->
+                  <span
+                    v-if="p.playerType === 'GUEST'"
+                    class="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full"
+                    >Invitado</span
+                  >
+                  <!-- T041: deleted inviter warning -->
+                  <span
+                    v-if="
+                      p.playerType === 'GUEST' &&
+                      p.invitedById &&
+                      !p.invitedByName
+                    "
+                    class="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full"
+                    >Invitante eliminado</span
+                  >
+                </div>
               </div>
             </td>
             <td>
@@ -298,11 +298,11 @@ async function confirmDelete() {
             </td>
             <td class="px-4 py-3 text-center">
               <UButton
-                :variant="p.status === 'ACTIVE' ? 'soft' : 'outline'"
-                :color="p.status === 'ACTIVE' ? 'emerald' : 'gray'"
+                variant="soft"
+                :color="p.status === 'ACTIVE' ? 'success' : 'neutral'"
+                @click="askToggleStatus(p, $event)"
                 size="xs"
                 class="font-medium"
-                @click="askToggleStatus(p, $event)"
               >
                 {{ p.status === "ACTIVE" ? "Activo" : "Inactivo" }}
               </UButton>
@@ -311,8 +311,8 @@ async function confirmDelete() {
               <UButton
                 v-if="authStore.isAdmin"
                 data-testid="delete-player-btn"
-                variant="link"
-                color="red"
+                variant="ghost"
+                color="error"
                 size="xs"
                 @click="playerToDelete = p"
               >

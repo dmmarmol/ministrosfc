@@ -1,18 +1,24 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  future: { compatibilityVersion: 4 },
   srcDir: "src/",
   devtools: { enabled: true },
 
-  modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt", "@nuxt/image", "@nuxt/ui"],
+  modules: [
+    "@pinia/nuxt",
+    "@nuxt/image",
+    "@nuxt/ui",
+    /** "@nuxtjs/color-mode", */
+  ],
 
   ui: {
     colorMode: false,
   },
 
   css: [
-    // "leaflet/dist/leaflet.css",  // Disabled: check if conflicts with Nuxt UI
-    // "vue-select/dist/vue-select.css",  // Disabled: check if conflicts with Nuxt UI
-    "~/assets/main.css",
+    // "leaflet/dist/leaflet.css",
+    // "vue-select/dist/vue-select.css",
+    "~/assets/base.css",
   ],
 
   runtimeConfig: {
@@ -20,11 +26,6 @@ export default defineNuxtConfig({
       apiBaseUrl:
         process.env.NUXT_PUBLIC_API_BASE_URL ?? "http://localhost:5102",
     },
-  },
-
-  tailwindcss: {
-    configPath: "~/tailwind.config.js",
-    exposeConfig: true,
   },
 
   // Server-side rendering enabled for public SEO
@@ -97,5 +98,16 @@ export default defineNuxtConfig({
 
   experimental: {
     appManifest: false,
+  },
+
+  colorMode: {
+    // Use an app-specific key to avoid stale values from previous runs on the same origin.
+    storageKey: "ministrosfc-color-mode",
+    preference: "light",
+    fallback: "light",
+  },
+
+  ui: {
+    colorMode: false,
   },
 });

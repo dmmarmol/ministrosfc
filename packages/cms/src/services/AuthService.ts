@@ -5,6 +5,7 @@ import { getRedisClient } from "../config/redis";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
 import type { Role } from "@prisma/client";
+import { RegistrationStatus } from "@ministrosfc/shared";
 import crypto from "crypto";
 
 interface TokenPayload {
@@ -150,7 +151,7 @@ const AuthService = {
       firstName: dto.firstName,
       lastName: dto.lastName,
       role: "PLAYER",
-      registrationStatus: "PENDING_APPROVAL",
+      registrationStatus: RegistrationStatus.PENDING_APPROVAL,
     });
 
     return {

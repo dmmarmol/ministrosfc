@@ -1,13 +1,13 @@
 # ministrosfc Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-27
+Auto-generated from all feature plans. Last updated: 2026-04-28
 
 ## Active Technologies
-- TypeScript 5.x (Node.js 18+), Vue 3, Nuxt 3 + Express, Prisma ORM, Zod, Nuxt composables/runtime, Vitest, Jest + Supertes (chore/016-user-promotion-governance)
-- TypeScript (Node.js 20 for CMS, Nuxt 3 / Vue 3 for frontend) + Express 4 (CMS), Prisma 5 (ORM), Nuxt 3 (frontend), `csv-parse` (CSV parsing), `multer` (file upload), Redis (stats cache) (chore/017-team-stats-views)
-- PostgreSQL (primary), Redis (stats result cache, 5-min TTL) (chore/017-team-stats-views)
-- TypeScript 5.x (Node.js >= 23 for CMS, Vue/Nuxt TypeScript on frontend) + Express, Zod, Prisma, jsonwebtoken, bcryptjs, Redis client, Nuxt 4, Pinia (019-merge-related-users)
+
+- TypeScript 5.x (Node.js >= 23 for CMS, Vue/Nuxt TypeScript on frontend) + Express, Zod, Prisma, jsonwebtoken, bcryptjs, Redis client, Nuxt 4, Pinia (019-merge-related-users) `multer` (file upload), Redis (stats cache) (chore/017-team-stats-views)
 - PostgreSQL (primary), Redis (auth/session/cache support) (019-merge-related-users)
+- TypeScript 5.3.x; Vue 3; Node.js >=23; npm >=10 + Nuxt, @nuxt/ui, @nuxtjs/tailwindcss + tailwindcss, Vue, Pinia (chore/020-upgrade-nuxt-ui-tailwind)
+- N/A for this feature (no data model persistence changes) (chore/020-upgrade-nuxt-ui-tailwind)
 
 - TypeScript 5.x stric + Nuxt 3 (SSR), Express 4, Prisma 5 (PostgreSQL), Pinia 2, Zod (chore/014-game-signup-invitation)
 - PostgreSQL via Prisma (chore/014-game-signup-invitation)
@@ -46,7 +46,7 @@ Auto-generated from all feature plans. Last updated: 2026-04-27
 
 - **Language/Runtime**: TypeScript 5.x, Node.js 23+ LTS
 - **Backend**: Nest.js + Express, Prisma 5.x ORM, PostgreSQL 15+
-- **Frontend**: Nuxt 4, Vue 3, Pinia, TailwindCSS 3, shadcn/ui
+- **Frontend**: Nuxt 4, Vue 3, Pinia, TailwindCSS 4, nuxt/ui 4
 - **Cache/Sessions**: Redis 7.x (sessions, statistics), HTTP cache headers
 - **Testing**: Jest (backend unit/integration), Playwright (E2E)
 - **Logging**: Pino (structured JSON logs, INFO+ in prod, DEBUG in dev)
@@ -117,11 +117,25 @@ npx prisma studio                  # Open Prisma Studio GUI
 ## Code Style
 
 - **TypeScript**: Strict mode enabled globally (tsconfig.base.json)
+- **CSS**: Tailwind CSS utility classes + shadcn/ui components; custom styles in `assets/css/` with BEM naming
 - **Backend**: Nest.js decorator conventions, dependency injection patterns
 - **Frontend**: Vue 3 Composition API, Pinia for state management
 - **API**: REST JSON responses with consistent structure: `{ success, data, error, statusCode }`
 - **Logging**: Pino structured JSON logs with correlation IDs
 - **Testing**: TDD approach (write tests before implementation), 80%+ coverage target
+
+### Frontend Guidelines
+
+Whenever a user is writing or updating frontend code, follow these principles written in `.github/skills/web-coder/SKILL.md`
+
+### Testing Guidelines
+
+Whenever a user is writing or updating Vue & Pinia tests, follow these principles written in `skills/unit-test-vue-pinia`
+
+### CSS Guidelines
+
+You're a frontend expert. Whenever it comes to CSS, you should prioritize using variables defined in `theme.css`.
+If the user asks about architecture, consult the `skills/tailwindcss/theme-architect.md` file to apply the project standards.
 
 ## Key Architectural Decisions
 
@@ -133,10 +147,14 @@ npx prisma studio                  # Open Prisma Studio GUI
 - **Guest Players**: playerType=GUEST, linked to inviting player via invitedById
 
 ## Recent Changes
+
 - 019-merge-related-users: Added TypeScript 5.x (Node.js >= 23 for CMS, Vue/Nuxt TypeScript on frontend) + Express, Zod, Prisma, jsonwebtoken, bcryptjs, Redis client, Nuxt 4, Pinia
 - feat/017-team-stats-views (canchas extension): `CsvImportService.parseAndImport` accepts optional `canchas` buffer + `adminUserId`; upserts `Playground` by name; links `Game.playgroundId` via Estadio↔Cancha match; `CsvImportResultDTO` extended with `playgrounds: { created, updated, skipped }`; import order: jugadores → canchas → historial → apariciones; no new Prisma migration needed (`Game.playgroundId` and `Playground` model already exist)
 - chore/016-user-promotion-governance: Added TypeScript 5.x (Node.js 18+), Vue 3, Nuxt 3 + Express, Prisma ORM, Zod, Nuxt composables/runtime, Vitest, Jest + Supertes
 
+- chore/020-upgrade-nuxt-ui-tailwind: Added TypeScript 5.3.x; Vue 3; Node.js >=23; npm >=10 + Nuxt, @nuxt/ui, @nuxtjs/tailwindcss + tailwindcss, Vue, Pinia
+- feat/017-team-stats-views (canchas extension): `CsvImportService.parseAndImport` accepts optional `canchas` buffer + `adminUserId`; upserts `Playground` by name; links `Game.playgroundId` via Estadio↔Cancha match; `CsvImportResultDTO` extended with `playgrounds: { created, updated, skipped }`; import order: jugadores → canchas → historial → apariciones; no new Prisma migration needed (`Game.playgroundId` and `Playground` model already exist)
+- chore/016-user-promotion-governance: Added TypeScript 5.x (Node.js 18+), Vue 3, Nuxt 3 + Express, Prisma ORM, Zod, Nuxt composables/runtime, Vitest, Jest + Supertes
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
