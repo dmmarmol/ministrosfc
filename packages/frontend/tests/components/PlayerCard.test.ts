@@ -12,6 +12,11 @@ const NuxtLinkStub = {
   props: ["to"],
 };
 
+const UiPositionLabelStub = {
+  template: '<span data-testid="position-label">{{ position }}</span>',
+  props: ["position"],
+};
+
 const basePlayer = {
   id: "player-1",
   firstName: "João",
@@ -25,7 +30,9 @@ describe("PlayerCard", () => {
   it("renders player name", () => {
     const wrapper = mount(PlayerCard, {
       props: { player: basePlayer },
-      global: { stubs: { NuxtLink: NuxtLinkStub } },
+      global: {
+        stubs: { NuxtLink: NuxtLinkStub, UiPositionLabel: UiPositionLabelStub },
+      },
     });
     expect(wrapper.text()).toContain("João Silva");
   });
@@ -33,7 +40,9 @@ describe("PlayerCard", () => {
   it("shows jersey badge when jerseyNumber is provided", () => {
     const wrapper = mount(PlayerCard, {
       props: { player: { ...basePlayer, jerseyNumber: 10 } },
-      global: { stubs: { NuxtLink: NuxtLinkStub } },
+      global: {
+        stubs: { NuxtLink: NuxtLinkStub, UiPositionLabel: UiPositionLabelStub },
+      },
     });
     expect(wrapper.text()).toContain("#10");
   });
@@ -41,7 +50,9 @@ describe("PlayerCard", () => {
   it("does not show jersey badge when jerseyNumber is null", () => {
     const wrapper = mount(PlayerCard, {
       props: { player: { ...basePlayer, jerseyNumber: null } },
-      global: { stubs: { NuxtLink: NuxtLinkStub } },
+      global: {
+        stubs: { NuxtLink: NuxtLinkStub, UiPositionLabel: UiPositionLabelStub },
+      },
     });
     expect(wrapper.text()).not.toContain("#");
   });
@@ -50,7 +61,9 @@ describe("PlayerCard", () => {
     const photoUrl = "https://example.com/player.jpg";
     const wrapper = mount(PlayerCard, {
       props: { player: { ...basePlayer, photoUrl } },
-      global: { stubs: { NuxtLink: NuxtLinkStub } },
+      global: {
+        stubs: { NuxtLink: NuxtLinkStub, UiPositionLabel: UiPositionLabelStub },
+      },
     });
     const img = wrapper.find("img");
     expect(img.exists()).toBe(true);
@@ -60,25 +73,34 @@ describe("PlayerCard", () => {
   it("shows fallback icon when photoUrl is null", () => {
     const wrapper = mount(PlayerCard, {
       props: { player: basePlayer },
-      global: { stubs: { NuxtLink: NuxtLinkStub } },
+      global: {
+        stubs: { NuxtLink: NuxtLinkStub, UiPositionLabel: UiPositionLabelStub },
+      },
     });
     expect(wrapper.find("img").exists()).toBe(false);
     expect(wrapper.find("svg").exists()).toBe(true);
   });
 
-  it("renders GK position code as-is", () => {
+  it("renders position label when position exists", () => {
     const wrapper = mount(PlayerCard, {
       props: { player: { ...basePlayer, position: "GK" } },
-      global: { stubs: { NuxtLink: NuxtLinkStub } },
+      global: {
+        stubs: { NuxtLink: NuxtLinkStub, UiPositionLabel: UiPositionLabelStub },
+      },
     });
-    expect(wrapper.text()).toContain("GK");
+    expect(wrapper.find('[data-testid="position-label"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="position-label"]').text()).toContain(
+      "GK",
+    );
   });
 
-  it("shows em-dash when position is null", () => {
+  it("does not render position label when position is null", () => {
     const wrapper = mount(PlayerCard, {
       props: { player: { ...basePlayer, position: null } },
-      global: { stubs: { NuxtLink: NuxtLinkStub } },
+      global: {
+        stubs: { NuxtLink: NuxtLinkStub, UiPositionLabel: UiPositionLabelStub },
+      },
     });
-    expect(wrapper.text()).toContain("—");
+    expect(wrapper.find('[data-testid="position-label"]').exists()).toBe(false);
   });
 });
