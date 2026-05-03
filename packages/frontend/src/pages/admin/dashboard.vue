@@ -72,13 +72,25 @@ const recentGames = computed(() => recentData.value?.data ?? []);
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
       <h2 class="text-sm font-semibold text-gray-700 mb-4">Acciones Rápidas</h2>
       <div class="flex flex-wrap gap-3">
-        <UButton to="/admin/players/create" variant="solid" color="primary"
+        <UButton
+          to="/admin/players/create"
+          variant="solid"
+          color="primary"
+          icon="mdi:account-plus"
           >+ Agregar Jugador</UButton
         >
-        <UButton to="/admin/games/create" variant="solid" color="secondary"
-          >+ Programar Partido</UButton
+        <UButton
+          to="/admin/games/create"
+          variant="solid"
+          color="secondary"
+          icon="mdi:football-pitch"
+          >Programar Partido</UButton
         >
-        <UButton to="/admin/tournaments" variant="solid" color="neutral"
+        <UButton
+          to="/admin/tournaments"
+          variant="soft"
+          color="neutral"
+          icon="mdi:trophy"
           >Gestionar Torneos</UButton
         >
       </div>

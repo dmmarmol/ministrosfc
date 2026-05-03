@@ -2,13 +2,16 @@
 import type { SelectItem } from "#ui/types";
 import { PLAYER_STATUS_FILTER_ALL, PlayerStatus } from "@ministrosfc/shared";
 
-const model = defineModel<string>({ default: PlayerStatus.ACTIVE });
 const props = withDefaults(
   defineProps<{
     modelValue?: PlayerStatus | typeof PLAYER_STATUS_FILTER_ALL;
+    singlePlayer?: boolean;
+    includeAll?: boolean;
   }>(),
   {
     modelValue: PLAYER_STATUS_FILTER_ALL,
+    singlePlayer: false,
+    includeAll: true,
   },
 );
 
@@ -19,20 +22,23 @@ const emit = defineEmits<{
   ): void;
 }>();
 
-const items: SelectItem[] = [
-  {
-    value: PLAYER_STATUS_FILTER_ALL,
-    label: "Todos los estados",
-  },
+const optionAll: SelectItem = {
+  value: PLAYER_STATUS_FILTER_ALL,
+  label: "Todos los estados",
+};
+const statusItems: SelectItem[] = [
   {
     value: PlayerStatus.ACTIVE,
-    label: "Activos",
+    label: props.singlePlayer ? "Activo" : "Activos",
   },
   {
     value: PlayerStatus.INACTIVE,
-    label: "Inactivos",
+    label: props.singlePlayer ? "Inactivo" : "Inactivos",
   },
 ];
+const items: SelectItem[] = props.includeAll
+  ? [optionAll, ...statusItems]
+  : statusItems;
 
 function handleUpdate(value: unknown) {
   if (typeof value !== "string") {
