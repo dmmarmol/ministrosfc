@@ -87,15 +87,7 @@ const columns: ColumnDef<TopScorerRow>[] = [
     accessorKey: "name",
     title: "Jugador",
     sortable: true,
-    header: ({ column }) => {
-      return h(UButton, {
-        variant: "ghost",
-        color: "neutral",
-        label: "Jugador",
-        icon: getSortedIcon(column.getIsSorted() ? "asc" : "desc"),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: "Jugador",
     cell({ row }) {
       const data = row.original as TopScorerRow;
       const playerId = data.playerId;
@@ -115,29 +107,61 @@ const columns: ColumnDef<TopScorerRow>[] = [
   },
   {
     accessorKey: "goalsScored",
-    header: "Goles",
     title: "Goles",
     sortable: true,
+    header: ({ column }) => {
+      return h(UButton, {
+        variant: "ghost",
+        color: "neutral",
+        label: "Goles",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
+    },
   },
   {
     accessorKey: "assists",
-    header: "Asist.",
     title: "Asistencias",
     sortable: true,
+    header: ({ column }) => {
+      return h(UButton, {
+        variant: "ghost",
+        color: "neutral",
+        label: "Asist.",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
+    },
   },
   {
     accessorKey: "appearances",
-    header: "PJ",
     title: "Partidos Jugados",
     sortable: true,
+    header: ({ column }) => {
+      return h(UButton, {
+        variant: "ghost",
+        color: "neutral",
+        label: "PJ",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
+    },
   },
   {
     accessorKey: "goalRate",
-    header: "Prom. Gol",
     title: "Promedio de gol",
     sortable: true,
     cell({ row }) {
       return h("span", {}, row.getValue("goalRate").toFixed(2) + "%");
+    },
+    header: ({ column }) => {
+      return h(UButton, {
+        variant: "ghost",
+        color: "neutral",
+        label: "Prom. Gol",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
     },
   },
 ];
@@ -192,23 +216,5 @@ const sorting = ref<{ id: keyof TopScorerDTO; desc: boolean }[]>([
     </div>
 
     <UTable v-model:sorting="sorting" :data="tableRows" :columns="columns" />
-
-    <!-- Table (loading and empty states handled internally by <UiStatsTable>) -->
-    <!-- <UiStatsTable :columns="columns" :rows="tableRows" :loading="pending">
-      <template #name-data="{ row }">
-        <NuxtLink
-          :to="`/players/${row.playerId}`"
-          class="font-medium hover:text-brand transition-colors"
-        >
-          {{ row.name }}
-        </NuxtLink>
-      </template>
-      <template #goalsScored-data="{ row }">
-        <span class="font-bold text-brand">{{ row.goalsScored }}</span>
-      </template>
-      <template #goalRate-data="{ row }">
-        {{ Number(row.goalRate).toFixed(2) }}
-      </template>
-    </UiStatsTable> -->
   </div>
 </template>

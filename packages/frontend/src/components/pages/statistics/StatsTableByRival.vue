@@ -1,15 +1,46 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { type TeamStatPeriodDTO } from "@ministrosfc/shared";
 import type { ColumnDef } from "~/types/table";
+import {
+  cellWins,
+  cellLosses,
+  cellDraws,
+  cellPercent,
+  cellLink,
+} from "~/components/ui/Table/table-utils";
+
+type RivalRow = {
+  rival: string;
+  rivalId: string;
+  games: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDiff: number;
+  winRate: number;
+  playgroundName: string;
+};
 
 const props = defineProps<{
   rows: TeamStatPeriodDTO[];
   loading: boolean;
 }>();
 
-const columns: ColumnDef[] = [
-  { accessorKey: "rival", header: "Rival", title: "Rival", sortable: true },
+const columns: ColumnDef<RivalRow>[] = [
+  {
+    accessorKey: "rival",
+    header: "Rival",
+    title: "Rival",
+    sortable: true,
+    cell: ({ row }) =>
+      cellLink(
+        row.getValue("rival"),
+        `/statistics/rivals/${row.original.rivalId}`,
+      ),
+  },
   {
     accessorKey: "games",
     header: "PJ",
@@ -21,18 +52,21 @@ const columns: ColumnDef[] = [
     header: "PG",
     title: "Partidos Ganados",
     sortable: true,
+    cell: ({ row }) => cellWins(row.getValue("wins")),
   },
   {
     accessorKey: "losses",
     header: "PP",
     title: "Partidos Perdidos",
     sortable: true,
+    cell: ({ row }) => cellLosses(row.getValue("losses")),
   },
   {
     accessorKey: "draws",
     header: "PE",
     title: "Partidos Empatados",
     sortable: true,
+    cell: ({ row }) => cellDraws(row.getValue("draws")),
   },
   {
     accessorKey: "goalsFor",
@@ -57,6 +91,7 @@ const columns: ColumnDef[] = [
     header: "Win%",
     title: "Porcentaje de Victorias",
     sortable: true,
+    cell: ({ row }) => cellPercent(row.getValue("winRate")),
   },
   {
     accessorKey: "playgroundName",
@@ -66,7 +101,7 @@ const columns: ColumnDef[] = [
   },
 ];
 
-const tableRows = computed(() =>
+const tableRows = computed((): RivalRow[] =>
   props.rows.map((row) => ({
     rival: row.label,
     rivalId: row.key,
@@ -81,28 +116,15 @@ const tableRows = computed(() =>
     playgroundName: row.playgroundName ?? "—",
   })),
 );
+
+const sorting = ref([{ id: "games", desc: true }]);
 </script>
 
 <template>
-  <UiStatsTable :columns="columns" :rows="tableRows" :loading="loading">
-    <template #rival-data="{ row }">
-      <NuxtLink
-        :to="`/statistics/rivals/${row.rivalId}`"
-        class="font-medium hover:text-brand transition-colors"
-        >{{ row.rival }}</NuxtLink
-      >
-    </template>
-    <template #wins-data="{ row }">
-      <span class="text-green-600">{{ row.wins }}</span>
-    </template>
-    <template #losses-data="{ row }">
-      <span class="text-red-500">{{ row.losses }}</span>
-    </template>
-    <template #draws-data="{ row }">
-      <span class="text-yellow-500">{{ row.draws }}</span>
-    </template>
-    <template #winRate-data="{ row }">
-      {{ Number(row.winRate).toFixed(1) }}%
-    </template>
-  </UiStatsTable>
+  <UTable
+    v-model:sorting="sorting"
+    :data="tableRows"
+    :columns="columns"
+    :loading="loading"
+  />
 </template>
