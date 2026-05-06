@@ -231,13 +231,14 @@ router.get(
   authenticate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { year, tournamentId, tournamentName, rivalId } =
+      const { year, tournamentId, tournamentName, rivalId, playgroundId } =
         teamStatsQuerySchema.parse(req.query);
       const data = await StatisticsService.getTeamStatsByRival({
         year,
         tournamentId,
         tournamentName,
         rivalId,
+        playgroundId,
       });
       res.setHeader("Cache-Control", "private, max-age=300");
       res.json({ data });

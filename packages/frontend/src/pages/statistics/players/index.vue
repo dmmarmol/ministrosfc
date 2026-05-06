@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PlayerStatRowDTO } from "@ministrosfc/shared";
+import type { PlayerStatRowDTO, PlayerStatus } from "@ministrosfc/shared";
 import StatsTableByPlayer from "../../../components/pages/statistics/StatsTableByPlayer.vue";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
 import PlayerSelect from "~/components/pages/statistics/StatsFilters/PlayerSelect.vue";
@@ -48,7 +48,10 @@ watch(
   <div>
     <div class="flex flex-wrap gap-3 mb-6">
       <YearSelect v-model="yearFilter" />
-      <UiPlayerStatusSelect v-model="playerStatusFilter" />
+      <UiPlayerStatusSelect
+        include-all
+        v-model="playerStatusFilter as PlayerStatus"
+      />
       <PlayerSelect v-model="playerFilter" :status="playerStatusFilter" />
     </div>
     <StatsTitle>Estadísticas de Jugadores</StatsTitle>

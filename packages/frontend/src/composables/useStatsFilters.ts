@@ -9,7 +9,7 @@ export interface StatsFilters {
   tournament: string;
   rivalId: string;
   playerId: string;
-  playerStatus: string;
+  playerStatus: PlayerStatus;
   playgroundId: string;
 }
 

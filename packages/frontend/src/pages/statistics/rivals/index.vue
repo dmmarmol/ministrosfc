@@ -5,6 +5,7 @@ import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vu
 import TournamentSelect from "~/components/pages/statistics/StatsFilters/TournamentSelect.vue";
 import RivalSelect from "~/components/pages/statistics/StatsFilters/RivalSelect.vue";
 import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
+import PlaygroundSelect from "~/components/pages/statistics/StatsFilters/PlaygroundSelect.vue";
 
 definePageMeta({
   layout: "statistics-private",
@@ -19,20 +20,27 @@ const {
   year: yearFilter,
   tournament: tournamentFilter,
   rivalId: rivalFilter,
+  playgroundId: playgroundFilter,
   filters,
 } = useStatsFilters();
+
+type QueryFiltersByRival = {
+  year?: string;
+  tournamentName?: string;
+  rivalId?: string;
+  playgroundId?: string;
+};
 
 const { data, pending, refresh } = await useAsyncData(
   "team-by-rival",
   () =>
     $api<{ data: TeamStatPeriodDTO[] }>("/api/v1/statistics/team/by-rival", {
-      query: {
-        ...(filters.value.year ? { year: filters.value.year } : {}),
-        ...(filters.value.tournament
-          ? { tournamentName: filters.value.tournament }
-          : {}),
-        ...(filters.value.rivalId ? { rivalId: filters.value.rivalId } : {}),
-      },
+      query: createTruthyObject<QueryFiltersByRival>({
+        year: filters.value.year,
+        tournamentName: filters.value.tournament,
+        rivalId: filters.value.rivalId,
+        playgroundId: filters.value.playgroundId,
+      }),
     }),
   { server: false },
 );
@@ -48,8 +56,9 @@ watch(
   <div>
     <div class="flex flex-wrap gap-3 mb-6">
       <YearSelect v-model="yearFilter" />
-      <TournamentFilter v-model="tournamentFilter" />
-      <RivalFilter v-model="rivalFilter" />
+      <PlaygroundSelect v-model="playgroundFilter" :include-all="true" />
+      <TournamentSelect v-model="tournamentFilter" />
+      <RivalSelect v-model="rivalFilter" />
     </div>
     <StatsTitle>Estadísticas por Rival</StatsTitle>
     <StatsTableByRival :rows="rows" :loading="pending" />
