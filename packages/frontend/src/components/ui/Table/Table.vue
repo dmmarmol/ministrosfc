@@ -10,6 +10,7 @@
 // build named slots programmatically at runtime.
 import { defineComponent, h, resolveComponent, type PropType } from "vue";
 import type { ColumnDef } from "~/types/table";
+import { getSortedIcon } from "./table-utils";
 
 /**
  * Generic nuxt/ui UTable wrapper.
@@ -54,13 +55,36 @@ export default defineComponent({
     return () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const UTable = resolveComponent("UTable") as any;
+      const getColumnKey = (col: ColumnDef): string | null => {
+        if (typeof col.accessorKey === "string") return col.accessorKey;
+        if (typeof col.id === "string") return col.id;
+        return null;
+      };
+
+      const getColumnHeaderText = (
+        col: ColumnDef,
+        fallback: string,
+      ): string => {
+        if (typeof col.header === "string") return col.header;
+        return fallback;
+      };
 
       // UTable column config — built-in sort is disabled; we handle it ourselves
-      const uTableColumns = props.columns.map((col) => ({
-        key: col.key,
-        label: col.label,
-        sortable: false,
-      }));
+      const uTableColumns = props.columns
+        .map((col) => {
+          const columnKey = getColumnKey(col);
+          if (!columnKey) return null;
+
+          return {
+            // TanStack requires an explicit id when headers are rendered as non-string nodes.
+            id: col.id ?? columnKey,
+            accessorKey: columnKey,
+            key: columnKey,
+            header: col.header,
+            sortable: false,
+          };
+        })
+        .filter(Boolean);
 
       // ── Default loading skeleton ────────────────────────────────────────────
       const defaultLoadingState = () =>
@@ -87,13 +111,16 @@ export default defineComponent({
         {};
 
       for (const col of props.columns) {
+        const columnKey = getColumnKey(col);
+        if (!columnKey) continue;
         if (!col.title && !col.sortable) continue;
 
-        const isSorted = props.sortKey === col.key;
+        const isSorted = props.sortKey === columnKey;
         const titleAttr = col.title ? { title: col.title } : {};
+        const headerText = getColumnHeaderText(col, columnKey);
 
         if (col.sortable) {
-          injectedHeaderSlots[`${col.key}-header`] = () =>
+          injectedHeaderSlots[`${columnKey}-header`] = () =>
             h(
               "button",
               {
@@ -105,23 +132,23 @@ export default defineComponent({
                   "cursor-pointer select-none",
                   "hover:text-gray-700 focus:outline-none",
                 ],
-                onClick: () => emit("sort", col.key),
+                onClick: () => emit("sort", columnKey),
               },
               [
-                col.label,
+                headerText,
                 isSorted
                   ? h(
                       "span",
                       { "aria-hidden": "true", class: "text-[10px]" },
-                      props.sortDir === "asc" ? " ↑" : " ↓",
+                      getSortedIcon(props.sortDir),
                     )
                   : null,
               ],
             );
         } else {
           // Non-sortable column with a title — wrap in a plain span
-          injectedHeaderSlots[`${col.key}-header`] = () =>
-            h("span", titleAttr, col.label);
+          injectedHeaderSlots[`${columnKey}-header`] = () =>
+            h("span", titleAttr, headerText);
         }
       }
 
@@ -140,6 +167,8 @@ export default defineComponent({
         UTable,
         {
           columns: uTableColumns,
+          // Nuxt UI v4 UTable consumes `data`; keep `rows` for compatibility.
+          data: props.rows,
           rows: props.rows,
           ui: { base: "min-w-full w-full table-auto" },
           ...attrs,

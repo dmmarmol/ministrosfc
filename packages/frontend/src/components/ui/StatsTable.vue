@@ -45,7 +45,9 @@ const sortedRows = computed(() => {
  *  – click on non-sortable    → no-op
  */
 function handleSort(key: string) {
-  const col = props.columns.find((c) => c.key === key);
+  const col = props.columns.find(
+    (c) => c.accessorKey === key || c.id === key,
+  );
   if (!col?.sortable) return;
 
   if (sortKey.value === key) {

@@ -1,27 +1,25 @@
 <script setup lang="ts">
+import { NuxtLink, UButton } from "#components";
 import type { ColumnDef } from "~/types/table";
 import { OPTION_FILTER_ALL, PlayerStatus } from "@ministrosfc/shared";
+import type { TopScorerDTO } from "@ministrosfc/shared";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
 import TournamentSelect from "~/components/pages/statistics/StatsFilters/TournamentSelect.vue";
 import { useAuthStore } from "~/stores/auth";
+import { getSortedIcon } from "~/components/ui/Table/table-utils";
+
+/**
+ * Exclusive DTO to match the UTable Schema
+ */
+type TopScorerRow = Omit<TopScorerDTO, "player"> & {
+  name: string;
+  playerId: string;
+  rank: number;
+  goalRate: number;
+};
 
 definePageMeta({ layout: "statistics", public: true });
 useHead({ title: "Goleadores – Ministros FC" });
-
-interface TopScorerEntry {
-  player?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    nickname?: string | null;
-    jerseyNumber?: number | null;
-    position?: string | null;
-    photoUrl?: string | null;
-  };
-  goalsScored: number;
-  assists: number;
-  appearances: number;
-}
 
 const { $api } = useNuxtApp();
 const authStore = useAuthStore();
@@ -57,7 +55,7 @@ const playerSearch = ref("");
 const { data, pending, refresh } = await useAsyncData(
   "top-scorers",
   () =>
-    $api<{ data: TopScorerEntry[] }>("/api/v1/statistics/top-scorers", {
+    $api<{ data: TopScorerDTO[] }>("/api/v1/statistics/top-scorers", {
       query: {
         limit: 50,
         ...(yearFilter.value ? { year: yearFilter.value } : {}),
@@ -74,7 +72,7 @@ const allScorers = computed(() => data.value?.data ?? []);
 const filteredScorers = computed(() => {
   if (!playerSearch.value.trim()) return allScorers.value;
   const q = playerSearch.value.trim().toLowerCase();
-  const fullName = (e: TopScorerEntry) =>
+  const fullName = (e: TopScorerDTO) =>
     `${e.player?.firstName ?? ""} ${e.player?.lastName ?? ""}`.toLowerCase();
   return allScorers.value.filter((e) => fullName(e).includes(q));
 });
@@ -83,36 +81,85 @@ watch(tournamentFilter, () => refresh());
 watch(topScorersStatusFilter, () => refresh());
 watch(yearFilter, () => refresh());
 
-const columns: ColumnDef[] = [
-  { key: "rank", label: "#", title: "Posición", sortable: false },
-  { key: "name", label: "Jugador", title: "Jugador", sortable: true },
-  { key: "goalsScored", label: "Goles", title: "Goles", sortable: true },
-  { key: "assists", label: "Asist.", title: "Asistencias", sortable: true },
+const columns: ColumnDef<TopScorerRow>[] = [
+  { accessorKey: "rank", header: "#", title: "Posición", sortable: false },
   {
-    key: "appearances",
-    label: "PJ",
+    accessorKey: "name",
+    title: "Jugador",
+    sortable: true,
+    header: ({ column }) => {
+      return h(UButton, {
+        variant: "ghost",
+        color: "neutral",
+        label: "Jugador",
+        icon: getSortedIcon(column.getIsSorted() ? "asc" : "desc"),
+        onClick: () => column.toggleSorting(),
+      });
+    },
+    cell({ row }) {
+      const data = row.original as TopScorerRow;
+      const playerId = data.playerId;
+      const value = data.name;
+
+      return playerId
+        ? h(
+            NuxtLink,
+            {
+              class: "font-medium hover:text-brand transition-colors",
+              to: `/players/${playerId}`,
+            },
+            () => value,
+          )
+        : h("span", {}, () => value);
+    },
+  },
+  {
+    accessorKey: "goalsScored",
+    header: "Goles",
+    title: "Goles",
+    sortable: true,
+  },
+  {
+    accessorKey: "assists",
+    header: "Asist.",
+    title: "Asistencias",
+    sortable: true,
+  },
+  {
+    accessorKey: "appearances",
+    header: "PJ",
     title: "Partidos Jugados",
     sortable: true,
   },
   {
-    key: "goalRate",
-    label: "Prom. Gol",
+    accessorKey: "goalRate",
+    header: "Prom. Gol",
     title: "Promedio de gol",
     sortable: true,
+    cell({ row }) {
+      return h("span", {}, row.getValue("goalRate").toFixed(2) + "%");
+    },
   },
 ];
 
-const tableRows = computed(() =>
+const tableRows = computed((): TopScorerRow[] =>
   filteredScorers.value.map((entry, idx) => ({
+    playerId: entry.player?.id ?? "",
     rank: idx + 1,
     name: `${entry.player?.firstName ?? ""} ${entry.player?.lastName ?? ""}`.trim(),
     goalsScored: entry.goalsScored,
     assists: entry.assists,
     appearances: entry.appearances,
     goalRate: entry.appearances > 0 ? entry.goalsScored / entry.appearances : 0,
-    playerId: entry.player?.id ?? "",
   })),
 );
+
+const sorting = ref<{ id: keyof TopScorerDTO; desc: boolean }[]>([
+  {
+    id: "goalsScored",
+    desc: true,
+  },
+]);
 </script>
 
 <template>
@@ -139,14 +186,15 @@ const tableRows = computed(() =>
       />
       <UiPlayerStatusSelect
         v-if="authStore.isAuthenticated"
-        :model-value="topScorersStatusFilter"
+        v-model="topScorersStatusFilter"
         :include-all="false"
-        @update:model-value="onTopScorersStatusUpdate"
       />
     </div>
 
+    <UTable v-model:sorting="sorting" :data="tableRows" :columns="columns" />
+
     <!-- Table (loading and empty states handled internally by <UiStatsTable>) -->
-    <UiStatsTable :columns="columns" :rows="tableRows" :loading="pending">
+    <!-- <UiStatsTable :columns="columns" :rows="tableRows" :loading="pending">
       <template #name-data="{ row }">
         <NuxtLink
           :to="`/players/${row.playerId}`"
@@ -161,6 +209,6 @@ const tableRows = computed(() =>
       <template #goalRate-data="{ row }">
         {{ Number(row.goalRate).toFixed(2) }}
       </template>
-    </UiStatsTable>
+    </UiStatsTable> -->
   </div>
 </template>

@@ -89,7 +89,7 @@ const StatisticsModel = {
     limit = 10,
     status?: PlayerStatus,
     year?: number,
-  ) {
+  ): Promise<import("@ministrosfc/shared").TopScorerDTO[]> {
     // Collect matching game IDs up front so the subsequent groupBy uses a
     // scalar `gameId IN (...)` filter. Prisma groupBy doesn't reliably scope
     // _sum/_count when the where clause contains relation filters (game: {...}),

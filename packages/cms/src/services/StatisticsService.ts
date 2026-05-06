@@ -5,6 +5,7 @@ import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
 import { getRedisClient } from "../config/redis";
 import { PlayerStatus } from "@prisma/client";
+import type { TopScorerDTO } from "@ministrosfc/shared";
 
 const CACHE_TTL = 300; // 5 min
 
@@ -48,7 +49,7 @@ const StatisticsService = {
     limit = 10,
     status?: PlayerStatus,
     year?: number,
-  ) {
+  ): Promise<TopScorerDTO[]> {
     const cacheKey = `cache:stats:topscorers:${tournamentId ?? "all"}:${limit}:${status ?? "all"}:${year ?? "all"}`;
     return withCache(cacheKey, () =>
       StatisticsModel.getTopScorers(tournamentId, limit, status, year),

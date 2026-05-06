@@ -38,6 +38,22 @@ export interface TournamentStatisticsDTO {
   mostAppearances: PlayerStatisticsDTO[];
 }
 
+// Top scorers list response
+export interface TopScorerDTO {
+  player?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    nickname?: string | null;
+    jerseyNumber?: number | null;
+    position?: string | null;
+    photoUrl?: string | null;
+  };
+  goalsScored: number;
+  assists: number;
+  appearances: number;
+}
+
 // Team stats for a single period (year, tournament, or rival)
 export interface TeamStatMatchDTO {
   date: string;
