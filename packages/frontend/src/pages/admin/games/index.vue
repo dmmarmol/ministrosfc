@@ -2,11 +2,19 @@
 import { ref, computed, watch, nextTick } from "vue";
 import { useNuxtApp, useAsyncData, useHead } from "nuxt/app";
 import type { AdminGame } from "@ministrosfc/shared";
-import { GameStatus, OPTION_FILTER_ALL, formatDate } from "@ministrosfc/shared";
+import {
+  GameStatus,
+  GameResult,
+  OPTION_FILTER_ALL,
+  formatDate,
+} from "@ministrosfc/shared";
+import { createTruthyObject } from "~/utils/object";
+import type { FetchOptions } from "ofetch";
 
 import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
-// import GameStatusSelect from "~/components/pages/games/GameStatusSelect.vue";
-// import GameStatusBadge from "~/components/pages/games/GameStatusBadge.vue";
+import GameStatusSelect from "~/components/pages/games/GameStatusSelect.vue";
+import GameStatusBadge from "~/components/pages/games/GameStatusBadge.vue";
+import GameResultSelect from "~/components/pages/games/GameResultSelect.vue";
 
 definePageMeta({
   layout: "admin",
@@ -22,23 +30,33 @@ const { $api } = useNuxtApp();
 const statusFilter = ref<GameStatus | typeof OPTION_FILTER_ALL>(
   OPTION_FILTER_ALL,
 );
+const resultFilter = ref<GameResult | typeof OPTION_FILTER_ALL>(
+  OPTION_FILTER_ALL,
+);
 const opponentFilter = ref("");
 
-const { data: teamsData } = await useAsyncData("admin-teams", () =>
-  $api<{ data: any[] }>("/api/v1/teams"),
-);
-const teams = computed(() => teamsData.value?.data ?? []);
-
-const { data, pending, refresh } = await useAsyncData("admin-games", () =>
-  $api<{ data: AdminGame[] }>("/api/v1/games", {
-    query: {
-      ...(statusFilter.value ? { status: statusFilter.value } : {}),
-      ...(opponentFilter.value ? { opponentTeamId: opponentFilter.value } : {}),
+const { data, pending, refresh } = await useAsyncData("admin-games", () => {
+  const fetchOptions: FetchOptions<"json"> = {
+    query: createTruthyObject({
+      status:
+        statusFilter.value === OPTION_FILTER_ALL
+          ? undefined
+          : statusFilter.value,
+      result:
+        resultFilter.value === OPTION_FILTER_ALL
+          ? undefined
+          : resultFilter.value,
+      opponentTeamId:
+        opponentFilter.value && opponentFilter.value !== OPTION_FILTER_ALL
+          ? opponentFilter.value
+          : undefined,
       limit: 100,
-    },
-  }),
-);
-watch([statusFilter, opponentFilter], () => refresh());
+    }),
+  };
+
+  return $api<{ data: AdminGame[] }>("/api/v1/games", fetchOptions);
+});
+watch([statusFilter, resultFilter, opponentFilter], () => refresh());
 const games = computed(() => data.value?.data ?? []);
 const gameToDelete = ref<any | null>(null);
 const deleteModalOpen = ref(false);
@@ -174,19 +192,21 @@ function getResultTone(game: AdminGame): string {
 
     <!-- Filters -->
     <div class="flex flex-col sm:flex-row gap-3 mb-4">
-      <!-- <GameStatusSelect
+      <GameResultSelect
+        v-model="resultFilter"
+        placeholder="Todos los resultados"
+        class="w-full sm:w-auto"
+        :include-all="true"
+      />
+      <GameStatusSelect
         v-model="statusFilter"
         placeholder="Todos los estados"
-      /> -->
-      <select
+      />
+      <UiTeamSelect
         v-model="opponentFilter"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-      >
-        <option value="">Todos los rivales</option>
-        <option v-for="t in teams" :key="t.id" :value="t.id">
-          {{ t.name }}
-        </option>
-      </select>
+        placeholder="Filtrar por rival"
+        class="w-full sm:w-auto"
+      />
     </div>
 
     <!-- Table -->
@@ -271,16 +291,16 @@ function getResultTone(game: AdminGame): string {
               {{ game.tournament?.name ?? "—" }}
             </td>
             <!-- Cancha -->
-            <td class="px-4 py-3 text-gray-600 hidden sm:table-cell">
-              <p class="truncate max-w-45">
+            <td class="px-2 py-3 text-gray-600 hidden sm:table-cell">
+              <p class="truncate max-w-35">
                 {{ game.playground?.name ?? "—" }}
               </p>
             </td>
 
             <td class="px-4 py-3 text-center">
-              <!-- <GameStatusBadge :status="game.status" /> -->
+              <GameStatusBadge :status="game.status" />
             </td>
-            <td class="px-4 py-3 text-right">
+            <td class="pr-4 py-3 text-right">
               <div class="flex items-center justify-end gap-2 flex-wrap">
                 <!-- T012: share-signup link (SCHEDULED + not full) -->
                 <UButton

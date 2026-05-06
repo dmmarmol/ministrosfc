@@ -8,6 +8,12 @@ export enum GameStatus {
   CANCELLED = "CANCELLED",
 }
 
+export enum GameResult {
+  WIN = "WIN",
+  LOSS = "LOSS",
+  DRAW = "DRAW",
+}
+
 /**
  * The type of competition for a game or tournament.
  * Used on both Game.competitionType and Tournament.competitionType (replacing TournamentFormat).

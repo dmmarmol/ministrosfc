@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SelectItem } from "#ui/types";
 import { GameStatus, OPTION_FILTER_ALL } from "@ministrosfc/shared";
+import { resolveSelectedValue } from "~/utils/object";
 
 const props = withDefaults(
   defineProps<{
@@ -36,14 +37,16 @@ const items: SelectItem[] = props.includeAll
   : gameStatusItems;
 
 function handleUpdate(value: unknown) {
-  if (typeof value === "string") {
-    if (value === OPTION_FILTER_ALL && props.includeAll) {
+  const selectedValue = resolveSelectedValue(value);
+
+  if (selectedValue) {
+    if (selectedValue === OPTION_FILTER_ALL && props.includeAll) {
       emit("update:modelValue", OPTION_FILTER_ALL);
       return;
     }
 
-    if (Object.values(GameStatus).includes(value as GameStatus)) {
-      emit("update:modelValue", value as GameStatus);
+    if (Object.values(GameStatus).includes(selectedValue as GameStatus)) {
+      emit("update:modelValue", selectedValue as GameStatus);
       return;
     }
   }

@@ -231,6 +231,26 @@ describe("Player CRUD (integration)", () => {
     expect(found).toBeTruthy();
   });
 
+  it("GET /api/v1/players?status=ALL → includes inactive player", async () => {
+    const res = await request(app)
+      .get("/api/v1/players?status=ALL")
+      .set("Authorization", `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(200);
+    const found = res.body.data.find((p: any) => p.id === playerId);
+    expect(found).toBeTruthy();
+  });
+
+  it("GET /api/v1/players?status= → includes inactive player (empty treated as ALL)", async () => {
+    const res = await request(app)
+      .get("/api/v1/players?status=")
+      .set("Authorization", `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(200);
+    const found = res.body.data.find((p: any) => p.id === playerId);
+    expect(found).toBeTruthy();
+  });
+
   it("GET /api/v1/players/:id → 404 for nonexistent player", async () => {
     const res = await request(app).get(
       "/api/v1/players/00000000-0000-0000-0000-000000000000",

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SelectItem } from "#ui/types";
 import { OPTION_FILTER_ALL, PlayerStatus } from "@ministrosfc/shared";
+import { resolveSelectedValue } from "~/utils/object";
 
 const props = withDefaults(
   defineProps<{
@@ -36,36 +37,57 @@ const statusItems: SelectItem[] = [
     label: props.singlePlayer ? "Inactivo" : "Inactivos",
   },
 ];
-const items: SelectItem[] = props.includeAll
-  ? [optionAll, ...statusItems]
-  : statusItems;
+const shouldShowOptionAll = computed(() => props.includeAll && false);
+
+const items = computed<SelectItem[]>(() =>
+  shouldShowOptionAll.value ? [optionAll, ...statusItems] : statusItems,
+);
+
+const selectModelValue = computed(() => {
+  if (!shouldShowOptionAll.value && props.modelValue === OPTION_FILTER_ALL) {
+    return undefined;
+  }
+  return props.modelValue;
+});
+
+function emitClearedValue() {
+  emit("update:modelValue", props.includeAll ? OPTION_FILTER_ALL : undefined);
+}
 
 function handleUpdate(value: unknown) {
-  if (typeof value !== "string") {
+  const selectedValue = resolveSelectedValue(value);
+
+  if (!selectedValue) {
+    emitClearedValue();
+    return;
+  }
+
+  if (selectedValue === OPTION_FILTER_ALL && props.includeAll) {
     emit("update:modelValue", OPTION_FILTER_ALL);
     return;
   }
 
-  if (value === OPTION_FILTER_ALL) {
-    emit("update:modelValue", OPTION_FILTER_ALL);
+  if (Object.values(PlayerStatus).includes(selectedValue as PlayerStatus)) {
+    emit("update:modelValue", selectedValue as PlayerStatus);
     return;
   }
 
-  if (Object.values(PlayerStatus).includes(value as PlayerStatus)) {
-    emit("update:modelValue", value as PlayerStatus);
-    return;
-  }
-
-  emit("update:modelValue", OPTION_FILTER_ALL);
+  emitClearedValue();
 }
 </script>
 
 <template>
-  <USelect
+  <USelectMenu
     v-bind="$attrs"
-    :model-value="props.modelValue"
+    :model-value="selectModelValue"
     @update:model-value="handleUpdate"
+    @clear="emitClearedValue"
+    :clear="props.includeAll || undefined"
     :items="items"
+    value-key="value"
+    label-key="label"
+    :search-input="false"
+    placeholder="Todos los estados"
     :ui="{ content: 'min-w-fit' }"
   />
 </template>

@@ -41,14 +41,17 @@ const { data, pending, refresh } = await useAsyncData(
   "admin-players",
   async () => {
     return $api<{ data: AdminPlayer[] }>("/api/v1/players", {
-      query: {
-        status: statusFilter.value,
+      query: createTruthyObject({
+        status:
+          statusFilter.value === OPTION_FILTER_ALL
+            ? undefined
+            : statusFilter.value,
         limit: 200,
         extend: [
           "invitedById",
           "invitedByName",
         ] as (keyof ExtendPlayerAttributes)[],
-      },
+      }),
     });
   },
 );

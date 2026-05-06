@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ColumnDef } from "~/types/table";
+import { OPTION_FILTER_ALL, PlayerStatus } from "@ministrosfc/shared";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
 import TournamentSelect from "~/components/pages/statistics/StatsFilters/TournamentSelect.vue";
 import { useAuthStore } from "~/stores/auth";
@@ -30,6 +31,27 @@ const {
   year: yearFilter,
 } = useStatsFilters();
 
+const topScorersStatusFilter = ref<PlayerStatus>(PlayerStatus.ACTIVE);
+
+function onTopScorersStatusUpdate(
+  value: PlayerStatus | typeof OPTION_FILTER_ALL,
+) {
+  topScorersStatusFilter.value =
+    value && value !== OPTION_FILTER_ALL ? value : PlayerStatus.ACTIVE;
+}
+
+watchEffect(() => {
+  const value = playerStatusFilter.value;
+  topScorersStatusFilter.value =
+    value && value !== OPTION_FILTER_ALL
+      ? (value as PlayerStatus)
+      : PlayerStatus.ACTIVE;
+});
+
+watch(topScorersStatusFilter, (value) => {
+  playerStatusFilter.value = value;
+});
+
 const playerSearch = ref("");
 
 const { data, pending, refresh } = await useAsyncData(
@@ -42,9 +64,7 @@ const { data, pending, refresh } = await useAsyncData(
         ...(tournamentFilter.value
           ? { tournamentName: tournamentFilter.value }
           : {}),
-        ...(playerStatusFilter.value
-          ? { status: playerStatusFilter.value }
-          : {}),
+        status: topScorersStatusFilter.value,
       },
     }),
   { server: false },
@@ -60,7 +80,7 @@ const filteredScorers = computed(() => {
 });
 
 watch(tournamentFilter, () => refresh());
-watch(playerStatusFilter, () => refresh());
+watch(topScorersStatusFilter, () => refresh());
 watch(yearFilter, () => refresh());
 
 const columns: ColumnDef[] = [
@@ -102,7 +122,12 @@ const tableRows = computed(() =>
     <!-- Filters -->
     <div class="flex flex-col sm:flex-row gap-3 mb-6">
       <input
-        v-model="playerSearch"
+        :value="playerSearch"
+        @input="
+          playerSearch = (
+            ($event.target as HTMLInputElement).value || ''
+          ).toString()
+        "
         type="text"
         placeholder="Buscar jugador…"
         class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
@@ -114,7 +139,9 @@ const tableRows = computed(() =>
       />
       <UiPlayerStatusSelect
         v-if="authStore.isAuthenticated"
-        v-model="playerStatusFilter"
+        :model-value="topScorersStatusFilter"
+        :include-all="false"
+        @update:model-value="onTopScorersStatusUpdate"
       />
     </div>
 

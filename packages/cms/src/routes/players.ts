@@ -15,6 +15,7 @@ import {
 import { PlayerService } from "../services/PlayerService";
 import { z } from "zod";
 import { OPTION_FILTER_ALL } from "@ministrosfc/shared";
+import type { PlayerCreateDTO } from "@ministrosfc/shared";
 import { PlayerType, PlayerStatus } from "@prisma/client";
 import { logger } from "../utils/logger";
 
@@ -77,9 +78,10 @@ const playerExtendSchema = z.preprocess(
 );
 
 const playerFilterSchema = paginationSchema.extend({
-  status: z
-    .union([z.enum(PlayerStatus), z.literal(OPTION_FILTER_ALL)])
-    .optional(),
+  status: z.preprocess(
+    (value) => (value === "" ? OPTION_FILTER_ALL : value),
+    z.union([z.enum(PlayerStatus), z.literal(OPTION_FILTER_ALL)]).optional(),
+  ),
   position: z.string().optional(),
   search: z.string().optional(),
   playerType: z.enum(PlayerType).optional(),
@@ -214,7 +216,7 @@ router.patch(
 
       const player = await PlayerService.updatePlayer(
         req.params.id!,
-        dto,
+        dto as Partial<PlayerCreateDTO>,
         photoFile,
       );
       res.json({ data: player });

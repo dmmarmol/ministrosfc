@@ -9,6 +9,7 @@ import { StatisticsService } from "../services/StatisticsService";
 import { TournamentModel } from "../models/Tournament";
 import { authenticate } from "../middleware/auth";
 import { z } from "zod";
+import { OPTION_FILTER_ALL } from "@ministrosfc/shared";
 import { PlayerStatus } from "@prisma/client";
 
 const router = Router();
@@ -17,8 +18,32 @@ const topScorersSchema = z.object({
   tournamentId: z.uuid().optional(),
   tournamentName: z.string().max(100).optional(),
   limit: z.coerce.number().int().min(1).max(50).default(10),
-  status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
+  status: z.preprocess(
+    (value) => (value === "" ? OPTION_FILTER_ALL : value),
+    z
+      .union([
+        z.enum([PlayerStatus.ACTIVE, PlayerStatus.INACTIVE]),
+        z.literal(OPTION_FILTER_ALL),
+      ])
+      .optional(),
+  ),
   year: z.coerce.number().int().min(1900).max(2100).optional(),
+});
+
+const playersStatsQuerySchema = z.object({
+  year: z.coerce.number().int().min(1900).max(2100).optional(),
+  rivalId: z.string().optional(),
+  tournamentName: z.string().max(100).optional(),
+  playerId: z.string().optional(),
+  status: z.preprocess(
+    (value) => (value === "" ? OPTION_FILTER_ALL : value),
+    z
+      .union([
+        z.enum([PlayerStatus.ACTIVE, PlayerStatus.INACTIVE]),
+        z.literal(OPTION_FILTER_ALL),
+      ])
+      .optional(),
+  ),
 });
 
 const teamStatsQuerySchema = z.object({
@@ -29,21 +54,19 @@ const teamStatsQuerySchema = z.object({
   playgroundId: z.uuid().optional(),
 });
 
-const playerStatusValues = Object.values(PlayerStatus);
-
 // GET /api/v1/statistics/players - All players aggregated (public + extended)
 router.get(
   "/players",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { year, rivalId, tournamentName, playerId, status } =
-        req.query as Record<string, string>;
+        playersStatsQuerySchema.parse(req.query);
       const playerStatus: PlayerStatus | undefined =
-        status && playerStatusValues.includes(status as PlayerStatus)
-          ? (status as PlayerStatus)
-          : undefined;
+        status === OPTION_FILTER_ALL
+          ? undefined
+          : (status as PlayerStatus | undefined);
       const data = await StatisticsService.getAllPlayerStats({
-        year: year ? parseInt(year, 10) : undefined,
+        year,
         rivalId,
         tournamentName,
         playerId,
@@ -102,7 +125,9 @@ router.get(
       const data = await StatisticsService.getTopScorers(
         tournamentId,
         query.limit,
-        query.status as PlayerStatus | undefined,
+        query.status === OPTION_FILTER_ALL
+          ? undefined
+          : (query.status as PlayerStatus | undefined),
         query.year,
       );
       res.setHeader("Cache-Control", "public, max-age=300");

@@ -5,6 +5,7 @@ import {
   PositionDisplayName,
   OPTION_FILTER_ALL,
 } from "@ministrosfc/shared";
+import { resolveSelectedValue } from "~/utils/object";
 import Label from "./Label.vue";
 
 const props = withDefaults(
@@ -16,7 +17,7 @@ const props = withDefaults(
   {
     modelValue: OPTION_FILTER_ALL,
     includeAll: true,
-    placeholder: undefined,
+    placeholder: "Todas las posiciones",
   },
 );
 
@@ -36,9 +37,18 @@ const optionAll: SelectItem = {
   value: OPTION_FILTER_ALL,
   label: "Todas las posiciones",
 };
-const items: SelectItem[] = props.includeAll
-  ? [optionAll, ...positionItems]
-  : positionItems;
+const shouldShowOptionAll = computed(() => props.includeAll && false);
+
+const items = computed<SelectItem[]>(() =>
+  shouldShowOptionAll.value ? [optionAll, ...positionItems] : positionItems,
+);
+
+const selectModelValue = computed(() => {
+  if (!shouldShowOptionAll.value && props.modelValue === OPTION_FILTER_ALL) {
+    return undefined;
+  }
+  return props.modelValue;
+});
 
 const positionValues = Object.values(Position) as Position[];
 
@@ -74,7 +84,7 @@ function getItemLabel(item: unknown): string {
 
   const value = extractItemValue(item);
   if (value === OPTION_FILTER_ALL) {
-    return optionAll!.label as string;
+    return "Todas las posiciones";
   }
   if (isPositionValue(value)) {
     return PositionDisplayName[value];
@@ -82,24 +92,15 @@ function getItemLabel(item: unknown): string {
   return "";
 }
 
-function resolveSelectedValue(value: unknown): string | undefined {
-  if (typeof value === "string") {
-    return value;
-  }
-
-  if (value && typeof value === "object" && "value" in value) {
-    const maybeValue = (value as { value?: unknown }).value;
-    return typeof maybeValue === "string" ? maybeValue : undefined;
-  }
-
-  return undefined;
+function emitClearedValue() {
+  emit("update:modelValue", props.includeAll ? OPTION_FILTER_ALL : undefined);
 }
 
 function handleUpdate(value: unknown) {
   const selectedValue = resolveSelectedValue(value);
 
   if (!selectedValue) {
-    emit("update:modelValue", props.includeAll ? OPTION_FILTER_ALL : undefined);
+    emitClearedValue();
     return;
   }
 
@@ -117,7 +118,7 @@ function handleUpdate(value: unknown) {
 }
 const selectedLabel = computed(() => {
   if (!props.modelValue || props.modelValue === OPTION_FILTER_ALL) {
-    return props.includeAll ? optionAll.label : undefined;
+    return undefined;
   }
   return isPositionValue(props.modelValue)
     ? PositionDisplayName[props.modelValue]
@@ -127,10 +128,14 @@ const selectedLabel = computed(() => {
 <template>
   <USelectMenu
     v-bind="$attrs"
-    :model-value="props.modelValue"
+    :model-value="selectModelValue"
     @update:model-value="handleUpdate"
+    @clear="emitClearedValue"
+    :clear="props.includeAll || undefined"
     :items="items"
     value-key="value"
+    label-key="label"
+    :search-input="false"
     :placeholder="props.placeholder"
     :label="selectedLabel"
     :ui="{ content: 'min-w-fit', base: 'justify-between' }"
