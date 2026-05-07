@@ -104,20 +104,17 @@ async function confirmDeny() {
           Buscar huérfanos
         </h4>
         <div class="flex gap-2 mb-2">
-          <input
-            v-model="orphanSearch"
-            type="text"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-            placeholder="Nombre o apellido"
-          />
-          <UButton
-            variant="outline"
-            color="neutral"
-            size="sm"
-            @click="handleOrphanSearch"
-          >
-            Buscar
-          </UButton>
+          <form @submit.prevent="handleOrphanSearch" class="flex w-full gap-2">
+            <input
+              v-model="orphanSearch"
+              type="text"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              placeholder="Nombre o apellido"
+            />
+            <UButton variant="outline" color="neutral" size="sm" type="submit">
+              Buscar
+            </UButton>
+          </form>
         </div>
 
         <div class="max-h-40 overflow-y-auto space-y-2">

@@ -29,7 +29,11 @@ defineProps<{ player: Player }>();
           class="flex flex-col items-center gap-y-2 rounded-3xl bg-neutral-100 px-4 py-4"
         >
           <UiPositionNumber
-            :jersey-number="player.jerseyNumber ?? null"
+            :jersey-number="
+              Number(player.jerseyNumber)
+                ? (player.jerseyNumber as number)
+                : null
+            "
             :is-guest="player.playerType === 'GUEST'"
             :is-jersey="true"
             class="w-16 h-16"

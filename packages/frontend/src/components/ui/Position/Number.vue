@@ -17,14 +17,17 @@ const jerseyDataUri = ref("");
 
 function updateJerseyUri() {
   // soccer-jersey relies on DOM APIs; avoid SSR evaluation.
-  if (import.meta.server || !props.jerseyNumber) {
+  if (import.meta.server) {
     jerseyDataUri.value = "";
     return;
   }
 
   try {
+    const jerseyNumber: string =
+      props.jerseyNumber !== null ? props.jerseyNumber.toString() : "#";
+
     jerseyDataUri.value = SoccerJersey.draw({
-      shirtText: props.jerseyNumber.toString(),
+      shirtText: jerseyNumber,
       shirtColor: bgColor,
       sleeveColor: bgColor,
       shirtStyle: "plain",
@@ -42,7 +45,7 @@ onMounted(updateJerseyUri);
 watch(() => props.jerseyNumber, updateJerseyUri);
 </script>
 <template>
-  <div v-if="!props.isGuest && props.jerseyNumber">
+  <div v-if="!props.isGuest && jerseyDataUri">
     <img
       v-if="props.isJersey && jerseyDataUri"
       :src="jerseyDataUri"

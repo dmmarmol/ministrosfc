@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SelectItem } from "#ui/types";
 import type { PlayerRivalPeriodDTO } from "@ministrosfc/shared";
 
 const props = defineProps<{ playerId: string }>();
@@ -16,12 +17,12 @@ const { data: rivalsData, pending } = await useAsyncData(
 const rivals = computed(() => rivalsData.value?.data ?? []);
 
 // Derive select options directly from the rival data — always in sync
-const teamsWithData = computed(() =>
+const teamOptions = computed((): SelectItem[] =>
   rivals.value
     .sort((a, b) => (a.gamesPlayed >= b.gamesPlayed ? -1 : 1))
     .map((r) => ({
-      id: r.rivalId,
-      name: `${r.rivalName} (${r.gamesPlayed} PJ)`,
+      value: r.rivalId,
+      label: `${r.rivalName} (${r.gamesPlayed} PJ)`,
     })),
 );
 
@@ -54,16 +55,30 @@ function toggleRival(rivalId: string) {
       <slot name="header"></slot>
       <!-- Team filter -->
       <div class="flex flex-col gap-1">
-        <select
+        <USelectMenu
+          id="rival-team-select"
+          v-model="selectedRivalId"
+          :items="teamOptions"
+          placeholder="Selecciona un equipo"
+          value-key="value"
+          label-key="label"
+          :clear="true"
+          :ui="{ content: 'min-w-fit' }"
+          :search-input="{
+            placeholder: 'Buscar equipo...',
+            icon: 'i-lucide-search',
+          }"
+        />
+        <!-- <select
           id="rival-team-select"
           v-model="selectedRivalId"
           class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand max-w-xs"
         >
           <option value="">Selecciona un equipo</option>
-          <option v-for="team in teamsWithData" :key="team.id" :value="team.id">
+          <option v-for="team in teamOptions" :key="team.id" :value="team.id">
             {{ team.name }}
           </option>
-        </select>
+        </select> -->
       </div>
     </header>
 
