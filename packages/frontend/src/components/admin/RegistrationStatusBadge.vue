@@ -1,42 +1,26 @@
 <script setup lang="ts">
-import UiBadge from "../ui/Badge.vue";
 import { RegistrationStatus } from "@ministrosfc/shared";
+import type { BadgeProps } from "#ui/types";
 
 const props = defineProps<{
   status: RegistrationStatus;
 }>();
 
-function registrationStatusLabel(status: RegistrationStatus) {
-  switch (status) {
-    case RegistrationStatus.APPROVED:
-      return "Aprobado";
-    case RegistrationStatus.PENDING_APPROVAL:
-      return "Pendiente";
-    case RegistrationStatus.DENIED:
-      return "Rechazado";
-    default:
-      return status;
-  }
-}
+const statusColorMap: Record<RegistrationStatus, BadgeProps["color"]> = {
+  [RegistrationStatus.APPROVED]: "success",
+  [RegistrationStatus.PENDING_APPROVAL]: "warning",
+  [RegistrationStatus.DENIED]: "error",
+} as const;
 
-function registrationStatusBadgeVariant(
-  status: RegistrationStatus,
-): "soft" | "outline" | "subtle" | "ghost" {
-  switch (status) {
-    case RegistrationStatus.APPROVED:
-      return "soft";
-    case RegistrationStatus.PENDING_APPROVAL:
-      return "outline";
-    case RegistrationStatus.DENIED:
-      return "subtle";
-    default:
-      return "ghost";
-  }
-}
+const statusLabelMap: Record<RegistrationStatus, string> = {
+  [RegistrationStatus.APPROVED]: "Aprobado",
+  [RegistrationStatus.PENDING_APPROVAL]: "Pendiente",
+  [RegistrationStatus.DENIED]: "Rechazado",
+} as const;
 </script>
 
 <template>
-  <UiBadge :variant="registrationStatusBadgeVariant(props.status)">
-    {{ registrationStatusLabel(props.status) }}
-  </UiBadge>
+  <UBadge :color="statusColorMap[props.status]">{{
+    statusLabelMap[props.status] ?? props.status
+  }}</UBadge>
 </template>
