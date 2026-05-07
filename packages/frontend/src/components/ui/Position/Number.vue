@@ -6,6 +6,7 @@ type Props = {
   jerseyNumber: number | null;
   isGuest?: boolean;
   isJersey?: boolean;
+  class?: string;
 };
 const props = defineProps<Props>();
 
@@ -45,7 +46,7 @@ watch(() => props.jerseyNumber, updateJerseyUri);
     <img
       v-if="props.isJersey && jerseyDataUri"
       :src="jerseyDataUri"
-      class="w-8 h-8"
+      :class="['w-8 h-8', props.class]"
       alt="Camiseta"
     />
     <span

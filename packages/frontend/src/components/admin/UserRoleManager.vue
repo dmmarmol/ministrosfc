@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import ConfirmationModal from "../ui/ConfirmationModal.vue";
-import RegistrationStatusBadge from "./RegistrationStatusBadge.vue";
+import RegistrationStatusBadge from "../ui/RegistrationStatusBadge.vue";
 import { useAuthStore } from "~/stores/auth";
 
 import {

@@ -40,17 +40,33 @@ useHead(() => ({
     </div>
     <template v-else-if="player">
       <PlayerHeader :player="player" />
-      <PlayerCareerStats
-        :stats="stats"
-        :available-years="availableYears"
-        :year="year"
-        @year-change="onYearChange"
-      />
-      <div v-if="authStore.isAuthenticated" class="mt-8">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">
-          Estadísticas por equipo rival
-        </h2>
-        <PlayerStatsByRival :player-id="id" />
+
+      <div class="lg:grid lg:grid-cols-12 lg:gap-8">
+        <div class="lg:col-span-7">
+          <PlayerCareerStats
+            :stats="stats"
+            :available-years="availableYears"
+            :year="year"
+            @year-change="onYearChange"
+          />
+          <div v-if="authStore.isAuthenticated" class="mt-8">
+            <PlayerStatsByRival :player-id="id">
+              <template #header>
+                <h2 class="text-lg font-bold text-gray-800">
+                  Estadísticas por equipo rival
+                </h2>
+              </template>
+            </PlayerStatsByRival>
+          </div>
+        </div>
+        <div class="lg:col-span-5">
+          <img
+            v-if="player.photoUrl"
+            :src="player.photoUrl"
+            :alt="`${player.firstName} ${player.lastName}`"
+            class="w-full h-full object-cover"
+          />
+        </div>
       </div>
     </template>
     <div v-else class="text-center py-16 text-gray-500">
