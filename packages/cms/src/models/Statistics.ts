@@ -306,6 +306,7 @@ const StatisticsModel = {
     tournamentId?: string;
     tournamentName?: string;
     rivalId?: string;
+    playgroundId?: string;
   }) {
     const gameWhere: any = { status: GameStatus.COMPLETED };
     if (filters?.tournamentId) gameWhere.tournamentId = filters.tournamentId;
@@ -314,6 +315,7 @@ const StatisticsModel = {
         name: { equals: filters.tournamentName, mode: "insensitive" },
       };
     if (filters?.rivalId) gameWhere.opponentTeamId = filters.rivalId;
+    if (filters?.playgroundId) gameWhere.playgroundId = filters.playgroundId;
 
     const games = await prisma.game.findMany({
       where: gameWhere,

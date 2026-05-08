@@ -132,6 +132,7 @@ const StatisticsService = {
     tournamentId?: string;
     tournamentName?: string;
     rivalId?: string;
+    playgroundId?: string;
   }) {
     const key = `cache:stats:team:rival:${filters?.year ?? "all"}:${filters?.tournamentId ?? "all"}:${filters?.tournamentName ?? "all"}:${filters?.rivalId ?? "all"}`;
     return withCache(key, () => StatisticsModel.aggregateTeamByRival(filters));
