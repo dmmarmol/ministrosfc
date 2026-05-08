@@ -2,7 +2,7 @@
 import { useAsyncData, useHead, useNuxtApp, useRouter } from "nuxt/app";
 import { computed, reactive, ref } from "vue";
 import { DEFAULT_MAX_PLAYERS } from "@ministrosfc/shared";
-import PlaygroundSelect from "~/components/PlaygroundSelect.vue";
+import PlaygroundSelect from "~/components/pages/admin/playground/PlaygroundSelect.vue";
 
 definePageMeta({
   layout: "admin",
@@ -135,7 +135,7 @@ async function submit() {
         <label class="block text-xs font-medium text-gray-700 mb-1"
           >Ubicación (Cancha)</label
         >
-        <PlaygroundSelect v-model="form.playgroundId" />
+        <PlaygroundSelect v-model="form.playgroundId" class="w-full" />
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-700 mb-1"

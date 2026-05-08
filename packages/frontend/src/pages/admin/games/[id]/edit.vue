@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useAuthStore } from "~/stores/auth";
-import PlaygroundSelect from "~/components/PlaygroundSelect.vue";
+import PlaygroundSelect from "~/components/pages/admin/playground/PlaygroundSelect.vue";
 import { FORMATIONS, GameStatus, toISOWithOffset } from "@ministrosfc/shared";
 
 definePageMeta({
@@ -143,7 +143,7 @@ async function submit() {
         <label class="block text-xs font-medium text-gray-700 mb-1"
           >Ubicación (Cancha)</label
         >
-        <PlaygroundSelect v-model="form.playgroundId" />
+        <PlaygroundSelect v-model="form.playgroundId" class="w-full" />
         <!-- Legacy location text shown read-only if present and no playground assigned -->
         <p
           v-if="game.location && !form.playgroundId"

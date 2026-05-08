@@ -2,23 +2,26 @@
 import { ref, computed, onMounted } from "vue";
 import { usePlaygrounds } from "~/composables/usePlaygrounds";
 import DropdownAddMore from "~/components/ui/DropdownAddMore.vue";
-import type { DropdownOption } from "~/components/ui/DropdownAddMore.vue";
+// import type { DropdownOption } from "~/components/ui/DropdownAddMore.vue";
+import type { SelectItem } from "#ui/types";
+import type { Playground } from "@ministrosfc/shared";
 
-defineProps<{
+const props = defineProps<{
   modelValue: string | null;
 }>();
 
 const emit = defineEmits<{
-  (e: "update:modelValue", value: string | null): void;
+  (e: "update:modelValue", value: SelectItem | undefined): void;
 }>();
 
 const { playgrounds, loading, fetchPlaygrounds, createPlayground } =
   usePlaygrounds();
 
-const options = computed<DropdownOption[]>(() =>
+const options = computed<SelectItem[]>(() =>
   playgrounds.value.map((pg) => ({
     id: pg.id,
-    label: `${pg.name} — ${pg.address}`,
+    // label: `${pg.name} — ${pg.address}`,
+    label: `${pg.name}`,
     meta: pg,
   })),
 );
@@ -30,73 +33,45 @@ onMounted(() => {
   fetchPlaygrounds();
 });
 
-async function onCreate(
-  payload: Record<string, unknown>,
-): Promise<DropdownOption> {
-  const newPg = await createPlayground({
-    name: payload.name as string,
-    address: payload.address as string,
-  });
-  return {
-    id: newPg.id,
-    label: `${newPg.name} — ${newPg.address}`,
-    meta: newPg,
-  };
+async function onCreate(payload: string): Promise<void> {
+  console.log("Payload recibido en onCreate:", payload);
+  debugger;
+  // const newPg = await createPlayground({
+  //   name: payload.name as string,
+  //   address: payload.address as string,
+  // });
+
+  return;
+}
+
+function handleUpdate(value: SelectItem) {
+  if (typeof value === "string") {
+    emit("update:modelValue", value);
+    return;
+  }
+  if (value && typeof value === "object" && "id" in value) {
+    emit("update:modelValue", value.id);
+    return;
+  }
+
+  emit("update:modelValue", "");
+  return;
 }
 </script>
 
 <template>
-  <DropdownAddMore
+  <USelectMenu
+    id="playground-select"
     :model-value="modelValue"
-    :options="options"
+    @update:model-value="handleUpdate"
+    @create="onCreate"
+    :items="options"
     :loading="loading"
-    :on-create="onCreate"
-    @update:model-value="emit('update:modelValue', $event)"
-  >
-    <template #inline-create="{ submit, cancel, error, loading: creating }">
-      <div class="p-3 space-y-2">
-        <p class="text-xs font-semibold text-gray-600">Nueva cancha</p>
-        <div v-if="error" class="text-xs text-red-600">{{ error }}</div>
-        <form
-          @submit.prevent="
-            submit({ name: inlineName, address: inlineAddress });
-            inlineName = '';
-            inlineAddress = '';
-          "
-          class="space-y-2"
-        >
-          <input
-            v-model="inlineName"
-            type="text"
-            required
-            placeholder="Nombre"
-            class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
-          />
-          <input
-            v-model="inlineAddress"
-            type="text"
-            required
-            placeholder="Dirección"
-            class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
-          />
-          <div class="flex gap-2">
-            <button
-              type="submit"
-              :disabled="creating"
-              class="text-xs bg-brand text-gray-900 font-semibold px-3 py-1.5 rounded hover:opacity-90 disabled:opacity-50"
-            >
-              {{ creating ? "Guardando…" : "Crear" }}
-            </button>
-            <button
-              type="button"
-              class="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5"
-              @click="cancel"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </div>
-    </template>
-  </DropdownAddMore>
+    value-key="id"
+    label-key="label"
+    placeholder="Seleccionar cancha"
+    :search-input="false"
+    :clear="true"
+    :ui="{ content: 'min-w-fit' }"
+  />
 </template>

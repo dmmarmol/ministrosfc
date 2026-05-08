@@ -29,16 +29,9 @@ const availableTournamentsMock = vi.fn().mockReturnValue({
     { value: "Liga", label: "Liga" },
   ]),
 });
-const availablePlaygroundsMock = vi.fn().mockReturnValue({
-  availablePlaygrounds: ref([
-    { value: "pg-1", label: "Cancha Norte" },
-    { value: "pg-2", label: "Cancha Sur" },
-  ]),
-});
 
 vi.stubGlobal("useStatisticsAvailableYears", availableYearsMock);
 vi.stubGlobal("useStatisticsAvailableTournaments", availableTournamentsMock);
-vi.stubGlobal("useStatisticsAvailablePlaygrounds", availablePlaygroundsMock);
 
 // ── Lazy imports after stubs ──────────────────────────────────────────────────
 const { default: PlayerStatusSelect } =
@@ -48,7 +41,7 @@ const { default: YearSelect } =
 const { default: TournamentSelect } =
   await import("../../src/components/pages/statistics/StatsFilters/TournamentSelect.vue");
 const { default: PlaygroundSelect } =
-  await import("../../src/components/pages/statistics/StatsFilters/PlaygroundSelect.vue");
+  await import("../../src/components/pages/admin/playground/PlaygroundSelect.vue");
 
 // ─────────────────────────────────────────────────────────────────────────────
 

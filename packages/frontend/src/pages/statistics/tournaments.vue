@@ -3,8 +3,8 @@ import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 import StatsTableByTournament from "../../components/pages/statistics/StatsTableByTournament.vue";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
 import TournamentSelect from "~/components/pages/statistics/StatsFilters/TournamentSelect.vue";
-import PlaygroundSelect from "~/components/pages/statistics/StatsFilters/PlaygroundSelect.vue";
 import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
+import PlaygroundSelect from "~/components/pages/admin/playground/PlaygroundSelect.vue";
 
 definePageMeta({
   layout: "statistics-private",
