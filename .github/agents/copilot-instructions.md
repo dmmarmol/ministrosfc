@@ -146,6 +146,10 @@ If the user asks about architecture, consult the `skills/tailwindcss/theme-archi
 - **Soft Deletes**: Players use status field (ACTIVE | INACTIVE), preserved in historical data
 - **Guest Players**: playerType=GUEST, linked to inviting player via invitedById
 
+## CMS API Guidelines
+
+To better understand the API architecture, consult the `API_ARCHITECTURE_OVERVIEW.md` document in the `cms/docs` folder.
+
 ## Recent Changes
 
 - 019-merge-related-users: Added TypeScript 5.x (Node.js >= 23 for CMS, Vue/Nuxt TypeScript on frontend) + Express, Zod, Prisma, jsonwebtoken, bcryptjs, Redis client, Nuxt 4, Pinia
