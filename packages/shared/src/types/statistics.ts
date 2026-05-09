@@ -109,6 +109,7 @@ export interface PlayerStatRowDTO {
   playerId: string;
   playerName: string;
   playerNickname?: string;
+  position: string;
   gamesPlayed: number;
   wins: number;
   losses: number;

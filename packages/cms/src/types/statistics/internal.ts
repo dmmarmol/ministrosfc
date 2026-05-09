@@ -3,6 +3,8 @@
  * These are not exported to the API; they support internal aggregation logic.
  */
 
+import { Position } from "@ministrosfc/shared";
+
 /**
  * Represents aggregated team statistics for a single period/group.
  */
@@ -44,6 +46,7 @@ export interface AllPlayersStatsRow {
   playerId: string;
   playerName: string;
   playerNickname?: string;
+  position: Position;
   gamesPlayed: number;
   wins: number;
   losses: number;

@@ -12,6 +12,7 @@
 import {
   PlayerRivalMatchDTO,
   PlayerRivalPeriodDTO,
+  Position,
   TeamStatMatchDTO,
   TopScorerDTO,
 } from "@ministrosfc/shared";
@@ -721,16 +722,23 @@ const StatisticsModel = {
     const playerIds = Object.keys(byPlayer);
     const players = await prisma.player.findMany({
       where: { id: { in: playerIds } },
-      select: { id: true, firstName: true, lastName: true, nickname: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        nickname: true,
+        position: true,
+      },
     });
     const playerMap = new Map(players.map((p) => [p.id, p]));
 
-    return playerIds.map((pid) => {
+    return playerIds.map((pid): AllPlayersStatsRow => {
       const s = byPlayer[pid]!;
       const p = playerMap.get(pid);
       return {
         playerId: pid,
         playerName: p ? `${p.firstName} ${p.lastName}` : pid,
+        position: p?.position as unknown as Position,
         playerNickname: p?.nickname ?? undefined,
         gamesPlayed: s.games,
         wins: s.wins,

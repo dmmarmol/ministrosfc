@@ -4,6 +4,7 @@ import StatsTableByPlayer from "../../../components/pages/statistics/StatsTableB
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
 import PlayerSelect from "~/components/pages/statistics/StatsFilters/PlayerSelect.vue";
 import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
+import type { AllPlayersStatsRow } from "@ministrosfc/cms/src/types/statistics/internal";
 
 definePageMeta({
   layout: "statistics-private",
@@ -24,7 +25,7 @@ const {
 const { data, pending, refresh } = await useAsyncData(
   "all-player-stats",
   () =>
-    $api<{ data: PlayerStatRowDTO[] }>("/api/v1/statistics/players", {
+    $api<{ data: AllPlayersStatsRow[] }>("/api/v1/statistics/players", {
       query: createTruthyObject({
         status: filters.value?.playerStatus,
         year: filters.value?.year,
@@ -59,6 +60,6 @@ watch(
       />
     </div>
     <StatsTitle>Estadísticas de Jugadores</StatsTitle>
-    <StatsTableByPlayer :rows="rows" mode="all" :loading="pending" />
+    <StatsTableByPlayer :rows="rows" :loading="pending" />
   </div>
 </template>

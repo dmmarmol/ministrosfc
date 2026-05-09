@@ -3,6 +3,8 @@
  * Most types are re-exported from @ministrosfc/shared; this file centralizes them.
  */
 
+import { PlayerStatRowDTO } from "@ministrosfc/shared";
+
 export type {
   TopScorerDTO,
   PlayerRivalMatchDTO,
@@ -14,17 +16,7 @@ export type {
  * Response shape for GET /statistics/players/:id
  */
 export interface PlayerStatsResponse {
-  player: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    nickname?: string | null;
-    jerseyNumber?: number | null;
-    position?: string | null;
-    photoUrl?: string | null;
-    playerType?: string | null;
-    status: string;
-  };
+  player: PlayerStatRowDTO;
   stats: {
     appearances: number;
     goalsScored: number;
