@@ -164,7 +164,7 @@ async function confirmDelete() {
     <!-- Filters -->
     <div class="flex flex-col sm:flex-row gap-3 mb-4">
       <UInput v-model="search" placeholder="Buscar…" class="flex-1" size="xl" />
-      <UiPlayerStatusSelect v-model="statusFilter" size="xl" />
+      <UiPlayerStatusSelect v-model="statusFilter" include-all size="xl" />
       <UiPositionSelect v-model="posFilter" size="xl" />
     </div>
 

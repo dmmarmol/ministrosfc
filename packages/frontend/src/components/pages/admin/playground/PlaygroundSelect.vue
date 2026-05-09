@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { usePlaygrounds } from "~/composables/usePlaygrounds";
-import DropdownAddMore from "~/components/ui/DropdownAddMore.vue";
-// import type { DropdownOption } from "~/components/ui/DropdownAddMore.vue";
 import type { SelectItem } from "#ui/types";
-import type { Playground } from "@ministrosfc/shared";
 
 const props = defineProps<{
   modelValue: string | null;
@@ -25,9 +22,6 @@ const options = computed<SelectItem[]>(() =>
     meta: pg,
   })),
 );
-
-const inlineName = ref("");
-const inlineAddress = ref("");
 
 onMounted(() => {
   fetchPlaygrounds();

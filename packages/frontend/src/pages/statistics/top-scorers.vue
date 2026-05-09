@@ -82,7 +82,20 @@ watch(topScorersStatusFilter, () => refresh());
 watch(yearFilter, () => refresh());
 
 const columns: ColumnDef<TopScorerRow>[] = [
-  { accessorKey: "rank", header: "#", title: "Posición", sortable: false },
+  { accessorKey: "rank", header: "#", title: "Ranking", sortable: false },
+  {
+    accessorKey: "position",
+    header: "Pos",
+    meta: {
+      class: {
+        th: "w-16 text-center",
+      },
+    },
+    cell: ({ row }) =>
+      h(resolveComponent("UiPositionLabel"), {
+        position: row.getValue("position"),
+      }),
+  },
   {
     accessorKey: "name",
     title: "Jugador",
@@ -170,6 +183,7 @@ const tableRows = computed((): TopScorerRow[] =>
   filteredScorers.value.map((entry, idx) => ({
     playerId: entry.player?.id ?? "",
     rank: idx + 1,
+    position: entry.player?.position ?? "",
     name: `${entry.player?.firstName ?? ""} ${entry.player?.lastName ?? ""}`.trim(),
     goalsScored: entry.goalsScored,
     assists: entry.assists,
@@ -191,7 +205,7 @@ const sorting = ref<{ id: keyof TopScorerDTO; desc: boolean }[]>([
     <h1 class="text-xl font-bold text-gray-900 mb-4">Goleadores</h1>
 
     <!-- Filters -->
-    <div class="flex flex-col sm:flex-row gap-3 mb-6">
+    <div class="flex gap-3 mb-6">
       <input
         :value="playerSearch"
         @input="
@@ -203,15 +217,17 @@ const sorting = ref<{ id: keyof TopScorerDTO; desc: boolean }[]>([
         placeholder="Buscar jugador…"
         class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
       />
-      <YearSelect v-model="yearFilter" />
+      <YearSelect v-model="yearFilter" class="w-1/6" />
       <TournamentSelect
         v-if="authStore.isAuthenticated"
         v-model="tournamentFilter"
+        class="w-1/6"
       />
       <UiPlayerStatusSelect
         v-if="authStore.isAuthenticated"
+        include-all
         v-model="topScorersStatusFilter"
-        :include-all="false"
+        class="w-1/6"
       />
     </div>
 

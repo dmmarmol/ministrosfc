@@ -10,7 +10,7 @@ import { PlayerStatus } from "@ministrosfc/shared";
 import type { MaybeRef } from "vue";
 
 export function useStatisticsAvailablePlayers(
-  status?: MaybeRef<string | undefined>,
+  status?: MaybeRef<PlayerStatus | null>,
   enabled: MaybeRef<boolean> = true,
 ) {
   const { $api } = useNuxtApp();

@@ -12,7 +12,7 @@ const props = withDefaults(
   {
     modelValue: OPTION_FILTER_ALL,
     singlePlayer: false,
-    includeAll: true,
+    includeAll: false,
   },
 );
 
@@ -37,14 +37,13 @@ const statusItems: SelectItem[] = [
     label: props.singlePlayer ? "Inactivo" : "Inactivos",
   },
 ];
-const shouldShowOptionAll = computed(() => props.includeAll && false);
 
 const items = computed<SelectItem[]>(() =>
-  shouldShowOptionAll.value ? [optionAll, ...statusItems] : statusItems,
+  props.includeAll ? [optionAll, ...statusItems] : statusItems,
 );
 
 const selectModelValue = computed(() => {
-  if (!shouldShowOptionAll.value && props.modelValue === OPTION_FILTER_ALL) {
+  if (!props.includeAll && props.modelValue === OPTION_FILTER_ALL) {
     return undefined;
   }
   return props.modelValue;
