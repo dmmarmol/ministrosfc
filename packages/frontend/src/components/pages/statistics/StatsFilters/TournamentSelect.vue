@@ -1,16 +1,61 @@
 <script setup lang="ts">
-const model = defineModel<string>({ default: "" });
+import type { SelectItem } from "#ui/types";
+import { OPTION_FILTER_ALL } from "@ministrosfc/shared";
+
+const props = withDefaults(
+  defineProps<{
+    modelValue?: string | typeof OPTION_FILTER_ALL;
+    includeAll?: boolean;
+  }>(),
+  {
+    modelValue: OPTION_FILTER_ALL,
+    includeAll: false,
+  },
+);
+const emit = defineEmits<{
+  (
+    e: "update:modelValue",
+    value: string | typeof OPTION_FILTER_ALL | undefined,
+  ): void;
+}>();
+
 const { availableTournaments } = useStatisticsAvailableTournaments();
+
+const optionAll: SelectItem = {
+  value: OPTION_FILTER_ALL,
+  label: "Todos los torneos",
+};
+const items = computed<SelectItem[]>(() =>
+  props.includeAll
+    ? [optionAll, ...availableTournaments.value]
+    : availableTournaments.value,
+);
+function handleUpdate(value: SelectItem | undefined) {
+  if (typeof value === "string") {
+    emit("update:modelValue", value);
+    return;
+  }
+  if (value && typeof value === "object" && "value" in value) {
+    emit("update:modelValue", value.value as string);
+    return;
+  }
+
+  emit("update:modelValue", "");
+  return;
+}
 </script>
 
 <template>
-  <select
-    v-model="model"
-    class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-  >
-    <option value="">Todos los torneos</option>
-    <option v-for="t in availableTournaments" :key="t.value" :value="t.value">
-      {{ t.label }}
-    </option>
-  </select>
+  <USelectMenu
+    id="tournament-select"
+    :model-value="modelValue"
+    @update:model-value="handleUpdate"
+    :items="items"
+    value-key="value"
+    label-key="label"
+    placeholder="Seleccionar torneo"
+    :search-input="false"
+    :clear="true"
+    :ui="{ content: 'min-w-fit' }"
+  />
 </template>

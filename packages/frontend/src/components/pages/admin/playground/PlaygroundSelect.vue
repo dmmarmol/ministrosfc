@@ -19,7 +19,7 @@ const { playgrounds, loading, fetchPlaygrounds, createPlayground } =
 
 const options = computed<SelectItem[]>(() =>
   playgrounds.value.map((pg) => ({
-    id: pg.id,
+    value: pg.id,
     // label: `${pg.name} — ${pg.address}`,
     label: `${pg.name}`,
     meta: pg,
@@ -35,7 +35,6 @@ onMounted(() => {
 
 async function onCreate(payload: string): Promise<void> {
   console.log("Payload recibido en onCreate:", payload);
-  debugger;
   // const newPg = await createPlayground({
   //   name: payload.name as string,
   //   address: payload.address as string,
@@ -44,13 +43,13 @@ async function onCreate(payload: string): Promise<void> {
   return;
 }
 
-function handleUpdate(value: SelectItem) {
+function handleUpdate(value: SelectItem | undefined) {
   if (typeof value === "string") {
     emit("update:modelValue", value);
     return;
   }
-  if (value && typeof value === "object" && "id" in value) {
-    emit("update:modelValue", value.id);
+  if (value && typeof value === "object" && "value" in value) {
+    emit("update:modelValue", value.value);
     return;
   }
 
@@ -67,7 +66,7 @@ function handleUpdate(value: SelectItem) {
     @create="onCreate"
     :items="options"
     :loading="loading"
-    value-key="id"
+    value-key="value"
     label-key="label"
     placeholder="Seleccionar cancha"
     :search-input="false"

@@ -54,11 +54,11 @@ watch(
 
 <template>
   <div>
-    <div class="flex flex-wrap gap-3 mb-6">
-      <YearSelect v-model="yearFilter" />
-      <PlaygroundSelect v-model="playgroundFilter" :include-all="true" />
-      <TournamentSelect v-model="tournamentFilter" />
-      <RivalSelect v-model="rivalFilter" />
+    <div class="flex gap-3 mb-6">
+      <YearSelect v-model="yearFilter" class="w-full" />
+      <PlaygroundSelect v-model="playgroundFilter" class="w-full" />
+      <TournamentSelect v-model="tournamentFilter" class="w-full" />
+      <RivalSelect v-model="rivalFilter" class="w-full" />
     </div>
     <StatsTitle>Estadísticas por Rival</StatsTitle>
     <StatsTableByRival :rows="rows" :loading="pending" />

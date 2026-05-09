@@ -11,48 +11,13 @@ import { authenticate } from "../middleware/auth";
 import { z } from "zod";
 import { OPTION_FILTER_ALL } from "@ministrosfc/shared";
 import { PlayerStatus } from "@prisma/client";
+import {
+  topScorersQuerySchema,
+  playersStatsQuerySchema,
+  teamStatsQuerySchema,
+} from "../types/statistics";
 
 const router = Router();
-
-const topScorersSchema = z.object({
-  tournamentId: z.uuid().optional(),
-  tournamentName: z.string().max(100).optional(),
-  limit: z.coerce.number().int().min(1).max(50).default(10),
-  status: z.preprocess(
-    (value) => (value === "" ? OPTION_FILTER_ALL : value),
-    z
-      .union([
-        z.enum([PlayerStatus.ACTIVE, PlayerStatus.INACTIVE]),
-        z.literal(OPTION_FILTER_ALL),
-      ])
-      .optional(),
-  ),
-  year: z.coerce.number().int().min(1900).max(2100).optional(),
-});
-
-const playersStatsQuerySchema = z.object({
-  year: z.coerce.number().int().min(1900).max(2100).optional(),
-  rivalId: z.string().optional(),
-  tournamentName: z.string().max(100).optional(),
-  playerId: z.string().optional(),
-  status: z.preprocess(
-    (value) => (value === "" ? OPTION_FILTER_ALL : value),
-    z
-      .union([
-        z.enum([PlayerStatus.ACTIVE, PlayerStatus.INACTIVE]),
-        z.literal(OPTION_FILTER_ALL),
-      ])
-      .optional(),
-  ),
-});
-
-const teamStatsQuerySchema = z.object({
-  year: z.coerce.number().int().min(1900).max(2100).optional(),
-  tournamentId: z.uuid().optional(),
-  tournamentName: z.string().max(100).optional(),
-  rivalId: z.uuid().optional(),
-  playgroundId: z.uuid().optional(),
-});
 
 // GET /api/v1/statistics/players - All players aggregated (public + extended)
 router.get(
@@ -105,7 +70,7 @@ router.get(
   "/top-scorers",
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const query = topScorersSchema.parse(req.query);
+      const query = topScorersQuerySchema.parse(req.query);
 
       let tournamentId = query.tournamentId;
       if (!tournamentId && query.tournamentName) {
