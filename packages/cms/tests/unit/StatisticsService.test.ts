@@ -1,4 +1,5 @@
 import { StatisticsService } from "../../src/services/StatisticsService";
+import { Player, Tournament } from "@ministrosfc/shared";
 
 // --- Mocks ---
 jest.mock("../../src/models/Statistics");
@@ -28,7 +29,7 @@ const MockTournamentModel = TournamentModel as jest.Mocked<
 >;
 const MockPlayerModel = PlayerModel as jest.Mocked<typeof PlayerModel>;
 
-const mockPlayer = {
+const mockPlayer: Player = {
   id: "player-1",
   firstName: "Test",
   lastName: "Player",
@@ -42,7 +43,7 @@ const mockPlayer = {
   updatedAt: new Date(),
 };
 
-const mockTournament = {
+const mockTournament: Tournament = {
   id: "tournament-1",
   name: "Copa Test",
   format: "LEAGUE" as const,
@@ -147,6 +148,40 @@ describe("StatisticsService", () => {
 
       // aggregateForPlayer should only have been called once (cache hit on second)
       expect(MockStatisticsModel.aggregateForPlayer).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe.skip("getTeamStatsByRival", () => {
+    it("filters teams by playground when playgroundId is provided", async () => {
+      MockPlayerModel.findById.mockResolvedValue(mockPlayer as any);
+      const aggregated = {
+        appearances: 4,
+        goalsScored: 3,
+        assists: 1,
+        yellowCards: 0,
+        redCards: 0,
+        totalMinutes: 360,
+      };
+      MockStatisticsModel.aggregateTeamByRival.mockResolvedValue(
+        aggregated as any,
+      );
+
+      const result = await StatisticsService.getTeamStatsByRival(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        "playground-1",
+      );
+
+      expect(result.stats.appearances).toBe(4);
+      expect(MockStatisticsModel.aggregateTeamByRival).toHaveBeenCalledWith(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        "playground-1",
+      );
     });
   });
 

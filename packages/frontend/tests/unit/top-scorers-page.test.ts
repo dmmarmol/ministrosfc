@@ -9,12 +9,23 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
-import { ref, computed, watch, defineComponent } from "vue";
+import {
+  ref,
+  computed,
+  watch,
+  watchEffect,
+  defineComponent,
+  h,
+  resolveComponent,
+} from "vue";
 
 // ── Vue auto-import shims (Nuxt provides these as globals; Vitest does not) ───
 vi.stubGlobal("ref", ref);
 vi.stubGlobal("computed", computed);
 vi.stubGlobal("watch", watch);
+vi.stubGlobal("watchEffect", watchEffect);
+vi.stubGlobal("h", h);
+vi.stubGlobal("resolveComponent", resolveComponent);
 
 // ── Auth store mock ───────────────────────────────────────────────────────────
 const authStoreMock = { isAuthenticated: false };
@@ -102,16 +113,16 @@ const stubs = {
     props: ["modelValue"],
     emits: ["update:modelValue"],
   },
-  PlayerStatusSelect: {
-    name: "PlayerStatusSelect",
+  UiPlayerStatusSelect: {
+    name: "UiPlayerStatusSelect",
     template: '<select data-testid="player-status-filter" />',
     props: ["modelValue"],
     emits: ["update:modelValue"],
   },
-  UiStatsTable: {
-    name: "UiStatsTable",
-    template: "<div data-testid='ui-stats-table'></div>",
-    props: ["columns", "rows", "loading"],
+  UTable: {
+    name: "UTable",
+    template: "<div data-testid='u-table'></div>",
+    props: ["columns", "data", "loading", "sorting"],
   },
   NuxtLink: {
     template: "<a><slot /></a>",
@@ -201,45 +212,45 @@ describe("top-scorers page — filteredScorers text search", () => {
     const wrapper = await mountPage();
     const input = wrapper.find('input[type="text"]');
     expect((input.element as HTMLInputElement).value).toBe("");
-    const table = wrapper.findComponent({ name: "UiStatsTable" });
-    expect(table.props("rows")).toHaveLength(3);
+    const table = wrapper.findComponent({ name: "UTable" });
+    expect(table.props("data")).toHaveLength(3);
   });
 
   it("filters rows by first name (case-insensitive)", async () => {
     const wrapper = await mountPage();
     await wrapper.find('input[type="text"]').setValue("juan");
-    const table = wrapper.findComponent({ name: "UiStatsTable" });
-    expect(table.props("rows")).toHaveLength(1);
-    expect(table.props("rows")[0].name).toContain("Juan");
+    const table = wrapper.findComponent({ name: "UTable" });
+    expect(table.props("data")).toHaveLength(1);
+    expect(table.props("data")[0].name).toContain("Juan");
   });
 
   it("filters rows by last name", async () => {
     const wrapper = await mountPage();
     await wrapper.find('input[type="text"]').setValue("García");
-    const table = wrapper.findComponent({ name: "UiStatsTable" });
-    expect(table.props("rows")).toHaveLength(1);
-    expect(table.props("rows")[0].name).toContain("García");
+    const table = wrapper.findComponent({ name: "UTable" });
+    expect(table.props("data")).toHaveLength(1);
+    expect(table.props("data")[0].name).toContain("García");
   });
 
   it("returns empty rows when search matches no player", async () => {
     const wrapper = await mountPage();
     await wrapper.find('input[type="text"]').setValue("Messi");
-    const table = wrapper.findComponent({ name: "UiStatsTable" });
-    expect(table.props("rows")).toHaveLength(0);
+    const table = wrapper.findComponent({ name: "UTable" });
+    expect(table.props("data")).toHaveLength(0);
   });
 
   it("search by full name works (first + last)", async () => {
     const wrapper = await mountPage();
     await wrapper.find('input[type="text"]').setValue("Luis Rodríguez");
-    const table = wrapper.findComponent({ name: "UiStatsTable" });
-    expect(table.props("rows")).toHaveLength(1);
+    const table = wrapper.findComponent({ name: "UTable" });
+    expect(table.props("data")).toHaveLength(1);
   });
 
   it("leading/trailing whitespace in search is trimmed", async () => {
     const wrapper = await mountPage();
     await wrapper.find('input[type="text"]').setValue("  juan  ");
-    const table = wrapper.findComponent({ name: "UiStatsTable" });
-    expect(table.props("rows")).toHaveLength(1);
+    const table = wrapper.findComponent({ name: "UTable" });
+    expect(table.props("data")).toHaveLength(1);
   });
 });
 
@@ -255,35 +266,35 @@ describe("top-scorers page — tableRows shape and goalRate", () => {
 
   it("rank starts at 1 and increments", async () => {
     const wrapper = await mountPage();
-    const table = wrapper.findComponent({ name: "UiStatsTable" });
-    const rows = table.props("rows");
+    const table = wrapper.findComponent({ name: "UTable" });
+    const rows = table.props("data");
     expect(rows[0].rank).toBe(1);
     expect(rows[1].rank).toBe(2);
   });
 
   it("name is firstName + lastName trimmed", async () => {
     const wrapper = await mountPage();
-    const table = wrapper.findComponent({ name: "UiStatsTable" });
-    expect(table.props("rows")[0].name).toBe("Ana López");
+    const table = wrapper.findComponent({ name: "UTable" });
+    expect(table.props("data")[0].name).toBe("Ana López");
   });
 
   it("goalRate is goalsScored / appearances", async () => {
     const wrapper = await mountPage();
-    const table = wrapper.findComponent({ name: "UiStatsTable" });
-    expect(table.props("rows")[0].goalRate).toBeCloseTo(0.5);
+    const table = wrapper.findComponent({ name: "UTable" });
+    expect(table.props("data")[0].goalRate).toBeCloseTo(0.5);
   });
 
   it("goalRate is 0 when appearances is 0 (avoids division by zero)", async () => {
     mockScorers = [player("Solo", "Banca", 3, 0)];
     const wrapper = await mountPage();
-    const table = wrapper.findComponent({ name: "UiStatsTable" });
-    expect(table.props("rows")[0].goalRate).toBe(0);
+    const table = wrapper.findComponent({ name: "UTable" });
+    expect(table.props("data")[0].goalRate).toBe(0);
   });
 
   it("goalsScored, assists, appearances are passed through as-is", async () => {
     const wrapper = await mountPage();
-    const table = wrapper.findComponent({ name: "UiStatsTable" });
-    const row = table.props("rows")[0];
+    const table = wrapper.findComponent({ name: "UTable" });
+    const row = table.props("data")[0];
     expect(row.goalsScored).toBe(6);
     expect(row.assists).toBe(1);
     expect(row.appearances).toBe(12);
@@ -291,8 +302,8 @@ describe("top-scorers page — tableRows shape and goalRate", () => {
 
   it("columns include rank, name, goalsScored, assists, appearances, goalRate", async () => {
     const wrapper = await mountPage();
-    const table = wrapper.findComponent({ name: "UiStatsTable" });
-    const keys = table.props("columns").map((c: any) => c.key);
+    const table = wrapper.findComponent({ name: "UTable" });
+    const keys = table.props("columns").map((c: any) => c.accessorKey);
     expect(keys).toContain("rank");
     expect(keys).toContain("name");
     expect(keys).toContain("goalsScored");

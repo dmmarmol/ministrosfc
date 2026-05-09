@@ -5,8 +5,11 @@ const pushMock = vi.fn();
 const routeState: { query: Record<string, string> } = { query: {} };
 const authStoreMock = {
   isEditor: false,
+  needsOnboarding: false,
   login: vi.fn(),
-  register: vi.fn().mockResolvedValue(undefined),
+  register: vi
+    .fn()
+    .mockResolvedValue({ message: "Tu cuenta quedó pendiente de aprobación." }),
 };
 
 vi.stubGlobal("definePageMeta", vi.fn());
@@ -43,7 +46,7 @@ describe("register submit", () => {
     authStoreMock.isEditor = false;
   });
 
-  it("calls authStore.register and redirects to /auth/onboarding", async () => {
+  it("calls authStore.register and shows the pending approval banner", async () => {
     const wrapper = mountPage();
 
     // Switch to register mode
@@ -61,7 +64,10 @@ describe("register submit", () => {
       passwordConfirmation: "Password1!",
       isPlayer: true,
     });
-    expect(pushMock).toHaveBeenCalledWith("/auth/onboarding");
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain(
+      "Tu cuenta quedó pendiente de aprobación.",
+    );
   });
 
   it("shows error message when registration fails", async () => {
@@ -78,7 +84,7 @@ describe("register submit", () => {
     expect(wrapper.text()).toContain("Este correo ya está registrado");
   });
 
-  it("does NOT redirect to role-based page after register (always onboarding)", async () => {
+  it("returns to login mode after successful registration", async () => {
     authStoreMock.isEditor = true;
 
     const wrapper = mountPage();
@@ -86,8 +92,8 @@ describe("register submit", () => {
     await wrapper.find('[data-testid="register-submit"]').trigger("click");
     await vi.dynamicImportSettled();
 
-    // Should go to onboarding, not /admin/dashboard
-    expect(pushMock).toHaveBeenCalledWith("/auth/onboarding");
+    expect(pushMock).not.toHaveBeenCalled();
     expect(pushMock).not.toHaveBeenCalledWith("/admin/dashboard");
+    expect(wrapper.text()).toContain("Iniciá sesión en tu cuenta");
   });
 });

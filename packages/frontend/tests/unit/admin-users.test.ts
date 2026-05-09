@@ -492,7 +492,7 @@ describe("admin players status confirmation flow", () => {
   });
 
   it("routes activate/deactivate button clicks through modal flow", () => {
-    expect(source).toContain('@click="askToggleStatus(p, $event)"');
+    expect(source).toContain('@toggle-status="askToggleStatus"');
     expect(source).not.toContain('@click="toggleStatus(p)"');
   });
 });
