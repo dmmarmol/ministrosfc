@@ -28,16 +28,12 @@ const { data, pending, refresh } = await useAsyncData(
     $api<{ data: TeamStatPeriodDTO[] }>(
       "/api/v1/statistics/team/by-tournament",
       {
-        query: {
-          ...(filters.value.year ? { year: filters.value.year } : {}),
-          ...(filters.value.rivalId ? { rivalId: filters.value.rivalId } : {}),
-          ...(filters.value.tournament
-            ? { tournamentName: filters.value.tournament }
-            : {}),
-          ...(filters.value.playgroundId
-            ? { playgroundId: filters.value.playgroundId }
-            : {}),
-        },
+        query: createTruthyObject({
+          year: filters.value.year,
+          rivalId: filters.value.rivalId,
+          tournamentName: filters.value.tournament,
+          playgroundId: filters.value.playgroundId,
+        }),
       },
     ),
   { server: false },
