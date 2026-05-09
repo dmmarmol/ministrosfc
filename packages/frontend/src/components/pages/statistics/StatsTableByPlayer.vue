@@ -187,7 +187,6 @@ const columns: ColumnDef<PlayerRow>[] = [
   },
   {
     accessorKey: "participationRate",
-
     title: "Porcentaje de Participación",
     sortable: true,
     header: ({ column }) => {
