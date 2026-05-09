@@ -20,7 +20,7 @@ const statusLabelMap: Record<RegistrationStatus, string> = {
 </script>
 
 <template>
-  <UBadge :color="statusColorMap[props.status]">{{
+  <UBadge :color="statusColorMap[props.status]" variant="outline">{{
     statusLabelMap[props.status] ?? props.status
   }}</UBadge>
 </template>

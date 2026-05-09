@@ -63,6 +63,7 @@ await Promise.all([fetchUser(), fetchOrphanPlayers()]);
     >
       {{ error }}
     </p>
+    <UiBackButton to="/admin/users" label="Volver a Usuarios" />
 
     <UserEditorPanel
       :user="user"

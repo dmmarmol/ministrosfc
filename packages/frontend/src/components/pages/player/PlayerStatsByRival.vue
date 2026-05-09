@@ -69,16 +69,6 @@ function toggleRival(rivalId: string) {
             icon: 'i-lucide-search',
           }"
         />
-        <!-- <select
-          id="rival-team-select"
-          v-model="selectedRivalId"
-          class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand max-w-xs"
-        >
-          <option value="">Selecciona un equipo</option>
-          <option v-for="team in teamOptions" :key="team.id" :value="team.id">
-            {{ team.name }}
-          </option>
-        </select> -->
       </div>
     </header>
 

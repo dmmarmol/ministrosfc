@@ -3,16 +3,18 @@ import type { SelectItem } from "#ui/types";
 import { OPTION_FILTER_ALL, UserRole } from "@ministrosfc/shared";
 import { resolveSelectedValue } from "~/utils/object";
 
-const props = withDefaults(
-  defineProps<{
-    modelValue?: UserRole | typeof OPTION_FILTER_ALL;
-    includeAll?: boolean;
-  }>(),
-  {
-    modelValue: OPTION_FILTER_ALL,
-    includeAll: true,
-  },
-);
+type Props = {
+  modelValue?: UserRole | typeof OPTION_FILTER_ALL;
+  includeAll?: boolean;
+  /** Display wording in singular form */
+  singular?: boolean;
+};
+
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: OPTION_FILTER_ALL,
+  includeAll: false,
+  singular: false,
+});
 
 const emit = defineEmits<{
   (
@@ -28,19 +30,19 @@ const optionAll: SelectItem = {
 const statusItems: SelectItem[] = [
   {
     value: UserRole.ADMIN,
-    label: "Admins",
+    label: props.singular ? "Admin" : "Admins",
   },
   {
     value: UserRole.EDITOR,
-    label: "Editors",
+    label: props.singular ? "Editor" : "Editores",
   },
   {
     value: UserRole.DT,
-    label: "DTs",
+    label: props.singular ? "DT" : "DTs",
   },
   {
     value: UserRole.PLAYER,
-    label: "Players",
+    label: props.singular ? "Jugador" : "Jugadores",
   },
 ];
 const items: SelectItem[] = props.includeAll

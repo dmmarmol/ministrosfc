@@ -9,6 +9,7 @@ import {
   type UserRole,
   OPTION_FILTER_ALL,
 } from "@ministrosfc/shared";
+import UsersTable from "./UsersTable.vue";
 
 const authStore = useAuthStore();
 
@@ -26,6 +27,7 @@ interface Meta {
 }
 
 const { $api } = useNuxtApp();
+const toast = useToast();
 
 const users = ref<AdminUserListItem[]>([]);
 
@@ -59,41 +61,34 @@ function requestConfirmation(
   confirmationPending.value = action;
 }
 
-// --- Toast feedback ---
-const toastMessage = ref("");
-const toastType = ref<"success" | "error">("success");
-let toastTimer: ReturnType<typeof setTimeout> | null = null;
-
-function showToast(msg: string, type: "success" | "error" = "success") {
-  toastMessage.value = msg;
-  toastType.value = type;
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    toastMessage.value = "";
-  }, 3000);
-}
-
 async function executeConfirmation() {
   if (!confirmationPending.value) return;
   isConfirmationLoading.value = true;
   try {
     await confirmationPending.value();
-    showToast("Cambio aplicado correctamente.");
+    toast.add({
+      description: "Cambio aplicado correctamente.",
+      color: "success",
+    });
   } catch (e: any) {
     cancelConfirmation();
     const status = e?.response?.status ?? e?.status;
     if (status === 409) {
-      showToast(
-        "Otro administrador modificó este usuario. Recargá e intentá de nuevo.",
-        "error",
-      );
+      toast.add({
+        description:
+          "Otro administrador modificó este usuario. Recargá e intentá de nuevo.",
+        color: "error",
+      });
     } else if (status === 403) {
-      showToast(
-        e?.data?.message ?? "No tenés permisos para esta acción.",
-        "error",
-      );
+      toast.add({
+        description: e?.data?.message ?? "No tenés permisos para esta acción.",
+        color: "error",
+      });
     } else {
-      showToast("Ocurrió un error de red. Intentá de nuevo.", "error");
+      toast.add({
+        description: "Ocurrió un error de red. Intentá de nuevo.",
+        color: "error",
+      });
     }
     return;
   } finally {
@@ -162,17 +157,20 @@ async function saveEdit(userId: string) {
         },
       });
       editingUserId.value = null;
-      showToast("Perfil actualizado.");
+      toast.add({ description: "Perfil actualizado.", color: "success" });
       await fetchUsers();
     } catch (e: any) {
       const status = e?.response?.status ?? e?.status;
       if (status === 409) {
-        showToast(
-          "Conflicto: el usuario fue modificado por otro proceso.",
-          "error",
-        );
+        toast.add({
+          description: "Conflicto: el usuario fue modificado por otro proceso.",
+          color: "error",
+        });
       } else {
-        showToast(e?.data?.message ?? "Error al guardar cambios.", "error");
+        toast.add({
+          description: e?.data?.message ?? "Error al guardar cambios.",
+          color: "error",
+        });
       }
     }
   }
@@ -330,7 +328,12 @@ onMounted(fetchUsers);
         @input="debouncedFetch"
         size="lg"
       />
-      <UiUserRoleSelect v-model="roleFilter" class="w-48" size="lg" />
+      <UiUserRoleSelect
+        v-model="roleFilter"
+        class="w-48"
+        size="lg"
+        include-all
+      />
     </div>
 
     <!-- Loading -->
@@ -343,139 +346,11 @@ onMounted(fetchUsers);
 
     <!-- User list -->
     <div v-else class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
-          <tr>
-            <th class="px-4 py-3 text-left">Usuario</th>
-            <th class="px-4 py-3 text-left">Rol</th>
-            <th class="px-4 py-3 text-left">Activación</th>
-            <th class="px-4 py-3 text-left">Estado jugador</th>
-            <th class="px-4 py-3 text-right">Acciones</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-          <tr v-for="user in users" :key="user.id">
-            <td class="px-4 py-3">
-              <div v-if="editingUserId === user.id">
-                <input
-                  v-model="editFields.firstName"
-                  class="border rounded px-1 py-0.5 text-xs w-20 mr-1"
-                />
-                <input
-                  v-model="editFields.lastName"
-                  class="border rounded px-1 py-0.5 text-xs w-20 mr-1"
-                />
-                <input
-                  v-model="editFields.email"
-                  class="border rounded px-1 py-0.5 text-xs w-36"
-                />
-                <UButton
-                  variant="soft"
-                  color="emerald"
-                  size="xs"
-                  class="ml-2"
-                  @click="saveEdit(user.id)"
-                >
-                  Guardar
-                </UButton>
-                <UButton
-                  variant="outline"
-                  color="gray"
-                  size="xs"
-                  class="ml-1"
-                  @click="cancelEdit"
-                >
-                  Cancelar
-                </UButton>
-              </div>
-              <div v-else>
-                <span
-                  class="font-medium text-gray-900 cursor-pointer underline decoration-dotted"
-                  @click="startEdit(user)"
-                >
-                  {{ user.firstName }} {{ user.lastName }}
-                </span>
-                <div class="text-xs text-gray-400">{{ user.email }}</div>
-              </div>
-            </td>
-            <td class="px-4 py-3">
-              <span
-                class="inline-block px-2 py-0.5 rounded text-xs font-semibold"
-                :class="roleBadgeClass(user.role)"
-              >
-                {{ user.role }}
-              </span>
-            </td>
-            <td class="px-4 py-3">
-              <RegistrationStatusBadge :status="user.registrationStatus" />
-            </td>
-            <td class="px-4 py-3">
-              <span
-                v-if="user.player"
-                class="inline-block px-2 py-0.5 rounded text-xs font-semibold"
-                :class="
-                  user.player.status === 'ACTIVE'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-gray-100 text-gray-500'
-                "
-              >
-                {{ user.player.status === "ACTIVE" ? "Activo" : "Inactivo" }}
-              </span>
-              <span v-else class="text-xs text-gray-300">—</span>
-            </td>
-            <td class="px-4 py-3 text-right space-x-2">
-              <!-- Role change: visible for all users, disabled for current user -->
-              <select
-                class="border border-gray-300 rounded px-2 py-1 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-                :class="{
-                  'opacity-40 cursor-not-allowed':
-                    user.id === authStore.user?.id,
-                }"
-                :value="user.role"
-                :disabled="user.id === authStore.user?.id"
-                :title="
-                  user.id === authStore.user?.id
-                    ? 'No podés cambiar tu propio rol'
-                    : undefined
-                "
-                @change="
-                  requestRoleChange(
-                    user,
-                    ($event.target as HTMLSelectElement).value,
-                  )
-                "
-              >
-                <option value="PLAYER">Player</option>
-                <option value="DT">DT</option>
-                <option value="EDITOR">Editor</option>
-                <option value="ADMIN">Admin</option>
-              </select>
-
-              <!-- Toggle player status -->
-              <UButton
-                v-if="user.player"
-                variant="outline"
-                :color="user.player.status === 'ACTIVE' ? 'amber' : 'emerald'"
-                size="xs"
-                @click="requestStatusToggle(user)"
-              >
-                {{ user.player.status === "ACTIVE" ? "Desactivar" : "Activar" }}
-              </UButton>
-
-              <!-- Delete player -->
-              <UButton
-                v-if="user.player"
-                variant="outline"
-                color="red"
-                size="xs"
-                @click="confirmDelete(user)"
-              >
-                Eliminar
-              </UButton>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <UsersTable
+        :users="users"
+        :current-user-id="authStore.user?.id"
+        @role-change="requestRoleChange"
+      />
 
       <!-- Pagination -->
       <div
@@ -521,20 +396,5 @@ onMounted(fetchUsers);
         }
       "
     />
-
-    <!-- Toast feedback -->
-    <transition name="fade">
-      <div
-        v-if="toastMessage"
-        class="fixed bottom-6 left-1/2 -translate-x-1/2 text-sm px-4 py-2 rounded-lg shadow-lg z-50"
-        :class="
-          toastType === 'error'
-            ? 'bg-red-600 text-white'
-            : 'bg-gray-900 text-white'
-        "
-      >
-        {{ toastMessage }}
-      </div>
-    </transition>
   </div>
 </template>
