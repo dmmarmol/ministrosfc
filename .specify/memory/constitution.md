@@ -1,20 +1,23 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.10.0 → 1.10.1 (PATCH — security hardening for public repositories)
+Version change: 1.10.1 → 1.11.0 (MINOR — CMS domain architecture + type/validation reuse policy)
 Ratified: 2026-03-17
-Last Amended: 2026-04-22
+Last Amended: 2026-05-08
 
-Amendment: Added public-repository secret hygiene rule. Hardcoded default
-credentials (including seed/admin credentials) are forbidden in source files,
-workflows, and scripts. Runtime credentials MUST come from environment variables
-or protected CI/environment secrets.
+Amendment: Added a mandatory CMS domain architecture rule for `packages/cms`
+that centralizes domain-local types and reusable Zod validation schemas under
+`src/types/<domain>/` for model/service/route reuse. This establishes a single
+source of truth for CMS domain contracts while preserving Principle VII for
+cross-package contracts in `@ministrosfc/shared`.
 
 Modified sections:
-  ✅ Git and Commit Conventions — clarified no hardcoded default credentials
-  ✅ Code Review Standards — added public-repo secret hygiene checklist gate
+  ✅ Principle VII: Shared Types and Cross-Package Contracts — added CMS domain-local type architecture and validation reuse rules
+  ✅ File Organization — added canonical `packages/cms/src/types/<domain>/` layout
+  ✅ Code Review Standards — added CMS type/validation single-source gate
 
 Prior amendments (preserved):
+  ✅ v1.10.1 — public-repo secret hygiene rule
   ✅ v1.9.2 — Git Commit Conventions: semantic commit grouping rule
   ✅ v1.9.0 — Package Version Management: git tag MUST be created on every version bump
   ✅ v1.8.0 — Principle V: Page Meta Declaration sub-rule
@@ -23,6 +26,16 @@ Prior amendments (preserved):
   ✅ v1.5.0 — Branch naming convention updated
   ✅ v1.4.0 — Package version bump prompt
   ✅ v1.3.0 — Speckit Workflow Continuity mandate
+
+Templates requiring updates:
+  ✅ updated: .specify/templates/plan-template.md
+  ✅ updated: .specify/templates/tasks-template.md
+  ✅ updated: .specify/templates/spec-template.md
+  ⚠ pending: .specify/templates/commands/*.md (directory not present in repository)
+
+Runtime guidance docs:
+  ✅ reviewed: README.md (no constitution-reference changes required)
+  ✅ reviewed: packages/cms/README.md (no constitution-reference changes required)
 
 Follow-up TODOs:
   - Migrate ProfileData (packages/frontend/src/composables/useProfile.ts)
@@ -35,7 +48,7 @@ Follow-up TODOs:
 
 # Ministros FC Constitution
 
-**Version**: 1.10.1 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-22
+**Version**: 1.11.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-05-08
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -281,6 +294,31 @@ calls outside `useQueryParams` as a constitution violation
 
 **Enforcement:** TypeScript project references (`tsconfig.json`), ESLint `no-restricted-imports` rule (future), code review gate, @TODO resolution required before spec close
 
+#### CMS Domain Type Architecture and Validation Reuse (NON-NEGOTIABLE)
+
+**MUST** centralize domain-local contracts in `packages/cms/src/types/<domain>/` and reuse them across route, service, and model layers.
+
+- Any type used by both `packages/cms/src/services/*` and `packages/cms/src/models/*` MUST be defined in a domain module under `packages/cms/src/types/<domain>/`.
+- Any Zod schema used to validate route query/body/params for a CMS domain MUST be defined in `packages/cms/src/types/<domain>/queries.ts` and imported by route handlers; route files MUST NOT keep duplicate inline schema definitions for reusable filters.
+- Domain modules MUST expose an `index.ts` barrel and should separate concerns into:
+  - `queries.ts` (request filters and validation schemas)
+  - `responses.ts` (domain response DTOs)
+  - `internal.ts` (model/service internal aggregation types)
+- `packages/cms/src/types/index.ts` MUST re-export domain barrels for discoverability.
+- Cross-package contracts still belong to `@ministrosfc/shared` per Principle VII. `packages/cms/src/types/<domain>/` is for CMS-internal reuse only.
+- A type or schema duplicated across route/service/model in the same domain is a constitution violation unless explicitly justified in plan.md Complexity Tracking.
+
+**Rationale:** Inline payload/filter typing in multiple layers drifts quickly and causes silent behavior mismatches between validation and query logic. Domain-local centralized contracts keep route validation, service signatures, and model filters aligned while still promoting true cross-package contracts to `@ministrosfc/shared`.
+
+**Examples:**
+
+- ✅ Good: `packages/cms/src/types/statistics/queries.ts` exports `teamStatsQuerySchema` and `TeamStatsFiltersByRival`; both `routes/statistics.ts` and `services/StatisticsService.ts` import the same definitions
+- ✅ Good: `packages/cms/src/types/statistics/internal.ts` defines aggregate rows consumed by both `services` and `models`
+- ❌ Bad: `routes/statistics.ts` defines `teamStatsQuerySchema` inline while `services/StatisticsService.ts` and `models/Statistics.ts` redeclare the same filter shape separately
+- ❌ Bad: moving CMS-only internal helper types into `@ministrosfc/shared` without cross-package consumers
+
+**Enforcement:** Constitution Check gates in plan-template.md, setup/foundational tasks in tasks-template.md, and PR review gate in Code Review Standards
+
 ---
 
 ### VIII. Changelog Management
@@ -390,6 +428,28 @@ packages/frontend/
 └── server/              # Nuxt server routes and middleware (outside srcDir)
     ├── middleware/
     └── routes/
+```
+
+For `packages/cms` (domain-contract structure):
+
+```
+packages/cms/
+└── src/
+  ├── routes/
+  ├── services/
+  ├── models/
+  └── types/
+    ├── index.ts
+    ├── statistics/
+    │   ├── index.ts
+    │   ├── queries.ts
+    │   ├── responses.ts
+    │   └── internal.ts
+    └── <domain>/
+      ├── index.ts
+      ├── queries.ts
+      ├── responses.ts
+      └── internal.ts
 ```
 
 ### Naming Conventions
@@ -608,6 +668,7 @@ commits enable per-change revert, cherry-pick, and pinpointed blame.
 - [ ] Breaking changes are documented
 - [ ] **Changelog updated**: root `CHANGELOG.md` updated for any user-facing change; per-package `CHANGELOG.md` updated for any change to that package
 - [ ] Types used by more than one package are defined in `@ministrosfc/shared`, not duplicated locally
+- [ ] **CMS domain contracts**: Any reusable route/service/model type or Zod filter schema in `packages/cms` is centralized under `packages/cms/src/types/<domain>/` and imported (no duplicate inline declarations)
 - [ ] **Page decomposition (Principle V)**: No `pages/` file contains inline template blocks exceeding ~30 lines; feature areas extracted to `components/pages/<feature-path>/`
 - [ ] **Page meta declaration (Principle V)**: Every `pages/` file has a `definePageMeta` call with explicit visibility; public pages use `definePageMeta({ public: true })`
 - [ ] **URL query params (Principle VI)**: All query-param reads use `useQueryParams().get(key)`; all writes use `useQueryParams().set/remove()`; no direct `router.push({ query })` calls outside the composable

@@ -51,6 +51,7 @@ description: "Task list template for feature implementation"
 - [ ] T002 Initialize [language] project with [framework] dependencies
 - [ ] T003 [P] Configure linting and formatting tools
 - [ ] T00X (if applicable) Add cross-package types to `packages/shared/src/types/` and export from `@ministrosfc/shared` (required when feature introduces types consumed by more than one package — Principle VII)
+- [ ] T00Y (if applicable) Create/extend CMS domain contract module at `packages/cms/src/types/<domain>/` with `queries.ts`, `responses.ts`, `internal.ts`, and `index.ts` (required when feature touches reusable CMS route/service/model contracts — Principle VII)
 
 ---
 
@@ -68,6 +69,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T007 Create base models/entities that all stories depend on
 - [ ] T008 Configure error handling and logging infrastructure
 - [ ] T009 Setup environment configuration management
+- [ ] T00Z (if applicable) Move reusable CMS route validation schemas (Zod) into `packages/cms/src/types/<domain>/queries.ts` and update routes to import them (no duplicated inline schema definitions)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 

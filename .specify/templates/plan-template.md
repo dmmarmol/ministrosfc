@@ -34,6 +34,8 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 [Gates determined based on constitution file]
 
 - [ ] **Shared types gate (Principle VII)**: Are any new types used by more than one package? If yes, they MUST be added to `packages/shared/src/types/` and exported from `@ministrosfc/shared` _before_ implementation tasks begin.
+- [ ] **CMS domain contracts gate (Principle VII)**: For any CMS domain touched by this feature, list reusable route/service/model contracts and define them in `packages/cms/src/types/<domain>/` (minimum split: `queries.ts`, `responses.ts`, `internal.ts`, plus domain `index.ts`).
+- [ ] **Validation reuse gate (Principle VII)**: Any reusable CMS route validation schema (Zod) MUST be defined in `packages/cms/src/types/<domain>/queries.ts` and imported by routes; inline duplicates are forbidden.
 - [ ] **Page decomposition gate (Principle V)**: For any frontend page introduced by this feature, identify which template blocks will be extracted to `components/pages/<feature-path>/`. List them in the Project Structure section below.
 - [ ] **Page meta declaration gate (Principle V)**: Every new `pages/` file MUST include a `definePageMeta` call. Specify the access category (public / requiresAuth / editor+ / admin / authPage / onboardingPage) for each page introduced by this feature.
 
