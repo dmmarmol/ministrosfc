@@ -25,12 +25,13 @@ function handleUpdate(value: unknown) {
 </script>
 
 <template>
-  <USelect
+  <USelectMenu
     :model-value="modelValue"
     @update:model-value="handleUpdate"
     :items="items"
     :placeholder="placeholder"
     :ui="{ content: 'min-w-fit' }"
+    :searchable="true"
     :search-input="{
       placeholder: props.placeholder,
       icon: 'i-lucide-search',

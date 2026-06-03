@@ -368,9 +368,8 @@ router.get(
 
 export const adminUserProfileSchema = z
   .object({
-    firstName: z.string().min(1).max(50).optional(),
-    lastName: z.string().min(1).max(50).optional(),
     email: z.email().optional(),
+    password: z.string().min(8).max(128).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     /** @TODO translate to spanish */

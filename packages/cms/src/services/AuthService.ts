@@ -112,14 +112,15 @@ const AuthService = {
 
     // Update lastLoginAt
     await UserModel.update(user.id, { lastLoginAt: new Date() });
+    const names = await UserModel.resolveUserNames(user);
 
     return {
       accessToken,
       refreshToken,
       user: {
         id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: names.firstName,
+        lastName: names.lastName,
         email: user.email,
         role: user.role,
         playerId: user.playerId,
@@ -230,6 +231,7 @@ const AuthService = {
           ? "/admin/dashboard"
           : "/player/games"
         : "/auth/onboarding";
+      const names = await UserModel.resolveUserNames(existingBySubjectUser);
 
       return {
         accessToken,
@@ -237,8 +239,8 @@ const AuthService = {
         nextStep,
         user: {
           id: existingBySubjectUser.id,
-          firstName: existingBySubjectUser.firstName,
-          lastName: existingBySubjectUser.lastName,
+          firstName: names.firstName,
+          lastName: names.lastName,
           email: existingBySubjectUser.email,
           role: existingBySubjectUser.role,
           playerId: existingBySubjectUser.playerId,
@@ -275,6 +277,7 @@ const AuthService = {
           ? "/admin/dashboard"
           : "/player/games"
         : "/auth/onboarding";
+      const names = await UserModel.resolveUserNames(existingByEmailUser);
 
       return {
         accessToken,
@@ -282,8 +285,8 @@ const AuthService = {
         nextStep,
         user: {
           id: existingByEmailUser.id,
-          firstName: existingByEmailUser.firstName,
-          lastName: existingByEmailUser.lastName,
+          firstName: names.firstName,
+          lastName: names.lastName,
           email: existingByEmailUser.email,
           role: existingByEmailUser.role,
           playerId: existingByEmailUser.playerId,
@@ -320,8 +323,8 @@ const AuthService = {
       nextStep: "/auth/onboarding",
       user: {
         id: newUser.id,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
+        firstName: newUser.firstName ?? "",
+        lastName: newUser.lastName ?? "",
         email: newUser.email,
         role: newUser.role,
         playerId: null,

@@ -30,9 +30,9 @@ export interface AdminUserListResponse {
 }
 
 export interface AdminUserProfilePayload {
-  firstName: string;
-  lastName: string;
-  email: string;
+  email?: string;
+  password?: string;
+  expectedUpdatedAt?: string;
 }
 
 export interface AdminUserRoleChangePayload {

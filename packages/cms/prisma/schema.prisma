@@ -96,8 +96,8 @@ model User {
   id              String    @id @default(uuid())
   email           String    @unique
   passwordHash    String?
-  firstName       String    @db.VarChar(255)
-  lastName        String    @db.VarChar(255)
+  firstName       String?   @db.VarChar(255)
+  lastName        String?   @db.VarChar(255)
   googleSubjectId String?   @unique
   role            Role      @default(PLAYER)
   registrationStatus RegistrationStatus @default(PENDING_APPROVAL)

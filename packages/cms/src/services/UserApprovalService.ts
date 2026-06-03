@@ -79,12 +79,12 @@ async function getPendingUserOrThrow(userId: string) {
 const UserApprovalService = {
   async matchOrphanPlayers(pendingUser: {
     id: string;
-    firstName: string;
-    lastName: string;
+    firstName: string | null;
+    lastName: string | null;
     email: string;
   }) {
     const searchQuery =
-      `${pendingUser.firstName} ${pendingUser.lastName}`.trim();
+      `${pendingUser.firstName ?? ""} ${pendingUser.lastName ?? ""}`.trim();
     const orphanResult = await PlayerModel.findOrphans({
       search: searchQuery,
       page: 1,
@@ -92,7 +92,7 @@ const UserApprovalService = {
     });
 
     const userNameTokens = tokenSet(
-      `${pendingUser.firstName} ${pendingUser.lastName}`,
+      `${pendingUser.firstName ?? ""} ${pendingUser.lastName ?? ""}`,
     );
 
     return orphanResult.players
@@ -136,8 +136,8 @@ const UserApprovalService = {
 
         return {
           userId: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName: user.firstName ?? "",
+          lastName: user.lastName ?? "",
           email: user.email,
           submittedAt: user.createdAt.toISOString(),
           updatedAt: user.updatedAt.toISOString(),
@@ -320,12 +320,16 @@ const UserApprovalService = {
         );
       }
 
+      const userMergeData: any = {
+        registrationStatus: "APPROVED",
+        playerId: mergePlayerId,
+        firstName: null as unknown as string,
+        lastName: null as unknown as string,
+      };
+
       await tx.user.update({
         where: { id: userId },
-        data: {
-          registrationStatus: "APPROVED",
-          playerId: mergePlayerId,
-        },
+        data: userMergeData,
       });
 
       const decision = await tx.userApprovalDecision.create({
@@ -394,9 +398,15 @@ const UserApprovalService = {
         );
       }
 
+      const mergeApprovedData: any = {
+        playerId: mergePlayerId,
+        firstName: null as unknown as string,
+        lastName: null as unknown as string,
+      };
+
       await tx.user.update({
         where: { id: userId },
-        data: { playerId: mergePlayerId },
+        data: mergeApprovedData,
       });
 
       const audit = await tx.userApprovalDecision.create({

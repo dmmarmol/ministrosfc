@@ -4,7 +4,7 @@ import type {
   PendingApprovalQueueItem,
 } from "@ministrosfc/shared";
 import PendingApprovalQueue from "~/components/pages/admin/users/PendingApprovalQueue.vue";
-import PendingApprovalReviewPanel from "~/components/pages/admin/users/PendingApprovalReviewPanel.vue";
+import UserMergePanel from "~/components/pages/admin/users/UserMergePanel.vue";
 import { useGetOrphanPlayers } from "~/composables/admin/useGetOrphanPlayers";
 import { useQueryParams } from "~/composables/useQueryParams";
 
@@ -181,6 +181,7 @@ await fetchQueue();
 
 <template>
   <div class="space-y-4">
+    <UiBackButton to="/admin/users" label="Volver a Usuarios" />
     <div class="flex flex-wrap items-end gap-3">
       <div class="flex-1 min-w-64">
         <label
@@ -228,7 +229,7 @@ await fetchQueue();
         @select="selectItem"
       />
 
-      <PendingApprovalReviewPanel
+      <UserMergePanel
         :selected="selected"
         :orphan-players="orphanPlayers"
         :action-loading="actionLoading"

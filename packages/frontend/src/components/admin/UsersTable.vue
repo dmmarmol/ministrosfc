@@ -31,10 +31,17 @@ const columns: ColumnDef<AdminUserListItem>[] = [
     header: "Usuario",
     cell: ({ row }) => {
       const email = row.getValue("email") as string;
+      const registrationStatus = row.original
+        .registrationStatus as RegistrationStatus;
+      let to: string = `users/${row.original.id}`;
+      if (registrationStatus === RegistrationStatus.PENDING_APPROVAL) {
+        to = `/admin/users/pending-approvals`;
+      }
+
       return h(
         UButton,
         {
-          to: `users/${row.original.id}`,
+          to,
           variant: "link",
           color: "primary",
         },

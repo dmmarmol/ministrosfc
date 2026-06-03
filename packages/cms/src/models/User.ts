@@ -104,6 +104,52 @@ const UserModel = {
     return prisma.user.findUnique({ where: { id } });
   },
 
+  async resolveDisplayNamesById(userId: string): Promise<{
+    firstName: string;
+    lastName: string;
+  }> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        firstName: true,
+        lastName: true,
+        player: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return { firstName: "", lastName: "" };
+    }
+
+    return {
+      firstName: user.player?.firstName ?? user.firstName ?? "",
+      lastName: user.player?.lastName ?? user.lastName ?? "",
+    };
+  },
+
+  async resolveUserNames(user: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+  }): Promise<{
+    firstName: string;
+    lastName: string;
+  }> {
+    if (user.firstName && user.lastName) {
+      return {
+        firstName: user.firstName,
+        lastName: user.lastName,
+      };
+    }
+
+    return UserModel.resolveDisplayNamesById(user.id);
+  },
+
   async update(id: string, data: Prisma.UserUpdateInput): Promise<User> {
     return prisma.user.update({ where: { id }, data });
   },

@@ -67,8 +67,8 @@ const OnboardingService = {
       // Create Player and link to User
       const player = await prisma.player.create({
         data: {
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName: user.firstName ?? "",
+          lastName: user.lastName ?? "",
           playerType: "REGISTERED",
           status: "ACTIVE",
           position: dto.position ?? undefined,
@@ -79,6 +79,8 @@ const OnboardingService = {
 
       const updated = await UserModel.update(user.id, {
         player: { connect: { id: player.id } },
+        firstName: null,
+        lastName: null,
         onboardingCompletedAt: new Date(),
       });
 
@@ -86,8 +88,8 @@ const OnboardingService = {
         user: {
           id: updated.id,
           email: updated.email,
-          firstName: updated.firstName,
-          lastName: updated.lastName,
+          firstName: player.firstName,
+          lastName: player.lastName,
           role: updated.role,
           playerId: player.id,
           onboardingCompletedAt: updated.onboardingCompletedAt,
