@@ -162,6 +162,7 @@ export enum AparicionesCols {
   // "Resultado" intentionally omitted — used for cross-check only, not stored
   jugador = "Jugador",
   jugadorId = "JugadorID",
+  // "Posicion" intentionally omitted — used for cross-check only, not stored
   goles = "Goles",
   amarilla = "Amarilla",
   roja = "Roja",

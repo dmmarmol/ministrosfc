@@ -32,7 +32,7 @@ export function parseCsv(buffer: Buffer): Record<string, string>[] {
  * that downstream `parseCsv` calls can address correctly.
  *
  * @param buf             Raw CSV buffer (any encoding parseable by csv-parse).
- * @param idColumn        Header name for the UUID column (e.g. "ID", "JugadorID").
+ * @param idColumn        Header name for the UUID column (e.g. "ID", "Apodo").
  * @param resolveColumns  Optional map of { originalHeader → newHeader } for
  *                        duplicate-column disambiguation. Applied left-to-right,
  *                        so later occurrences of the same header get a different name.
