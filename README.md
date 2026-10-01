@@ -231,8 +231,8 @@ npm run test:e2e # Run E2E tests (Playwright)
 
 The workspace includes CMS backend-focused custom agents for monorepo API work:
 
-- `cms-backend-api`: use for Express route/controller work, service logic, middleware, shared API contracts, and integration-test-driven backend changes.
-- `cms-prisma-migrations`: use for Prisma schema updates, migrations, model/query behavior, seed or backfill scripts, and persistence-layer safety checks.
+- `ministrosfc.cms-backend-api`: use for Express route/controller work, service logic, middleware, shared API contracts, and integration-test-driven backend changes.
+- `ministrosfc.cms-prisma-migrations`: use for Prisma schema updates, migrations, model/query behavior, seed or backfill scripts, and persistence-layer safety checks.
 
 The default agent also auto-loads backend instructions for `packages/cms/**/*.ts` and frontend shared-contract instructions for `packages/frontend/src/**/*.ts` and `packages/frontend/src/**/*.vue`.
 
