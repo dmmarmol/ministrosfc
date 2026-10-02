@@ -4,6 +4,7 @@ import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
 import type {
   OrphanPlayerItem,
   PendingApprovalQueueItem,
+  PlayerStatus,
 } from "@ministrosfc/shared";
 
 const props = defineProps<{
@@ -34,6 +35,12 @@ function chooseSuggestion(playerId: string) {
 
 function handleOrphanSearch() {
   emit("searchOrphans", orphanSearch.value.trim());
+}
+
+function handleOrphanSearchInput() {
+  if (orphanSearch.value.trim() === "") {
+    emit("searchOrphans", "");
+  }
 }
 
 async function confirmApproveMerge() {
@@ -105,11 +112,13 @@ async function confirmDeny() {
         </h4>
         <div class="flex gap-2 mb-2">
           <form @submit.prevent="handleOrphanSearch" class="flex w-full gap-2">
-            <input
+            <UInput
               v-model="orphanSearch"
               type="text"
-              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              size="lg"
+              class="w-full"
               placeholder="Nombre o apellido"
+              @input="handleOrphanSearchInput"
             />
             <UButton variant="outline" color="neutral" size="sm" type="submit">
               Buscar
@@ -121,46 +130,49 @@ async function confirmDeny() {
           <UButton
             v-for="p in orphanPlayers"
             :key="p.playerId"
-            class="w-full text-left text-sm"
-            :variant="selectedMergePlayerId === p.playerId ? 'soft' : 'outline'"
+            class="w-full text-left text-sm flex items-center justify-between gap-2"
+            :variant="selectedMergePlayerId === p.playerId ? 'subtle' : 'soft'"
             :color="
               selectedMergePlayerId === p.playerId ? 'primary' : 'neutral'
             "
             @click="selectedMergePlayerId = p.playerId"
           >
             {{ p.firstName }} {{ p.lastName }}
-            <span class="ml-2 text-xs text-gray-500">{{ p.status }}</span>
+            <UiPlayerStatusBadge :status="p.status as PlayerStatus" />
           </UButton>
         </div>
       </div>
 
       <div class="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
         <UButton
-          color="neutral"
-          variant="solid"
-          size="sm"
-          :disabled="actionLoading"
-          @click="emit('approve')"
-        >
-          Aprobar sin merge
-        </UButton>
-
-        <UButton
-          color="neutral"
-          variant="solid"
-          size="sm"
+          color="primary"
+          :variant="!canApproveMerge || actionLoading ? 'outline' : 'solid'"
+          size="md"
           :disabled="!canApproveMerge || actionLoading"
           @click="showApproveMergeConfirm = true"
+          title="Aprobar con merge vincula la cuenta al jugador seleccionado combinando datos de jugadores."
         >
           Aprobar con merge
         </UButton>
 
         <UButton
+          color="neutral"
+          variant="outline"
+          size="md"
+          :disabled="actionLoading"
+          @click="emit('approve')"
+          title="Aprobar sin merge vincula la cuenta al jugador automáticamente sin combinar datos de jugadores."
+        >
+          Aprobar sin merge
+        </UButton>
+
+        <UButton
           color="error"
-          variant="solid"
-          size="sm"
+          variant="outline"
+          size="md"
           :disabled="actionLoading"
           @click="showDenyConfirm = true"
+          title="Denegar elimina permanentemente la cuenta registrada sin conservar datos de rechazo."
         >
           Denegar
         </UButton>
@@ -172,11 +184,12 @@ async function confirmDeny() {
         >
           Motivo de denegación
         </label>
-        <textarea
+        <UTextarea
           v-model="denyReason"
-          rows="3"
-          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          placeholder="Explicá por qué se rechaza la solicitud"
+          :rows="3"
+          size="lg"
+          class="w-full"
+          placeholder="Explicá por qué se rechaza la solicitud (opcional)"
         />
       </div>
     </div>

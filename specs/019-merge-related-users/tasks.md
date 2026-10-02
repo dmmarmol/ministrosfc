@@ -51,11 +51,11 @@
 
 ### Implementation
 
-- [ ] T014 [US1] [WRITE FIRST] Add register integration test asserting `202` response with pending status and no tokens in `packages/cms/tests/integration/auth-register.test.ts`
-- [ ] T013 [US1] Update `POST /api/v1/auth/register` to return `202` with `{ status: "pending", message: "Tu cuenta está pendiente de aprobación" }` and no JWT in `packages/cms/src/routes/auth.ts`
-- [ ] T015 [P] [US1] Add login integration test asserting `403 PENDING_APPROVAL` for registered-but-unreviewed users in `packages/cms/tests/integration/auth-login.test.ts`
-- [ ] T016 [P] [US1] Create `PendingApprovalBanner` component showing pending-state message in `packages/frontend/src/components/pages/auth/PendingApprovalBanner.vue`
-- [ ] T017 [US1] Update frontend registration result flow to show pending-state message (display `PendingApprovalBanner` on successful registration instead of redirecting to onboarding) in `packages/frontend/src/pages/register.vue`
+- [x] T014 [US1] [WRITE FIRST] Add register integration test asserting `202` response with pending status and no tokens in `packages/cms/tests/integration/auth-register.test.ts`
+- [x] T013 [US1] Update `POST /api/v1/auth/register` to return `202` with `{ status: "pending", message: "Tu cuenta está pendiente de aprobación" }` and no JWT in `packages/cms/src/routes/auth.ts`
+- [x] T015 [P] [US1] Add login integration test asserting `403 PENDING_APPROVAL` for registered-but-unreviewed users in `packages/cms/tests/integration/auth-login.test.ts`
+- [x] T016 [P] [US1] Create `PendingApprovalBanner` component showing pending-state message in `packages/frontend/src/components/pages/auth/PendingApprovalBanner.vue`
+- [x] T017 [US1] Update frontend registration result flow to show pending-state message (display `PendingApprovalBanner` on successful registration instead of redirecting to onboarding) in `packages/frontend/src/pages/register.vue`
 
 **Checkpoint**: Registration returns pending response; login blocked for pending users; frontend shows pending message after sign-up
 

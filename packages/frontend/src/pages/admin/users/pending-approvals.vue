@@ -180,7 +180,7 @@ await fetchQueue();
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="@container space-y-4">
     <UiBackButton to="/admin/users" label="Volver a Usuarios" />
     <div class="flex flex-wrap items-end gap-3">
       <div class="flex-1 min-w-64">
@@ -189,10 +189,11 @@ await fetchQueue();
         >
           Buscar
         </label>
-        <input
+        <UInput
           v-model="search"
           type="text"
-          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          size="lg"
+          class="w-full"
           placeholder="Nombre, apellido o email"
           @keyup.enter="handleSearch"
         />
@@ -201,7 +202,7 @@ await fetchQueue();
       <UButton
         variant="outline"
         color="primary"
-        size="sm"
+        size="lg"
         @click="handleSearch"
       >
         Aplicar filtros
@@ -221,7 +222,7 @@ await fetchQueue();
       {{ error }}
     </p>
 
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div class="grid gap-4 grid-cols-1 @lg:grid-cols-2">
       <PendingApprovalQueue
         :rows="queue"
         :selected-user-id="selected?.userId ?? null"

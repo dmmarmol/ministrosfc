@@ -79,8 +79,6 @@ const OnboardingService = {
 
       const updated = await UserModel.update(user.id, {
         player: { connect: { id: player.id } },
-        firstName: null,
-        lastName: null,
         onboardingCompletedAt: new Date(),
       });
 

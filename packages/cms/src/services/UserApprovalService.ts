@@ -320,16 +320,12 @@ const UserApprovalService = {
         );
       }
 
-      const userMergeData: any = {
-        registrationStatus: "APPROVED",
-        playerId: mergePlayerId,
-        firstName: null as unknown as string,
-        lastName: null as unknown as string,
-      };
-
       await tx.user.update({
         where: { id: userId },
-        data: userMergeData,
+        data: {
+          registrationStatus: "APPROVED",
+          playerId: mergePlayerId,
+        },
       });
 
       const decision = await tx.userApprovalDecision.create({
@@ -398,15 +394,11 @@ const UserApprovalService = {
         );
       }
 
-      const mergeApprovedData: any = {
-        playerId: mergePlayerId,
-        firstName: null as unknown as string,
-        lastName: null as unknown as string,
-      };
-
       await tx.user.update({
         where: { id: userId },
-        data: mergeApprovedData,
+        data: {
+          playerId: mergePlayerId,
+        },
       });
 
       const audit = await tx.userApprovalDecision.create({
