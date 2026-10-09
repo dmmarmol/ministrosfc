@@ -51,6 +51,7 @@ Cross-package API contracts when shared externally:
 - Clear status codes and consistent error envelopes
 - Pagination/filter/sort semantics are explicit and stable
 - Backward-compatible contract changes by default
+- Prefer using existing shared/CMS types and enums over raw string literals whenever possible. If no such type or enum exists, consider creating one under `packages/shared/src/types/` to maintain consistency and avoid magic strings.
 
 ### 2. Strict Separation Of Concerns
 

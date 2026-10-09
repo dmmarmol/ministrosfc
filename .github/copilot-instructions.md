@@ -147,6 +147,7 @@ npx prisma studio                  # Open Prisma Studio GUI
 ## Code Style
 
 - **TypeScript**: Strict mode enabled globally (tsconfig.base.json)
+- **String values**: Prefer values from existing user-defined enums or Prisma enums over raw string literals whenever the enum exists and is the canonical source of truth. If a string literal is repeated several times, consider adding it to the appropriate enum or creating a new one under `@ministrosfc/shared`.
 - **CSS**: Tailwind CSS utility classes + shadcn/ui components; custom styles in `assets/css/` with BEM naming
 - **Backend**: Nest.js decorator conventions, dependency injection patterns
 - **Frontend**: Vue 3 Composition API, Pinia for state management
