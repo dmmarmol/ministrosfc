@@ -1,4 +1,5 @@
 import { type ApprovalDecisionType } from "@prisma/client";
+import { RegistrationStatus } from "@ministrosfc/shared";
 import { prisma } from "../config/database";
 import { createError } from "../middleware/error-handler";
 import { PlayerModel } from "../models/Player";
@@ -236,6 +237,7 @@ const UserApprovalService = {
 
       return {
         userId,
+        registrationStatus: RegistrationStatus.APPROVED,
         playerId: null,
         decisionType: decision.decisionType,
         approvedAt: decision.createdAt.toISOString(),
@@ -261,7 +263,13 @@ const UserApprovalService = {
     reviewerId: string,
     reason: string,
     expectedUpdatedAt?: string,
-  ) {
+  ): Promise<{
+    userId: string;
+    deleted: boolean;
+    deniedBy: string;
+    reason: string;
+    deniedAt: string;
+  }> {
     const trimmedReason = reason.trim();
     if (!trimmedReason) {
       throw createError(
@@ -283,6 +291,14 @@ const UserApprovalService = {
       });
 
     await prisma.user.delete({ where: { id: userId } });
+
+    return {
+      userId,
+      deleted: true,
+      deniedBy: reviewerId,
+      reason: trimmedReason,
+      deniedAt: new Date().toISOString(),
+    };
   },
 
   async approveWithMerge(
@@ -339,6 +355,7 @@ const UserApprovalService = {
 
       return {
         userId,
+        registrationStatus: RegistrationStatus.APPROVED,
         playerId: mergePlayerId,
         decisionType: decision.decisionType as ApprovalDecisionType,
         approvedAt: decision.createdAt.toISOString(),

@@ -5,6 +5,7 @@ import {
   type NextFunction,
 } from "express";
 import { z } from "zod";
+import type { ApiResponse } from "@ministrosfc/shared";
 import { authenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/rbac";
 import { UserService } from "../services/UserService";
@@ -173,7 +174,11 @@ router.get(
       }
 
       const result = await UserApprovalService.getPendingApprovals(parsed.data);
-      res.json(result);
+      const wrapped: ApiResponse<typeof result.data> = {
+        data: result.data,
+        meta: result.meta,
+      };
+      res.json({ data: wrapped });
     } catch (err) {
       next(err);
     }
@@ -199,7 +204,11 @@ router.get(
       const result = await UserApprovalService.listOrphanPlayersGlobal(
         parsed.data,
       );
-      res.json(result);
+      const wrapped: ApiResponse<typeof result.data> = {
+        data: result.data,
+        meta: result.meta,
+      };
+      res.json({ data: wrapped });
     } catch (err) {
       next(err);
     }
@@ -226,7 +235,11 @@ router.get(
         req.params.userId!,
         parsed.data,
       );
-      res.json(result);
+      const wrapped: ApiResponse<typeof result.data> = {
+        data: result.data,
+        meta: result.meta,
+      };
+      res.json({ data: wrapped });
     } catch (err) {
       next(err);
     }
@@ -254,8 +267,9 @@ router.post(
         req.user!.userId,
         parsed.data.expectedUpdatedAt,
       );
+      const response: ApiResponse<typeof data> = { data };
 
-      res.json({ data });
+      res.json({ data: response.data });
     } catch (err) {
       next(err);
     }
@@ -284,8 +298,9 @@ router.post(
         req.user!.userId,
         parsed.data.expectedUpdatedAt,
       );
+      const response: ApiResponse<typeof data> = { data };
 
-      res.json({ data });
+      res.json({ data: response.data });
     } catch (err) {
       next(err);
     }
@@ -308,14 +323,14 @@ router.post(
         return;
       }
 
-      await UserApprovalService.deny(
+      const result = await UserApprovalService.deny(
         req.params.userId!,
         req.user!.userId,
         parsed.data.reason,
         parsed.data.expectedUpdatedAt,
       );
 
-      res.status(204).end();
+      res.status(200).json({ data: result });
     } catch (err) {
       next(err);
     }

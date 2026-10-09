@@ -74,6 +74,8 @@ export function createApp(): Application {
   app.use("/api/v1/tournaments", tournamentRouter);
   app.use("/api/v1/statistics", statisticsRouter);
   app.use("/api/v1/profile", profileRouter);
+  app.use("/api/v1", usersRouter);
+  app.use("/api/v1/users", usersRouter);
   app.use("/api/v1/admin/users", usersRouter);
   app.use("/api/v1/onboarding", onboardingRouter);
   app.use("/api/v1/playgrounds", playgroundRouter);
