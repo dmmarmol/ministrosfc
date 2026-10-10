@@ -210,6 +210,11 @@ export const PlayerModel = {
     const [players, total] = await Promise.all([
       prisma.player.findMany({
         where,
+        include: {
+          user: {
+            select: { email: true },
+          },
+        },
         skip,
         take: limit,
         orderBy: [{ firstName: "asc" }, { lastName: "asc" }],

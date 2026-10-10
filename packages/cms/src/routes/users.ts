@@ -13,6 +13,7 @@ import { UserApprovalService } from "../services/UserApprovalService";
 import { Role } from "@prisma/client";
 
 const router = Router();
+export const orphanPlayersRouter = Router();
 
 const VALID_ROLES = Object.values(Role);
 
@@ -27,7 +28,7 @@ const reviewActionSchema = z.object({
 });
 
 const approveMergeSchema = reviewActionSchema.extend({
-  mergePlayerId: z.string().uuid(),
+  mergePlayerId: z.string().min(1).trim(),
 });
 
 const denySchema = reviewActionSchema.extend({
@@ -41,7 +42,7 @@ const orphanPlayersQuerySchema = z.object({
 });
 
 const postApprovalMergeSchema = z.object({
-  mergePlayerId: z.string().uuid(),
+  mergePlayerId: z.string().min(1).trim(),
   expectedUpdatedAt: z.string().datetime().optional(),
 });
 
@@ -185,34 +186,40 @@ router.get(
   },
 );
 
+async function handleListOrphanPlayersGlobal(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const parsed = orphanPlayersQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({
+        code: "VALIDATION_ERROR",
+        message: parsed.error.issues.map((i) => i.message).join(", "),
+        statusCode: 400,
+      });
+      return;
+    }
+
+    const result = await UserApprovalService.listOrphanPlayersGlobal(parsed.data);
+    const wrapped: ApiResponse<typeof result.data> = {
+      data: result.data,
+      meta: result.meta,
+    };
+    res.json({ data: wrapped });
+  } catch (err) {
+    next(err);
+  }
+}
+
+orphanPlayersRouter.get("/", authenticate, requireRole("EDITOR"), handleListOrphanPlayersGlobal);
+
 router.get(
   "/orphan-players",
   authenticate,
   requireRole("EDITOR"),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const parsed = orphanPlayersQuerySchema.safeParse(req.query);
-      if (!parsed.success) {
-        res.status(400).json({
-          code: "VALIDATION_ERROR",
-          message: parsed.error.issues.map((i) => i.message).join(", "),
-          statusCode: 400,
-        });
-        return;
-      }
-
-      const result = await UserApprovalService.listOrphanPlayersGlobal(
-        parsed.data,
-      );
-      const wrapped: ApiResponse<typeof result.data> = {
-        data: result.data,
-        meta: result.meta,
-      };
-      res.json({ data: wrapped });
-    } catch (err) {
-      next(err);
-    }
-  },
+  handleListOrphanPlayersGlobal,
 );
 
 router.get(
@@ -384,6 +391,8 @@ router.get(
 export const adminUserProfileSchema = z
   .object({
     email: z.email().optional(),
+    firstName: z.string().trim().min(1).max(120).optional(),
+    lastName: z.string().trim().min(1).max(120).optional(),
     password: z.string().min(8).max(128).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {

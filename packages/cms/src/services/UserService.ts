@@ -128,7 +128,12 @@ const UserService = {
 
   async updateAdminUserProfile(
     userId: string,
-    updates: { email?: string; password?: string },
+    updates: {
+      email?: string;
+      firstName?: string;
+      lastName?: string;
+      password?: string;
+    },
     expectedUpdatedAt?: string,
   ) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -149,7 +154,7 @@ const UserService = {
     }
 
     // Build update data with trimmed values
-    const data: { email?: string; passwordHash?: string } = {};
+    const data: { email?: string; passwordHash?: string; firstName?: string; lastName?: string } = {};
     if (updates.email !== undefined) {
       const trimmedEmail = updates.email.trim().toLowerCase();
       // Check email uniqueness
@@ -160,6 +165,12 @@ const UserService = {
         throw createError("Email already in use", 409, ErrorCode.CONFLICT);
       }
       data.email = trimmedEmail;
+    }
+    if (updates.firstName !== undefined) {
+      data.firstName = updates.firstName.trim();
+    }
+    if (updates.lastName !== undefined) {
+      data.lastName = updates.lastName.trim();
     }
     if (updates.password !== undefined) {
       data.passwordHash = await bcrypt.hash(updates.password, 12);

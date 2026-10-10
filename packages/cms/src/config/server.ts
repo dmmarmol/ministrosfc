@@ -18,7 +18,7 @@ import { statisticsRouter } from "../routes/statistics";
 import { authRouter } from "../routes/auth";
 import { participantRouter } from "../routes/participants";
 import { profileRouter } from "../routes/profile";
-import { usersRouter } from "../routes/users";
+import { orphanPlayersRouter, usersRouter } from "../routes/users";
 import { onboardingRouter } from "../routes/onboarding";
 import { playgroundRouter } from "../routes/playgrounds";
 import { addressRouter } from "../routes/address";
@@ -74,7 +74,7 @@ export function createApp(): Application {
   app.use("/api/v1/tournaments", tournamentRouter);
   app.use("/api/v1/statistics", statisticsRouter);
   app.use("/api/v1/profile", profileRouter);
-  app.use("/api/v1", usersRouter);
+  app.use("/api/v1/orphan-players", orphanPlayersRouter);
   app.use("/api/v1/users", usersRouter);
   app.use("/api/v1/admin/users", usersRouter);
   app.use("/api/v1/onboarding", onboardingRouter);

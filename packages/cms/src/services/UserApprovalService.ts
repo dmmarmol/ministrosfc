@@ -38,10 +38,73 @@ function jaccard(a: Set<string>, b: Set<string>): number {
   return union === 0 ? 0 : intersection / union;
 }
 
-function buildMatchReasons(nameScore: number): string[] {
+/**
+ * Computes the Levenshtein distance between two strings.
+ * Levenshtein distance is the minimum number of single-character edits
+ * (insertions, deletions, or substitutions) needed to change one string into another.
+ */
+function levenshteinDistance(
+  a: string | undefined,
+  b: string | undefined,
+): number {
+  const left = a ?? "";
+  const right = b ?? "";
+
+  if (!left && !right) {
+    return 0;
+  }
+
+  let previousRow = Array.from(
+    { length: right.length + 1 },
+    (_, index) => index,
+  );
+  let currentRow: number[] = new Array(right.length + 1).fill(0);
+
+  for (let i = 1; i <= left.length; i += 1) {
+    currentRow = new Array(right.length + 1).fill(0);
+    currentRow[0] = i;
+
+    for (let j = 1; j <= right.length; j += 1) {
+      const substitutionCost = left[i - 1] === right[j - 1] ? 0 : 1;
+      const deletionCost = (previousRow[j] ?? 0) + 1;
+      const insertionCost = (currentRow[j - 1] ?? 0) + 1;
+      const substitutionValue = (previousRow[j - 1] ?? 0) + substitutionCost;
+      currentRow[j] = Math.min(deletionCost, insertionCost, substitutionValue);
+    }
+
+    previousRow = currentRow;
+  }
+
+  return previousRow[right.length] ?? 0;
+}
+
+function normalizedLevenshteinSimilarity(a: string, b: string): number {
+  const left = normalize(a);
+  const right = normalize(b);
+
+  if (!left && !right) {
+    return 1;
+  }
+
+  if (!left || !right) {
+    return 0;
+  }
+
+  const maxLength = Math.max(left.length, right.length);
+  const distance = levenshteinDistance(left, right);
+  return maxLength === 0 ? 1 : 1 - distance / maxLength;
+}
+
+function buildMatchReasons(
+  nameSimilarity: number,
+  emailMatch: number,
+): string[] {
   const reasons: string[] = [];
-  if (nameScore > 0) {
+  if (nameSimilarity > 0) {
     reasons.push("name_similarity");
+  }
+  if (emailMatch > 0) {
+    reasons.push("email_match");
   }
   return reasons;
 }
@@ -98,12 +161,19 @@ const UserApprovalService = {
 
     return orphanResult.players
       .map((player) => {
-        const playerNameTokens = tokenSet(
-          `${player.firstName} ${player.lastName}`,
+        const candidateName = `${player.firstName} ${player.lastName}`.trim();
+        const nameSimilarity = normalizedLevenshteinSimilarity(
+          `${pendingUser.firstName ?? ""} ${pendingUser.lastName ?? ""}`,
+          candidateName,
         );
-        const nameScore = jaccard(userNameTokens, playerNameTokens);
-
-        const matchScore = Number(nameScore.toFixed(2));
+        const emailMatch =
+          pendingUser.email.trim().toLowerCase() ===
+          (player.user?.email ?? "").trim().toLowerCase()
+            ? 1
+            : 0;
+        const matchScore = Number(
+          (0.7 * nameSimilarity + 0.3 * emailMatch).toFixed(2),
+        );
 
         return {
           playerId: player.id,
@@ -111,11 +181,16 @@ const UserApprovalService = {
           lastName: player.lastName,
           status: player.status,
           matchScore,
-          matchReasons: buildMatchReasons(nameScore),
+          matchReasons: buildMatchReasons(nameSimilarity, emailMatch),
         };
       })
       .filter((candidate) => candidate.matchScore >= MIN_MATCH_SCORE)
-      .sort((a, b) => b.matchScore - a.matchScore)
+      .sort(
+        (a, b) =>
+          b.matchScore - a.matchScore ||
+          a.lastName.localeCompare(b.lastName) ||
+          a.firstName.localeCompare(b.firstName),
+      )
       .slice(0, MAX_SUGGESTIONS);
   },
 
@@ -307,7 +382,7 @@ const UserApprovalService = {
     reviewerId: string,
     expectedUpdatedAt?: string,
   ) {
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const pending = await tx.user.findUnique({
         where: { id: userId },
       });
@@ -362,6 +437,18 @@ const UserApprovalService = {
         approvedBy: reviewerId,
       };
     });
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (user) {
+      await noOpNotificationSenderFactory
+        .create({ to: user.email })
+        .sendSafe("registration-approved", {
+          userId,
+          reviewerId,
+        });
+    }
+
+    return result;
   },
 
   async mergeApprovedUser(

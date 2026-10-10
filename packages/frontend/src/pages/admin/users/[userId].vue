@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import type { Player } from "@ministrosfc/shared";
-import UserForm, {
-  type UserFormData,
-} from "~/components/pages/admin/users/UserForm.vue";
+import type { OrphanPlayerItem, Player, User } from "@ministrosfc/shared";
+import UserEditorPanel from "~/components/pages/admin/users/UserEditorPanel.vue";
 import PlayerForm, {
   type PlayerFormData,
 } from "~/components/pages/admin/players/PlayerForm.vue";
 import { useGetUser } from "~/composables/admin/useGetUser";
+import { useGetOrphanPlayers } from "~/composables/admin/useGetOrphanPlayers";
 
 definePageMeta({
   layout: "admin",
@@ -18,12 +17,15 @@ definePageMeta({
 
 const route = useRoute();
 const { $api } = useNuxtApp();
+const { fetchPendingUserOrphanPlayers } = useGetOrphanPlayers();
 
 const userId = computed(() => String(route.params.userId));
 
 const { user, loading, error, fetchUser } = useGetUser(userId);
 const player = ref<Player | null>(null);
 const loadingPlayer = ref(false);
+const orphanPlayers = ref<OrphanPlayerItem[]>([]);
+const actionLoading = ref(false);
 
 async function fetchPlayer() {
   if (!user.value?.playerId) {
@@ -44,7 +46,12 @@ async function fetchPlayer() {
   }
 }
 
-async function saveProfile(payload: UserFormData) {
+async function saveProfile(payload: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  expectedUpdatedAt: string;
+}) {
   await ($api as any)(`/api/v1/admin/users/${userId.value}`, {
     method: "PATCH",
     body: payload,
@@ -62,10 +69,42 @@ async function savePlayer(payload: PlayerFormData) {
   await fetchPlayer();
 }
 
+async function fetchOrphanPlayers(searchQuery = "") {
+  if (!user.value) return;
+
+  orphanPlayers.value = await fetchPendingUserOrphanPlayers(user.value.id, {
+    page: 1,
+    limit: 100,
+    search: searchQuery,
+  });
+}
+
+async function mergeSelectedPlayer(mergePlayerId: string) {
+  if (!user.value) return;
+
+  actionLoading.value = true;
+  try {
+    await ($api as any)(`/api/v1/admin/users/${user.value.id}/merge-player`, {
+      method: "POST",
+      body: {
+        mergePlayerId,
+        expectedUpdatedAt: user.value.updatedAt,
+      },
+    });
+    await fetchUser();
+    await fetchPlayer();
+    orphanPlayers.value = [];
+  } finally {
+    actionLoading.value = false;
+  }
+}
+
 const userInitialData = computed(() => {
   if (!user.value) return {};
   return {
     email: user.value.email,
+    firstName: user.value.firstName,
+    lastName: user.value.lastName,
     expectedUpdatedAt: user.value.updatedAt,
   };
 });
@@ -91,6 +130,7 @@ const playerInitialData = computed(() => {
 
 await fetchUser();
 await fetchPlayer();
+await fetchOrphanPlayers();
 </script>
 
 <template>
@@ -105,12 +145,14 @@ await fetchPlayer();
 
     <div class="grid grid-cols-12 gap-4">
       <div class="col-span-12 lg:col-span-6">
-        <UserForm
-          :initial-data="userInitialData"
+        <UserEditorPanel
+          :user="(user as User | null)"
+          :orphan-players="orphanPlayers"
+          :action-loading="actionLoading"
           :loading="loading"
-          submit-label="Guardar perfil"
-          cancel-to="/admin/users"
-          @submit="saveProfile"
+          @save="saveProfile"
+          @merge="mergeSelectedPlayer"
+          @search-orphans="fetchOrphanPlayers"
         />
       </div>
 
