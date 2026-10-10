@@ -181,7 +181,7 @@ describe("Approval merge flow (integration)", () => {
         .set("Authorization", `Bearer ${editorToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.data.length).toBeGreaterThanOrEqual(2);
+      expect(res.body.data.length).toBeGreaterThanOrEqual(2);
     });
 
     it("returns 403 for unauthenticated requests", async () => {

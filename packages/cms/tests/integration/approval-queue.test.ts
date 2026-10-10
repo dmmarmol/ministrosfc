@@ -88,8 +88,8 @@ describe("Approval queue (integration)", () => {
         .set("Authorization", `Bearer ${editorToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.data).toHaveLength(0);
-      expect(res.body.data.meta.total).toBe(0);
+      expect(res.body.data).toHaveLength(0);
+      expect(res.body.meta.total).toBe(0);
     });
 
     it("lists pending users with suggestions", async () => {
@@ -104,8 +104,8 @@ describe("Approval queue (integration)", () => {
         .set("Authorization", `Bearer ${editorToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.data).toHaveLength(1);
-      const item = res.body.data.data[0];
+      expect(res.body.data).toHaveLength(1);
+      const item = res.body.data[0];
       expect(item.firstName).toBe("Carlos");
       expect(item.lastName).toBe("García");
       expect(Array.isArray(item.suggestions)).toBe(true);
@@ -158,7 +158,7 @@ describe("Approval queue (integration)", () => {
         .set("Authorization", `Bearer ${editorToken}`);
 
       expect(res.status).toBe(200);
-      expect(Array.isArray(res.body.data.data)).toBe(true);
+      expect(Array.isArray(res.body.data)).toBe(true);
     });
 
     it("returns 404 for non-existent user", async () => {

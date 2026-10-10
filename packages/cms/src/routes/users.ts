@@ -179,7 +179,7 @@ router.get(
         data: result.data,
         meta: result.meta,
       };
-      res.json({ data: wrapped });
+      res.json(wrapped);
     } catch (err) {
       next(err);
     }
@@ -207,7 +207,7 @@ async function handleListOrphanPlayersGlobal(
       data: result.data,
       meta: result.meta,
     };
-    res.json({ data: wrapped });
+    res.json(wrapped);
   } catch (err) {
     next(err);
   }
@@ -246,7 +246,7 @@ router.get(
         data: result.data,
         meta: result.meta,
       };
-      res.json({ data: wrapped });
+      res.json(wrapped);
     } catch (err) {
       next(err);
     }
