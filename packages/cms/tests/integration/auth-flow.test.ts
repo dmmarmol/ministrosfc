@@ -17,10 +17,8 @@ const app = createApp();
 describe("Auth Flow (integration)", () => {
   const email = `test-${Date.now()}@ministrosfc.test`;
   const password = "SecurePass!123";
-  let accessToken: string;
-  let refreshToken: string;
 
-  it("POST /api/v1/auth/register → 201 with tokens", async () => {
+  it("POST /api/v1/auth/register → 202 pending", async () => {
     const res = await request(app).post("/api/v1/auth/register").send({
       email,
       password,
@@ -29,61 +27,24 @@ describe("Auth Flow (integration)", () => {
       lastName: "User",
     });
 
-    expect(res.status).toBe(201);
-    expect(res.body.data.accessToken).toBeTruthy();
-    expect(res.body.data.refreshToken).toBeTruthy();
-    expect(res.body.data.user.role).toBe("PLAYER");
+    expect(res.status).toBe(202);
+    expect(res.body.data.status).toBe("pending");
+    expect(res.body.data.accessToken).toBeUndefined();
   });
 
-  it("POST /api/v1/auth/login → 200 with tokens and onboarding fields", async () => {
+  it("POST /api/v1/auth/login → 403 while pending approval", async () => {
     const res = await request(app)
       .post("/api/v1/auth/login")
       .send({ email, password });
 
-    expect(res.status).toBe(200);
-    expect(res.body.data.accessToken).toBeTruthy();
-    expect(res.body.data.user).toMatchObject({
-      email,
-      firstName: "Test",
-      lastName: "User",
-      role: "PLAYER",
-    });
-    // Regression: login response now includes onboarding fields
-    expect(res.body.data.user).toHaveProperty("onboardingCompletedAt");
-    accessToken = res.body.data.accessToken;
-    refreshToken = res.body.data.refreshToken;
+    expect(res.status).toBe(403);
+    expect(res.body.code).toBe("PENDING_APPROVAL");
   });
 
-  it("GET /api/v1/players with valid token → 200", async () => {
-    const res = await request(app)
-      .get("/api/v1/players")
-      .set("Authorization", `Bearer ${accessToken}`);
-    expect(res.status).toBe(200);
-  });
-
-  it("POST /api/v1/auth/refresh → 200 with new access token", async () => {
+  it("POST /api/v1/auth/refresh without login token → 401", async () => {
     const res = await request(app)
       .post("/api/v1/auth/refresh")
-      .send({ refreshToken });
-
-    expect(res.status).toBe(200);
-    expect(res.body.data.accessToken).toBeTruthy();
-    accessToken = res.body.data.accessToken;
-    refreshToken = res.body.data.refreshToken;
-  });
-
-  it("POST /api/v1/auth/logout → 204, invalidates refresh token", async () => {
-    const res = await request(app)
-      .post("/api/v1/auth/logout")
-      .set("Authorization", `Bearer ${accessToken}`)
-      .send({ refreshToken });
-    expect(res.status).toBe(204);
-  });
-
-  it("POST /api/v1/auth/refresh with invalidated token → 401", async () => {
-    const res = await request(app)
-      .post("/api/v1/auth/refresh")
-      .send({ refreshToken });
+      .send({ refreshToken: "non-existent-token" });
     expect(res.status).toBe(401);
   });
 

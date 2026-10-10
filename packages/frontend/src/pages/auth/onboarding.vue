@@ -4,7 +4,6 @@ import { ref, computed, onMounted } from "vue";
 import { useOnboarding } from "~/composables/useOnboarding";
 import { useAuthStore } from "~/stores/auth";
 import { useJerseyAvailability } from "~/composables/useJerseyAvailability";
-import JerseyNumberInput from "~/components/ui/JerseyNumberInput.vue";
 import IsPlayerCheckbox from "~/components/ui/IsPlayerCheckbox.vue";
 import BackButton from "~/components/ui/BackButton.vue";
 
@@ -80,8 +79,7 @@ onMounted(async () => {
 async function navigateAfterOnboarding() {
   const redirect = route.query.redirect as string | undefined;
   // validate: allow only relative paths to prevent open redirect
-  const safeRedirect =
-    redirect && /^\/[^/]/.test(redirect) ? redirect : null;
+  const safeRedirect = redirect && /^\/[^/]/.test(redirect) ? redirect : null;
   if (safeRedirect) {
     await router.push(safeRedirect);
   } else if (authStore.isEditor) {
@@ -98,8 +96,7 @@ async function navigateAfterOnboarding() {
  */
 const backPath = computed(() => {
   const redirect = route.query.redirect as string | undefined;
-  const safeRedirect =
-    redirect && /^\/[^/]/.test(redirect) ? redirect : null;
+  const safeRedirect = redirect && /^\/[^/]/.test(redirect) ? redirect : null;
   return safeRedirect
     ? `/login?redirect=${encodeURIComponent(safeRedirect)}`
     : "/login";
@@ -181,15 +178,10 @@ async function handleSubmit() {
           </div>
 
           <div>
-            <label
-              class="block text-sm font-medium text-gray-700 mb-1"
-              for="jerseyNumberInput"
-            >
-              ¿Cuál es tu número de camiseta?
-            </label>
-            <JerseyNumberInput
+            <UiJerseyNumberInput
               v-model="jerseyNumber"
               :taken-numbers="takenJerseys"
+              label="¿Cuál es tu número de camiseta?"
             />
           </div>
         </template>

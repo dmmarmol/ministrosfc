@@ -12,10 +12,22 @@
 import {
   PlayerRivalMatchDTO,
   PlayerRivalPeriodDTO,
+  Position,
   TeamStatMatchDTO,
+  TopScorerDTO,
 } from "@ministrosfc/shared";
 import { prisma } from "../config/database";
 import { GameStatus, PlayerStatus } from "@prisma/client";
+import type {
+  TeamStatsFiltersByYear,
+  TeamStatsFiltersByTournament,
+  TeamStatsFiltersByRival,
+  RivalBreakdownFilters,
+  AggregatePlayersAllFilters,
+  TeamStatRow,
+  PlayerAggregateStats,
+  AllPlayersStatsRow,
+} from "../types/statistics";
 
 const StatisticsModel = {
   async getGameYearsForPlayer(playerId: string): Promise<number[]> {
@@ -39,7 +51,7 @@ const StatisticsModel = {
     playerId: string,
     tournamentId?: string,
     year?: number,
-  ) {
+  ): Promise<PlayerAggregateStats> {
     // Sum from GameParticipant records for completed games
     const where: any = {
       playerId,
@@ -89,7 +101,7 @@ const StatisticsModel = {
     limit = 10,
     status?: PlayerStatus,
     year?: number,
-  ) {
+  ): Promise<TopScorerDTO[]> {
     // Collect matching game IDs up front so the subsequent groupBy uses a
     // scalar `gameId IN (...)` filter. Prisma groupBy doesn't reliably scope
     // _sum/_count when the where clause contains relation filters (game: {...}),
@@ -213,10 +225,7 @@ const StatisticsModel = {
 
   // ── Team stat aggregations (Feature 017) ────────────────────────────────────
 
-  async aggregateTeamByYear(filters?: {
-    tournamentId?: string;
-    rivalId?: string;
-  }) {
+  async aggregateTeamByYear(filters?: TeamStatsFiltersByYear) {
     const gameWhere: any = { status: GameStatus.COMPLETED };
     if (filters?.tournamentId) gameWhere.tournamentId = filters.tournamentId;
     if (filters?.rivalId) gameWhere.opponentTeamId = filters.rivalId;
@@ -231,12 +240,7 @@ const StatisticsModel = {
     );
   },
 
-  async aggregateTeamByTournament(filters?: {
-    year?: number;
-    rivalId?: string;
-    tournamentName?: string;
-    playgroundId?: string;
-  }) {
+  async aggregateTeamByTournament(filters?: TeamStatsFiltersByTournament) {
     const gameWhere: any = { status: GameStatus.COMPLETED };
     if (filters?.rivalId) gameWhere.opponentTeamId = filters.rivalId;
     if (filters?.tournamentName) {
@@ -301,12 +305,7 @@ const StatisticsModel = {
     );
   },
 
-  async aggregateTeamByRival(filters?: {
-    year?: number;
-    tournamentId?: string;
-    tournamentName?: string;
-    rivalId?: string;
-  }) {
+  async aggregateTeamByRival(filters?: TeamStatsFiltersByRival) {
     const gameWhere: any = { status: GameStatus.COMPLETED };
     if (filters?.tournamentId) gameWhere.tournamentId = filters.tournamentId;
     if (filters?.tournamentName)
@@ -314,6 +313,7 @@ const StatisticsModel = {
         name: { equals: filters.tournamentName, mode: "insensitive" },
       };
     if (filters?.rivalId) gameWhere.opponentTeamId = filters.rivalId;
+    if (filters?.playgroundId) gameWhere.playgroundId = filters.playgroundId;
 
     const games = await prisma.game.findMany({
       where: gameWhere,
@@ -357,10 +357,7 @@ const StatisticsModel = {
     }));
   },
 
-  async getRivalBreakdown(
-    rivalId: string,
-    filters?: { year?: number; playgroundId?: string },
-  ) {
+  async getRivalBreakdown(rivalId: string, filters?: RivalBreakdownFilters) {
     const gameWhere: any = {
       status: GameStatus.COMPLETED,
       opponentTeamId: rivalId,
@@ -641,13 +638,9 @@ const StatisticsModel = {
     );
   },
 
-  async aggregatePlayersAll(filters?: {
-    year?: number;
-    rivalId?: string;
-    tournamentName?: string;
-    playerId?: string;
-    status?: PlayerStatus;
-  }) {
+  async aggregatePlayersAll(
+    filters?: AggregatePlayersAllFilters,
+  ): Promise<AllPlayersStatsRow[]> {
     const gameWhere: any = { status: GameStatus.COMPLETED };
     if (filters?.rivalId) gameWhere.opponentTeamId = filters.rivalId;
     if (filters?.tournamentName)
@@ -729,16 +722,23 @@ const StatisticsModel = {
     const playerIds = Object.keys(byPlayer);
     const players = await prisma.player.findMany({
       where: { id: { in: playerIds } },
-      select: { id: true, firstName: true, lastName: true, nickname: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        nickname: true,
+        position: true,
+      },
     });
     const playerMap = new Map(players.map((p) => [p.id, p]));
 
-    return playerIds.map((pid) => {
+    return playerIds.map((pid): AllPlayersStatsRow => {
       const s = byPlayer[pid]!;
       const p = playerMap.get(pid);
       return {
         playerId: pid,
         playerName: p ? `${p.firstName} ${p.lastName}` : pid,
+        position: p?.position as unknown as Position,
         playerNickname: p?.nickname ?? undefined,
         gamesPlayed: s.games,
         wins: s.wins,
@@ -777,7 +777,7 @@ function groupTeamStatsByKey(
     playgroundName?: string;
   },
   labelFn?: (g: GameRow) => string,
-) {
+): TeamStatRow[] {
   const map: Record<
     string,
     {

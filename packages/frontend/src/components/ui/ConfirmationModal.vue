@@ -82,41 +82,43 @@ async function handleConfirm() {
 
 <template>
   <UModal
-    :model-value="open"
-    :prevent-close="isConfirming"
-    @update:model-value="handleOpenChange"
+    :open="open"
+    :dismissible="!isConfirming"
+    @update:open="handleOpenChange"
     :transition="true"
     :ui="modalUi"
   >
-    <div class="p-6" data-testid="confirmation-modal">
-      <h3 class="text-lg font-bold text-gray-900 mb-2">{{ title }}</h3>
-      <p v-if="description" class="text-sm text-gray-600 mb-4">
-        {{ description }}
-      </p>
-      <p v-if="errorMessage" class="text-sm text-red-600 mb-4" role="alert">
-        {{ errorMessage }}
-      </p>
+    <template #content>
+      <div class="p-6" data-testid="confirmation-modal">
+        <h3 class="text-lg font-bold text-gray-900 mb-2">{{ title }}</h3>
+        <p v-if="description" class="text-sm text-gray-600 mb-4">
+          {{ description }}
+        </p>
+        <p v-if="errorMessage" class="text-sm text-red-600 mb-4" role="alert">
+          {{ errorMessage }}
+        </p>
 
-      <div class="flex gap-3 justify-end">
-        <button
-          data-testid="cancel-confirmation"
-          type="button"
-          class="text-sm px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-60"
-          :disabled="isConfirming"
-          @click="handleCancel"
-        >
-          {{ cancelText }}
-        </button>
-        <button
-          data-testid="confirm-confirmation"
-          type="button"
-          class="text-sm px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 disabled:opacity-60"
-          :disabled="isConfirming"
-          @click="handleConfirm"
-        >
-          {{ isConfirming ? "Procesando..." : confirmText }}
-        </button>
+        <div class="flex gap-3 justify-end">
+          <button
+            data-testid="cancel-confirmation"
+            type="button"
+            class="text-sm px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+            :disabled="isConfirming"
+            @click="handleCancel"
+          >
+            {{ cancelText }}
+          </button>
+          <button
+            data-testid="confirm-confirmation"
+            type="button"
+            class="text-sm px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 disabled:opacity-60"
+            :disabled="isConfirming"
+            @click="handleConfirm"
+          >
+            {{ isConfirming ? "Procesando..." : confirmText }}
+          </button>
+        </div>
       </div>
-    </div>
+    </template>
   </UModal>
 </template>

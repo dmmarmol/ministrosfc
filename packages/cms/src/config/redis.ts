@@ -24,7 +24,11 @@ function createNoopClient(): Redis {
 }
 
 export function getRedisClient(): Redis {
-  if (process.env.NODE_ENV === "development") {
+  if (
+    process.env.NODE_ENV === "development" ||
+    process.env.NODE_ENV === "test" ||
+    process.env.JEST_WORKER_ID != null
+  ) {
     return createNoopClient();
   }
   if (!redisClient) {

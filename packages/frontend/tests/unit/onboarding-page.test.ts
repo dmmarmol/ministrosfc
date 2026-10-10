@@ -45,7 +45,21 @@ const { default: OnboardingPage } =
   await import("../../src/pages/auth/onboarding.vue");
 
 function mountPage() {
-  return mount(OnboardingPage);
+  return mount(OnboardingPage, {
+    global: {
+      stubs: {
+        UiJerseyNumberInput: {
+          props: ["modelValue", "takenNumbers", "label"],
+          emits: ["update:modelValue"],
+          template: `<input id="jersey-number" :value="modelValue ?? ''" @input="$emit('update:modelValue', $event.target.value === '' ? null : Number($event.target.value))" />`,
+        },
+        NuxtLink: {
+          template: "<a><slot /></a>",
+          props: ["to"],
+        },
+      },
+    },
+  });
 }
 
 describe("onboarding page", () => {
@@ -72,7 +86,7 @@ describe("onboarding page", () => {
     const wrapper = mountPage();
     await flushPromises();
     expect(wrapper.find("#position").exists()).toBe(true);
-    expect(wrapper.find("#jerseyNumberInput").exists()).toBe(true);
+    expect(wrapper.find("#jersey-number").exists()).toBe(true);
   });
 
   it("hides position and jersey fields when isPlayer is unchecked", async () => {
@@ -80,7 +94,7 @@ describe("onboarding page", () => {
     await flushPromises();
     await wrapper.find("#isPlayer").setValue(false);
     expect(wrapper.find("#position").exists()).toBe(false);
-    expect(wrapper.find("#jerseyNumberInput").exists()).toBe(false);
+    expect(wrapper.find("#jersey-number").exists()).toBe(false);
   });
 
   it("redirects to /login if not authenticated", async () => {

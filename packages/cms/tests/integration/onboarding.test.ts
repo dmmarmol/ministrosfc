@@ -23,8 +23,18 @@ async function registerUser(overrides: Record<string, unknown> = {}) {
     lastName: "User",
     ...overrides,
   };
-  const res = await request(app).post("/api/v1/auth/register").send(payload);
-  return res.body.data;
+  const email = payload.email as string;
+  const password = payload.password as string;
+  await request(app).post("/api/v1/auth/register").send(payload);
+  await prisma.user.update({
+    where: { email },
+    data: { registrationStatus: "APPROVED" },
+  });
+  const loginRes = await request(app)
+    .post("/api/v1/auth/login")
+    .send({ email, password });
+  const dbUser = await prisma.user.findUnique({ where: { email } });
+  return { ...loginRes.body.data, user: dbUser };
 }
 
 describe("Onboarding (integration)", () => {

@@ -246,6 +246,10 @@ export const ProfileService = {
     return { photoUrl };
   },
 
+  /**
+   * Query the database searching for active registered players with a jersey number, excluding the given player ID if provided.
+   * Returns an array of taken jersey numbers to validate uniqueness on the frontend.
+   */
   async getJerseyAvailability(excludePlayerId?: string) {
     const where: Record<string, unknown> = {
       status: PlayerStatus.ACTIVE,

@@ -138,13 +138,16 @@ function getConfirmationDescription(
                 </td>
                 <td v-if="authStore.isAdmin" class="py-2 px-4 text-right">
                   <span :title="pg.gameCount > 0 ? 'Cancha en uso' : undefined">
-                    <button
-                      class="text-xs text-red-600 hover:text-red-800 disabled:opacity-40 disabled:pointer-events-none"
+                    <UButton
+                      variant="link"
+                      color="red"
+                      size="xs"
+                      class="disabled:opacity-40 disabled:pointer-events-none"
                       :disabled="pg.gameCount > 0"
                       @click.stop="askDeletePlayground(pg, $event)"
                     >
                       Eliminar
-                    </button>
+                    </UButton>
                   </span>
                 </td>
               </tr>

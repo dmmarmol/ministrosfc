@@ -1,47 +1,107 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { type TeamStatPeriodDTO } from "@ministrosfc/shared";
 import type { ColumnDef } from "~/types/table";
+import {
+  cellWins,
+  cellLosses,
+  cellDraws,
+  cellPercent,
+  cellLink,
+} from "~/components/ui/Table/table-utils";
+
+type RivalRow = {
+  rival: string;
+  rivalId: string;
+  games: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDiff: number;
+  winRate: number;
+  playgroundName: string;
+};
 
 const props = defineProps<{
   rows: TeamStatPeriodDTO[];
   loading: boolean;
 }>();
 
-const columns: ColumnDef[] = [
-  { key: "rival", label: "Rival", title: "Rival", sortable: true },
-  { key: "games", label: "PJ", title: "Partidos Jugados", sortable: true },
-  { key: "wins", label: "PG", title: "Partidos Ganados", sortable: true },
-  { key: "losses", label: "PP", title: "Partidos Perdidos", sortable: true },
-  { key: "draws", label: "PE", title: "Partidos Empatados", sortable: true },
-  { key: "goalsFor", label: "GF", title: "Goles a Favor", sortable: true },
+const columns: ColumnDef<RivalRow>[] = [
   {
-    key: "goalsAgainst",
-    label: "GC",
+    accessorKey: "rival",
+    header: "Rival",
+    title: "Rival",
+    sortable: true,
+    cell: ({ row }) =>
+      cellLink(
+        row.getValue("rival"),
+        `/statistics/rivals/${row.original.rivalId}`,
+      ),
+  },
+  {
+    accessorKey: "games",
+    header: "PJ",
+    title: "Partidos Jugados",
+    sortable: true,
+  },
+  {
+    accessorKey: "wins",
+    header: "PG",
+    title: "Partidos Ganados",
+    sortable: true,
+    cell: ({ row }) => cellWins(row.getValue("wins")),
+  },
+  {
+    accessorKey: "losses",
+    header: "PP",
+    title: "Partidos Perdidos",
+    sortable: true,
+    cell: ({ row }) => cellLosses(row.getValue("losses")),
+  },
+  {
+    accessorKey: "draws",
+    header: "PE",
+    title: "Partidos Empatados",
+    sortable: true,
+    cell: ({ row }) => cellDraws(row.getValue("draws")),
+  },
+  {
+    accessorKey: "goalsFor",
+    header: "GF",
+    title: "Goles a Favor",
+    sortable: true,
+  },
+  {
+    accessorKey: "goalsAgainst",
+    header: "GC",
     title: "Goles en Contra",
     sortable: true,
   },
   {
-    key: "goalDiff",
-    label: "DG",
+    accessorKey: "goalDiff",
+    header: "DG",
     title: "Diferencia de gol",
     sortable: true,
   },
   {
-    key: "winRate",
-    label: "Win%",
+    accessorKey: "winRate",
+    header: "Win%",
     title: "Porcentaje de Victorias",
     sortable: true,
+    cell: ({ row }) => cellPercent(row.getValue("winRate")),
   },
   {
-    key: "playgroundName",
-    label: "Cancha",
+    accessorKey: "playgroundName",
+    header: "Cancha",
     title: "Cancha Más Frecuente",
     sortable: false,
   },
 ];
 
-const tableRows = computed(() =>
+const tableRows = computed((): RivalRow[] =>
   props.rows.map((row) => ({
     rival: row.label,
     rivalId: row.key,
@@ -56,28 +116,15 @@ const tableRows = computed(() =>
     playgroundName: row.playgroundName ?? "—",
   })),
 );
+
+const sorting = ref([{ id: "games", desc: true }]);
 </script>
 
 <template>
-  <UiStatsTable :columns="columns" :rows="tableRows" :loading="loading">
-    <template #rival-data="{ row }">
-      <NuxtLink
-        :to="`/statistics/rivals/${row.rivalId}`"
-        class="font-medium hover:text-brand transition-colors"
-        >{{ row.rival }}</NuxtLink
-      >
-    </template>
-    <template #wins-data="{ row }">
-      <span class="text-green-600">{{ row.wins }}</span>
-    </template>
-    <template #losses-data="{ row }">
-      <span class="text-red-500">{{ row.losses }}</span>
-    </template>
-    <template #draws-data="{ row }">
-      <span class="text-yellow-500">{{ row.draws }}</span>
-    </template>
-    <template #winRate-data="{ row }">
-      {{ Number(row.winRate).toFixed(1) }}%
-    </template>
-  </UiStatsTable>
+  <UTable
+    v-model:sorting="sorting"
+    :data="tableRows"
+    :columns="columns"
+    :loading="loading"
+  />
 </template>

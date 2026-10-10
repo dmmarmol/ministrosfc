@@ -71,6 +71,7 @@ describe("ProfileEditForm", () => {
       },
       global: {
         stubs: {
+          UiJerseyNumberInput: stubJerseyNumber,
           JerseyNumberInput: stubJerseyNumber,
           IsPlayerCheckbox: stubIsPlayerCheckbox,
           AddressAutocompleteInput: stubAddressAutocomplete,

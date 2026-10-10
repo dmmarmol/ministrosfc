@@ -2,13 +2,14 @@
 import { useAsyncData, useHead, useNuxtApp, useRouter } from "nuxt/app";
 import { computed, reactive, ref } from "vue";
 import { DEFAULT_MAX_PLAYERS } from "@ministrosfc/shared";
-import PlaygroundSelect from "~/components/PlaygroundSelect.vue";
+import PlaygroundSelect from "~/components/pages/admin/playground/PlaygroundSelect.vue";
 
 definePageMeta({
   layout: "admin",
   middleware: "auth",
   requiresAuth: true,
   requiresRole: "editor",
+  pageTitle: "Crear Partido",
 });
 useHead({ title: "Schedule Game – Admin" });
 
@@ -134,7 +135,7 @@ async function submit() {
         <label class="block text-xs font-medium text-gray-700 mb-1"
           >Ubicación (Cancha)</label
         >
-        <PlaygroundSelect v-model="form.playgroundId" />
+        <PlaygroundSelect v-model="form.playgroundId" class="w-full" />
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-700 mb-1"
@@ -185,13 +186,16 @@ async function submit() {
         {{ error }}
       </p>
       <div class="flex gap-3 pt-2">
-        <button
+        <UButton
           type="submit"
+          color="primary"
+          variant="solid"
+          size="md"
           :disabled="loading"
-          class="bg-brand text-gray-900 font-semibold text-sm px-5 py-2.5 rounded-lg hover:opacity-90 disabled:opacity-60"
+          class="font-semibold"
         >
           {{ loading ? "Creando…" : "Crear Partido" }}
-        </button>
+        </UButton>
         <NuxtLink
           to="/admin/games"
           class="text-sm text-gray-500 px-5 py-2.5 rounded-lg border border-gray-200 hover:bg-gray-50"

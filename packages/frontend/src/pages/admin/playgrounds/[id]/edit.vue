@@ -9,6 +9,7 @@ definePageMeta({
   middleware: "auth",
   requiresAuth: true,
   requiresRole: "editor",
+  pageTitle: "Editar Cancha",
 });
 
 const router = useRouter();
@@ -128,13 +129,16 @@ async function submit() {
       </div>
 
       <div class="flex gap-3 pt-2">
-        <button
+        <UButton
           type="submit"
+          color="primary"
+          variant="solid"
+          size="md"
           :disabled="loading"
-          class="bg-brand text-gray-900 font-semibold text-sm px-5 py-2 rounded-lg hover:opacity-90 disabled:opacity-50"
+          class="font-semibold"
         >
           {{ loading ? "Guardando…" : "Guardar cambios" }}
-        </button>
+        </UButton>
         <NuxtLink
           to="/admin/playgrounds"
           class="text-sm text-gray-500 hover:text-brand py-2"

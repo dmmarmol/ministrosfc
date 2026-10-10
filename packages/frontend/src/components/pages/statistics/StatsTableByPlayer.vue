@@ -1,68 +1,211 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import type { PlayerStatRowDTO } from "@ministrosfc/shared";
+import { computed, ref } from "vue";
+import type { AllPlayersStatsRow } from "@ministrosfc/cms/src/types/statistics/internal";
 import type { ColumnDef } from "~/types/table";
+import {
+  cellWins,
+  cellLosses,
+  cellDraws,
+  cellPercent,
+  cellRate,
+  cellPlayerLink,
+  getSortedIcon,
+} from "~/components/ui/Table/table-utils";
+import { UButton } from "#components";
+
+type PlayerRow = {
+  playerId: string;
+  name: string;
+  nickname: string | null;
+  position: string;
+  games: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  goals: number;
+  assists: number;
+  goalRate: number;
+  winRate: number;
+  participationRate: number;
+};
 
 const props = defineProps<{
-  rows: PlayerStatRowDTO[];
-  mode: "all" | "single";
+  rows: AllPlayersStatsRow[];
   loading: boolean;
 }>();
 
-const allColumns: ColumnDef[] = [
-  { key: "name", label: "Jugador", title: "Jugador", sortable: true },
-  { key: "games", label: "PJ", title: "Partidos Jugados", sortable: true },
-  { key: "wins", label: "PG", title: "Partidos Ganados", sortable: true },
-  { key: "losses", label: "PP", title: "Partidos Perdidos", sortable: true },
-  { key: "draws", label: "PE", title: "Partidos Empatados", sortable: true },
-  { key: "goals", label: "Goles", title: "Goles", sortable: true },
-  { key: "assists", label: "Asist.", title: "Asistencias", sortable: true },
-  { key: "goalRate", label: "PG", title: "Promedio de gol", sortable: true },
+const columns: ColumnDef<PlayerRow>[] = [
   {
-    key: "winRate",
-    label: "Win%",
-    title: "Porcentaje de Victorias",
+    accessorKey: "position",
+    meta: {
+      class: {
+        th: "w-16 text-center",
+      },
+    },
     sortable: true,
+    header: ({ column }) => {
+      return h(UButton, {
+        variant: "ghost",
+        color: "neutral",
+        label: "Pos",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
+    },
+    cell: ({ row }) =>
+      h(resolveComponent("UiPositionLabel"), {
+        position: row.getValue("position"),
+      }),
   },
   {
-    key: "participationRate",
-    label: "Part.%",
+    accessorKey: "name",
+    header: "Jugador",
+    title: "Jugador",
+    sortable: true,
+    cell: ({ row }) =>
+      cellPlayerLink(row.original as Record<string, unknown>, {
+        nicknameKey: "nickname",
+      }),
+  },
+  {
+    accessorKey: "games",
+    title: "Partidos Jugados",
+    sortable: true,
+    header: ({ column }) => {
+      return h(UButton, {
+        variant: "ghost",
+        color: "neutral",
+        label: "PJ",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
+    },
+  },
+  {
+    accessorKey: "wins",
+    title: "Partidos Ganados",
+    sortable: true,
+    header: ({ column }) => {
+      return h(UButton, {
+        variant: "ghost",
+        color: "neutral",
+        label: "PG",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
+    },
+    cell: ({ row }) => cellWins(row.getValue("wins")),
+  },
+  {
+    accessorKey: "losses",
+    title: "Partidos Perdidos",
+    sortable: true,
+    header: ({ column }) => {
+      return h(UButton, {
+        variant: "ghost",
+        color: "neutral",
+        label: "PP",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
+    },
+    cell: ({ row }) => cellLosses(row.getValue("losses")),
+  },
+  {
+    accessorKey: "draws",
+    title: "Partidos Empatados",
+    sortable: true,
+    header: ({ column }) => {
+      return h(UButton, {
+        variant: "ghost",
+        color: "neutral",
+        label: "PE",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
+    },
+    cell: ({ row }) => cellDraws(row.getValue("draws")),
+  },
+  {
+    accessorKey: "goals",
+    title: "Goles",
+    sortable: true,
+    header: ({ column }) => {
+      return h(UButton, {
+        variant: "ghost",
+        color: "neutral",
+        label: "Goles",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
+    },
+  },
+  {
+    accessorKey: "assists",
+    title: "Asistencias",
+    sortable: true,
+    header: ({ column }) => {
+      return h(UButton, {
+        variant: "ghost",
+        color: "neutral",
+        label: "Asist.",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
+    },
+  },
+  {
+    accessorKey: "goalRate",
+    title: "Promedio de gol",
+    sortable: true,
+    header: ({ column }) => {
+      return h(UButton, {
+        variant: "ghost",
+        color: "neutral",
+        label: "Prom.",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
+    },
+    cell: ({ row }) => cellRate(row.getValue("goalRate")),
+  },
+  {
+    accessorKey: "winRate",
+
+    title: "Porcentaje de Victorias",
+    sortable: true,
+    header: ({ column }) => {
+      return h(UButton, {
+        variant: "ghost",
+        color: "neutral",
+        label: "Win%",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
+    },
+    cell: ({ row }) => cellPercent(row.getValue("winRate")),
+  },
+  {
+    accessorKey: "participationRate",
     title: "Porcentaje de Participación",
     sortable: true,
+    header: ({ column }) => {
+      return h(UButton, {
+        variant: "ghost",
+        color: "neutral",
+        label: "Part.%",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
+    },
+    cell: ({ row }) => cellPercent(row.getValue("participationRate")),
   },
 ];
 
-// Single-player mode reuses the same DTO fields — year/tournament/rival
-// breakdown is not yet available in PlayerStatRowDTO.
-const singleColumns: ColumnDef[] = [
-  { key: "games", label: "PJ", title: "Partidos Jugados", sortable: true },
-  { key: "wins", label: "PG", title: "Partidos Ganados", sortable: true },
-  { key: "losses", label: "PP", title: "Partidos Perdidos", sortable: true },
-  { key: "draws", label: "PE", title: "Partidos Empatados", sortable: true },
-  { key: "goals", label: "Goles", title: "Goles", sortable: true },
-  { key: "assists", label: "Asist.", title: "Asistencias", sortable: true },
-  { key: "goalRate", label: "PG", title: "Promedio de gol", sortable: true },
-  {
-    key: "winRate",
-    label: "Win%",
-    title: "Porcentaje de Victorias",
-    sortable: true,
-  },
-  {
-    key: "participationRate",
-    label: "Part.%",
-    title: "Porcentaje de Participación",
-    sortable: true,
-  },
-];
-
-const columns = computed(() =>
-  props.mode === "all" ? allColumns : singleColumns,
-);
-
-const tableRows = computed(() =>
+const tableRows = computed((): PlayerRow[] =>
   props.rows.map((row) => ({
     playerId: row.playerId,
+    position: row.position,
     name: row.playerName,
     nickname: row.playerNickname ?? null,
     games: row.gamesPlayed,
@@ -76,43 +219,15 @@ const tableRows = computed(() =>
     participationRate: row.participationRate,
   })),
 );
+
+const sorting = ref([{ id: "games", desc: true }]);
 </script>
 
 <template>
-  <UiStatsTable :columns="columns" :rows="tableRows" :loading="loading">
-    <template #name-data="{ row }">
-      <div class="flex gap-x-2 items-baseline">
-        <NuxtLink
-          :to="`/players/${row.playerId}`"
-          class="font-medium hover:text-brand transition-colors"
-          >{{ row.name }}</NuxtLink
-        >
-        <span v-if="row.nickname" class="text-sm text-gray-400 italic">{{
-          row.nickname
-        }}</span>
-      </div>
-    </template>
-    <template #wins-data="{ row }">
-      <span class="text-green-600">{{ row.wins }}</span>
-    </template>
-    <template #losses-data="{ row }">
-      <span class="text-red-500">{{ row.losses }}</span>
-    </template>
-    <template #draws-data="{ row }">
-      <span class="text-yellow-500">{{ row.draws }}</span>
-    </template>
-    <template #goalRate-data="{ row }">
-      {{ row.goalRate != null ? Number(row.goalRate).toFixed(2) : "—" }}
-    </template>
-    <template #winRate-data="{ row }">
-      {{ row.winRate != null ? Number(row.winRate).toFixed(1) : "—" }}%
-    </template>
-    <template #participationRate-data="{ row }">
-      {{
-        row.participationRate != null
-          ? Number(row.participationRate).toFixed(1)
-          : "—"
-      }}%
-    </template>
-  </UiStatsTable>
+  <UTable
+    v-model:sorting="sorting"
+    :data="tableRows"
+    :columns="columns"
+    :loading="loading"
+  />
 </template>

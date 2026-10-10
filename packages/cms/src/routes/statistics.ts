@@ -9,27 +9,15 @@ import { StatisticsService } from "../services/StatisticsService";
 import { TournamentModel } from "../models/Tournament";
 import { authenticate } from "../middleware/auth";
 import { z } from "zod";
+import { OPTION_FILTER_ALL } from "@ministrosfc/shared";
 import { PlayerStatus } from "@prisma/client";
+import {
+  topScorersQuerySchema,
+  playersStatsQuerySchema,
+  teamStatsQuerySchema,
+} from "../types/statistics";
 
 const router = Router();
-
-const topScorersSchema = z.object({
-  tournamentId: z.uuid().optional(),
-  tournamentName: z.string().max(100).optional(),
-  limit: z.coerce.number().int().min(1).max(50).default(10),
-  status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
-  year: z.coerce.number().int().min(1900).max(2100).optional(),
-});
-
-const teamStatsQuerySchema = z.object({
-  year: z.coerce.number().int().min(1900).max(2100).optional(),
-  tournamentId: z.uuid().optional(),
-  tournamentName: z.string().max(100).optional(),
-  rivalId: z.uuid().optional(),
-  playgroundId: z.uuid().optional(),
-});
-
-const playerStatusValues = Object.values(PlayerStatus);
 
 // GET /api/v1/statistics/players - All players aggregated (public + extended)
 router.get(
@@ -37,13 +25,13 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { year, rivalId, tournamentName, playerId, status } =
-        req.query as Record<string, string>;
+        playersStatsQuerySchema.parse(req.query);
       const playerStatus: PlayerStatus | undefined =
-        status && playerStatusValues.includes(status as PlayerStatus)
-          ? (status as PlayerStatus)
-          : undefined;
+        status === OPTION_FILTER_ALL
+          ? undefined
+          : (status as PlayerStatus | undefined);
       const data = await StatisticsService.getAllPlayerStats({
-        year: year ? parseInt(year, 10) : undefined,
+        year,
         rivalId,
         tournamentName,
         playerId,
@@ -82,7 +70,7 @@ router.get(
   "/top-scorers",
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const query = topScorersSchema.parse(req.query);
+      const query = topScorersQuerySchema.parse(req.query);
 
       let tournamentId = query.tournamentId;
       if (!tournamentId && query.tournamentName) {
@@ -102,7 +90,9 @@ router.get(
       const data = await StatisticsService.getTopScorers(
         tournamentId,
         query.limit,
-        query.status as PlayerStatus | undefined,
+        query.status === OPTION_FILTER_ALL
+          ? undefined
+          : (query.status as PlayerStatus | undefined),
         query.year,
       );
       res.setHeader("Cache-Control", "public, max-age=300");
@@ -206,13 +196,14 @@ router.get(
   authenticate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { year, tournamentId, tournamentName, rivalId } =
+      const { year, tournamentId, tournamentName, rivalId, playgroundId } =
         teamStatsQuerySchema.parse(req.query);
       const data = await StatisticsService.getTeamStatsByRival({
         year,
         tournamentId,
         tournamentName,
         rivalId,
+        playgroundId,
       });
       res.setHeader("Cache-Control", "private, max-age=300");
       res.json({ data });

@@ -42,6 +42,13 @@ export interface PlayerFilters {
   search?: string;
   page?: number;
   limit?: number;
+  extend?: ("invitedById" | "invitedByName")[];
+}
+
+export interface OrphanPlayerFilters {
+  search?: string;
+  page?: number;
+  limit?: number;
 }
 
 export const PlayerModel = {
@@ -67,7 +74,9 @@ export const PlayerModel = {
       search,
       page = 1,
       limit = 20,
+      extend = [],
     } = filters;
+    const includeInvitedByName = extend.includes("invitedByName");
     const where: Prisma.PlayerWhereInput = {
       ...(status ? { status } : {}),
       ...(playerType ? { playerType } : {}),
@@ -91,7 +100,10 @@ export const PlayerModel = {
     const [rawPlayers, total] = await Promise.all([
       prisma.player.findMany({
         where,
-        include: { contactInfo: true },
+        include: {
+          contactInfo: true,
+          invitedBy: { select: { firstName: true, lastName: true } },
+        },
         orderBy,
         skip: (page - 1) * limit,
         take: limit,
@@ -100,18 +112,32 @@ export const PlayerModel = {
     ]);
 
     // Sort: status (ACTIVE first) → position group (GK → DEF → MID → FWD) → jerseyNumber → firstName
-    const players = rawPlayers.slice().sort((a, b) => {
-      const sA = a.status === PlayerStatus.ACTIVE ? 0 : 1;
-      const sB = b.status === PlayerStatus.ACTIVE ? 0 : 1;
-      if (sA !== sB) return sA - sB;
-      const pA = posGroupRank(a.position);
-      const pB = posGroupRank(b.position);
-      if (pA !== pB) return pA - pB;
-      const jA = a.jerseyNumber ?? 999;
-      const jB = b.jerseyNumber ?? 999;
-      if (jA !== jB) return jA - jB;
-      return a.firstName.localeCompare(b.firstName);
-    });
+    const players = rawPlayers
+      .slice()
+      .sort((a, b) => {
+        const sA = a.status === PlayerStatus.ACTIVE ? 0 : 1;
+        const sB = b.status === PlayerStatus.ACTIVE ? 0 : 1;
+        if (sA !== sB) return sA - sB;
+        const pA = posGroupRank(a.position);
+        const pB = posGroupRank(b.position);
+        if (pA !== pB) return pA - pB;
+        const jA = a.jerseyNumber ?? 999;
+        const jB = b.jerseyNumber ?? 999;
+        if (jA !== jB) return jA - jB;
+        return a.firstName.localeCompare(b.firstName);
+      })
+      .map(({ invitedBy, ...player }) => ({
+        ...player,
+        ...(includeInvitedByName
+          ? {
+              invitedByName: invitedBy
+                ? `${invitedBy.firstName} ${invitedBy.lastName}`.trim()
+                : player.invitedById
+                  ? null
+                  : null,
+            }
+          : {}),
+      }));
 
     return {
       players,
@@ -161,5 +187,47 @@ export const PlayerModel = {
 
   async deleteById(id: string): Promise<void> {
     await prisma.player.delete({ where: { id } });
+  },
+
+  async findOrphans(filters: OrphanPlayerFilters = {}) {
+    const page = Math.max(filters.page ?? 1, 1);
+    const limit = Math.min(Math.max(filters.limit ?? 20, 1), 100);
+    const skip = (page - 1) * limit;
+    const search = filters.search?.trim();
+
+    const where: Prisma.PlayerWhereInput = {
+      user: null,
+      ...(search
+        ? {
+            OR: [
+              { firstName: { contains: search, mode: "insensitive" } },
+              { lastName: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    };
+
+    const [players, total] = await Promise.all([
+      prisma.player.findMany({
+        where,
+        include: {
+          user: {
+            select: { email: true },
+          },
+        },
+        skip,
+        take: limit,
+        orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+      }),
+      prisma.player.count({ where }),
+    ]);
+
+    return {
+      players,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   },
 };

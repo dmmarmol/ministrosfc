@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { PlayerStatRowDTO } from "@ministrosfc/shared";
+import type { PlayerStatRowDTO, PlayerStatus } from "@ministrosfc/shared";
 import StatsTableByPlayer from "../../../components/pages/statistics/StatsTableByPlayer.vue";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
-import PlayerStatusSelect from "~/components/pages/statistics/StatsFilters/PlayerStatusSelect.vue";
 import PlayerSelect from "~/components/pages/statistics/StatsFilters/PlayerSelect.vue";
+import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
+import type { AllPlayersStatsRow } from "@ministrosfc/cms/src/types/statistics/internal";
 
 definePageMeta({
   layout: "statistics-private",
@@ -24,16 +25,14 @@ const {
 const { data, pending, refresh } = await useAsyncData(
   "all-player-stats",
   () =>
-    $api<{ data: PlayerStatRowDTO[] }>("/api/v1/statistics/players", {
-      query: {
-        status: filters.value.playerStatus,
-        ...(filters.value.year ? { year: filters.value.year } : {}),
-        ...(filters.value.rivalId ? { rivalId: filters.value.rivalId } : {}),
-        ...(filters.value.tournament
-          ? { tournamentName: filters.value.tournament }
-          : {}),
-        ...(filters.value.playerId ? { playerId: filters.value.playerId } : {}),
-      },
+    $api<{ data: AllPlayersStatsRow[] }>("/api/v1/statistics/players", {
+      query: createTruthyObject({
+        status: filters.value?.playerStatus,
+        year: filters.value?.year,
+        rivalId: filters.value?.rivalId,
+        tournamentName: filters.value?.tournament,
+        playerId: filters.value?.playerId,
+      }),
     }),
   { server: false },
 );
@@ -47,12 +46,20 @@ watch(
 
 <template>
   <div>
-    <div class="flex flex-wrap gap-3 mb-6">
-      <YearSelect v-model="yearFilter" />
-      <PlayerStatusSelect v-model="playerStatusFilter" />
-      <PlayerSelect v-model="playerFilter" :status="playerStatusFilter" />
+    <div class="flex gap-3 mb-6">
+      <YearSelect v-model="yearFilter" class="w-full" />
+      <UiPlayerStatusSelect
+        include-all
+        v-model="playerStatusFilter as PlayerStatus"
+        class="w-full"
+      />
+      <PlayerSelect
+        v-model="playerFilter"
+        :status="playerStatusFilter as PlayerStatus"
+        class="w-full"
+      />
     </div>
     <StatsTitle>Estadísticas de Jugadores</StatsTitle>
-    <StatsTableByPlayer :rows="rows" mode="all" :loading="pending" />
+    <StatsTableByPlayer :rows="rows" :loading="pending" />
   </div>
 </template>

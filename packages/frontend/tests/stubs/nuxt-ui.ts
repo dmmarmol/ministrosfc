@@ -3,21 +3,16 @@ import { defineComponent, h } from "vue";
 export const UModalStub = defineComponent({
   name: "UModal",
   props: {
-    modelValue: {
-      type: Boolean,
-      default: false,
-    },
     open: {
       type: Boolean,
       default: false,
     },
   },
-  emits: ["update:open", "update:modelValue"],
+  emits: ["update:open"],
   setup(props, { slots, emit }) {
-    const isOpen = () => props.open || props.modelValue;
+    const isOpen = () => props.open;
     const close = () => {
       emit("update:open", false);
-      emit("update:modelValue", false);
     };
 
     return () =>
@@ -27,7 +22,7 @@ export const UModalStub = defineComponent({
               "data-testid": "u-modal-backdrop",
               onClick: close,
             }),
-            slots.content?.({ close }) ?? slots.default?.(),
+            slots.content?.({ close }),
           ])
         : null;
   },

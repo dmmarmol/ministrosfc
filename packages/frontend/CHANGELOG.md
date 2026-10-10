@@ -13,6 +13,42 @@ For project-level release notes covering all packages, see the root [CHANGELOG.m
 
 ---
 
+## [0.12.0] — 2026-05-03
+
+### Added
+
+- **Nuxt UI / Tailwind v4 upgrade**: Upgraded to Nuxt 4.4.2, @nuxt/ui 4.7.1, Tailwind CSS v4.2.4. New `src/assets/theme.css` design-token system using `@theme` block + `:root` / `[data-theme="dark"]` CSS variable pattern. `app.config.ts` extended with full `UButton` compound-variant configuration.
+- `UiPositionSelect` component with `includeAll` prop (wraps `@ministrosfc/shared` `Position` enum; `includeAll=false` prevents `ALL` from being submitted in forms).
+- `UiPlayerStatusSelect` reusable player-status dropdown component.
+- `PlayerForm` shared form component for both create-player and edit-player pages; accepts `initialData?: Partial<PlayerFormData>` and `submitLabel` prop; exposes `#buttons` slot for page-specific actions.
+- `LoadingOverlay` component (white/70% overlay).
+- `UButton` reusable UI component aligned with @nuxt/ui 4 `UButton` API.
+- `/admin/users/pending-approvals` page with `PendingApprovalQueue` table, `PendingApprovalReviewPanel` (ranked orphan-player suggestions + manual search + approve/deny/merge actions), all URL filter state via `useQueryParams`.
+- `UserEditorPanel` component for post-approval merge from `/admin/users/[userId]` edition screen.
+- `PendingApprovalBanner` component displayed after registration while account is under review.
+- Activation status badge in admin user list.
+- Custom ESLint rule restricting admin composable imports to admin-scope files only.
+
+### Changed
+
+- Auth store now handles `PENDING_APPROVAL` login response: shows pending banner instead of redirecting to onboarding.
+- `pages/register.vue` shows `PendingApprovalBanner` on successful registration instead of redirecting.
+- Admin player pages (`create.vue`, `[id]/edit.vue`) refactored to use shared `PlayerForm` component.
+- Admin composables extracted to dedicated files with explicit `useQueryParams` imports.
+
+### Fixed
+
+- All admin pages now include `pageTitle` in `definePageMeta` (previously missing on several routes).
+
+### Changed
+
+- Production runtime configuration now honors deploy-provided `PORT` / `HOST` and Nitro equivalents while preserving the existing local `NUXT_PORT` / `NUXT_HOST` workflow.
+- Fly.io frontend runtime was normalized around port `3000` for container startup, internal service routing, and health checks.
+
+### Fixed
+
+- Deployed Nuxt instances now boot with the same host/port contract expected by Fly.io, reducing environment-specific startup mismatches between local and hosted runs.
+
 ## [0.10.0] — 2026-04-21
 
 ### Added

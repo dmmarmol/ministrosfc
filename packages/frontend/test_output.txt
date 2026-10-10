@@ -1,0 +1,1306 @@
+
+> @ministrosfc/frontend@0.12.0 test
+> vitest --run
+
+
+ RUN  v1.6.1 /Users/diegomartinmarmol/Syncthing/Projects/personal/ministrosfc/packages/frontend
+
+ ✓ tests/unit/components/pages/stats/StatsTable.spec.ts  (8 tests) 32ms
+ ✓ tests/middleware/auth.test.ts  (14 tests) 4ms
+ ✓ tests/stores/auth.test.ts  (17 tests) 9ms
+ ✓ src/composables/__tests__/useGameSignup.test.ts  (8 tests) 6ms
+ ✓ tests/components/AddressAutocompleteInput.test.ts  (8 tests) 39ms
+ ✓ tests/components/DropdownAddMore.test.ts  (24 tests) 54ms
+stdout | tests/unit/top-scorers-page.test.ts > top-scorers page — auth-gated filter visibility > YearSelect is always rendered when user is NOT authenticated
+<Suspense> is an experimental feature and its API will likely change.
+
+ ✓ tests/components/StatsFilters.test.ts  (15 tests) 35ms
+stderr | tests/unit/admin-users.test.ts > UserRoleManager > renders user list after fetching
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/admin-users.test.ts > UserRoleManager > renders search input and role filter
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/admin-users.test.ts > UserRoleManager > displays role badges for each user
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ ✓ src/components/pages/games/signup/__tests__/SignupAddPlayer.spec.ts  (9 tests) 71ms
+stderr | tests/unit/admin-users.test.ts > UserRoleManager – full-name edit entry (T008) > clicking the full name enters edit mode with pre-filled fields
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/admin-users.test.ts > UserRoleManager – full-name edit entry (T008) > shows Guardar and Cancelar buttons in edit mode
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/admin-users.test.ts > UserRoleManager – full-name edit entry (T008) > Cancelar button exits edit mode without saving
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ ✓ tests/unit/top-scorers-page.test.ts  (18 tests) 76ms
+stderr | tests/unit/admin-users.test.ts > UserRoleManager – full-name edit entry (T008) > non-email edit saves directly without confirmation modal
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/admin-users.test.ts > UserRoleManager – full-name edit entry (T008) > non-email edit saves directly without confirmation modal
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/admin-users.test.ts > UserRoleManager – confirmation modal mounting (T016 runtime) > shows ConfirmationModal when a role change is requested
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > renders all editable fields
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > populates fields from profile prop
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > emits save with form data on submit
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > shows jersey available ranges hint
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: null,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 7, 10 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > shows loading state
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=true  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > shows error message
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > renders IsPlayerCheckbox checked when status is ACTIVE
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > emits save with status INACTIVE when IsPlayerCheckbox is unchecked
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > re-syncs form fields when profile prop changes after mount
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Carlos',
+  lastName: 'Pérez',
+  nickname: 'Carlitos',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > disables submit button when selected jersey is taken
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 3,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 3, 7 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > emits save with position null when no position is selected
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: '',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > emits lastNameChange when last name input changes
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > shows inactive warning when status is INACTIVE
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > hides inactive warning when status is ACTIVE
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > does not render error element when error prop is empty string
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > emits jerseyChange when jersey number is updated
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > shows 'Guardando…' label on submit button when loading
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=true  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > does not disable submit button when jerseyNumber is null
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: 'Juanchi',
+  position: 'CMF',
+  jerseyNumber: null,
+  dateOfBirth: '1990-05-15',
+  address: 'Av. Corrientes 1234',
+  phone: '+54 11 1234-5678',
+  whatsapp: '+54 11 1234-5678',
+  emergencyContact: 'María Pérez',
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/components/ProfileEditForm.test.ts > ProfileEditForm > initialises null optional fields as empty strings
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ProfileEditForm profile= {
+  firstName: 'Juan',
+  lastName: 'Pérez',
+  nickname: null,
+  position: 'CMF',
+  jerseyNumber: 10,
+  dateOfBirth: '1990-05-15',
+  address: null,
+  phone: null,
+  whatsapp: null,
+  emergencyContact: null,
+  status: 'ACTIVE'
+} takenJerseys= [ 1, 2, 3, 5 ] loading=false  ... > 
+  at <VTUROOT>
+
+stderr | tests/unit/admin-users.test.ts > UserRoleManager – confirmation modal mounting (T016 runtime) > shows ConfirmationModal when a role change is requested
+[Vue warn]: Failed to resolve component: UModal
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ConfirmationModal key=3 open=true title="Cambiar rol"  ... > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ ❯ tests/components/ProfileEditForm.test.ts  (19 tests | 3 failed) 133ms
+   ❯ tests/components/ProfileEditForm.test.ts > ProfileEditForm > renders all editable fields
+     → expected false to be true // Object.is equality
+   ❯ tests/components/ProfileEditForm.test.ts > ProfileEditForm > shows jersey available ranges hint
+     → expected false to be true // Object.is equality
+   ❯ tests/components/ProfileEditForm.test.ts > ProfileEditForm > emits jerseyChange when jersey number is updated
+     → Cannot call setValue on an empty DOMWrapper.
+stderr | tests/unit/admin-users.test.ts > UserRoleManager – confirmation modal mounting (T016 runtime) > self (currentUser) role select is disabled
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/admin-users.test.ts > UserRoleManager – lifecycle confirmation (T023) > clicking Desactivar button opens ConfirmationModal
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/admin-users.test.ts > UserRoleManager – lifecycle confirmation (T023) > clicking Desactivar button opens ConfirmationModal
+[Vue warn]: Failed to resolve component: UModal
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ConfirmationModal key=3 open=true title="Desactivar jugador"  ... > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/admin-users.test.ts > UserRoleManager – lifecycle confirmation (T023) > clicking Eliminar button opens ConfirmationModal for delete
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/admin-users.test.ts > UserRoleManager – lifecycle confirmation (T023) > clicking Eliminar button opens ConfirmationModal for delete
+[Vue warn]: Failed to resolve component: UModal
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ConfirmationModal key=3 open=true title="Eliminar usuario y jugador"  ... > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/admin-users.test.ts > UserRoleManager – lifecycle confirmation (T023) > cancel on ConfirmationModal does not call API
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "status". Expected String with value "undefined", got Undefined  
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: UBadge
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <RegistrationStatusBadge status=undefined > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/admin-users.test.ts > UserRoleManager – lifecycle confirmation (T023) > cancel on ConfirmationModal does not call API
+[Vue warn]: Failed to resolve component: UModal
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <ConfirmationModal key=3 open=true title="Desactivar jugador"  ... > 
+  at <UserRoleManager ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ ✓ tests/unit/admin-users.test.ts  (33 tests) 156ms
+ ✓ tests/unit/auth-navigation.test.ts  (13 tests) 24ms
+ ✓ tests/unit/composables/useStatsFilters.spec.ts  (14 tests) 5ms
+ ✓ tests/components/GameCard.test.ts  (12 tests) 40ms
+ ✓ tests/unit/components/ui/Table.spec.ts  (12 tests) 44ms
+ ✓ src/utils/__tests__/formations.test.ts  (10 tests) 3ms
+stderr | tests/unit/components/pages/stats/StatsHeader.spec.ts > StatsHeader > renders all-time totals
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <StatsHeader summary= {
+  totalGames: 100,
+  totalWins: 60,
+  totalLosses: 25,
+  totalDraws: 15,
+  totalGoalsFor: 200,
+  totalGoalsAgainst: 120,
+  winRate: 60,
+  rivalMostPlayed: { name: 'Rival A', count: 20 },
+  rivalMostWins: { name: 'Rival B', count: 15 },
+  rivalMostLosses: { name: 'Rival C', count: 8 },
+  rivalMostDraws: { name: 'Rival D', count: 5 },
+  bestWin: {
+    rival: 'Rival E',
+    tournament: 'Liga',
+    date: '2022-05-01',
+    score: '5-0'
+  },
+  worstLoss: {
+    rival: 'Rival F',
+    tournament: 'Copa',
+    date: '2021-03-10',
+    score: '0-4'
+  },
+  rivalMostGoalsFor: { name: 'Rival G', totalGoals: 30 },
+  rivalMostGoalsAgainst: { name: 'Rival H', totalGoals: 20 },
+  topScorer: { name: 'Juan Perez', goals: 45 }
+} ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/components/pages/stats/StatsHeader.spec.ts > StatsHeader > renders goals for and against
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <StatsHeader summary= {
+  totalGames: 100,
+  totalWins: 60,
+  totalLosses: 25,
+  totalDraws: 15,
+  totalGoalsFor: 200,
+  totalGoalsAgainst: 120,
+  winRate: 60,
+  rivalMostPlayed: { name: 'Rival A', count: 20 },
+  rivalMostWins: { name: 'Rival B', count: 15 },
+  rivalMostLosses: { name: 'Rival C', count: 8 },
+  rivalMostDraws: { name: 'Rival D', count: 5 },
+  bestWin: {
+    rival: 'Rival E',
+    tournament: 'Liga',
+    date: '2022-05-01',
+    score: '5-0'
+  },
+  worstLoss: {
+    rival: 'Rival F',
+    tournament: 'Copa',
+    date: '2021-03-10',
+    score: '0-4'
+  },
+  rivalMostGoalsFor: { name: 'Rival G', totalGoals: 30 },
+  rivalMostGoalsAgainst: { name: 'Rival H', totalGoals: 20 },
+  topScorer: { name: 'Juan Perez', goals: 45 }
+} ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/components/pages/stats/StatsHeader.spec.ts > StatsHeader > renders win rate as percentage
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <StatsHeader summary= {
+  totalGames: 100,
+  totalWins: 60,
+  totalLosses: 25,
+  totalDraws: 15,
+  totalGoalsFor: 200,
+  totalGoalsAgainst: 120,
+  winRate: 60,
+  rivalMostPlayed: { name: 'Rival A', count: 20 },
+  rivalMostWins: { name: 'Rival B', count: 15 },
+  rivalMostLosses: { name: 'Rival C', count: 8 },
+  rivalMostDraws: { name: 'Rival D', count: 5 },
+  bestWin: {
+    rival: 'Rival E',
+    tournament: 'Liga',
+    date: '2022-05-01',
+    score: '5-0'
+  },
+  worstLoss: {
+    rival: 'Rival F',
+    tournament: 'Copa',
+    date: '2021-03-10',
+    score: '0-4'
+  },
+  rivalMostGoalsFor: { name: 'Rival G', totalGoals: 30 },
+  rivalMostGoalsAgainst: { name: 'Rival H', totalGoals: 20 },
+  topScorer: { name: 'Juan Perez', goals: 45 }
+} ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/components/pages/stats/StatsHeader.spec.ts > StatsHeader > renders rival most played
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <StatsHeader summary= {
+  totalGames: 100,
+  totalWins: 60,
+  totalLosses: 25,
+  totalDraws: 15,
+  totalGoalsFor: 200,
+  totalGoalsAgainst: 120,
+  winRate: 60,
+  rivalMostPlayed: { name: 'Rival A', count: 20 },
+  rivalMostWins: { name: 'Rival B', count: 15 },
+  rivalMostLosses: { name: 'Rival C', count: 8 },
+  rivalMostDraws: { name: 'Rival D', count: 5 },
+  bestWin: {
+    rival: 'Rival E',
+    tournament: 'Liga',
+    date: '2022-05-01',
+    score: '5-0'
+  },
+  worstLoss: {
+    rival: 'Rival F',
+    tournament: 'Copa',
+    date: '2021-03-10',
+    score: '0-4'
+  },
+  rivalMostGoalsFor: { name: 'Rival G', totalGoals: 30 },
+  rivalMostGoalsAgainst: { name: 'Rival H', totalGoals: 20 },
+  topScorer: { name: 'Juan Perez', goals: 45 }
+} ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/components/pages/stats/StatsHeader.spec.ts > StatsHeader > renders rival most wins
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <StatsHeader summary= {
+  totalGames: 100,
+  totalWins: 60,
+  totalLosses: 25,
+  totalDraws: 15,
+  totalGoalsFor: 200,
+  totalGoalsAgainst: 120,
+  winRate: 60,
+  rivalMostPlayed: { name: 'Rival A', count: 20 },
+  rivalMostWins: { name: 'Rival B', count: 15 },
+  rivalMostLosses: { name: 'Rival C', count: 8 },
+  rivalMostDraws: { name: 'Rival D', count: 5 },
+  bestWin: {
+    rival: 'Rival E',
+    tournament: 'Liga',
+    date: '2022-05-01',
+    score: '5-0'
+  },
+  worstLoss: {
+    rival: 'Rival F',
+    tournament: 'Copa',
+    date: '2021-03-10',
+    score: '0-4'
+  },
+  rivalMostGoalsFor: { name: 'Rival G', totalGoals: 30 },
+  rivalMostGoalsAgainst: { name: 'Rival H', totalGoals: 20 },
+  topScorer: { name: 'Juan Perez', goals: 45 }
+} ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/components/pages/stats/StatsHeader.spec.ts > StatsHeader > renders rival most losses
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <StatsHeader summary= {
+  totalGames: 100,
+  totalWins: 60,
+  totalLosses: 25,
+  totalDraws: 15,
+  totalGoalsFor: 200,
+  totalGoalsAgainst: 120,
+  winRate: 60,
+  rivalMostPlayed: { name: 'Rival A', count: 20 },
+  rivalMostWins: { name: 'Rival B', count: 15 },
+  rivalMostLosses: { name: 'Rival C', count: 8 },
+  rivalMostDraws: { name: 'Rival D', count: 5 },
+  bestWin: {
+    rival: 'Rival E',
+    tournament: 'Liga',
+    date: '2022-05-01',
+    score: '5-0'
+  },
+  worstLoss: {
+    rival: 'Rival F',
+    tournament: 'Copa',
+    date: '2021-03-10',
+    score: '0-4'
+  },
+  rivalMostGoalsFor: { name: 'Rival G', totalGoals: 30 },
+  rivalMostGoalsAgainst: { name: 'Rival H', totalGoals: 20 },
+  topScorer: { name: 'Juan Perez', goals: 45 }
+} ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/components/pages/stats/StatsHeader.spec.ts > StatsHeader > renders rival most draws
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <StatsHeader summary= {
+  totalGames: 100,
+  totalWins: 60,
+  totalLosses: 25,
+  totalDraws: 15,
+  totalGoalsFor: 200,
+  totalGoalsAgainst: 120,
+  winRate: 60,
+  rivalMostPlayed: { name: 'Rival A', count: 20 },
+  rivalMostWins: { name: 'Rival B', count: 15 },
+  rivalMostLosses: { name: 'Rival C', count: 8 },
+  rivalMostDraws: { name: 'Rival D', count: 5 },
+  bestWin: {
+    rival: 'Rival E',
+    tournament: 'Liga',
+    date: '2022-05-01',
+    score: '5-0'
+  },
+  worstLoss: {
+    rival: 'Rival F',
+    tournament: 'Copa',
+    date: '2021-03-10',
+    score: '0-4'
+  },
+  rivalMostGoalsFor: { name: 'Rival G', totalGoals: 30 },
+  rivalMostGoalsAgainst: { name: 'Rival H', totalGoals: 20 },
+  topScorer: { name: 'Juan Perez', goals: 45 }
+} ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/components/pages/stats/StatsHeader.spec.ts > StatsHeader > renders best win
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <StatsHeader summary= {
+  totalGames: 100,
+  totalWins: 60,
+  totalLosses: 25,
+  totalDraws: 15,
+  totalGoalsFor: 200,
+  totalGoalsAgainst: 120,
+  winRate: 60,
+  rivalMostPlayed: { name: 'Rival A', count: 20 },
+  rivalMostWins: { name: 'Rival B', count: 15 },
+  rivalMostLosses: { name: 'Rival C', count: 8 },
+  rivalMostDraws: { name: 'Rival D', count: 5 },
+  bestWin: {
+    rival: 'Rival E',
+    tournament: 'Liga',
+    date: '2022-05-01',
+    score: '5-0'
+  },
+  worstLoss: {
+    rival: 'Rival F',
+    tournament: 'Copa',
+    date: '2021-03-10',
+    score: '0-4'
+  },
+  rivalMostGoalsFor: { name: 'Rival G', totalGoals: 30 },
+  rivalMostGoalsAgainst: { name: 'Rival H', totalGoals: 20 },
+  topScorer: { name: 'Juan Perez', goals: 45 }
+} ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/components/pages/stats/StatsHeader.spec.ts > StatsHeader > renders worst loss
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <StatsHeader summary= {
+  totalGames: 100,
+  totalWins: 60,
+  totalLosses: 25,
+  totalDraws: 15,
+  totalGoalsFor: 200,
+  totalGoalsAgainst: 120,
+  winRate: 60,
+  rivalMostPlayed: { name: 'Rival A', count: 20 },
+  rivalMostWins: { name: 'Rival B', count: 15 },
+  rivalMostLosses: { name: 'Rival C', count: 8 },
+  rivalMostDraws: { name: 'Rival D', count: 5 },
+  bestWin: {
+    rival: 'Rival E',
+    tournament: 'Liga',
+    date: '2022-05-01',
+    score: '5-0'
+  },
+  worstLoss: {
+    rival: 'Rival F',
+    tournament: 'Copa',
+    date: '2021-03-10',
+    score: '0-4'
+  },
+  rivalMostGoalsFor: { name: 'Rival G', totalGoals: 30 },
+  rivalMostGoalsAgainst: { name: 'Rival H', totalGoals: 20 },
+  topScorer: { name: 'Juan Perez', goals: 45 }
+} ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/components/pages/stats/StatsHeader.spec.ts > StatsHeader > renders top scorer
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <StatsHeader summary= {
+  totalGames: 100,
+  totalWins: 60,
+  totalLosses: 25,
+  totalDraws: 15,
+  totalGoalsFor: 200,
+  totalGoalsAgainst: 120,
+  winRate: 60,
+  rivalMostPlayed: { name: 'Rival A', count: 20 },
+  rivalMostWins: { name: 'Rival B', count: 15 },
+  rivalMostLosses: { name: 'Rival C', count: 8 },
+  rivalMostDraws: { name: 'Rival D', count: 5 },
+  bestWin: {
+    rival: 'Rival E',
+    tournament: 'Liga',
+    date: '2022-05-01',
+    score: '5-0'
+  },
+  worstLoss: {
+    rival: 'Rival F',
+    tournament: 'Copa',
+    date: '2021-03-10',
+    score: '0-4'
+  },
+  rivalMostGoalsFor: { name: 'Rival G', totalGoals: 30 },
+  rivalMostGoalsAgainst: { name: 'Rival H', totalGoals: 20 },
+  topScorer: { name: 'Juan Perez', goals: 45 }
+} ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/components/pages/stats/StatsHeader.spec.ts > StatsHeader > handles null values gracefully
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <StatsHeader summary= {
+  totalGames: 100,
+  totalWins: 60,
+  totalLosses: 25,
+  totalDraws: 15,
+  totalGoalsFor: 200,
+  totalGoalsAgainst: 120,
+  winRate: 60,
+  rivalMostPlayed: { name: '', count: 0 },
+  rivalMostWins: { name: 'Rival B', count: 15 },
+  rivalMostLosses: { name: 'Rival C', count: 8 },
+  rivalMostDraws: { name: 'Rival D', count: 5 },
+  bestWin: {
+    rival: 'Rival E',
+    tournament: 'Liga',
+    date: '2022-05-01',
+    score: '5-0'
+  },
+  worstLoss: {
+    rival: 'Rival F',
+    tournament: 'Copa',
+    date: '2021-03-10',
+    score: '0-4'
+  },
+  rivalMostGoalsFor: { name: 'Rival G', totalGoals: 30 },
+  rivalMostGoalsAgainst: { name: 'Rival H', totalGoals: 20 },
+  topScorer: { name: '', goals: 0 }
+} ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/components/pages/stats/StatsHeader.spec.ts > StatsHeader > renders empty state when summary is null
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <StatsHeader summary=null ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ ✓ tests/unit/components/pages/stats/StatsHeader.spec.ts  (12 tests) 43ms
+ ✓ tests/components/RegisterForm.test.ts  (9 tests) 59ms
+ ✓ tests/components/PlayerCard.test.ts  (7 tests) 23ms
+ ✓ tests/unit/google-callback.test.ts  (3 tests) 18ms
+ ✓ tests/components/ConfirmationModal.test.ts  (6 tests) 38ms
+stderr | tests/unit/register-submit.test.ts > register submit > calls authStore.register and shows the pending approval banner
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <BackButton to="/" label="Volver al sitio" > 
+  at <Login ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/register-submit.test.ts > register submit > shows error message when registration fails
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <BackButton to="/" label="Volver al sitio" > 
+  at <Login ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/register-submit.test.ts > register submit > returns to login mode after successful registration
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <BackButton to="/" label="Volver al sitio" > 
+  at <Login ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ ✓ tests/unit/register-submit.test.ts  (3 tests) 44ms
+ ✓ src/composables/usePlaygrounds.test.ts  (4 tests) 6ms
+ ✓ tests/unit/profile-components.test.ts  (7 tests) 204ms
+stderr | tests/unit/login-page.test.ts > login page mode toggle > shows login mode by default and keeps Google sign-in visible
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <BackButton to="/" label="Volver al sitio" > 
+  at <Login ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/login-page.test.ts > login page mode toggle > switches to register mode and back when toggle is clicked
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <BackButton to="/" label="Volver al sitio" > 
+  at <Login ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/login-page.test.ts > login page mode toggle > starts in register mode when query mode=register
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <BackButton to="/" label="Volver al sitio" > 
+  at <Login ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ ✓ tests/unit/login-page.test.ts  (3 tests) 38ms
+ ✓ tests/components/PlaygroundSelect.test.ts  (4 tests) 24ms
+stderr | tests/unit/onboarding-page.test.ts > onboarding page > renders player checkbox defaulted to checked
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <Onboarding ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <BackButton to="/login" label="Volver" > 
+  at <Onboarding ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/onboarding-page.test.ts > onboarding page > shows position and jersey fields when isPlayer is checked
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <Onboarding ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <BackButton to="/login" label="Volver" > 
+  at <Onboarding ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ ✓ tests/unit/components/pages/stats/StatsTableByPlayer.spec.ts  (5 tests) 28ms
+ ✓ tests/components/JerseyNumberInput.test.ts  (8 tests) 40ms
+stderr | tests/unit/onboarding-page.test.ts > onboarding page > hides position and jersey fields when isPlayer is unchecked
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <Onboarding ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <BackButton to="/login" label="Volver" > 
+  at <Onboarding ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ ✓ tests/components/PlayerDeleteModal.test.ts  (5 tests) 26ms
+stderr | tests/unit/onboarding-page.test.ts > onboarding page > hides position and jersey fields when isPlayer is unchecked
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <Onboarding ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | tests/unit/onboarding-page.test.ts > onboarding page > redirects to /login if not authenticated
+[Vue warn]: Failed to resolve component: UiJerseyNumberInput
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <Onboarding ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <BackButton to="/login" label="Volver" > 
+  at <Onboarding ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ ✓ tests/unit/components/pages/stats/StatsTableByYear.spec.ts  (4 tests) 22ms
+ ❯ tests/unit/onboarding-page.test.ts  (4 tests | 1 failed) 50ms
+   ❯ tests/unit/onboarding-page.test.ts > onboarding page > shows position and jersey fields when isPlayer is checked
+     → expected false to be true // Object.is equality
+ ✓ tests/components/LoginForm.test.ts  (6 tests) 28ms
+ ✓ tests/components/SignupPlayerTable.wave4.test.ts  (2 tests) 23ms
+ ✓ tests/unit/admin-games-create.wave4.test.ts  (3 tests) 3ms
+ ✓ tests/unit/components/pages/stats/StatsTableByTournament.spec.ts  (4 tests) 19ms
+ ✓ tests/unit/admin-playgrounds-confirmation.test.ts  (2 tests) 1ms
+stderr | tests/unit/login-regression.test.ts > login regression > keeps legacy email/password login flow working
+[Vue warn]: Failed to resolve component: NuxtLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <BackButton to="/" label="Volver al sitio" > 
+  at <Login ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ ✓ tests/unit/admin-teams-confirmation.test.ts  (2 tests) 3ms
+ ✓ tests/unit/login-regression.test.ts  (1 test) 28ms
+ ✓ tests/unit/admin-games-confirmation.test.ts  (2 tests) 2ms
+ ✓ tests/components/JerseySvg.test.ts  (4 tests) 31ms
+ ✓ tests/unit/admin-tournaments-confirmation.test.ts  (2 tests) 2ms
+ ✓ tests/unit/components/pages/stats/StatsTableByRival.spec.ts  (3 tests) 16ms
+ ✓ tests/unit/register-form.test.ts  (1 test) 10ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/components/ProfileEditForm.test.ts > ProfileEditForm > renders all editable fields
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/components/ProfileEditForm.test.ts:87:57
+     85|     expect(wrapper.find("#profile-nickname").exists()).toBe(true);
+     86|     expect(wrapper.find("#profile-position").exists()).toBe(true);
+     87|     expect(wrapper.find("#jerseyNumberInput").exists()).toBe(true);
+       |                                                         ^
+     88|     expect(wrapper.find("#profile-dateOfBirth").exists()).toBe(true);
+     89|     expect(wrapper.find("#profile-address").exists()).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/components/ProfileEditForm.test.ts > ProfileEditForm > shows jersey available ranges hint
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/components/ProfileEditForm.test.ts:122:27
+    120|     });
+    121|     const hint = wrapper.find("[data-testid='jersey-available-hint']");
+    122|     expect(hint.exists()).toBe(true);
+       |                           ^
+    123|     // Available ranges should exclude 7 and 10
+    124|     expect(hint.text()).not.toContain("7");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/components/ProfileEditForm.test.ts > ProfileEditForm > emits jerseyChange when jersey number is updated
+Error: Cannot call setValue on an empty DOMWrapper.
+ ❯ Object.get ../../node_modules/@vue/test-utils/dist/vue-test-utils.cjs.js:1495:27
+    1493|                     return () => false;
+    1494|                 default:
+    1495|                     throw new Error(`Cannot call ${String(prop)} on an…
+       |                           ^
+    1496|             }
+    1497|         }
+ ❯ tests/components/ProfileEditForm.test.ts:216:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/unit/onboarding-page.test.ts > onboarding page > shows position and jersey fields when isPlayer is checked
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/unit/onboarding-page.test.ts:75:57
+     73|     await flushPromises();
+     74|     expect(wrapper.find("#position").exists()).toBe(true);
+     75|     expect(wrapper.find("#jerseyNumberInput").exists()).toBe(true);
+       |                                                         ^
+     76|   });
+     77| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+ Test Files  2 failed | 41 passed (43)
+      Tests  4 failed | 346 passed (350)
+   Start at  03:36:08
+   Duration  2.42s (transform 2.01s, setup 3.67s, collect 3.71s, tests 1.56s, environment 7.76s, prepare 2.80s)
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/diegomartinmarmol/Syncthing/Projects/personal/ministrosfc/packages/frontend
+npm error workspace @ministrosfc/frontend@0.12.0
+npm error location /Users/diegomartinmarmol/Syncthing/Projects/personal/ministrosfc/packages/frontend
+npm error command failed
+npm error command sh -c vitest --run

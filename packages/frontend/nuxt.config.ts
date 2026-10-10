@@ -1,13 +1,23 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  future: { compatibilityVersion: 4 },
   srcDir: "src/",
   devtools: { enabled: true },
 
-  modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt", "@nuxt/image", "@nuxt/ui"],
+  modules: [
+    "@pinia/nuxt",
+    "@nuxt/image",
+    "@nuxt/ui",
+    /** "@nuxtjs/color-mode", */
+  ],
+
+  ui: {
+    colorMode: false,
+  },
 
   css: [
-    "leaflet/dist/leaflet.css",
-    "vue-select/dist/vue-select.css",
+    // "leaflet/dist/leaflet.css",
+    // "vue-select/dist/vue-select.css",
     "~/assets/base.css",
   ],
 
@@ -15,14 +25,7 @@ export default defineNuxtConfig({
     public: {
       apiBaseUrl:
         process.env.NUXT_PUBLIC_API_BASE_URL ?? "http://localhost:5102",
-      brandColor: process.env.NUXT_PUBLIC_BRAND_COLOR ?? "#D4AF37",
-      teamName: process.env.NUXT_PUBLIC_TEAM_NAME ?? "Ministros F.C.",
     },
-  },
-
-  tailwindcss: {
-    configPath: "~/tailwind.config.js",
-    exposeConfig: true,
   },
 
   // Server-side rendering enabled for public SEO
@@ -33,10 +36,17 @@ export default defineNuxtConfig({
   // overrides without changing the local .env workflow.
   nitro: {
     port: parseInt(
-      process.env.NITRO_PORT ?? process.env.PORT ?? process.env.NUXT_PORT ?? "5103",
+      process.env.NITRO_PORT ??
+        process.env.PORT ??
+        process.env.NUXT_PORT ??
+        "5103",
       10,
     ),
-    host: process.env.NITRO_HOST ?? process.env.HOST ?? process.env.NUXT_HOST ?? "0.0.0.0",
+    host:
+      process.env.NITRO_HOST ??
+      process.env.HOST ??
+      process.env.NUXT_HOST ??
+      "0.0.0.0",
   },
 
   // Bind the Vite dev server to the configured host.
@@ -88,5 +98,16 @@ export default defineNuxtConfig({
 
   experimental: {
     appManifest: false,
+  },
+
+  colorMode: {
+    // Use an app-specific key to avoid stale values from previous runs on the same origin.
+    storageKey: "ministrosfc-color-mode",
+    preference: "light",
+    fallback: "light",
+  },
+
+  ui: {
+    colorMode: false,
   },
 });

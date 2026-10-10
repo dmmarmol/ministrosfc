@@ -13,6 +13,7 @@ module.exports = {
     useNuxtApp: "readonly",
     defineNuxtPlugin: "readonly",
     defineNuxtRouteMiddleware: "readonly",
+    definePageMeta: "readonly",
     navigateTo: "readonly",
     useFetch: "readonly",
     useAsyncData: "readonly",
@@ -25,6 +26,7 @@ module.exports = {
   },
   extends: ["eslint:recommended"],
   rules: {
+    "no-admin-composable-outside-admin": "error",
     "no-unused-vars": [
       "warn",
       { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
@@ -42,6 +44,18 @@ module.exports = {
         ],
         "@typescript-eslint/no-explicit-any": "warn",
         "no-unused-vars": "off",
+      },
+    },
+    {
+      files: ["**/*.vue", "**/*.ts"],
+      parser: "vue-eslint-parser",
+      parserOptions: {
+        parser: "@typescript-eslint/parser",
+        ecmaVersion: 2020,
+        sourceType: "module",
+      },
+      rules: {
+        "no-admin-composable-outside-admin": "error",
       },
     },
     {

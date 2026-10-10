@@ -38,8 +38,8 @@ watch(
 
 <template>
   <div>
-    <div class="flex flex-wrap gap-3 mb-6">
-      <YearSelect v-model="yearFilter" />
+    <div class="flex gap-3 mb-6">
+      <YearSelect v-model="yearFilter" class="w-1/4" />
     </div>
     <StatsTitle>Estadísticas del Equipo</StatsTitle>
     <StatsTableByYear :rows="rows" :loading="pending" />

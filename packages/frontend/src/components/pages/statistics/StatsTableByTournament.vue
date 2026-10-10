@@ -1,57 +1,144 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { type TeamStatPeriodDTO } from "@ministrosfc/shared";
 import { formatStatDate } from "~/utils/stats";
 import type { ColumnDef } from "~/types/table";
+import {
+  cellWins,
+  cellLosses,
+  cellDraws,
+  cellGoalDiff,
+  cellPercent,
+  cellRate,
+  cellTruncated,
+} from "~/components/ui/Table/table-utils";
+
+type TournamentRow = {
+  tournament: string;
+  year: string;
+  period: string;
+  playgroundName: string;
+  games: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDiff: number;
+  goalRateFor: number;
+  goalRateAgainst: number;
+  points: number;
+  winRate: number;
+};
 
 const props = defineProps<{
   rows: TeamStatPeriodDTO[];
   loading: boolean;
 }>();
 
-const columns: ColumnDef[] = [
-  { key: "tournament", label: "Torneo", title: "Torneo", sortable: true },
-  { key: "year", label: "Año", title: "Año", sortable: true },
-  { key: "period", label: "Período", title: "Período", sortable: false },
-  { key: "games", label: "PJ", title: "Partidos Jugados", sortable: true },
-  { key: "wins", label: "PG", title: "Partidos Ganados", sortable: true },
-  { key: "losses", label: "PP", title: "Partidos Perdidos", sortable: true },
-  { key: "draws", label: "PE", title: "Partidos Empatados", sortable: true },
-  { key: "goalsFor", label: "GF", title: "Goles a Favor", sortable: true },
+const columns: ColumnDef<TournamentRow>[] = [
   {
-    key: "goalsAgainst",
-    label: "GC",
+    accessorKey: "tournament",
+    header: "Torneo",
+    title: "Torneo",
+    sortable: true,
+  },
+  {
+    accessorKey: "year",
+    header: "Año",
+    title: "Año",
+    sortable: true,
+  },
+  {
+    accessorKey: "playgroundName",
+    header: "Cancha",
+    title: "Cancha",
+    sortable: true,
+    cell: ({ row }) => {
+      return h(
+        "p",
+        { title: row.getValue("playgroundName"), class: "max-w-48" },
+        cellTruncated(row.getValue("playgroundName")),
+      );
+    },
+  },
+  {
+    accessorKey: "period",
+    header: "Período",
+    title: "Período",
+    sortable: false,
+  },
+  {
+    accessorKey: "games",
+    header: "PJ",
+    title: "Partidos Jugados",
+    sortable: true,
+  },
+  {
+    accessorKey: "wins",
+    header: "PG",
+    title: "Partidos Ganados",
+    sortable: true,
+    cell: ({ row }) => cellWins(row.getValue("wins")),
+  },
+  {
+    accessorKey: "losses",
+    header: "PP",
+    title: "Partidos Perdidos",
+    sortable: true,
+    cell: ({ row }) => cellLosses(row.getValue("losses")),
+  },
+  {
+    accessorKey: "draws",
+    header: "PE",
+    title: "Partidos Empatados",
+    sortable: true,
+    cell: ({ row }) => cellDraws(row.getValue("draws")),
+  },
+  {
+    accessorKey: "goalsFor",
+    header: "GF",
+    title: "Goles a Favor",
+    sortable: true,
+  },
+  {
+    accessorKey: "goalsAgainst",
+    header: "GC",
     title: "Goles en Contra",
     sortable: true,
   },
   {
-    key: "goalDiff",
-    label: "DG",
+    accessorKey: "goalDiff",
+    header: "DG",
     title: "Diferencia de Goles",
     sortable: true,
+    cell: ({ row }) => cellGoalDiff(row.getValue("goalDiff")),
   },
   {
-    key: "goalRateFor",
-    label: "GRF",
+    accessorKey: "goalRateFor",
+    header: "GRF",
     title: "Ritmo Goleador a Favor",
     sortable: true,
+    cell: ({ row }) => cellRate(row.getValue("goalRateFor")),
   },
   {
-    key: "goalRateAgainst",
-    label: "GRC",
+    accessorKey: "goalRateAgainst",
+    header: "GRC",
     title: "Ritmo Goleador en Contra",
     sortable: true,
+    cell: ({ row }) => cellRate(row.getValue("goalRateAgainst")),
   },
-  { key: "points", label: "PTS", title: "Puntos", sortable: true },
+  { accessorKey: "points", header: "PTS", title: "Puntos", sortable: true },
   {
-    key: "winRate",
-    label: "Win%",
+    accessorKey: "winRate",
+    header: "Win%",
     title: "Porcentaje de Victorias",
     sortable: true,
+    cell: ({ row }) => cellPercent(row.getValue("winRate")),
   },
 ];
 
-const tableRows = computed(() =>
+const tableRows = computed((): TournamentRow[] =>
   props.rows.map((row) => ({
     tournament: row.label,
     year: row.periodStart ? row.periodStart.slice(0, 4) : "—",
@@ -59,6 +146,7 @@ const tableRows = computed(() =>
       row.periodStart && row.periodEnd
         ? `${formatStatDate(row.periodStart)} – ${formatStatDate(row.periodEnd)}`
         : "—",
+    playgroundName: row.playgroundName ?? "—",
     games: row.gamesPlayed,
     wins: row.wins,
     losses: row.losses,
@@ -72,40 +160,15 @@ const tableRows = computed(() =>
     winRate: row.winRate,
   })),
 );
+
+const sorting = ref([{ id: "year", desc: true }]);
 </script>
 
 <template>
-  <UiStatsTable :columns="columns" :rows="tableRows" :loading="loading">
-    <template #wins-data="{ row }">
-      <span class="text-green-600">{{ row.wins }}</span>
-    </template>
-    <template #losses-data="{ row }">
-      <span class="text-red-500">{{ row.losses }}</span>
-    </template>
-    <template #draws-data="{ row }">
-      <span class="text-yellow-500">{{ row.draws }}</span>
-    </template>
-    <template #goalDiff-data="{ row }">
-      <span
-        :class="
-          Number(row.goalDiff) > 0
-            ? 'text-green-600'
-            : Number(row.goalDiff) < 0
-              ? 'text-red-500'
-              : ''
-        "
-      >
-        {{ Number(row.goalDiff) > 0 ? "+" : "" }}{{ row.goalDiff }}
-      </span>
-    </template>
-    <template #goalRateFor-data="{ row }">
-      {{ Number(row.goalRateFor).toFixed(2) }}
-    </template>
-    <template #goalRateAgainst-data="{ row }">
-      {{ Number(row.goalRateAgainst).toFixed(2) }}
-    </template>
-    <template #winRate-data="{ row }">
-      {{ Number(row.winRate).toFixed(1) }}%
-    </template>
-  </UiStatsTable>
+  <UTable
+    v-model:sorting="sorting"
+    :data="tableRows"
+    :columns="columns"
+    :loading="loading"
+  />
 </template>

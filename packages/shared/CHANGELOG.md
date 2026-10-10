@@ -11,6 +11,20 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.12.0] — 2026-05-03
+
+### Added
+
+- `RegistrationStatus` enum (`PENDING_APPROVAL | APPROVED | DENIED`) and `ApprovalDecisionType` enum (`APPROVE_NO_MERGE | APPROVE_WITH_MERGE`) in `src/types/user.ts`.
+- `NotificationRecipient`, `NotificationSender`, and `NotificationSenderFactory` interfaces in new `src/types/notification.ts` — transport-agnostic contract for approval-flow email notifications.
+- `PendingApprovalQueueItem`, `RelatedPlayerSuggestion`, `OrphanPlayerItem`, and `MergeResolution` DTOs in new `src/types/approval.ts` — shared API contract between CMS approval endpoints and frontend review UI.
+- `OPTION_FILTER_ALL` constant (`"ALL"`) in `src/constants/players.ts` for position filter dropdowns that include an all-positions option.
+
+### Changed
+
+- No public API additions were required in this release; package version advanced to keep the shared workspace aligned with the monorepo `0.11.0` release.
+- Shared player/position contracts continue to serve as the source of truth for the CMS import/auth flows and the frontend runtime.
+
 ## [0.10.0] — 2026-04-21
 
 ### Added

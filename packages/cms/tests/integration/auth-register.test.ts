@@ -25,20 +25,16 @@ describe("Auth register (integration)", () => {
     lastName: "Pérez",
   };
 
-  it("POST /api/v1/auth/register → 201 with tokens, PLAYER role, and nextStep", async () => {
+  it("POST /api/v1/auth/register → 202 pending without tokens", async () => {
     const res = await request(app)
       .post("/api/v1/auth/register")
       .send(validPayload);
 
-    expect(res.status).toBe(201);
-    expect(res.body.data.accessToken).toBeTruthy();
-    expect(res.body.data.refreshToken).toBeTruthy();
-    expect(res.body.data.user.role).toBe("PLAYER");
-    expect(res.body.data.user.firstName).toBe("Juan");
-    expect(res.body.data.user.lastName).toBe("Pérez");
-    expect(res.body.data.user.email).toBe("nuevo@ministrosfc.test");
-    expect(res.body.data.user.onboardingCompletedAt).toBeNull();
-    expect(res.body.data.nextStep).toBe("/auth/onboarding");
+    expect(res.status).toBe(202);
+    expect(res.body.data.status).toBe("pending");
+    expect(res.body.data.message).toContain("pendiente de aprobación");
+    expect(res.body.data.accessToken).toBeUndefined();
+    expect(res.body.data.refreshToken).toBeUndefined();
   });
 
   it("does NOT auto-create Player record (deferred to onboarding)", async () => {
@@ -46,7 +42,7 @@ describe("Auth register (integration)", () => {
       .post("/api/v1/auth/register")
       .send(validPayload);
 
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(202);
 
     const user = await prisma.user.findUnique({
       where: { email: validPayload.email },
@@ -64,8 +60,8 @@ describe("Auth register (integration)", () => {
       .post("/api/v1/auth/register")
       .send({ ...validPayload, isPlayer: false });
 
-    expect(res.status).toBe(201);
-    expect(res.body.data.user.role).toBe("PLAYER");
+    expect(res.status).toBe(202);
+    expect(res.body.data.status).toBe("pending");
   });
 
   it("returns 409 for duplicate email", async () => {
@@ -120,15 +116,14 @@ describe("Auth register (integration)", () => {
     expect(res.status).toBe(400);
   });
 
-  it("registered user can login with same credentials", async () => {
+  it("registered user cannot login until approved", async () => {
     await request(app).post("/api/v1/auth/register").send(validPayload);
 
     const res = await request(app)
       .post("/api/v1/auth/login")
       .send({ email: validPayload.email, password: validPayload.password });
 
-    expect(res.status).toBe(200);
-    expect(res.body.data.user.firstName).toBe("Juan");
-    expect(res.body.data.user.lastName).toBe("Pérez");
+    expect(res.status).toBe(403);
+    expect(res.body.code).toBe("PENDING_APPROVAL");
   });
 });

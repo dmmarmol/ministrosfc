@@ -2,7 +2,7 @@
 definePageMeta({ public: true });
 useHead({ title: "Roster – Ministros FC" });
 
-import { PlayerStatus } from "@ministrosfc/shared";
+import { OPTION_FILTER_ALL, PlayerStatus } from "@ministrosfc/shared";
 import { useAuthStore } from "~/stores/auth";
 
 const { $api } = useNuxtApp();
@@ -10,7 +10,9 @@ const authStore = useAuthStore();
 
 const search = ref("");
 const positionFilter = ref("");
-const statusFilter = ref<PlayerStatus | "ALL">(PlayerStatus.ACTIVE);
+const statusFilter = ref<PlayerStatus | typeof OPTION_FILTER_ALL>(
+  PlayerStatus.ACTIVE,
+);
 
 const { data, pending } = await useAsyncData(
   "roster",
@@ -56,7 +58,7 @@ const filteredPlayers = computed(() => {
       >
         <option :value="PlayerStatus.ACTIVE">Activos</option>
         <option :value="PlayerStatus.INACTIVE">Inactivos</option>
-        <option value="ALL">Todos</option>
+        <option :value="OPTION_FILTER_ALL">Todos</option>
       </select>
       <input
         v-model="search"

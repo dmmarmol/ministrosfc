@@ -12,9 +12,9 @@ const emit = defineEmits<{ "year-change": [year: string] }>();
 const statCards = computed(() => {
   const s = props.stats;
   return [
+    { label: "Partidos", value: s?.appearances ?? 0 },
     { label: "Goles", value: s?.goalsScored ?? 0 },
     { label: "Asistencias", value: s?.assists ?? 0 },
-    { label: "Partidos", value: s?.appearances ?? 0 },
     { label: "Tarjetas amarillas", value: s?.yellowCards ?? 0 },
     { label: "Tarjetas rojas", value: s?.redCards ?? 0 },
     // { label: "Minutos", value: s?.totalMinutes ?? 0 },
@@ -41,7 +41,7 @@ function onYearChange(e: Event) {
         </option>
       </select>
     </div>
-    <div v-if="stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+    <div v-if="stats" class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-8">
       <div
         v-for="stat in statCards"
         :key="stat.label"

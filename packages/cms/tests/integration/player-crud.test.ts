@@ -25,9 +25,11 @@ describe("Player CRUD (integration)", () => {
   let adminToken: string;
   let editorToken: string;
   let playerId: string;
+  let dtToken: string;
 
   const adminEmail = `admin-player-${Date.now()}@ministrosfc.test`;
   const editorEmail = `editor-player-${Date.now()}@ministrosfc.test`;
+  const dtEmail = `dt-player-${Date.now()}@ministrosfc.test`;
 
   beforeAll(async () => {
     // Register admin user and manually elevate role
@@ -38,11 +40,11 @@ describe("Player CRUD (integration)", () => {
       firstName: "Admin",
       lastName: "Player Test",
     });
-    expect(reg.status).toBe(201);
+    expect(reg.status).toBe(202);
 
     await prisma.user.update({
       where: { email: adminEmail },
-      data: { role: "ADMIN" },
+      data: { role: "ADMIN", registrationStatus: "APPROVED" },
     });
 
     const loginAdmin = await request(app)
@@ -58,17 +60,36 @@ describe("Player CRUD (integration)", () => {
       firstName: "Editor",
       lastName: "Player Test",
     });
-    expect(regEditor.status).toBe(201);
+    expect(regEditor.status).toBe(202);
 
     await prisma.user.update({
       where: { email: editorEmail },
-      data: { role: "EDITOR" },
+      data: { role: "EDITOR", registrationStatus: "APPROVED" },
     });
 
     const loginEditor = await request(app)
       .post("/api/v1/auth/login")
       .send({ email: editorEmail, password: "Editor!Secret99" });
     editorToken = loginEditor.body.data.accessToken;
+
+    const regDt = await request(app).post("/api/v1/auth/register").send({
+      email: dtEmail,
+      password: "Dt!Secret99",
+      passwordConfirmation: "Dt!Secret99",
+      firstName: "DT",
+      lastName: "Player Test",
+    });
+    expect(regDt.status).toBe(202);
+
+    await prisma.user.update({
+      where: { email: dtEmail },
+      data: { role: "DT", registrationStatus: "APPROVED" },
+    });
+
+    const loginDt = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: dtEmail, password: "Dt!Secret99" });
+    dtToken = loginDt.body.data.accessToken;
   });
 
   it("POST /api/v1/players → 201 creates player (admin)", async () => {
@@ -94,6 +115,55 @@ describe("Player CRUD (integration)", () => {
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body.data)).toBe(true);
     expect(res.body.meta).toHaveProperty("total");
+  });
+
+  it("GET /api/v1/players with extend → 401 without authentication", async () => {
+    const res = await request(app).get(
+      "/api/v1/players?extend=invitedById&extend=invitedByName",
+    );
+
+    expect(res.status).toBe(401);
+  });
+
+  it("GET /api/v1/players with extend → 403 for DT role", async () => {
+    const res = await request(app)
+      .get("/api/v1/players?extend=invitedById&extend=invitedByName")
+      .set("Authorization", `Bearer ${dtToken}`);
+
+    expect(res.status).toBe(403);
+  });
+
+  it("GET /api/v1/players with extend → 200 returns invitedBy fields for editor", async () => {
+    const inviterRes = await request(app)
+      .post("/api/v1/players")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .field("firstName", "Carlos")
+      .field("lastName", "Invitador")
+      .field("playerType", "REGISTERED");
+    expect(inviterRes.status).toBe(201);
+
+    const guestRes = await request(app)
+      .post("/api/v1/players")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .field("firstName", "Invitado")
+      .field("lastName", "Prueba")
+      .field("playerType", "GUEST")
+      .field("invitedById", inviterRes.body.data.id);
+    expect(guestRes.status).toBe(201);
+
+    const res = await request(app)
+      .get("/api/v1/players?extend=invitedById&extend=invitedByName")
+      .set("Authorization", `Bearer ${editorToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.headers["cache-control"]).toBe("private, no-store");
+
+    const guest = res.body.data.find(
+      (p: any) => p.id === guestRes.body.data.id,
+    );
+    expect(guest).toBeTruthy();
+    expect(guest.invitedById).toBe(inviterRes.body.data.id);
+    expect(guest.invitedByName).toBe("Carlos Invitador");
   });
 
   it("GET /api/v1/players/:id → 200 returns player detail", async () => {
@@ -154,6 +224,26 @@ describe("Player CRUD (integration)", () => {
   it("GET /api/v1/players?status=INACTIVE → shows inactive player (auth required)", async () => {
     const res = await request(app)
       .get("/api/v1/players?status=INACTIVE")
+      .set("Authorization", `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(200);
+    const found = res.body.data.find((p: any) => p.id === playerId);
+    expect(found).toBeTruthy();
+  });
+
+  it("GET /api/v1/players?status=ALL → includes inactive player", async () => {
+    const res = await request(app)
+      .get("/api/v1/players?status=ALL")
+      .set("Authorization", `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(200);
+    const found = res.body.data.find((p: any) => p.id === playerId);
+    expect(found).toBeTruthy();
+  });
+
+  it("GET /api/v1/players?status= → includes inactive player (empty treated as ALL)", async () => {
+    const res = await request(app)
+      .get("/api/v1/players?status=")
       .set("Authorization", `Bearer ${adminToken}`);
 
     expect(res.status).toBe(200);

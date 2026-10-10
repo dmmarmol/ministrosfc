@@ -5,6 +5,14 @@ import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
 import { getRedisClient } from "../config/redis";
 import { PlayerStatus } from "@prisma/client";
+import type { TopScorerDTO } from "@ministrosfc/shared";
+import type {
+  TeamStatsFiltersByYear,
+  TeamStatsFiltersByTournament,
+  TeamStatsFiltersByRival,
+  RivalBreakdownFilters,
+  AggregatePlayersAllFilters,
+} from "../types/statistics";
 
 const CACHE_TTL = 300; // 5 min
 
@@ -43,12 +51,17 @@ const StatisticsService = {
     return { player, stats, availableYears };
   },
 
+  async getAllPlayerStats(filters?: AggregatePlayersAllFilters) {
+    const key = `cache:stats:players:all:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}:${filters?.tournamentName ?? "all"}:${filters?.playerId ?? "all"}:${filters?.status ?? "all"}`;
+    return withCache(key, () => StatisticsModel.aggregatePlayersAll(filters));
+  },
+
   async getTopScorers(
     tournamentId?: string,
     limit = 10,
     status?: PlayerStatus,
     year?: number,
-  ) {
+  ): Promise<TopScorerDTO[]> {
     const cacheKey = `cache:stats:topscorers:${tournamentId ?? "all"}:${limit}:${status ?? "all"}:${year ?? "all"}`;
     return withCache(cacheKey, () =>
       StatisticsModel.getTopScorers(tournamentId, limit, status, year),
@@ -106,40 +119,24 @@ const StatisticsService = {
     return withCache("cache:stats:years", () => StatisticsModel.getGameYears());
   },
 
-  async getTeamStatsByYear(filters?: {
-    tournamentId?: string;
-    rivalId?: string;
-  }) {
+  async getTeamStatsByYear(filters?: TeamStatsFiltersByYear) {
     const key = `cache:stats:team:year:${filters?.tournamentId ?? "all"}:${filters?.rivalId ?? "all"}`;
     return withCache(key, () => StatisticsModel.aggregateTeamByYear(filters));
   },
 
-  async getTeamStatsByTournament(filters?: {
-    year?: number;
-    rivalId?: string;
-    tournamentName?: string;
-    playgroundId?: string;
-  }) {
+  async getTeamStatsByTournament(filters?: TeamStatsFiltersByTournament) {
     const key = `cache:stats:team:tournament:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}:${filters?.tournamentName ?? "all"}:${filters?.playgroundId ?? "all"}`;
     return withCache(key, () =>
       StatisticsModel.aggregateTeamByTournament(filters),
     );
   },
 
-  async getTeamStatsByRival(filters?: {
-    year?: number;
-    tournamentId?: string;
-    tournamentName?: string;
-    rivalId?: string;
-  }) {
+  async getTeamStatsByRival(filters?: TeamStatsFiltersByRival) {
     const key = `cache:stats:team:rival:${filters?.year ?? "all"}:${filters?.tournamentId ?? "all"}:${filters?.tournamentName ?? "all"}:${filters?.rivalId ?? "all"}`;
     return withCache(key, () => StatisticsModel.aggregateTeamByRival(filters));
   },
 
-  async getRivalStats(
-    rivalId: string,
-    filters?: { year?: number; playgroundId?: string },
-  ) {
+  async getRivalStats(rivalId: string, filters?: RivalBreakdownFilters) {
     const key = `cache:stats:team:rival:${rivalId}:${filters?.year ?? "all"}:${filters?.playgroundId ?? "all"}`;
     return withCache(key, () =>
       StatisticsModel.getRivalBreakdown(rivalId, filters),
@@ -151,17 +148,6 @@ const StatisticsService = {
     return withCache(key, () =>
       StatisticsModel.getPlayerRivalBreakdown(playerId),
     );
-  },
-
-  async getAllPlayerStats(filters?: {
-    year?: number;
-    rivalId?: string;
-    tournamentName?: string;
-    playerId?: string;
-    status?: PlayerStatus;
-  }) {
-    const key = `cache:stats:players:all:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}:${filters?.tournamentName ?? "all"}:${filters?.playerId ?? "all"}:${filters?.status ?? "all"}`;
-    return withCache(key, () => StatisticsModel.aggregatePlayersAll(filters));
   },
 };
 
