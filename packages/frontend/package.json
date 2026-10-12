@@ -17,7 +17,7 @@
     },
     "dependencies": {
         "@heroicons/vue": "^2.2.0",
-        "@ministrosfc/shared": "^0.11.0",
+        "@ministrosfc/shared": "^0.12.0",
         "@nuxt/image": "^1.1.0",
         "@nuxt/ui": "4.7.1",
         "@pinia/nuxt": "^0.5.1",
