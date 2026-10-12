@@ -70,9 +70,9 @@ const pageTitle = computed(() => {
     <!-- Main content -->
     <div class="flex-1 flex flex-col overflow-hidden">
       <header
-        class="bg-white shadow-sm px-6 py-4 flex items-center justify-between"
+        class="bg-white shadow-sm px-6 py-4 flex items-center justify-end"
       >
-        <h1 class="text-lg font-semibold text-gray-800">{{ pageTitle }}</h1>
+        <!-- <h1 class="text-lg font-semibold text-gray-800">{{ pageTitle }}</h1> -->
         <div class="flex flex-col text-right">
           <p class="text-sm text-gray-800">
             Bienvenido,

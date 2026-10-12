@@ -53,6 +53,9 @@ function handleShowCreateModal(visibility: boolean): undefined {
   showCreate.value = visibility;
 }
 
+/**
+ * Create Tournament
+ */
 async function createTournament() {
   if (!newT.name || !newT.startDate) {
     createError.value = "Name and start date are required.";
@@ -85,6 +88,9 @@ async function createTournament() {
   }
 }
 
+/**
+ * Delete Tournament
+ */
 function askDeleteTournament(tournamentRow: TournamentRow, event: Event) {
   tournamentToDelete.value = tournamentRow;
   deleteInvoker.value = event.currentTarget as HTMLElement;
@@ -222,85 +228,20 @@ const tableRows = computed((): TournamentRow[] => {
     </div>
 
     <!-- Create modal -->
-    <div
-      v-if="showCreate"
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-    >
-      <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm space-y-4">
-        <h3 class="font-bold text-gray-900">Create Tournament</h3>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1"
-            >Name *</label
-          >
-          <input
-            v-model="newT.name"
-            required
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1"
-            >Format</label
-          >
-          <select
-            v-model="newT.format"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-          >
-            <option value="LEAGUE">League</option>
-            <option value="CUP">Cup</option>
-            <option value="SEASON">Season</option>
-            <option value="FRIENDLY_SERIES">Friendly Series</option>
-          </select>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1"
-              >Start Date *</label
-            >
-            <input
-              v-model="newT.startDate"
-              type="date"
-              required
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1"
-              >End Date</label
-            >
-            <input
-              v-model="newT.endDate"
-              type="date"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-            />
-          </div>
-        </div>
-        <p v-if="createError" class="text-sm text-red-600">{{ createError }}</p>
-        <div class="flex gap-3">
-          <UButton
-            :disabled="createLoading"
-            color="primary"
-            variant="solid"
-            size="md"
-            class="font-semibold"
-            @click="createTournament"
-          >
-            {{ createLoading ? "Creating…" : "Create" }}
-          </UButton>
-          <UButton
-            variant="ghost"
-            color="gray"
-            size="md"
-            @click="
-              showCreate = false;
-              createError = '';
-            "
-          >
-            Cancel
-          </UButton>
-        </div>
-      </div>
-    </div>
+    <ConfirmationModal
+      :open="showCreate"
+      title="Crear torneo"
+      confirm-text="Crear"
+      cancel-text="Cancelar"
+      :on-confirm="createTournament"
+      :on-cancel="
+        () => {
+          showCreate = false;
+          tournamentToDelete = null;
+        }
+      "
+      @update:open="(value) => (showCreate = value)"
+    />
 
     <!-- UTable -->
     <UTable
