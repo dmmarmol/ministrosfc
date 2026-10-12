@@ -11,7 +11,6 @@
  */
 import { config } from "@vue/test-utils";
 import { computed, defineComponent, h, ref } from "vue";
-import StatsTable from "~/components/ui/StatsTable.vue";
 
 if (!("computed" in globalThis)) {
   Object.assign(globalThis, { computed });
@@ -23,6 +22,25 @@ if (!("h" in globalThis)) {
 
 if (!("ref" in globalThis)) {
   Object.assign(globalThis, { ref });
+}
+
+const UiPositionLabelStub = defineComponent({
+  name: "UiPositionLabel",
+  props: {
+    position: { type: [String, Number, null], default: null },
+  },
+  setup(props) {
+    return () => h("span", props.position ?? "");
+  },
+});
+
+if (!("resolveComponent" in globalThis)) {
+  Object.assign(globalThis, {
+    resolveComponent: (name: string) => {
+      const registry = config.global.components as Record<string, unknown>;
+      return registry[name] ?? name;
+    },
+  });
 }
 
 /**
@@ -86,10 +104,26 @@ const UTableStub = defineComponent({
             "tr",
             cols.map((col) => {
               const key = col.accessorKey ?? col.key ?? "";
+              const customHeader =
+                typeof col.header === "function"
+                  ? col.header({
+                      column: {
+                        getIsSorted: () =>
+                          props.sortKey === key
+                            ? props.sortDir === "asc"
+                              ? "asc"
+                              : "desc"
+                            : false,
+                        toggleSorting: () => emit("sort", key),
+                      },
+                    })
+                  : null;
               const headerLabel =
                 typeof col.header === "string"
                   ? col.header
-                  : (col.label ?? key);
+                  : typeof col.header === "function"
+                    ? String((col as { label?: string }).label ?? key)
+                    : (col.label ?? key);
               const sortIndicator =
                 props.sortKey === key
                   ? props.sortDir === "asc"
@@ -106,12 +140,12 @@ const UTableStub = defineComponent({
                       title: (col as { title?: string }).title,
                       onClick: () => emit("sort", key),
                     },
-                    `${headerLabel}${sortIndicator}`,
+                    customHeader ?? `${headerLabel}${sortIndicator}`,
                   )
                 : h(
                     "span",
                     { title: (col as { title?: string }).title },
-                    headerLabel,
+                    customHeader ?? headerLabel,
                   );
 
               return h(
@@ -290,6 +324,5 @@ config.global.components = {
   UButton: UButtonStub,
   UInput: UInputStub,
   UiUserRoleSelect: UiUserRoleSelectStub,
-  StatsTable,
-  UiStatsTable: StatsTable,
+  UiPositionLabel: UiPositionLabelStub,
 };
