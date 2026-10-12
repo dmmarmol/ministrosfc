@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { type TeamStatPeriodDTO } from "@ministrosfc/shared";
 import { formatStatDate } from "~/utils/stats";
-import type { ColumnDef } from "~/types/table";
+import type { ColumnDef, ColumnSort } from "~/types/table";
 import {
   cellWins,
   cellLosses,
@@ -113,7 +113,7 @@ const tableRows = computed((): YearRow[] =>
   })),
 );
 
-const sorting = ref([{ id: "year", desc: true }]);
+const sorting = ref<ColumnSort<keyof YearRow>[]>([{ id: "year", desc: true }]);
 </script>
 
 <template>

@@ -1,5 +1,7 @@
 import { h, type VNode } from "vue";
-import { NuxtLink } from "#components";
+import { NuxtLink, UButton, UDropdownMenu } from "#components";
+import type { DropdownMenuItem } from "#ui/components/DropdownMenu.vue";
+import type { ArrayOrNested } from "#ui/types/utils";
 
 export function getSortedIcon(sortDirection: "asc" | "desc" | null): string {
   if (sortDirection === "asc") {
@@ -13,6 +15,11 @@ export function getSortedIcon(sortDirection: "asc" | "desc" | null): string {
 }
 
 // ── Shared cell render factories ──────────────────────────────────────────────
+
+/** Name: dark gray text */
+export function cellName(value: string): VNode {
+  return h("span", { class: "text-gray-700" }, String(value));
+}
 
 /** Wins: green text */
 export function cellWins(value: number): VNode {
@@ -76,14 +83,7 @@ export function cellPlayerLink(
     : undefined;
 
   const link = row.playerId
-    ? h(
-        NuxtLink,
-        {
-          class: "font-medium hover:text-brand transition-colors",
-          to: `/players/${row.playerId}`,
-        },
-        () => row.name,
-      )
+    ? cellLink(row.name, `/players/${row.playerId}`)
     : h("span", {}, row.name);
 
   if (!nickname) return link;
@@ -98,7 +98,34 @@ export function cellPlayerLink(
 export function cellLink(value: string, to: string): VNode {
   return h(
     NuxtLink,
-    { class: "font-medium hover:text-brand transition-colors", to },
+    { class: "font-bold hover:text-brand transition-colors", to },
     () => value,
+  );
+}
+
+type CellActionProp = {
+  items: ArrayOrNested<DropdownMenuItem>;
+  onClick?: (event: Event) => void;
+};
+/** Vertical three dots cell, typically used for actions menu */
+export function cellActions(props: CellActionProp): VNode {
+  const { items, onClick } = props;
+  return h(
+    UDropdownMenu,
+    {
+      content: {
+        align: "end",
+      },
+      items,
+      "aria-label": "Actions dropdown",
+      onClick,
+    },
+    () =>
+      h(UButton, {
+        icon: "i-lucide-ellipsis-vertical",
+        color: "neutral",
+        variant: "ghost",
+        "aria-label": "Actions dropdown",
+      }),
   );
 }

@@ -1,6 +1,19 @@
 <script setup lang="ts">
 import { nextTick } from "vue";
 import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
+import type { ColumnDef, ColumnSort } from "~/types/table";
+import { CompetitionType, type Tournament } from "@ministrosfc/shared";
+import { formatDateRange } from "~/utils/stats";
+import {
+  cellActions,
+  cellLink,
+  cellName,
+} from "~/components/ui/Table/table-utils";
+
+type TournamentRow = Pick<
+  Tournament,
+  "id" | "name" | "startDate" | "endDate" | "competitionType"
+>;
 
 definePageMeta({
   layout: "admin",
@@ -15,20 +28,20 @@ const { $api } = useNuxtApp();
 const showCreate = ref(false);
 const newT = reactive({
   name: "",
-  format: "SEASON",
+  format: CompetitionType.SEASON,
   startDate: "",
   endDate: "",
 });
 const createLoading = ref(false);
 const createError = ref("");
-const tournamentToDelete = ref<any | null>(null);
+const tournamentToDelete = ref<TournamentRow | null>(null);
 const deleteModalOpen = ref(false);
 const deleteInvoker = ref<HTMLElement | null>(null);
 
 const { data, pending, refresh } = await useAsyncData("admin-tournaments", () =>
   $api<{ data: any[] }>("/api/v1/tournaments"),
 );
-const tournaments = computed(() => data.value?.data ?? []);
+const tournaments = computed<Tournament[]>(() => data.value?.data ?? []);
 
 watch(deleteModalOpen, (isOpen) => {
   if (!isOpen && deleteInvoker.value) {
@@ -36,13 +49,8 @@ watch(deleteModalOpen, (isOpen) => {
   }
 });
 
-function formatDateRange(start: string, end: string | null): string {
-  const s = new Date(start).toLocaleDateString("en-US", {
-    month: "short",
-    year: "numeric",
-  });
-  if (!end) return `Since ${s}`;
-  return `${s} – ${new Date(end).toLocaleDateString("en-US", { month: "short", year: "numeric" })}`;
+function handleShowCreateModal(visibility: boolean): undefined {
+  showCreate.value = visibility;
 }
 
 async function createTournament() {
@@ -77,15 +85,17 @@ async function createTournament() {
   }
 }
 
-function askDeleteTournament(t: any, event: Event) {
-  tournamentToDelete.value = t;
+function askDeleteTournament(tournamentRow: TournamentRow, event: Event) {
+  tournamentToDelete.value = tournamentRow;
   deleteInvoker.value = event.currentTarget as HTMLElement;
   deleteModalOpen.value = true;
 }
 
-function getDeleteTournamentDescription(tournament: any | null): string {
-  if (!tournament) return "";
-  return `¿Eliminar "${tournament.name}"?`;
+function getDeleteTournamentDescription(
+  tournamentRow: TournamentRow | null,
+): string {
+  if (!tournamentRow) return "";
+  return `¿Eliminar "${tournamentRow.name}"?`;
 }
 
 async function deleteTournament() {
@@ -97,6 +107,87 @@ async function deleteTournament() {
   tournamentToDelete.value = null;
   await refresh();
 }
+
+const columns: ColumnDef<TournamentRow>[] = [
+  {
+    accessorKey: "id",
+  },
+  {
+    accessorKey: "name",
+    header: "Nombre",
+    title: "Nombre del torneo",
+    sortable: true,
+    cell: ({ row }) => {
+      const tournamentId: string = row.getValue("id");
+      const value: string = `${row.getValue("name")}`;
+      return cellLink(value, `/admin/tournaments/${tournamentId}`);
+    },
+  },
+  {
+    accessorKey: "startDate",
+    header: "Fecha",
+    title: "Duracion del torneo",
+    sortable: true,
+    cell: ({ row }) => {
+      const startDate: string = row.getValue("startDate");
+      const endDate: string = row.getValue("endDate");
+      const value = formatDateRange(startDate, endDate);
+      return cellName(value);
+    },
+  },
+  {
+    accessorKey: "endDate",
+  },
+  {
+    id: "actions",
+    header: "Acciones",
+    meta: {
+      class: {
+        th: "text-right",
+        td: "text-right",
+      },
+    },
+    cell: ({ row }) => {
+      const tournamentId: string = row.getValue("id");
+      return cellActions({
+        items: [
+          {
+            type: "label",
+            label: "Acciones",
+          },
+          {
+            label: "Ver torneo",
+            onClick: (event: Event) =>
+              navigateTo(`/admin/tournaments/${tournamentId}`),
+          },
+          {
+            label: "Borrar torneo",
+            onClick: (event: Event) => askDeleteTournament(row.original, event),
+          },
+        ],
+      });
+    },
+  },
+];
+
+const columnVisibility = ref<Partial<Record<keyof TournamentRow, boolean>>>({
+  id: false,
+  endDate: false,
+});
+
+const columnSorting = ref<ColumnSort<keyof TournamentRow>[]>([
+  { id: "startDate", desc: true },
+]);
+
+const tableRows = computed((): TournamentRow[] => {
+  return tournaments.value.map((t) => ({
+    id: t.id,
+    name: t.name,
+    startDate: t.startDate,
+    endDate: t.endDate,
+    competitionType: t.competitionType,
+  }));
+});
 </script>
 
 <template>
@@ -118,15 +209,15 @@ async function deleteTournament() {
     />
 
     <div class="flex items-center justify-between mb-6">
-      <h2 class="text-base font-semibold text-gray-700">Tournaments</h2>
+      <h2 class="text-base font-semibold text-gray-700">Torneos</h2>
       <UButton
         color="primary"
         variant="solid"
         size="md"
         class="font-semibold"
-        @click="showCreate = true"
+        @click="handleShowCreateModal"
       >
-        + Add Tournament
+        + Nuevo torneo
       </UButton>
     </div>
 
@@ -211,73 +302,12 @@ async function deleteTournament() {
       </div>
     </div>
 
-    <!-- Table -->
-    <div
-      class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
-    >
-      <div v-if="pending" class="p-6 space-y-3">
-        <div
-          v-for="i in 4"
-          :key="i"
-          class="h-10 bg-gray-100 animate-pulse rounded"
-        />
-      </div>
-      <table v-else class="w-full text-sm">
-        <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
-          <tr>
-            <th class="px-4 py-3 text-left">Name</th>
-            <th class="px-4 py-3 text-left hidden sm:table-cell">Format</th>
-            <th class="px-4 py-3 text-left hidden sm:table-cell">Dates</th>
-            <th class="px-4 py-3 text-center hidden sm:table-cell">Record</th>
-            <th class="px-4 py-3 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="t in tournaments"
-            :key="t.id"
-            class="border-t border-gray-100 hover:bg-gray-50"
-          >
-            <td class="px-4 py-3 font-medium text-gray-900">{{ t.name }}</td>
-            <td class="px-4 py-3 text-gray-600 capitalize hidden sm:table-cell">
-              {{ t.format?.replace(/_/g, " ").toLowerCase() }}
-            </td>
-            <td class="px-4 py-3 text-gray-600 text-xs hidden sm:table-cell">
-              {{ formatDateRange(t.startDate, t.endDate) }}
-            </td>
-            <td class="px-4 py-3 text-center hidden sm:table-cell">
-              <span
-                v-if="t.ministrosRecord"
-                class="text-xs font-medium text-gray-700"
-              >
-                {{ t.ministrosRecord.wins }}W–{{ t.ministrosRecord.draws }}D–{{
-                  t.ministrosRecord.losses
-                }}L
-              </span>
-            </td>
-            <td class="px-4 py-3 text-right space-x-3">
-              <NuxtLink
-                :to="`/tournaments/${t.id}`"
-                class="text-xs text-blue-500 hover:underline"
-                >View</NuxtLink
-              >
-              <UButton
-                variant="link"
-                color="red"
-                size="xs"
-                @click="askDeleteTournament(t, $event)"
-              >
-                Delete
-              </UButton>
-            </td>
-          </tr>
-          <tr v-if="!tournaments.length">
-            <td colspan="5" class="px-4 py-8 text-center text-gray-500">
-              No tournaments yet.
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <!-- UTable -->
+    <UTable
+      :columns="columns"
+      :data="tableRows"
+      :column-visibility="columnVisibility"
+      :sorting="columnSorting"
+    />
   </div>
 </template>
