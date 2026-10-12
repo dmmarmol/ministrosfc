@@ -148,7 +148,8 @@
     },
     "npx jest": true,
     "npx vitest": true,
-    "node_modules/.bin/jest": true
+    "node_modules/.bin/jest": true,
+    "npx eslint": true
   },
   "jest.virtualFolders": [
     {
