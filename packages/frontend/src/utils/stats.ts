@@ -12,3 +12,25 @@ export function formatStatDate(dateString: string): string {
   const yy = String(d.getFullYear()).slice(-2);
   return `${mm}/${yy}`;
 }
+
+// Shared tournament date formatter used across admin and card views to avoid duplicated component-local logic.
+export function formatDateRange(
+  start: string | null | undefined,
+  end: string | null | undefined,
+): string {
+  if (!start) return "";
+
+  const s = new Date(start).toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric",
+  });
+
+  if (!end) return `Since ${s}`;
+
+  const e = new Date(end).toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric",
+  });
+
+  return `${s} – ${e}`;
+}

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { formatDateRange } from "~/utils/stats";
+
 const props = defineProps<{
   tournament: {
     id: string;
@@ -19,19 +21,6 @@ const props = defineProps<{
 
 function formatFormat(fmt: string): string {
   return fmt.replace(/_/g, " ").toLowerCase();
-}
-
-function formatDateRange(start: string, end: string | null): string {
-  const s = new Date(start).toLocaleDateString("en-US", {
-    month: "short",
-    year: "numeric",
-  });
-  if (!end) return `Since ${s}`;
-  const e = new Date(end).toLocaleDateString("en-US", {
-    month: "short",
-    year: "numeric",
-  });
-  return `${s} – ${e}`;
 }
 
 const gdClass = computed(() => {

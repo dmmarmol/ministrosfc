@@ -159,6 +159,10 @@ npx prisma studio                  # Open Prisma Studio GUI
 
 Whenever a user is writing or updating frontend code, follow these principles written in `.github/skills/web-coder/SKILL.md`
 
+- Before creating a new helper or formatting function at a component level, search the codebase for an existing utility in `packages/frontend/src/utils` or a nearby shared file and reuse it.
+- Do not duplicate date/format/transform logic across components; if a helper already exists, import and reuse it instead of redefining it locally.
+- Prefer shared utility functions over component-local helper declarations when the logic is used in more than one place.
+
 ### Testing Guidelines
 
 Whenever a user is writing or updating Vue & Pinia tests, follow these principles written in `skills/unit-test-vue-pinia`
