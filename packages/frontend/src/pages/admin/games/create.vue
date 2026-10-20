@@ -79,6 +79,8 @@ async function submit() {
     loading.value = false;
   }
 }
+
+const teamItems = teams.value.map((t) => ({ value: t.id, label: t.name }));
 </script>
 
 <template>
@@ -97,16 +99,22 @@ async function submit() {
         <label class="block text-xs font-medium text-gray-700 mb-1"
           >Equipo Rival *</label
         >
-        <select
-          v-model="form.opponentTeamId"
-          required
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-        >
-          <option value="">Seleccionar equipo…</option>
-          <option v-for="t in teams" :key="t.id" :value="t.id">
-            {{ t.name }}
-          </option>
-        </select>
+        <div class="flex gap-x-1">
+          <USelect
+            id="competitionType"
+            v-model="form.opponentTeamId"
+            :items="teamItems"
+            class="w-full"
+            placeholder="Seleccionar Equipo"
+          />
+          <UButton
+            to="/admin/teams/create"
+            variant="solid"
+            color="primary"
+            icon="mdi:shield-plus-outline"
+            >Nuevo</UButton
+          >
+        </div>
       </div>
       <div class="grid grid-cols-2 gap-4">
         <div>

@@ -160,19 +160,16 @@ function submitGuest() {
           />
         </div>
         <!-- "Agregar invitado" trigger — rendered outside DropdownAddMore (plan.md C1 fix) -->
-        <button
+        <UButton
           data-testid="open-guest-form"
-          class="mt-2 self-end text-sm text-brand hover:underline"
-          :class="
-            isInteractionDisabled
-              ? 'opacity-50 cursor-not-allowed hover:no-underline'
-              : ''
-          "
+          to="/admin/players/create"
+          variant="solid"
+          color="primary"
+          icon="mdi:account-plus"
           :disabled="isInteractionDisabled"
           @click="openGuestForm"
+          >Agregar invitado</UButton
         >
-          + Agregar invitado
-        </button>
         <p v-if="proxyError" class="text-xs text-red-600 mt-2">
           {{ proxyError }}
         </p>

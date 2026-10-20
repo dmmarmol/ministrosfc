@@ -179,6 +179,7 @@ const tableRows = computed((): TournamentRow[] => {
         variant="solid"
         size="md"
         class="font-semibold"
+        icon="mdi:trophy"
         to="/admin/tournaments/create"
       >
         Nuevo torneo

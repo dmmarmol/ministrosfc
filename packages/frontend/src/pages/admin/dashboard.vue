@@ -78,7 +78,7 @@ const recentGames = computed(() => recentData.value?.data ?? []);
           variant="solid"
           color="primary"
           icon="mdi:account-plus"
-          >+ Agregar Jugador</UButton
+          >Agregar Jugador</UButton
         >
         <UButton
           to="/admin/games/create"

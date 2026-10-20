@@ -56,9 +56,14 @@ async function submit() {
   <div class="bg-white border border-gray-200 rounded-xl p-4 mb-4">
     <p class="text-sm font-medium text-gray-700 mb-3">Agregar invitado</p>
     <template v-if="!guestMode">
-      <button class="text-sm text-brand hover:underline" @click="open">
-        + Agregar invitado
-      </button>
+      <UButton
+        to="/admin/players/create"
+        variant="solid"
+        color="primary"
+        icon="mdi:account-plus"
+        @click="open"
+        >Agregar invitado</UButton
+      >
     </template>
     <template v-else>
       <div class="space-y-3">

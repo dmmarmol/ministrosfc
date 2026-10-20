@@ -184,7 +184,7 @@ function getResultTone(game: AdminGame): string {
         to="/admin/games/create"
         color="primary"
         variant="solid"
-        icon="mdi:plus"
+        icon="mdi:football-pitch"
       >
         Programar Partido</UButton
       >

@@ -96,9 +96,10 @@ async function deleteTeam() {
         variant="solid"
         size="md"
         class="font-semibold"
+        icon="mdi:shield-plus-outline"
         @click="showCreate = true"
       >
-        + Add Team
+        Nuevo Equipo
       </UButton>
     </div>
 
@@ -108,7 +109,7 @@ async function deleteTeam() {
       class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
     >
       <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm space-y-4">
-        <h3 class="font-bold text-gray-900">Add Team</h3>
+        <h3 class="font-bold text-gray-900">Nuevo Equipo</h3>
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1"
             >Team Name *</label
