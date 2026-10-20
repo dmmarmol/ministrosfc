@@ -53,26 +53,22 @@ const topScorers = computed(() => scorersData.value?.data ?? []);
   <div>
     <!-- Hero -->
     <section
-      class="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-16 px-4 rounded-2xl mb-10"
+      class="bg-gradient-to-br from-primary-100 to-primary-50 text-white py-8 px-8 h-96 rounded-2xl mb-10 flex items-end"
     >
-      <div class="max-w-2xl">
-        <h2 class="text-4xl font-bold mb-3">
+      <div class="max-w-3xl">
+        <h2 class="text-gray-700 dark:text-white text-6xl font-bold mb-3">
           Bienvenido a <span class="text-brand">Ministros FC</span>
         </h2>
-        <p class="text-gray-300 text-lg mb-6">
+        <p class="text-gray-700 dark:text-white text-lg mb-6">
           Seguí al equipo — resultados, plantilla y próximos partidos.
         </p>
         <div class="flex gap-3 flex-wrap">
-          <NuxtLink
-            to="/roster"
-            class="bg-brand text-gray-900 font-semibold px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity"
-            >Ver Plantilla Completa</NuxtLink
-          >
-          <NuxtLink
-            to="/schedule"
-            class="border border-white/30 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-white/10 transition-colors"
-            >Ver Calendario</NuxtLink
-          >
+          <UButton to="/roster" variant="solid" color="primary" size="xl">
+            Ver Plantilla Completa
+          </UButton>
+          <UButton to="/schedule" variant="outline" color="primary" size="xl">
+            Ver Calendario
+          </UButton>
         </div>
       </div>
     </section>

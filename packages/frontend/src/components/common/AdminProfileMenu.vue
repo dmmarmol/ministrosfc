@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { UButton } from "#components";
 import { useAuthStore } from "~/stores/auth";
 
 const authStore = useAuthStore();
@@ -8,6 +9,10 @@ const menuEl = ref<HTMLElement | null>(null);
 function handleLogout() {
   open.value = false;
   authStore.logout();
+}
+
+function closeMenu() {
+  open.value = false;
 }
 
 function handleClickOutside(e: MouseEvent) {
@@ -56,45 +61,50 @@ onUnmounted(() => {
 
     <div
       v-if="open"
-      class="absolute right-0 mt-1 w-52 bg-white rounded shadow-lg py-1 z-50 border border-gray-100"
+      class="absolute right-0 mt-1 bg-white rounded shadow-lg py-1 z-50 border border-gray-100"
     >
-      <NuxtLink
+      <UButton
         v-if="authStore.isEditor"
         to="/admin/dashboard"
-        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-        @click="open = false"
+        variant="ghost"
+        color="neutral"
+        class="w-full"
+        @click="closeMenu"
       >
         Panel
-      </NuxtLink>
-      <NuxtLink
-        v-if="authStore.user?.playerId"
-        to="/profile/player"
-        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-        @click="open = false"
-      >
-        Perfil de Jugador
-      </NuxtLink>
-      <div
-        v-else
-        class="flex flex-col gap-y-1 px-4 py-2 text-sm text-gray-400 cursor-not-allowed"
-      >
-        Perfil de Jugador
-        <span class="text-xs">(no vinculado)</span>
-      </div>
-      <NuxtLink
+      </UButton>
+      <UButton
         to="/profile"
-        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-        @click="open = false"
+        variant="ghost"
+        color="neutral"
+        class="w-full"
+        @click="closeMenu"
       >
         Perfil de Usuario
-      </NuxtLink>
+      </UButton>
+      <UButton
+        :disabled="!authStore.user?.playerId"
+        to="/profile/player"
+        variant="ghost"
+        color="neutral"
+        class="w-full flex whitespace-nowrap"
+        @click="closeMenu"
+      >
+        Perfil de Jugador
+        <span v-if="!authStore.user?.playerId" class="text-xs"
+          >(no vinculado)</span
+        >
+      </UButton>
       <hr class="my-1 border-gray-100" />
-      <button
-        class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 transition-colors"
+      <UButton
+        to="/logout"
+        variant="ghost"
+        color="neutral"
+        class="w-full"
         @click="handleLogout"
       >
         Cerrar sesión
-      </button>
+      </UButton>
     </div>
   </div>
 </template>
