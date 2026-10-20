@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatDateRange } from "~/utils/stats";
+import { formatCompetitionType, formatDateRange } from "~/utils/stats";
 
 const props = defineProps<{
   tournament: {
@@ -19,11 +19,7 @@ const props = defineProps<{
   };
 }>();
 
-function formatFormat(fmt: string): string {
-  return fmt.replace(/_/g, " ").toLowerCase();
-}
-
-const gdClass = computed(() => {
+const goalDifferenceClasses = computed(() => {
   const gd = props.tournament.ministrosRecord?.goalDifference ?? 0;
   if (gd > 0) return "text-green-600";
   if (gd < 0) return "text-red-600";
@@ -42,7 +38,7 @@ const gdClass = computed(() => {
           {{ tournament.name }}
         </p>
         <p class="text-xs text-gray-500 mt-0.5 capitalize">
-          {{ formatFormat(tournament.format) }}
+          {{ formatCompetitionType(tournament.format) }}
         </p>
         <p class="text-xs text-gray-400 mt-1">
           {{ formatDateRange(tournament.startDate, tournament.endDate) }}
@@ -63,7 +59,7 @@ const gdClass = computed(() => {
     >
       <span>⚽ {{ tournament.ministrosRecord.goalsFor }} scored</span>
       <span>🥅 {{ tournament.ministrosRecord.goalsAgainst }} conceded</span>
-      <span class="ml-auto font-semibold" :class="gdClass"
+      <span class="ml-auto font-semibold" :class="goalDifferenceClasses"
         >GD {{ tournament.ministrosRecord.goalDifference >= 0 ? "+" : ""
         }}{{ tournament.ministrosRecord.goalDifference }}</span
       >

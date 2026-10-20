@@ -9,6 +9,7 @@ import {
   cellLink,
   cellName,
 } from "~/components/ui/Table/table-utils";
+import TournamentCompetitionType from "~/components/ui/TournamentCompetitionType.vue";
 
 type TournamentRow = Pick<
   Tournament,
@@ -145,6 +146,16 @@ const columns: ColumnDef<TournamentRow>[] = [
     accessorKey: "endDate",
   },
   {
+    accessorKey: "competitionType",
+    header: "Tipo de competición",
+    title: "Tipo de competición del torneo",
+    sortable: true,
+    cell: ({ row }) => {
+      const value: CompetitionType = row.getValue("competitionType");
+      return h(TournamentCompetitionType, { type: value });
+    },
+  },
+  {
     id: "actions",
     header: "Acciones",
     meta: {
@@ -162,7 +173,7 @@ const columns: ColumnDef<TournamentRow>[] = [
             label: "Acciones",
           },
           {
-            label: "Ver torneo",
+            label: "Editar torneo",
             onClick: (event: Event) =>
               navigateTo(`/admin/tournaments/${tournamentId}`),
           },
@@ -221,27 +232,11 @@ const tableRows = computed((): TournamentRow[] => {
         variant="solid"
         size="md"
         class="font-semibold"
-        @click="handleShowCreateModal"
+        to="/admin/tournaments/create"
       >
-        + Nuevo torneo
+        Nuevo torneo
       </UButton>
     </div>
-
-    <!-- Create modal -->
-    <ConfirmationModal
-      :open="showCreate"
-      title="Crear torneo"
-      confirm-text="Crear"
-      cancel-text="Cancelar"
-      :on-confirm="createTournament"
-      :on-cancel="
-        () => {
-          showCreate = false;
-          tournamentToDelete = null;
-        }
-      "
-      @update:open="(value) => (showCreate = value)"
-    />
 
     <!-- UTable -->
     <UTable

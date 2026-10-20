@@ -34,3 +34,10 @@ export function formatDateRange(
 
   return `${s} – ${e}`;
 }
+
+// Normalizes backend enum-like values (e.g. LEAGUE_CUP) into UI-friendly text.
+export function formatCompetitionType(
+  value: string | null | undefined,
+): string {
+  return value?.replace(/_/g, " ").toWellFormed() ?? "";
+}

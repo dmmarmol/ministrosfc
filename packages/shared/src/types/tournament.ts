@@ -1,5 +1,4 @@
 import { CompetitionType } from "./game";
-
 export { CompetitionType };
 
 export interface Tournament {
@@ -14,16 +13,6 @@ export interface Tournament {
   updatedAt: string;
 }
 
-export interface TournamentCreateDTO {
-  name: string;
-  description?: string;
-  startDate: string;
-  endDate: string;
-  competitionType?: CompetitionType;
-}
-
-export interface TournamentUpdateDTO extends Partial<TournamentCreateDTO> {}
-
 /** Ministros FC record within a tournament (MVP scope: no full league standings) */
 export interface MinistrosRecord {
   tournamentId: string;
@@ -35,4 +24,20 @@ export interface MinistrosRecord {
   goalsAgainst: number;
   goalDifference: number;
   points: number;
+}
+
+export interface TournamentCreatePayload {
+  name: string;
+  description?: string;
+  startDate: string;
+  endDate: string;
+  competitionType?: CompetitionType;
+}
+
+export interface TournamentUpdatePayload {
+  name: string;
+  description?: string;
+  startDate: string;
+  endDate: string;
+  competitionType?: CompetitionType;
 }
