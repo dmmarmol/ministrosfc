@@ -5,6 +5,12 @@ import { usePlaygrounds } from "~/composables/usePlaygrounds";
 import PlaygroundMap from "~/components/PlaygroundMap.vue";
 import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
 import type { Playground } from "@ministrosfc/shared";
+import type { ColumnDef, ColumnPin, ColumnSort } from "~/types/table";
+import {
+  cellActions,
+  cellLink,
+  cellName,
+} from "~/components/ui/Table/table-utils";
 
 definePageMeta({
   layout: "admin",
@@ -15,13 +21,18 @@ definePageMeta({
 });
 useHead({ title: "Canchas – Admin" });
 
+type PlaygroundRow = Pick<
+  Playground,
+  "id" | "name" | "address" | "gameCount"
+> & { actions: boolean | null };
+
 const authStore = useAuthStore();
 const { playgrounds, loading, fetchPlaygrounds, deletePlayground } =
   usePlaygrounds();
 
 const mapRef = ref<InstanceType<typeof PlaygroundMap> | null>(null);
 const highlightedId = ref<string | null>(null);
-const playgroundToDelete = ref<Playground | null>(null);
+const playgroundToDelete = ref<PlaygroundRow | null>(null);
 const deleteModalOpen = ref(false);
 const deleteInvoker = ref<HTMLElement | null>(null);
 
@@ -44,8 +55,8 @@ watch(deleteModalOpen, (isOpen) => {
   }
 });
 
-function askDeletePlayground(pg: Playground, event: Event) {
-  playgroundToDelete.value = pg;
+function askDeletePlayground(playgroundRow: PlaygroundRow, event: Event) {
+  playgroundToDelete.value = playgroundRow;
   deleteInvoker.value = event.currentTarget as HTMLElement;
   deleteModalOpen.value = true;
 }
@@ -55,33 +66,117 @@ function onCancelDelete() {
   playgroundToDelete.value = null;
 }
 
-async function confirmDelete() {
+async function confirmDeletePlayground() {
   if (!playgroundToDelete.value) return;
   await deletePlayground(playgroundToDelete.value.id);
   deleteModalOpen.value = false;
   playgroundToDelete.value = null;
 }
 
-function getConfirmationDescription(
-  playgroundToDelete: Playground | null,
+function getDeletePlaygroundDescription(
+  playgroundRow: PlaygroundRow | null,
 ): string {
-  if (!playgroundToDelete) return "";
-  if (playgroundToDelete.gameCount > 0) {
-    return `La cancha \'${playgroundToDelete.name}\' está en uso por ${playgroundToDelete.gameCount} partido(s). No se puede eliminar hasta que se reasignen o eliminen esos partidos.`;
+  if (!playgroundRow) return "";
+  if (playgroundRow.gameCount > 0) {
+    return `La cancha \'${playgroundRow.name}\' está en uso por ${playgroundRow.gameCount} partido(s). No se puede eliminar hasta que se reasignen o eliminen esos partidos.`;
   }
   return `¿Eliminar la cancha \'${playgroundToDelete.name}\'? Esta acción no se puede deshacer.`;
 }
+
+/* Table Data */
+const columns: ColumnDef<PlaygroundRow>[] = [
+  {
+    accessorKey: "id",
+  },
+  {
+    accessorKey: "name",
+    header: "Nombre",
+    title: "Nombre de la cancha",
+    sortable: true,
+    cell: ({ row }) => {
+      const playgroundId: string = row.getValue("id");
+      const value: string = `${row.getValue("name")}`;
+      return cellLink(value, `/admin/playgrounds/${playgroundId}`);
+    },
+  },
+  {
+    accessorKey: "address",
+    header: "Dirección",
+    title: "Dirección de la cancha",
+    sortable: true,
+    cell: ({ row }) => {
+      const value: string = row.getValue("address");
+      return cellName(value);
+    },
+  },
+  {
+    id: "actions",
+    header: "Acciones",
+    meta: {
+      class: {
+        th: "text-right",
+        td: "text-right",
+      },
+    },
+
+    cell: ({ row }) => {
+      const playgroundId: string = row.getValue("id");
+      return cellActions({
+        items: [
+          {
+            type: "label",
+            label: "Acciones",
+          },
+          {
+            label: "Editar cancha",
+            onClick: (event: Event) =>
+              navigateTo(`/admin/playgrounds/${playgroundId}`),
+          },
+          {
+            label: "Borrar cancha",
+            onClick: (event: Event) => askDeletePlayground(row.original, event),
+          },
+        ],
+      });
+    },
+  },
+];
+
+const columnVisibility = ref<Partial<Record<keyof PlaygroundRow, boolean>>>({
+  id: false,
+  address: true,
+  gameCount: true,
+  actions: authStore.isAdmin,
+});
+
+const columnSorting = ref<ColumnSort<keyof PlaygroundRow>[]>([
+  { id: "name", desc: true },
+]);
+
+const columnPinning = ref<ColumnPin<(keyof PlaygroundRow)[]>>({
+  left: ["name"],
+});
+
+const tableRows = computed((): PlaygroundRow[] => {
+  return playgrounds.value.map((p) => ({
+    id: p.id,
+    name: p.name,
+    address: p.address,
+    gameCount: p.gameCount,
+    actions: null,
+  }));
+});
 </script>
 
 <template>
   <div class="flex flex-col h-full">
     <ConfirmationModal
+      :description="getDeletePlaygroundDescription(playgroundToDelete)"
       :open="deleteModalOpen"
       title="Eliminar cancha"
-      :description="getConfirmationDescription(playgroundToDelete)"
       confirm-text="Eliminar"
       cancel-text="Cancelar"
-      :on-confirm="confirmDelete"
+      :on-confirm="confirmDeletePlayground"
       :on-cancel="onCancelDelete"
       @update:open="(value) => (deleteModalOpen = value)"
     />
@@ -90,74 +185,29 @@ function getConfirmationDescription(
       class="flex items-center justify-between p-6 shadow-md bg-gray-100 z-50 relative"
     >
       <h2 class="text-base font-semibold text-gray-700">Canchas</h2>
-      <NuxtLink
+      <UButton
+        color="primary"
+        variant="solid"
+        size="md"
+        class="font-semibold"
         to="/admin/playgrounds/create"
-        class="bg-brand text-gray-900 font-semibold text-sm px-4 py-2 rounded-lg hover:opacity-90"
       >
         Nueva cancha
-      </NuxtLink>
+      </UButton>
     </header>
 
     <div class="h-full relative flex items-stretch">
       <div v-if="loading" class="text-sm text-gray-500">Cargando canchas…</div>
       <div v-else class="lg:absolute lg:left-0 lg:top-0 lg:p-4 z-50">
-        <div class="w-full bg-white rounded py-4 shadow-md">
-          <!-- Table -->
-          <table class="w-full text-sm text-gray-700 border-collapse">
-            <thead>
-              <tr class="border-b border-gray-200">
-                <th class="text-left py-2 px-4 pr-3 font-medium">Nombre</th>
-                <th class="text-left py-2 px-4 pr-3 font-medium">Dirección</th>
-                <th
-                  v-if="authStore.isAdmin"
-                  class="text-right py-2 px-4 font-medium"
-                >
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="pg in playgrounds"
-                :key="pg.id"
-                class="border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
-                :class="{ 'bg-brand/10': highlightedId === pg.id }"
-                @click="onRowClick(pg)"
-              >
-                <td class="py-2 px-4 pr-3">
-                  <NuxtLink
-                    :to="`/admin/playgrounds/${pg.id}/edit`"
-                    class="text-brand hover:underline"
-                    @click.stop
-                  >
-                    {{ pg.name }}
-                  </NuxtLink>
-                </td>
-                <td class="py-2 px-4 pr-3 text-gray-500 truncate max-w-[160px]">
-                  {{ pg.address }}
-                </td>
-                <td v-if="authStore.isAdmin" class="py-2 px-4 text-right">
-                  <span :title="pg.gameCount > 0 ? 'Cancha en uso' : undefined">
-                    <UButton
-                      variant="link"
-                      color="red"
-                      size="xs"
-                      class="disabled:opacity-40 disabled:pointer-events-none"
-                      :disabled="pg.gameCount > 0"
-                      @click.stop="askDeletePlayground(pg, $event)"
-                    >
-                      Eliminar
-                    </UButton>
-                  </span>
-                </td>
-              </tr>
-              <tr v-if="!playgrounds.length">
-                <td colspan="3" class="py-4 text-center text-gray-400 text-sm">
-                  No hay canchas registradas.
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="w-3/4 max-w-[50%] bg-white rounded shadow-md">
+          <!-- UTable -->
+          <UTable
+            :columns="columns"
+            :data="tableRows"
+            :column-visibility="columnVisibility"
+            :column-pinning="columnPinning"
+            :sorting="columnSorting"
+          />
         </div>
       </div>
 

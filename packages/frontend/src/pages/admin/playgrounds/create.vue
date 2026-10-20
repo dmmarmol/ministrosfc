@@ -67,63 +67,19 @@ async function submit() {
     >
       ← Volver a Canchas
     </NuxtLink>
-    <h2 class="text-lg font-bold text-gray-900 mb-6">Nueva Cancha</h2>
 
-    <form
-      class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
-      @submit.prevent="submit"
-    >
-      <div v-if="error" class="text-sm text-red-600 bg-red-50 rounded p-3">
-        {{ error }}
-      </div>
+    <div class="mb-4">
+      <h2 class="text-lg font-bold text-gray-900 mb-6">Nueva Cancha</h2>
+    </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1"
-          >Nombre <span class="text-red-500">*</span></label
-        >
-        <input
-          v-model="form.name"
-          type="text"
-          required
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
-          placeholder="Ej: Cancha del Club Sportivo"
-        />
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1"
-          >Dirección <span class="text-red-500">*</span></label
-        >
-        <AddressAutocompleteInput
-          v-model="form.address"
-          required
-          placeholder="Ej: Av. Corrientes 1234, Buenos Aires"
-          :class="{ 'border-red-400': addressError }"
-          @select="onAddressSelect"
-        />
-        <p v-if="addressError" class="mt-1 text-xs text-red-600">
-          {{ addressError }}
-        </p>
-      </div>
-
-      <div class="flex gap-3 pt-2">
-        <UButton
-          type="submit"
-          color="primary"
-          variant="solid"
-          size="md"
-          :disabled="loading"
-          class="font-semibold"
-        >
-          {{ loading ? "Guardando…" : "Crear Cancha" }}
-        </UButton>
-        <NuxtLink
-          to="/admin/playgrounds"
-          class="text-sm text-gray-500 hover:text-brand py-2"
-        >
-          Cancelar
-        </NuxtLink>
-      </div>
-    </form>
+    <PlaygroundForm
+      :playground="null"
+      submitLabel="Crear Cancha"
+      :loading="loading"
+      :error="error"
+      @submit="submit"
+      @error="error = $event"
+      @address-error="addressError = $event"
+    />
   </div>
 </template>

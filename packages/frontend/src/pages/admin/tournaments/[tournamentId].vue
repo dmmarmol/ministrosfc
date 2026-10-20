@@ -15,6 +15,7 @@ definePageMeta({
 });
 
 const route = useRoute();
+const router = useRouter();
 const { fetchTournament, updateTournament } = useTournaments();
 
 const tournamentId = computed(() => String(route.params.tournamentId));
@@ -47,7 +48,7 @@ async function handleSubmit(payload: TournamentFormData) {
 
     /** @TODO investigate why the $api call is excecuted and returns 200 but this debugger is never reached */
     debugger;
-    await navigateTo("/admin/tournaments");
+    await router.push("/admin/tournaments");
   } catch (e: any) {
     error.value = e?.message ?? "No se pudo guardar el torneo.";
   } finally {
@@ -60,7 +61,9 @@ await retrieveTournament();
 
 <template>
   <div class="space-y-4">
-    <UiBackButton to="/admin/tournaments" label="Volver a Torneos" />
+    <header class="mb-4">
+      <UiBackButton to="/admin/tournaments" label="Volver a Torneos" />
+    </header>
 
     <PageLoading
       v-if="loading"

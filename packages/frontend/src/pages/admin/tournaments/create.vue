@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive } from "vue";
+import { useRouter } from "vue-router";
 import { useTournaments } from "~/composables/useTournaments";
 import TournamentForm, {
   type TournamentFormData,
@@ -15,6 +16,7 @@ definePageMeta({
 useHead({ title: "Nuevo Torneo – Admin" });
 
 const { createTournament } = useTournaments();
+const router = useRouter();
 
 const saving = ref(false);
 const error = ref("");
@@ -29,7 +31,7 @@ async function handleSubmit(payload: TournamentFormData) {
 
     /** @TODO investigate why the $api call is excecuted and returns 200 but this debugger is never reached */
     debugger;
-    await navigateTo("/admin/tournaments");
+    await router.push("/admin/tournaments");
   } catch (e: any) {
     error.value = e?.message ?? "No se pudo guardar el torneo.";
   } finally {
@@ -40,7 +42,9 @@ async function handleSubmit(payload: TournamentFormData) {
 
 <template>
   <div class="max-w-lg">
-    <UiBackButton to="/admin/tournaments" label="Volver a Torneos" />
+    <header class="mb-4">
+      <UiBackButton to="/admin/tournaments" label="Volver a Torneos" />
+    </header>
 
     <TournamentForm
       :loading="saving"

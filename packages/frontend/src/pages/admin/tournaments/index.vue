@@ -25,69 +25,17 @@ definePageMeta({
 });
 useHead({ title: "Tournaments – Admin" });
 
-const { $api } = useNuxtApp();
-const showCreate = ref(false);
-const newT = reactive({
-  name: "",
-  format: CompetitionType.SEASON,
-  startDate: "",
-  endDate: "",
-});
-const createLoading = ref(false);
-const createError = ref("");
+const { tournaments, fetchTournaments, deleteTournament } = useTournaments();
 const tournamentToDelete = ref<TournamentRow | null>(null);
 const deleteModalOpen = ref(false);
 const deleteInvoker = ref<HTMLElement | null>(null);
-
-const { data, pending, refresh } = await useAsyncData("admin-tournaments", () =>
-  $api<{ data: any[] }>("/api/v1/tournaments"),
-);
-const tournaments = computed<Tournament[]>(() => data.value?.data ?? []);
+await fetchTournaments();
 
 watch(deleteModalOpen, (isOpen) => {
   if (!isOpen && deleteInvoker.value) {
     nextTick(() => deleteInvoker.value?.focus());
   }
 });
-
-function handleShowCreateModal(visibility: boolean): undefined {
-  showCreate.value = visibility;
-}
-
-/**
- * Create Tournament
- */
-async function createTournament() {
-  if (!newT.name || !newT.startDate) {
-    createError.value = "Name and start date are required.";
-    return;
-  }
-  createError.value = "";
-  createLoading.value = true;
-  try {
-    await $api("/api/v1/tournaments", {
-      method: "POST",
-      body: {
-        name: newT.name,
-        format: newT.format,
-        startDate: newT.startDate,
-        endDate: newT.endDate || undefined,
-      },
-    });
-    showCreate.value = false;
-    Object.assign(newT, {
-      name: "",
-      format: "SEASON",
-      startDate: "",
-      endDate: "",
-    });
-    await refresh();
-  } catch (e: any) {
-    createError.value = e?.message ?? "No se pudo crear el torneo.";
-  } finally {
-    createLoading.value = false;
-  }
-}
 
 /**
  * Delete Tournament
@@ -105,14 +53,13 @@ function getDeleteTournamentDescription(
   return `¿Eliminar "${tournamentRow.name}"?`;
 }
 
-async function deleteTournament() {
+async function confirmDeleteTournament() {
   if (!tournamentToDelete.value) return;
-  await $api(`/api/v1/tournaments/${tournamentToDelete.value.id}`, {
-    method: "DELETE",
-  });
+  await deleteTournament(tournamentToDelete.value.id);
+
   deleteModalOpen.value = false;
   tournamentToDelete.value = null;
-  await refresh();
+  await fetchTournaments();
 }
 
 const columns: ColumnDef<TournamentRow>[] = [
@@ -215,7 +162,7 @@ const tableRows = computed((): TournamentRow[] => {
       :description="getDeleteTournamentDescription(tournamentToDelete)"
       confirm-text="Eliminar"
       cancel-text="Cancelar"
-      :on-confirm="deleteTournament"
+      :on-confirm="confirmDeleteTournament"
       :on-cancel="
         () => {
           deleteModalOpen = false;

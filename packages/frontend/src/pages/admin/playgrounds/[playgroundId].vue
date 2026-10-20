@@ -14,9 +14,9 @@ definePageMeta({
 
 const router = useRouter();
 const route = useRoute();
-const id = route.params.id as string;
+const playgroundId = route.params.playgroundId as string;
 
-const { updatePlayground } = usePlaygrounds();
+const { fetchPlayground, updatePlayground } = usePlaygrounds();
 const { $api } = useNuxtApp();
 
 const form = reactive({
@@ -39,12 +39,14 @@ function onAddressSelect(suggestion: AddressSuggestion | null) {
 
 onMounted(async () => {
   try {
-    const res = await $api<{ data: any }>(`/api/v1/playgrounds/${id}`);
-    const pg = res.data;
-    form.name = pg.name ?? "";
-    form.address = pg.address ?? "";
-    form.latitude = pg.latitude ?? null;
-    form.longitude = pg.longitude ?? null;
+    const pg = await fetchPlayground(playgroundId);
+
+    if (pg) {
+      form.name = pg.name ?? "";
+      form.address = pg.address ?? "";
+      form.latitude = pg.latitude ?? null;
+      form.longitude = pg.longitude ?? null;
+    }
   } catch {
     error.value = "No se pudo cargar la cancha.";
   } finally {
@@ -57,7 +59,7 @@ async function submit() {
   addressError.value = "";
   loading.value = true;
   try {
-    await updatePlayground(id, {
+    await updatePlayground(playgroundId, {
       name: form.name,
       address: form.address,
       ...(form.latitude != null && form.longitude != null
