@@ -27,6 +27,14 @@ export enum CompetitionType {
   SEASON = "SEASON",
 }
 
+export const competitionTypeItems = [
+  { value: CompetitionType.LEAGUE, label: "Liga" },
+  { value: CompetitionType.CUP, label: "Copa" },
+  { value: CompetitionType.PLAYOFF, label: "Playoff" },
+  { value: CompetitionType.SEASON, label: "Temporada" },
+  { value: CompetitionType.FRIENDLY, label: "Amistoso" },
+];
+
 export const FORMATIONS = [
   "4-4-2",
   "4-3-3",

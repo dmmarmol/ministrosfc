@@ -5,6 +5,7 @@ import {
   type Tournament,
   type TournamentCreatePayload,
   type TournamentUpdatePayload,
+  competitionTypeItems,
 } from "@ministrosfc/shared";
 
 export type TournamentFormData = TournamentCreatePayload &
@@ -32,14 +33,6 @@ const props = withDefaults(
 const emit = defineEmits<{
   (e: "submit", payload: TournamentFormData): void;
 }>();
-
-const competitionTypeItems = [
-  { value: CompetitionType.LEAGUE, label: "Liga" },
-  { value: CompetitionType.CUP, label: "Copa" },
-  { value: CompetitionType.PLAYOFF, label: "Playoff" },
-  { value: CompetitionType.SEASON, label: "Temporada" },
-  { value: CompetitionType.FRIENDLY, label: "Amistoso" },
-];
 
 const form = reactive<TournamentFormData>({
   name: "",

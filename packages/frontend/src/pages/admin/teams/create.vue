@@ -44,7 +44,7 @@ async function handleSubmit(payload: OpponentTeamFormData) {
 </script>
 
 <template>
-  <div class="max-w-lg">
+  <div>
     <header class="mb-4">
       <UiBackButton to="/admin/teams" label="Volver a Equipos" />
     </header>
