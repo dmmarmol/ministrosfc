@@ -6,6 +6,9 @@ import {
   type OpponentTeamCreatePayload,
   type OpponentTeamUpdatePayload,
 } from "@ministrosfc/shared";
+import type { DropdownMenuItem } from "#ui/components/DropdownMenu.vue";
+import type { SelectMenuItem } from "#ui/types";
+import type { ChipProps } from "#ui/components/Chip.vue";
 
 export type OpponentTeamFormData = OpponentTeamCreatePayload &
   OpponentTeamUpdatePayload & {
@@ -14,14 +17,14 @@ export type OpponentTeamFormData = OpponentTeamCreatePayload &
 
 const props = withDefaults(
   defineProps<{
-    team?: OpponentTeam | null;
+    opponentTeam?: OpponentTeam | null;
     submitLabel?: string;
     cancelTo?: string;
     loading?: boolean;
     error?: string;
   }>(),
   {
-    team: null,
+    opponentTeam: null,
     submitLabel: "Guardar equipo",
     cancelTo: "/admin/teams",
     loading: false,
@@ -35,23 +38,26 @@ const emit = defineEmits<{
 
 const form = reactive<OpponentTeamFormData>({
   name: "",
-  colors: "",
+  primaryColor: "",
+  secondaryColor: "",
   expectedUpdatedAt: "",
 });
 
 watch(
-  () => props.team,
-  (team) => {
-    if (!team) {
+  () => props.opponentTeam,
+  (opponentTeam) => {
+    if (!opponentTeam) {
       form.name = "";
-      form.colors = "";
+      form.primaryColor = "";
+      form.secondaryColor = "";
       form.expectedUpdatedAt = "";
       return;
     }
 
-    form.name = team.name ?? "";
-    form.colors = team.colors ?? "";
-    form.expectedUpdatedAt = team.updatedAt ?? "";
+    form.name = opponentTeam.name ?? "";
+    form.primaryColor = opponentTeam?.primaryColor ?? "";
+    form.secondaryColor = opponentTeam?.secondaryColor ?? "";
+    form.expectedUpdatedAt = opponentTeam.updatedAt ?? "";
   },
   { immediate: true },
 );
@@ -59,16 +65,58 @@ watch(
 function handleSubmit() {
   const payload: OpponentTeamFormData = {
     name: form.name.trim(),
-    colors: form.colors.trim(),
-    expectedUpdatedAt: form.expectedUpdatedAt,
+    primaryColor: form.primaryColor?.id?.trim() || "",
+    secondaryColor: form.secondaryColor?.id?.trim() || "",
+    expectedUpdatedAt: new Date().toISOString(),
   };
-
-  if (!form.colors.trim()) {
-    delete payload.colors;
-  }
 
   emit("submit", payload);
 }
+
+const listOfTeamColors: SelectMenuItem[] = [
+  {
+    id: "red",
+    label: "Rojo",
+    chip: {
+      color: "error",
+    },
+  },
+  {
+    id: "blue",
+    label: "Azul",
+    chip: {
+      color: "info",
+    },
+  },
+  {
+    id: "green",
+    label: "Verde",
+    chip: {
+      color: "success",
+    },
+  },
+  {
+    id: "yellow",
+    label: "Amarillo",
+    chip: {
+      color: "warning",
+    },
+  },
+  {
+    id: "black",
+    label: "Negro",
+    chip: {
+      color: "neutral",
+    },
+  },
+  {
+    id: "white",
+    label: "Blanco",
+    chip: {
+      color: "neutral",
+    },
+  },
+];
 </script>
 <template>
   <p
@@ -86,8 +134,11 @@ function handleSubmit() {
         <p class="text-xs font-medium uppercase tracking-[0.2em] text-gray-400">
           Equipo
         </p>
-        <h2 v-if="team" class="mt-1 text-xl font-semibold text-gray-900">
-          {{ team.name }}
+        <h2
+          v-if="opponentTeam"
+          class="mt-1 text-xl font-semibold text-gray-900"
+        >
+          {{ opponentTeam.name }}
         </h2>
       </div>
     </div>
@@ -95,15 +146,65 @@ function handleSubmit() {
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div>
         <label class="block text-xs font-medium text-gray-700 mb-1" for="name"
-          >Nombre *</label
+          >Nombre <span class="text-red-500">*</span></label
         >
         <UInput id="name" v-model="form.name" required class="w-full" />
       </div>
+      <!-- Colors -->
       <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1" for="colors"
-          >Colores</label
-        >
-        <UInput id="colors" v-model="form.colors" class="w-full" />
+        <h3 class="text-xs font-medium text-gray-700 mb-1">Colores</h3>
+        <div class="flex gap-x-1">
+          <div class="flex-1">
+            <label
+              class="block text-xs font-medium text-gray-700 mb-1"
+              for="primaryColor"
+            >
+              <USelectMenu
+                id="primaryColor"
+                v-model="form.primaryColor"
+                class="w-full"
+                placeholder="Primario"
+                :items="listOfTeamColors"
+              >
+                <template #leading="{ modelValue, ui }">
+                  <UChip
+                    v-if="modelValue"
+                    v-bind="modelValue.chip"
+                    inset
+                    standalone
+                    :size="ui.itemLeadingChipSize() as ChipProps['size']"
+                    :class="ui.itemLeadingChip()"
+                  />
+                </template>
+              </USelectMenu>
+            </label>
+          </div>
+          <div class="flex-1">
+            <label
+              class="block text-xs font-medium text-gray-700 mb-1"
+              for="secondaryColor"
+            >
+              <USelectMenu
+                id="secondaryColor"
+                v-model="form.secondaryColor"
+                class="w-full"
+                placeholder="Secundario"
+                :items="listOfTeamColors"
+              >
+                <template #leading="{ modelValue, ui }">
+                  <UChip
+                    v-if="modelValue"
+                    v-bind="modelValue.chip"
+                    inset
+                    standalone
+                    :size="ui.itemLeadingChipSize() as ChipProps['size']"
+                    :class="ui.itemLeadingChip()"
+                  />
+                </template>
+              </USelectMenu>
+            </label>
+          </div>
+        </div>
       </div>
     </div>
 

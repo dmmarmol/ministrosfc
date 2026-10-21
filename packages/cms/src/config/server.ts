@@ -11,7 +11,7 @@ import {
 import { globalErrorHandler } from "../middleware/error-handler";
 import { healthRouter } from "../routes/health";
 import { playerRouter } from "../routes/players";
-import { teamRouter } from "../routes/teams";
+import { opponentTeamRouter } from "../routes/opponentTeams";
 import { gameRouter } from "../routes/games";
 import { tournamentRouter } from "../routes/tournaments";
 import { statisticsRouter } from "../routes/statistics";
@@ -68,7 +68,7 @@ export function createApp(): Application {
   app.use("/api/v1/health", healthRouter);
   app.use("/api/v1/auth", authRouter);
   app.use("/api/v1/players", playerRouter);
-  app.use("/api/v1/teams", teamRouter);
+  app.use("/api/v1/opponent-teams", opponentTeamRouter);
   app.use("/api/v1/games", gameRouter);
   app.use("/api/v1/games/:gameId/participants", participantRouter);
   app.use("/api/v1/tournaments", tournamentRouter);

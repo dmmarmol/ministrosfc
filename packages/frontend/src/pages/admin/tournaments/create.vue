@@ -29,8 +29,6 @@ async function handleSubmit(payload: TournamentFormData) {
   try {
     await createTournament(payload);
 
-    /** @TODO investigate why the $api call is excecuted and returns 200 but this debugger is never reached */
-    debugger;
     await router.push("/admin/tournaments");
   } catch (e: any) {
     error.value = e?.message ?? "No se pudo guardar el torneo.";

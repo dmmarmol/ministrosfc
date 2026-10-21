@@ -24,10 +24,11 @@ const emit = defineEmits<{
 }>();
 
 const { $api } = useNuxtApp();
-const { data: teamsData } = await useAsyncData("admin-teams", () =>
-  $api<{ data: OpponentTeam[] }>("/api/v1/teams"),
-);
-const teams = computed(() => teamsData.value?.data ?? []);
+const { opponentTeams, fetchOpponentTeams } = useOpponentTeams();
+onMounted(async () => {
+  fetchOpponentTeams();
+});
+const teams = computed(() => opponentTeams.value ?? []);
 
 const optionAll: SelectItem = {
   value: OPTION_FILTER_ALL,

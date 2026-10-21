@@ -181,21 +181,24 @@ async function main(): Promise<void> {
     prisma.opponentTeam.create({
       data: {
         name: "Deportivo Riveros",
-        colors: "Red and White",
+        primaryColor: "Red",
+        secondaryColor: "White",
         city: "Buenos Aires",
       },
     }),
     prisma.opponentTeam.create({
       data: {
         name: "Club Atlético Norte",
-        colors: "Blue and Yellow",
+        primaryColor: "Blue",
+        secondaryColor: "Yellow",
         city: "Buenos Aires",
       },
     }),
     prisma.opponentTeam.create({
       data: {
         name: "Los Halcones FC",
-        colors: "Green and White",
+        primaryColor: "Green",
+        secondaryColor: "White",
         city: "Córdoba",
       },
     }),

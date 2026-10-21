@@ -20,16 +20,16 @@ const teamCreateSchema = z.object({
   name: z.string().min(1).max(255),
   shortName: z.string().max(10).optional(),
   logoUrl: z.string().url().optional(),
-  primaryColor: z
-    .string()
-    .regex(/^#[0-9A-Fa-f]{6}$/)
-    .optional(),
+  primaryColor: z.string().max(50).optional(),
+  secondaryColor: z.string().max(50).optional(),
+  city: z.string().max(255).optional(),
+  country: z.string().max(100).optional(),
   notes: z.string().max(1000).optional(),
 });
 
 const teamUpdateSchema = teamCreateSchema.partial();
 
-// GET /api/v1/teams - Public
+// GET /api/v1/opponent-teams - Public
 router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const query = paginationSchema.parse(req.query);
@@ -54,7 +54,7 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// GET /api/v1/teams/:id - Public
+// GET /api/v1/opponent-teams/:id - Public
 router.get(
   "/:id",
   validate(uuidSchema, "params"),
@@ -68,7 +68,7 @@ router.get(
   },
 );
 
-// POST /api/v1/teams - Admin only
+// POST /api/v1/opponent-teams - Admin only
 router.post(
   "/",
   authenticate,
@@ -84,7 +84,7 @@ router.post(
   },
 );
 
-// PATCH /api/v1/teams/:id - Admin only
+// PATCH /api/v1/opponent-teams/:id - Admin only
 router.patch(
   "/:id",
   authenticate,
@@ -104,7 +104,7 @@ router.patch(
   },
 );
 
-// DELETE /api/v1/teams/:id - Admin only
+// DELETE /api/v1/opponent-teams/:id - Admin only
 router.delete(
   "/:id",
   authenticate,
@@ -120,4 +120,4 @@ router.delete(
   },
 );
 
-export { router as teamRouter };
+export { router as opponentTeamRouter };

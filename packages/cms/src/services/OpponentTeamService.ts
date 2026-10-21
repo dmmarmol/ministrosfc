@@ -1,16 +1,11 @@
 import { OpponentTeamModel } from "../models/OpponentTeam";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
-
-interface OpponentTeamCreatePayload {
-  name: string;
-  shortName?: string;
-  logoUrl?: string;
-  primaryColor?: string;
-  notes?: string;
-}
-
-interface OpponentTeamUpdateDTO extends Partial<OpponentTeamCreatePayload> {}
+import type { Prisma } from "@prisma/client";
+import type {
+  OpponentTeamCreatePayload,
+  OpponentTeamUpdatePayload,
+} from "@ministrosfc/shared";
 
 interface SearchOptions {
   search?: string;
@@ -18,9 +13,66 @@ interface SearchOptions {
   limit?: number;
 }
 
+function sanitizeOptionalString(value?: string): string | undefined {
+  if (value == null) {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed === "" ? undefined : trimmed;
+}
+
+function toOpponentTeamCreateInput(
+  dto: OpponentTeamCreatePayload,
+): Prisma.OpponentTeamCreateInput {
+  return {
+    name: dto.name.trim(),
+    shortName: sanitizeOptionalString(dto.shortName),
+    logoUrl: sanitizeOptionalString(dto.logoUrl),
+    primaryColor: sanitizeOptionalString(dto.primaryColor),
+    secondaryColor: sanitizeOptionalString(dto.secondaryColor),
+    city: sanitizeOptionalString(dto.city),
+    country: sanitizeOptionalString(dto.country),
+    notes: sanitizeOptionalString(dto.notes),
+  };
+}
+
+function toOpponentTeamUpdateInput(
+  dto: OpponentTeamUpdatePayload,
+): Prisma.OpponentTeamUpdateInput {
+  const data: Prisma.OpponentTeamUpdateInput = {};
+
+  if (dto.name !== undefined) {
+    data.name = dto.name.trim();
+  }
+  if (dto.shortName !== undefined) {
+    data.shortName = sanitizeOptionalString(dto.shortName);
+  }
+  if (dto.logoUrl !== undefined) {
+    data.logoUrl = sanitizeOptionalString(dto.logoUrl);
+  }
+  if (dto.primaryColor !== undefined) {
+    data.primaryColor = sanitizeOptionalString(dto.primaryColor);
+  }
+  if (dto.secondaryColor !== undefined) {
+    data.secondaryColor = sanitizeOptionalString(dto.secondaryColor);
+  }
+  if (dto.city !== undefined) {
+    data.city = sanitizeOptionalString(dto.city);
+  }
+  if (dto.country !== undefined) {
+    data.country = sanitizeOptionalString(dto.country);
+  }
+  if (dto.notes !== undefined) {
+    data.notes = sanitizeOptionalString(dto.notes);
+  }
+
+  return data;
+}
+
 const OpponentTeamService = {
   async createTeam(dto: OpponentTeamCreatePayload) {
-    return OpponentTeamModel.create(dto);
+    return OpponentTeamModel.create(toOpponentTeamCreateInput(dto));
   },
 
   async getTeamById(id: string) {
@@ -39,9 +91,9 @@ const OpponentTeamService = {
     return OpponentTeamModel.findMany(options);
   },
 
-  async updateTeam(id: string, dto: OpponentTeamUpdateDTO) {
+  async updateTeam(id: string, dto: OpponentTeamUpdatePayload) {
     await OpponentTeamService.getTeamById(id);
-    return OpponentTeamModel.update(id, dto);
+    return OpponentTeamModel.update(id, toOpponentTeamUpdateInput(dto));
   },
 
   async deleteTeam(id: string) {

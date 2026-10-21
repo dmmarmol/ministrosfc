@@ -11,11 +11,6 @@ import {
 } from "~/components/ui/Table/table-utils";
 import TournamentCompetitionType from "~/components/ui/TournamentCompetitionType.vue";
 
-type TournamentRow = Pick<
-  Tournament,
-  "id" | "name" | "startDate" | "endDate" | "competitionType"
->;
-
 definePageMeta({
   layout: "admin",
   middleware: "auth",
@@ -25,16 +20,24 @@ definePageMeta({
 });
 useHead({ title: "Tournaments – Admin" });
 
+type TournamentRow = Pick<
+  Tournament,
+  "id" | "name" | "startDate" | "endDate" | "competitionType"
+>;
+
 const { tournaments, fetchTournaments, deleteTournament } = useTournaments();
 const tournamentToDelete = ref<TournamentRow | null>(null);
 const deleteModalOpen = ref(false);
 const deleteInvoker = ref<HTMLElement | null>(null);
-await fetchTournaments();
 
 watch(deleteModalOpen, (isOpen) => {
   if (!isOpen && deleteInvoker.value) {
     nextTick(() => deleteInvoker.value?.focus());
   }
+});
+
+onMounted(async () => {
+  await fetchTournaments();
 });
 
 /**

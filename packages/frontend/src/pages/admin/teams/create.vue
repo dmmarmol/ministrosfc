@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, reactive } from "vue";
 import { useOpponentTeams } from "~/composables/useOpponentTeams";
-import TeamsForm from "~/components/pages/admin/teams/OpponentTeamForm.vue";
+import TeamsForm, {
+  type OpponentTeamFormData,
+} from "~/components/pages/admin/teams/OpponentTeamForm.vue";
 import type { AddressSuggestion } from "@ministrosfc/shared";
 
 definePageMeta({
@@ -16,24 +18,18 @@ useHead({ title: "Nuevo Equipo – Admin" });
 const router = useRouter();
 const { createOpponentTeam } = useOpponentTeams();
 
-const form = reactive({
-  name: "",
-  address: "",
-  latitude: null as number | null,
-  longitude: null as number | null,
-});
 const loading = ref(false);
 const error = ref("");
 
-async function handleSubmit() {
+async function handleSubmit(payload: OpponentTeamFormData) {
   error.value = "";
   loading.value = true;
   try {
     await createOpponentTeam({
-      name: form.name,
-      address: form.address,
-      ...(form.latitude != null && form.longitude != null
-        ? { latitude: form.latitude, longitude: form.longitude }
+      name: payload.name,
+      address: payload.address,
+      ...(payload.latitude != null && payload.longitude != null
+        ? { latitude: payload.latitude, longitude: payload.longitude }
         : {}),
     });
     await router.push("/admin/teams");
@@ -58,7 +54,7 @@ async function handleSubmit() {
     </div>
 
     <TeamsForm
-      :team="null"
+      :opponentTeam="null"
       submitLabel="Crear Equipo"
       :loading="loading"
       :error="error"

@@ -196,12 +196,15 @@ model Contact {
 // ─────────────────────────────────────────
 
 model OpponentTeam {
-  id      String  @id @default(uuid())
-  name    String  @unique @db.VarChar(255)
-  logoUrl String?
-  colors  String? @db.VarChar(100)
-  city    String? @db.VarChar(255)
-  country String? @db.VarChar(100)
+  id             String  @id @default(uuid())
+  name           String  @unique @db.VarChar(255)
+  shortName      String? @db.VarChar(10)
+  logoUrl        String?
+  primaryColor   String? @db.VarChar(50)
+  secondaryColor String? @db.VarChar(50)
+  city           String? @db.VarChar(255)
+  country        String? @db.VarChar(100)
+  notes          String? @db.Text
 
   games Game[] @relation("OpponentGames")
 

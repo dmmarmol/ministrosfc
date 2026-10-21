@@ -3,6 +3,7 @@ import { ref, reactive } from "vue";
 import { usePlaygrounds } from "~/composables/usePlaygrounds";
 import AddressAutocompleteInput from "~/components/AddressAutocompleteInput.vue";
 import type { AddressSuggestion } from "@ministrosfc/shared";
+import type { PlaygroundFormData } from "~/components/pages/admin/playgrounds/PlaygroundForm.vue";
 
 definePageMeta({
   layout: "admin",
@@ -16,31 +17,20 @@ useHead({ title: "Nueva Cancha – Admin" });
 const router = useRouter();
 const { createPlayground } = usePlaygrounds();
 
-const form = reactive({
-  name: "",
-  address: "",
-  latitude: null as number | null,
-  longitude: null as number | null,
-});
 const loading = ref(false);
 const error = ref("");
 const addressError = ref("");
 
-function onAddressSelect(suggestion: AddressSuggestion | null) {
-  form.latitude = suggestion?.lat ?? null;
-  form.longitude = suggestion?.lon ?? null;
-}
-
-async function submit() {
+async function handleSubmit(payload: PlaygroundFormData) {
   error.value = "";
   addressError.value = "";
   loading.value = true;
   try {
     await createPlayground({
-      name: form.name,
-      address: form.address,
-      ...(form.latitude != null && form.longitude != null
-        ? { latitude: form.latitude, longitude: form.longitude }
+      name: payload.name,
+      address: payload.address,
+      ...(payload.latitude != null && payload.longitude != null
+        ? { latitude: payload.latitude, longitude: payload.longitude }
         : {}),
     });
     await router.push("/admin/playgrounds");
@@ -61,12 +51,9 @@ async function submit() {
 
 <template>
   <div class="max-w-lg">
-    <NuxtLink
-      to="/admin/playgrounds"
-      class="text-sm text-gray-500 hover:text-brand mb-4 inline-block"
-    >
-      ← Volver a Canchas
-    </NuxtLink>
+    <header class="mb-4">
+      <UiBackButton to="/admin/playgrounds" label="Volver a Canchas" />
+    </header>
 
     <div class="mb-4">
       <h2 class="text-lg font-bold text-gray-900 mb-6">Nueva Cancha</h2>
@@ -77,7 +64,7 @@ async function submit() {
       submitLabel="Crear Cancha"
       :loading="loading"
       :error="error"
-      @submit="submit"
+      @submit="handleSubmit"
       @error="error = $event"
       @address-error="addressError = $event"
     />
