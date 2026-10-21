@@ -2,7 +2,7 @@ import { OpponentTeamModel } from "../models/OpponentTeam";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
 
-interface OpponentTeamCreateDTO {
+interface OpponentTeamCreatePayload {
   name: string;
   shortName?: string;
   logoUrl?: string;
@@ -10,7 +10,7 @@ interface OpponentTeamCreateDTO {
   notes?: string;
 }
 
-interface OpponentTeamUpdateDTO extends Partial<OpponentTeamCreateDTO> {}
+interface OpponentTeamUpdateDTO extends Partial<OpponentTeamCreatePayload> {}
 
 interface SearchOptions {
   search?: string;
@@ -19,7 +19,7 @@ interface SearchOptions {
 }
 
 const OpponentTeamService = {
-  async createTeam(dto: OpponentTeamCreateDTO) {
+  async createTeam(dto: OpponentTeamCreatePayload) {
     return OpponentTeamModel.create(dto);
   },
 

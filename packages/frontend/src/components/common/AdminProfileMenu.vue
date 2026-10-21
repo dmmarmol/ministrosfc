@@ -11,6 +11,10 @@ function handleLogout() {
   authStore.logout();
 }
 
+function openMenu() {
+  open.value = true;
+}
+
 function closeMenu() {
   open.value = false;
 }
@@ -38,26 +42,14 @@ onUnmounted(() => {
 
 <template>
   <div ref="menuEl" class="relative">
-    <button
-      class="text-xs bg-brand text-gray-900 font-semibold px-3 py-1.5 rounded hover:opacity-90 transition-opacity flex items-center gap-1"
-      @click="open = !open"
+    <UButton
+      variant="solid"
+      color="primary"
+      @click="openMenu"
+      icon="mdi:chevron-down"
     >
       {{ authStore.fullName || "Admin" }}
-      <svg
-        class="w-3 h-3 transition-transform"
-        :class="{ 'rotate-180': open }"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M19 9l-7 7-7-7"
-        />
-      </svg>
-    </button>
+    </UButton>
 
     <div
       v-if="open"

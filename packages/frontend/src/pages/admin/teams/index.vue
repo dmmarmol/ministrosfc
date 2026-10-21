@@ -12,7 +12,6 @@ definePageMeta({
 useHead({ title: "Teams – Admin" });
 
 const { $api } = useNuxtApp();
-const showCreate = ref(false);
 const newTeam = reactive({ name: "", colors: "" });
 const createLoading = ref(false);
 const createError = ref("");
@@ -40,7 +39,6 @@ async function createTeam() {
       method: "POST",
       body: { name: newTeam.name, colors: newTeam.colors || undefined },
     });
-    showCreate.value = false;
     newTeam.name = "";
     newTeam.colors = "";
     await refresh();
@@ -97,65 +95,10 @@ async function deleteTeam() {
         size="md"
         class="font-semibold"
         icon="mdi:shield-plus-outline"
-        @click="showCreate = true"
+        to="/admin/teams/create"
       >
         Nuevo Equipo
       </UButton>
-    </div>
-
-    <!-- Create modal -->
-    <div
-      v-if="showCreate"
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-    >
-      <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm space-y-4">
-        <h3 class="font-bold text-gray-900">Nuevo Equipo</h3>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1"
-            >Team Name *</label
-          >
-          <input
-            v-model="newTeam.name"
-            required
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-            placeholder="FC Riviera"
-          />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1"
-            >Colors</label
-          >
-          <input
-            v-model="newTeam.colors"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-            placeholder="Red & White"
-          />
-        </div>
-        <p v-if="createError" class="text-sm text-red-600">{{ createError }}</p>
-        <div class="flex gap-3">
-          <UButton
-            :disabled="createLoading"
-            color="primary"
-            variant="solid"
-            size="md"
-            class="font-semibold"
-            @click="createTeam"
-          >
-            {{ createLoading ? "Creating…" : "Create" }}
-          </UButton>
-          <UButton
-            variant="ghost"
-            color="gray"
-            size="md"
-            @click="
-              showCreate = false;
-              createError = '';
-            "
-          >
-            Cancel
-          </UButton>
-        </div>
-      </div>
     </div>
 
     <!-- Table -->
@@ -200,7 +143,7 @@ async function deleteTeam() {
           </tr>
           <tr v-if="!teams.length">
             <td colspan="3" class="px-4 py-8 text-center text-gray-500">
-              No teams yet.
+              No se encontraron equipos
             </td>
           </tr>
         </tbody>

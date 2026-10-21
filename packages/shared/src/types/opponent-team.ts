@@ -9,7 +9,7 @@ export interface OpponentTeam {
   updatedAt: string;
 }
 
-export interface OpponentTeamCreateDTO {
+export interface OpponentTeamCreatePayload {
   name: string;
   logoUrl?: string;
   colors?: string;
@@ -17,4 +17,4 @@ export interface OpponentTeamCreateDTO {
   country?: string;
 }
 
-export interface OpponentTeamUpdateDTO extends Partial<OpponentTeamCreateDTO> {}
+export interface OpponentTeamUpdatePayload extends Partial<OpponentTeamCreatePayload> {}
