@@ -4,6 +4,7 @@ import { PlayerStatus } from "@ministrosfc/shared";
 // import type { Position } from "@ministrosfc/shared";
 import type { ColumnDef } from "~/types/table";
 import { useAuthStore } from "~/stores/auth";
+import { cellJerseyNumber, cellPosition } from "../../../ui/Table/table-utils";
 
 export type ExtendAdminPlayerAttr = {
   invitedById?: string | null;
@@ -37,10 +38,7 @@ const columns: ColumnDef<AdminPlayer>[] = [
         th: "w-16 text-center",
       },
     },
-    cell: ({ row }) =>
-      h(resolveComponent("UiPositionLabel"), {
-        position: row.getValue("position"),
-      }),
+    cell: ({ row }) => cellPosition(row.getValue("position")),
   },
   {
     id: "photo",
@@ -148,10 +146,9 @@ const columns: ColumnDef<AdminPlayer>[] = [
     },
     cell: ({ row }) => {
       const p = row.original;
-      return h(resolveComponent("UiPositionNumber"), {
+      return cellJerseyNumber({
         jerseyNumber: p.jerseyNumber ?? null,
         isGuest: p.playerType === "GUEST",
-        isJersey: true,
       });
     },
   },

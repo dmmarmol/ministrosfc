@@ -10,6 +10,7 @@ import {
   cellRate,
   cellPlayerLink,
   getSortedIcon,
+  sortByPositionEnumOrder,
 } from "~/components/ui/Table/table-utils";
 import { UButton } from "#components";
 
@@ -43,6 +44,7 @@ const columns: ColumnDef<PlayerRow>[] = [
       },
     },
     sortable: true,
+    sortingFn: sortByPositionEnumOrder,
     header: ({ column }) => {
       return h(UButton, {
         variant: "ghost",

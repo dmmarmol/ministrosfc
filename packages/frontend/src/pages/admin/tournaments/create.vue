@@ -22,13 +22,13 @@ const saving = ref(false);
 const error = ref("");
 
 async function handleSubmit(payload: TournamentFormData) {
-  debugger;
   saving.value = true;
   error.value = "";
 
   try {
     await createTournament(payload);
 
+    debugger;
     await router.push("/admin/tournaments");
   } catch (e: any) {
     error.value = e?.message ?? "No se pudo guardar el torneo.";

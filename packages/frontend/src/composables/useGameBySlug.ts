@@ -1,7 +1,16 @@
 import { computed } from "vue";
 import { useNuxtApp, useAsyncData, createError } from "nuxt/app";
+import type { Game } from "@ministrosfc/shared";
 
-export function useGameBySlug(slug: string) {
+type GameBySlug = {
+  gameId: Game["id"];
+  game: Game;
+  participants: Record<string, unknown>[];
+  pending: boolean;
+  error: any;
+};
+
+export function useGameBySlug(slug: string): GameBySlug {
   const { $api } = useNuxtApp();
 
   const { data, pending, error } = useAsyncData(
@@ -36,5 +45,11 @@ export function useGameBySlug(slug: string) {
     ),
   );
 
-  return { gameId, game, participants, pending, error };
+  return {
+    gameId: gameId.value,
+    game: game.value,
+    participants: participants.value,
+    pending: pending.value,
+    error: error.value,
+  };
 }

@@ -1,4 +1,4 @@
-import type { TableColumn } from "#ui/types";
+import type { TableColumn } from "@nuxt/ui/runtime/components/Table.vue.js";
 import type {
   ColumnSort as NuxtUiColumnSort,
   ColumnPinningState as NuxtUiColumnPin,

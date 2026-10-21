@@ -5,7 +5,11 @@ import { generateGameSlug } from "../utils/slug";
 import { getRedisClient } from "../config/redis";
 import { prisma } from "../config/database";
 import { type Role, GameStatus } from "@prisma/client";
-import { GameResult } from "@ministrosfc/shared";
+import {
+  GameResult,
+  type GameCreatePayload,
+  type GameUpdatePayload,
+} from "@ministrosfc/shared";
 
 /** Elapsed milliseconds for one game (100 minutes). */
 const GAME_DURATION_MS = 100 * 60 * 1000;
@@ -18,35 +22,6 @@ const NON_ADMIN_ALLOWED_FIELDS = new Set([
   "playgroundId",
   "lineup",
 ]);
-
-interface GameCreateDTO {
-  date: string;
-  location?: string;
-  notes?: string;
-  opponentTeamId: string;
-  tournamentId?: string;
-  competitionType?: string;
-  playgroundId?: string | null;
-  maxPlayers?: number | null;
-  lineup?: string | null;
-  // endDate and slug are server-generated — stripped from DTO on route
-}
-
-interface GameUpdateDTO {
-  date?: string;
-  location?: string;
-  notes?: string;
-  opponentTeamId?: string;
-  tournamentId?: string;
-  competitionType?: string;
-  status?: GameStatus;
-  homeTeamScore?: number;
-  awayTeamScore?: number;
-  playgroundId?: string | null;
-  maxPlayers?: number | null;
-  lineup?: string | null;
-  // endDate and slug are server-generated — stripped from DTO on route
-}
 
 interface SearchOptions {
   status?: GameStatus;
@@ -61,8 +36,40 @@ interface SearchOptions {
 
 const CACHE_TTL = 300; // 5 min
 
+function buildInvitedByName(player: any): string | null {
+  if (!player?.invitedBy) {
+    return null;
+  }
+
+  return `${player.invitedBy.firstName} ${player.invitedBy.lastName}`.trim();
+}
+
+function serializeGameParticipants(game: any): any {
+  if (!game || !Array.isArray(game.participants)) {
+    return game;
+  }
+
+  return {
+    ...game,
+    participants: game.participants.map((participant: any) => {
+      const invitedByName = buildInvitedByName(participant?.player);
+
+      return {
+        ...participant,
+        invitedByName,
+        player: participant?.player
+          ? {
+              ...participant.player,
+              invitedByName,
+            }
+          : participant?.player,
+      };
+    }),
+  };
+}
+
 const GameService = {
-  async createGame(dto: GameCreateDTO) {
+  async createGame(dto: GameCreatePayload) {
     const gameDate = new Date(dto.date);
     const endDate = new Date(gameDate.getTime() + GAME_DURATION_MS);
 
@@ -102,14 +109,14 @@ const GameService = {
 
     const game = await GameModel.create(data);
     await GameService.invalidateCache();
-    return game;
+    return GameService.getGameById(game.id);
   },
 
   async getGameById(id: string) {
     const game = await GameModel.findById(id);
     if (!game)
       throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
-    return game;
+    return serializeGameParticipants(game);
   },
 
   async searchGames(options: SearchOptions = {}) {
@@ -134,7 +141,7 @@ const GameService = {
     return result;
   },
 
-  async updateGame(id: string, dto: GameUpdateDTO, requestingRole: Role) {
+  async updateGame(id: string, dto: GameUpdatePayload, requestingRole: Role) {
     const currentGame = await GameService.getGameById(id);
 
     // DT and EDITOR roles share the non-admin restrictions.
@@ -208,7 +215,7 @@ const GameService = {
     }
 
     await GameService.invalidateCache();
-    return updated;
+    return GameService.getGameById(updated.id);
   },
 
   async deleteGame(id: string) {

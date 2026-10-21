@@ -1,7 +1,14 @@
 import { h, type VNode } from "vue";
-import { NuxtLink, UButton, UDropdownMenu } from "#components";
+import {
+  NuxtLink,
+  UButton,
+  UDropdownMenu,
+  UiPositionLabel,
+  UiPositionNumber,
+} from "#components";
 import type { DropdownMenuItem } from "#ui/components/DropdownMenu.vue";
 import type { ArrayOrNested } from "#ui/types/utils";
+import { positionOrderMap, type PlayerType, type Position } from "@ministrosfc/shared";
 
 export function getSortedIcon(sortDirection: "asc" | "desc" | null): string {
   if (sortDirection === "asc") {
@@ -14,11 +21,40 @@ export function getSortedIcon(sortDirection: "asc" | "desc" | null): string {
   return "i-lucide-arrow-up-down";
 }
 
+export function sortableHeader(label: string): ({ column }: any) => VNode {
+  return ({ column }: any) =>
+    h(UButton, {
+      variant: "ghost",
+      color: "neutral",
+      label,
+      icon: getSortedIcon(column.getIsSorted() || null),
+      onClick: () => column.toggleSorting(),
+    });
+}
+
+export function sortByPositionEnumOrder(
+  rowA: any,
+  rowB: any,
+  columnId: string,
+): number {
+  const a = rowA.getValue(columnId) as Position | null | undefined;
+  const b = rowB.getValue(columnId) as Position | null | undefined;
+
+  const aRank = a != null ? (positionOrderMap[a] ?? Number.MAX_SAFE_INTEGER) : Number.MAX_SAFE_INTEGER;
+  const bRank = b != null ? (positionOrderMap[b] ?? Number.MAX_SAFE_INTEGER) : Number.MAX_SAFE_INTEGER;
+
+  return aRank - bRank;
+}
+
 // ── Shared cell render factories ──────────────────────────────────────────────
 
 /** Name: dark gray text */
-export function cellName(value: string): VNode {
-  return h("span", { class: "text-gray-700" }, String(value));
+export function cellName(value: string, opts?: { class?: string }): VNode {
+  return h(
+    "span",
+    { class: [opts?.class ? opts.class : "text-gray-700"] },
+    String(value),
+  );
 }
 
 /** Wins: green text */
@@ -128,4 +164,23 @@ export function cellActions(props: CellActionProp): VNode {
         "aria-label": "Actions dropdown",
       }),
   );
+}
+
+/** Jersey Number cell */
+export function cellJerseyNumber(values: {
+  jerseyNumber: number | null | undefined;
+  isGuest: boolean;
+}): VNode {
+  return h(UiPositionNumber, {
+    jerseyNumber: values.jerseyNumber ?? null,
+    isGuest: values.isGuest,
+    isJersey: true,
+  });
+}
+
+/** Player position cell */
+export function cellPosition(value: Position): VNode {
+  return h(UiPositionLabel, {
+    position: value,
+  });
 }

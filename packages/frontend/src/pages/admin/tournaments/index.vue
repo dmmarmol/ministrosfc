@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { nextTick } from "vue";
+import { resolveComponent } from "vue";
 import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
 import type { ColumnDef, ColumnSort } from "~/types/table";
 import { CompetitionType, type Tournament } from "@ministrosfc/shared";
@@ -8,6 +9,7 @@ import {
   cellActions,
   cellLink,
   cellName,
+  getSortedIcon,
 } from "~/components/ui/Table/table-utils";
 import TournamentCompetitionType from "~/components/ui/TournamentCompetitionType.vue";
 
@@ -71,7 +73,15 @@ const columns: ColumnDef<TournamentRow>[] = [
   },
   {
     accessorKey: "name",
-    header: "Nombre",
+    header: ({ column }) => {
+      return h(resolveComponent("UButton"), {
+        variant: "ghost",
+        color: "neutral",
+        label: "Nombre",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
+    },
     title: "Nombre del torneo",
     sortable: true,
     cell: ({ row }) => {
@@ -82,7 +92,15 @@ const columns: ColumnDef<TournamentRow>[] = [
   },
   {
     accessorKey: "startDate",
-    header: "Fecha",
+    header: ({ column }) => {
+      return h(resolveComponent("UButton"), {
+        variant: "ghost",
+        color: "neutral",
+        label: "Fecha",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
+    },
     title: "Duracion del torneo",
     sortable: true,
     cell: ({ row }) => {
@@ -97,7 +115,15 @@ const columns: ColumnDef<TournamentRow>[] = [
   },
   {
     accessorKey: "competitionType",
-    header: "Tipo de competición",
+    header: ({ column }) => {
+      return h(resolveComponent("UButton"), {
+        variant: "ghost",
+        color: "neutral",
+        label: "Tipo de competición",
+        icon: getSortedIcon(column.getIsSorted() || null),
+        onClick: () => column.toggleSorting(),
+      });
+    },
     title: "Tipo de competición del torneo",
     sortable: true,
     cell: ({ row }) => {
@@ -194,7 +220,7 @@ const tableRows = computed((): TournamentRow[] => {
       :columns="columns"
       :data="tableRows"
       :column-visibility="columnVisibility"
-      :sorting="columnSorting"
+      v-model:sorting="columnSorting"
     />
   </div>
 </template>

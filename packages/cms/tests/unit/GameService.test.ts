@@ -35,6 +35,41 @@ import { prisma } from "../../src/config/database";
 describe("GameService", () => {
   afterEach(() => jest.clearAllMocks());
 
+  describe("getGameById", () => {
+    it("adds invitedByName to each participant", async () => {
+      (GameModel.findById as jest.Mock).mockResolvedValue({
+        id: "g1",
+        participants: [
+          {
+            id: "gp-1",
+            player: {
+              id: "guest-1",
+              invitedById: "inv-1",
+              invitedBy: {
+                id: "inv-1",
+                firstName: "Carlos",
+                lastName: "Invitador",
+              },
+            },
+          },
+          {
+            id: "gp-2",
+            player: {
+              id: "reg-1",
+              invitedById: null,
+              invitedBy: null,
+            },
+          },
+        ],
+      });
+
+      const result = await GameService.getGameById("g1");
+
+      expect(result.participants[0].invitedByName).toBe("Carlos Invitador");
+      expect(result.participants[1].invitedByName).toBeNull();
+    });
+  });
+
   describe("createGame", () => {
     it("creates a game when opponentTeamId is valid", async () => {
       (prisma.opponentTeam.findUnique as jest.Mock).mockResolvedValue({
@@ -46,6 +81,10 @@ describe("GameService", () => {
         status: "SCHEDULED",
       };
       (GameModel.create as jest.Mock).mockResolvedValue(mockGame);
+      (GameModel.findById as jest.Mock).mockResolvedValue({
+        ...mockGame,
+        participants: [],
+      });
 
       const result = await GameService.createGame({
         opponentTeamId: "team-1",
@@ -53,6 +92,47 @@ describe("GameService", () => {
         competitionType: "FRIENDLY",
       } as any);
       expect(result.id).toBe("g1");
+      expect(GameModel.findById).toHaveBeenCalledWith("g1");
+    });
+
+    it("serializes invitedByName on participants in create response", async () => {
+      (prisma.opponentTeam.findUnique as jest.Mock).mockResolvedValue({
+        name: "Rivals",
+      });
+
+      (GameModel.create as jest.Mock).mockResolvedValue({
+        id: "g2",
+        opponentTeamId: "team-1",
+      });
+
+      (GameModel.findById as jest.Mock).mockResolvedValue({
+        id: "g2",
+        participants: [
+          {
+            id: "gp-1",
+            player: {
+              id: "guest-1",
+              invitedById: "inv-1",
+              invitedBy: {
+                id: "inv-1",
+                firstName: "Carlos",
+                lastName: "Invitador",
+              },
+            },
+          },
+        ],
+      });
+
+      const result = await GameService.createGame({
+        opponentTeamId: "team-1",
+        date: "2026-06-01",
+        competitionType: "FRIENDLY",
+      } as any);
+
+      expect(result.participants[0].invitedByName).toBe("Carlos Invitador");
+      expect(result.participants[0].player.invitedByName).toBe(
+        "Carlos Invitador",
+      );
     });
 
     it("does not pre-validate opponentTeamId (FK constraint is enforced by DB)", async () => {
@@ -74,10 +154,18 @@ describe("GameService", () => {
 
   describe("updateGame RBAC", () => {
     it("allows editor to update metadata fields", async () => {
-      (GameModel.findById as jest.Mock).mockResolvedValue({
-        id: "g1",
-        status: "SCHEDULED",
-      });
+      (GameModel.findById as jest.Mock)
+        .mockResolvedValueOnce({
+          id: "g1",
+          status: "SCHEDULED",
+          participants: [],
+        })
+        .mockResolvedValueOnce({
+          id: "g1",
+          status: "SCHEDULED",
+          playgroundId: "pg-1",
+          participants: [],
+        });
       (GameModel.update as jest.Mock).mockResolvedValue({
         id: "g1",
         playgroundId: "pg-1",
@@ -89,6 +177,7 @@ describe("GameService", () => {
         "EDITOR",
       );
       expect(result.playgroundId).toBe("pg-1");
+      expect(GameModel.findById).toHaveBeenCalledTimes(2);
     });
 
     it("throws 403 when editor tries to update score", async () => {
@@ -103,10 +192,19 @@ describe("GameService", () => {
     });
 
     it("allows admin to update scores", async () => {
-      (GameModel.findById as jest.Mock).mockResolvedValue({
-        id: "g1",
-        status: "SCHEDULED",
-      });
+      (GameModel.findById as jest.Mock)
+        .mockResolvedValueOnce({
+          id: "g1",
+          status: "SCHEDULED",
+          participants: [],
+        })
+        .mockResolvedValueOnce({
+          id: "g1",
+          status: "COMPLETED",
+          homeTeamScore: 3,
+          awayTeamScore: 1,
+          participants: [],
+        });
       (GameModel.update as jest.Mock).mockResolvedValue({
         id: "g1",
         homeTeamScore: 3,

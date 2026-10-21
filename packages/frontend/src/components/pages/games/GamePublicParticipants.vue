@@ -2,6 +2,7 @@
 defineProps<{
   participants: any[];
 }>();
+/** @TODO Review if this component is being used */
 </script>
 
 <template>

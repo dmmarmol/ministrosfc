@@ -37,6 +37,12 @@ export function formatTime(
   return formatDateTime(dateString, options, locale);
 }
 
+export const formatDateInput = (value?: string | null) =>
+  value?.split("T")[0] ?? "";
+
+export const formatTimeInput = (value?: string | null) =>
+  value?.split("T")[1]?.slice(0, 5) ?? "";
+
 /**
  * Returns an ISO 8601 datetime string with timezone offset from separate date/time fields.
  * Example: 2026-04-12 + 18:00 -> 2026-04-12T18:00:00-03:00

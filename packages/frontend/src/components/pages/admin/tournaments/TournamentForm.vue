@@ -2,6 +2,7 @@
 import { reactive, watch } from "vue";
 import {
   CompetitionType,
+  formatDateInput,
   type Tournament,
   type TournamentCreatePayload,
   type TournamentUpdatePayload,
@@ -42,8 +43,6 @@ const form = reactive<TournamentFormData>({
   description: "",
   expectedUpdatedAt: "",
 });
-
-const formatDateInput = (value?: string | null) => value?.split("T")[0] ?? "";
 
 watch(
   () => props.tournament,

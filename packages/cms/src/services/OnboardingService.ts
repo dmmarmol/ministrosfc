@@ -3,6 +3,7 @@ import { UserModel } from "../models/User";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
 import type { Position } from "@prisma/client";
+import { PlayerType, PlayerStatus } from "@prisma/client";
 
 interface OnboardingDTO {
   isPlayer: boolean;
@@ -52,7 +53,7 @@ const OnboardingService = {
           where: {
             jerseyNumber: dto.jerseyNumber,
             status: "ACTIVE",
-            playerType: "REGISTERED",
+            playerType: PlayerType.REGISTERED,
           },
         });
         if (taken) {
@@ -69,8 +70,8 @@ const OnboardingService = {
         data: {
           firstName: user.firstName ?? "",
           lastName: user.lastName ?? "",
-          playerType: "REGISTERED",
-          status: "ACTIVE",
+          playerType: PlayerType.REGISTERED,
+          status: PlayerStatus.ACTIVE,
           position: dto.position ?? undefined,
           jerseyNumber: dto.jerseyNumber ?? undefined,
           contactInfo: { create: {} },

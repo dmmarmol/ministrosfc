@@ -59,6 +59,9 @@ const GameModel = {
                 position: true,
                 playerType: true,
                 invitedById: true,
+                invitedBy: {
+                  select: { id: true, firstName: true, lastName: true },
+                },
               },
             },
             confirmedBy: {

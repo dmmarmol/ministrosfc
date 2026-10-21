@@ -3,6 +3,10 @@
   "compilerOptions": {
     "strict": true,
     "verbatimModuleSyntax": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "paths": {
+      "@ministrosfc/shared": ["../shared/src/index.ts"],
+      "@ministrosfc/shared/*": ["../shared/src/*"]
+    }
   }
 }

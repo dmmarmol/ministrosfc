@@ -1,4 +1,4 @@
-import { Position } from "./player";
+import { Position, PlayerType } from "./player";
 
 export enum ConfirmationStatus {
   NOT_RESPONDED = "NOT_RESPONDED",
@@ -71,8 +71,7 @@ export interface RosterEntry {
     lastName: string | null;
     jerseyNumber: number | null;
     position: Position | null;
-    /** @TODO transform this into an enum and reuse it across the codebase */
-    playerType: "REGISTERED" | "GUEST";
+    playerType: PlayerType;
     invitedById: string | null;
     invitedByName: string | null;
   };

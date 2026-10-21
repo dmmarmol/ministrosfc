@@ -39,13 +39,13 @@ async function retrieveTournament() {
 }
 
 async function handleSubmit(payload: TournamentFormData) {
-  debugger;
   saving.value = true;
   error.value = "";
 
   try {
     await updateTournament(tournamentId.value, payload);
 
+    debugger;
     await router.push("/admin/tournaments");
   } catch (e: any) {
     error.value = e?.message ?? "No se pudo guardar el torneo.";

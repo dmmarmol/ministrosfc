@@ -261,7 +261,7 @@ function getResultTone(game: AdminGame): string {
                 class="truncate"
                 variant="link"
                 color="neutral"
-                :to="`/admin/games/${game.id}/edit`"
+                :to="`/admin/games/${game.id}`"
               >
                 {{ game.opponentTeam?.name ?? "—" }}
               </UButton>

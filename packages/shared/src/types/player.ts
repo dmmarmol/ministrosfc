@@ -32,6 +32,20 @@ export enum Position {
   LWF = "LWF" /** Extremo Izquierdo */,
 }
 
+/**
+ * Canonical sort order for positions, following the enum declaration order.
+ * ASC uses this order directly; DESC is the reverse.
+ */
+export const positionOrderMap: Record<Position, number> = Object.values(
+  Position,
+).reduce(
+  (acc, position, index) => {
+    acc[position] = index;
+    return acc;
+  },
+  {} as Record<Position, number>,
+);
+
 export const PositionDisplayName = {
   [Position.GK]: "Portero",
   [Position.CB]: "Defensa Central",
@@ -45,9 +59,9 @@ export const PositionDisplayName = {
   [Position.RMF]: "Mediocampista Derecho",
   [Position.LMF]: "Mediocampista Izquierdo",
   [Position.SS]: "Segundo Delantero",
-  [Position.CF]: "Delantero Centro",
   [Position.RWF]: "Extremo Derecho",
   [Position.LWF]: "Extremo Izquierdo",
+  [Position.CF]: "Delantero Centro",
 } as const;
 
 /** Maps each Position enum value to its short code string. */

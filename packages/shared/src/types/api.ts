@@ -140,3 +140,11 @@ export type OptionItem = {
   id: string;
   name: string | null;
 };
+
+/**
+ * Represents an item in a select dropdown.
+ */
+export interface SelectItem {
+  value: string;
+  label: string;
+}

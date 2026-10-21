@@ -1,4 +1,5 @@
 export interface OpponentTeam {
+  id: string;
   name: string;
   shortName?: string;
   logoUrl?: string;
@@ -13,7 +14,7 @@ export interface OpponentTeam {
 
 export type OpponentTeamCreatePayload = Omit<
   OpponentTeam,
-  "createdAt" | "updatedAt"
+  "id" | "createdAt" | "updatedAt"
 >;
 
 export interface OpponentTeamUpdatePayload extends Partial<OpponentTeamCreatePayload> {}

@@ -1,7 +1,18 @@
 export * from "./user";
 export * from "./player";
 export * from "./game";
-export * from "./game-participant";
+export {
+  ConfirmationStatus,
+  type ParticipantDTO,
+  type ParticipantStatsUpdateDTO,
+  type SelfSignupDTO,
+  type GuestSignupDTO,
+  type ProxySignupDTO,
+  type SignupRequestDTO,
+  type RosterEntry,
+  type CurrentPlayerStatus,
+  type GameSignupPageDTO,
+} from "./game-participant";
 export * from "./opponent-team";
 export * from "./tournament";
 export * from "./statistics";

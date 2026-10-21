@@ -4,11 +4,13 @@ import { PlayerModel } from "../models/Player";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
 import { type ConfirmationStatus, type Role, GameStatus } from "@prisma/client";
-import type {
-  SignupRequestDTO,
-  RosterEntry,
-  GameSignupPageDTO,
-  CurrentPlayerStatus,
+import {
+  type SignupRequestDTO,
+  type RosterEntry,
+  type GameSignupPageDTO,
+  type CurrentPlayerStatus,
+  PlayerType,
+  PlayerStatus,
 } from "@ministrosfc/shared";
 
 interface ConfirmDTO {
@@ -36,7 +38,7 @@ function toRosterEntry(p: any): RosterEntry {
       lastName: p.player?.lastName ?? null,
       jerseyNumber: p.player?.jerseyNumber ?? null,
       position: p.player?.position ?? null,
-      playerType: p.player?.playerType ?? "REGISTERED",
+      playerType: p.player?.playerType ?? PlayerType.REGISTERED,
       invitedById: p.player?.invitedById ?? null,
       invitedByName,
     },
@@ -369,8 +371,8 @@ const ParticipationService = {
         });
         if (
           !targetPlayer ||
-          targetPlayer.playerType !== "REGISTERED" ||
-          targetPlayer.status !== "ACTIVE"
+          targetPlayer.playerType !== PlayerType.REGISTERED ||
+          targetPlayer.status !== PlayerStatus.ACTIVE
         )
           throw createError(
             "Target player not found or not eligible",

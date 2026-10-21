@@ -84,6 +84,7 @@ describe("Game CRUD (integration)", () => {
     expect(res.status).toBe(201);
     expect(res.body.data.status).toBe("SCHEDULED");
     expect(res.body.data.opponentTeamId).toBe(opponentTeamId);
+    expect(Array.isArray(res.body.data.participants)).toBe(true);
     gameId = res.body.data.id;
   });
 
@@ -131,9 +132,42 @@ describe("Game CRUD (integration)", () => {
   });
 
   it("GET /api/v1/games/:id → 200 returns game detail", async () => {
+    const inviter = await prisma.player.create({
+      data: {
+        firstName: "Carlos",
+        lastName: "Invitador",
+        playerType: "REGISTERED",
+        status: "ACTIVE",
+      },
+    });
+
+    const guest = await prisma.player.create({
+      data: {
+        firstName: "Guest",
+        lastName: "Player",
+        playerType: "GUEST",
+        status: "ACTIVE",
+        invitedById: inviter.id,
+      },
+    });
+
+    await prisma.gameParticipant.create({
+      data: {
+        gameId,
+        playerId: guest.id,
+        confirmationStatus: "CONFIRMED",
+      },
+    });
+
     const res = await request(app).get(`/api/v1/games/${gameId}`);
     expect(res.status).toBe(200);
     expect(res.body.data.id).toBe(gameId);
+
+    const guestParticipant = res.body.data.participants.find(
+      (p: any) => p.playerId === guest.id,
+    );
+    expect(guestParticipant).toBeDefined();
+    expect(guestParticipant.invitedByName).toBe("Carlos Invitador");
   });
 
   it("PATCH /api/v1/games/:id → 200 updates metadata (editor)", async () => {
@@ -144,6 +178,12 @@ describe("Game CRUD (integration)", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.data.notes).toBe("Updated notes");
+    expect(Array.isArray(res.body.data.participants)).toBe(true);
+
+    const withInviter = res.body.data.participants.find(
+      (p: any) => p.invitedByName,
+    );
+    expect(withInviter?.invitedByName).toBe("Carlos Invitador");
   });
 
   it("PATCH /api/v1/games/:id → 403 when editor tries to set scores", async () => {
