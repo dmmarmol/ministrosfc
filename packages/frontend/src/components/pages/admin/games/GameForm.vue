@@ -10,6 +10,7 @@ import {
 } from "@ministrosfc/shared";
 import GameFormFields from "./GameFormFields.vue";
 import GameParticipantsFields from "./GameParticipantsFields.vue";
+import GameAddParticipant from "./GameAddParticipant.vue";
 
 export type GameFormData = GameCreatePayload &
   GameUpdatePayload & {
@@ -88,6 +89,7 @@ const [teamsData, tournamentData] = await Promise.all([
 
 const loading = ref(false);
 const error = ref("");
+const participantCount = computed(() => form.participants?.length);
 
 /**
  * Merges a date picker value (YYYY-MM-DD) and a time picker value (HH:mm)
@@ -136,7 +138,7 @@ async function handleSubmit() {
   <form @submit.prevent="handleSubmit">
     <div class="grid xl:grid-cols-6 gap-4">
       <div
-        class="xl:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
+        class="xl:col-span-2 bg-white justify-start rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
       >
         <p
           v-if="error"
@@ -144,20 +146,31 @@ async function handleSubmit() {
         >
           {{ error }}
         </p>
-        <GameFormFields
-          :form="form"
-          :teamsData="teamsData"
-          :tournament-data="tournamentData"
-        />
+        <div class="flex flex-col gap-y-4">
+          <GameFormFields
+            :form="form"
+            :teamsData="teamsData"
+            :tournament-data="tournamentData"
+          />
+        </div>
+        <hr class="border-gray-300" />
+        <div>
+          <GameAddParticipant :game="props.game" />
+        </div>
       </div>
       <div class="xl:col-span-4">
         <div
           class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
         >
           <div class="mb-4">
-            <h3 class="text-md font-semibold text-gray-800">Participantes</h3>
+            <h3 class="text-md font-semibold text-gray-800">
+              Participantes ({{ participantCount }})
+            </h3>
           </div>
-          <GameParticipantsFields :form="form" />
+          <GameParticipantsFields
+            :form="form"
+            :game-id="props.game?.id ?? null"
+          />
         </div>
       </div>
     </div>

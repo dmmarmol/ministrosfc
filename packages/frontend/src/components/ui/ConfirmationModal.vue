@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
+import DOMPurify from "dompurify";
 
 const props = withDefaults(
   defineProps<{
@@ -16,6 +17,12 @@ const props = withDefaults(
     confirmText: "Confirmar",
     cancelText: "Cancelar",
   },
+);
+
+const sanitizedDescription = computed(() =>
+  import.meta.client
+    ? DOMPurify.sanitize(props.description ?? "")
+    : props.description ?? "",
 );
 
 const emit = defineEmits<{
@@ -91,9 +98,11 @@ async function handleConfirm() {
     <template #content>
       <div class="p-6" data-testid="confirmation-modal">
         <h3 class="text-lg font-bold text-gray-900 mb-2">{{ title }}</h3>
-        <p v-if="description" class="text-sm text-gray-600 mb-4">
-          {{ description }}
-        </p>
+        <p
+          v-if="sanitizedDescription"
+          v-html="sanitizedDescription"
+          class="text-sm text-gray-600 mb-4"
+        />
         <p v-if="errorMessage" class="text-sm text-red-600 mb-4" role="alert">
           {{ errorMessage }}
         </p>

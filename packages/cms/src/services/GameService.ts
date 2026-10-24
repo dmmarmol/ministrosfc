@@ -218,6 +218,62 @@ const GameService = {
     return GameService.getGameById(updated.id);
   },
 
+  async addParticipantToGame(gameId: string, participantId: string) {
+    const currentGame = await GameService.getGameById(gameId);
+    const playerId =
+      currentGame.participants?.find(
+        (participant: any) => participant.id === participantId,
+      )?.playerId ?? participantId;
+
+    const alreadyParticipates = currentGame.participants?.some(
+      (participant: any) => participant.playerId === playerId,
+    );
+
+    if (alreadyParticipates) {
+      return currentGame;
+    }
+
+    await GameModel.update(gameId, {
+      participants: {
+        create: {
+          playerId,
+          confirmationStatus: "CONFIRMED",
+          confirmedAt: new Date(),
+        },
+      },
+    });
+
+    await GameService.invalidateCache();
+    return GameService.getGameById(gameId);
+  },
+
+  async removeParticipantFromGame(gameId: string, participantId: string) {
+    const currentGame = await GameService.getGameById(gameId);
+    const matchingParticipant = currentGame.participants?.find(
+      (participant: any) =>
+        participant.id === participantId ||
+        participant.playerId === participantId,
+    );
+
+    if (!matchingParticipant) {
+      return currentGame;
+    }
+
+    await GameModel.update(gameId, {
+      participants: {
+        deleteMany: {
+          OR: [
+            { id: participantId },
+            { playerId: matchingParticipant.playerId ?? participantId },
+          ],
+        },
+      },
+    });
+
+    await GameService.invalidateCache();
+    return GameService.getGameById(gameId);
+  },
+
   async deleteGame(id: string) {
     await GameService.getGameById(id);
     const result = await GameModel.delete(id);

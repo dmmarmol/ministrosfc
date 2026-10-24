@@ -8,7 +8,11 @@ import {
 } from "#components";
 import type { DropdownMenuItem } from "#ui/components/DropdownMenu.vue";
 import type { ArrayOrNested } from "#ui/types/utils";
-import { positionOrderMap, type PlayerType, type Position } from "@ministrosfc/shared";
+import {
+  positionOrderMap,
+  type PlayerType,
+  type Position,
+} from "@ministrosfc/shared";
 
 export function getSortedIcon(sortDirection: "asc" | "desc" | null): string {
   if (sortDirection === "asc") {
@@ -40,8 +44,14 @@ export function sortByPositionEnumOrder(
   const a = rowA.getValue(columnId) as Position | null | undefined;
   const b = rowB.getValue(columnId) as Position | null | undefined;
 
-  const aRank = a != null ? (positionOrderMap[a] ?? Number.MAX_SAFE_INTEGER) : Number.MAX_SAFE_INTEGER;
-  const bRank = b != null ? (positionOrderMap[b] ?? Number.MAX_SAFE_INTEGER) : Number.MAX_SAFE_INTEGER;
+  const aRank =
+    a != null
+      ? (positionOrderMap[a] ?? Number.MAX_SAFE_INTEGER)
+      : Number.MAX_SAFE_INTEGER;
+  const bRank =
+    b != null
+      ? (positionOrderMap[b] ?? Number.MAX_SAFE_INTEGER)
+      : Number.MAX_SAFE_INTEGER;
 
   return aRank - bRank;
 }

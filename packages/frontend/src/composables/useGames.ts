@@ -82,6 +82,36 @@ export function useGames() {
     await fetchGames();
   }
 
+  async function addGameParticipant(
+    gameId: string,
+    participantId: string,
+  ): Promise<Game> {
+    const res = await $fetch<{ data: Game }>(
+      `${baseUrl}/${gameId}/participants/${participantId}`,
+      {
+        method: "POST",
+        headers: authHeaders(),
+      },
+    );
+    await fetchGames();
+    return res.data;
+  }
+
+  async function removeGameParticipant(
+    gameId: string,
+    participantId: string,
+  ): Promise<Game> {
+    const res = await $fetch<{ data: Game }>(
+      `${baseUrl}/${gameId}/participants/${participantId}`,
+      {
+        method: "PATCH",
+        headers: authHeaders(),
+      },
+    );
+    await fetchGames();
+    return res.data;
+  }
+
   return {
     games,
     loading,
@@ -91,5 +121,7 @@ export function useGames() {
     createGame,
     updateGame,
     deleteGame,
+    addGameParticipant,
+    removeGameParticipant,
   };
 }

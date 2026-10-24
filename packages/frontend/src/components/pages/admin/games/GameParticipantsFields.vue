@@ -8,6 +8,7 @@ import {
 import type { GameFormData } from "./GameForm.vue";
 import type { ColumnDef, ColumnSort } from "../../../../types/table.js";
 import {
+  cellActions,
   cellJerseyNumber,
   cellLink,
   cellName,
@@ -15,9 +16,10 @@ import {
   sortByPositionEnumOrder,
   sortableHeader,
 } from "../../../ui/Table/table-utils.js";
+import GameParticipantRemoveModal from "./GameParticipantRemoveModal.vue";
 
 export type GameParticipantsFormData = Partial<GameFormData>;
-type GameParticipantRow = Pick<
+export type GameParticipantRow = Pick<
   GameParticipant,
   "id" | "goalsScored" | "yellowCards" | "redCards" | "player"
 > & {
@@ -32,15 +34,28 @@ type GameParticipantRow = Pick<
 const props = withDefaults(
   defineProps<{
     form: GameParticipantsFormData | null;
+    gameId?: string | null;
     loading?: boolean;
     error?: string;
   }>(),
   {
     form: null,
+    gameId: null,
     loading: false,
     error: "",
   },
 );
+
+const removeModalOpen = ref(false);
+const participantToRemove = ref<GameParticipantRow | null>(null);
+function askRemoveParticipant(participantRow: GameParticipantRow) {
+  participantToRemove.value = participantRow;
+  removeModalOpen.value = true;
+}
+
+async function handleParticipantUpdate(value: GameParticipantRow | null) {
+  participantToRemove.value = value;
+}
 
 const columns: ColumnDef<GameParticipantRow>[] = [
   {
@@ -48,7 +63,7 @@ const columns: ColumnDef<GameParticipantRow>[] = [
   },
   {
     accessorKey: "jerseyNumber",
-    header: sortableHeader("Dorsal"),
+    header: "Dorsal",
     title: "Dorsal",
     enableSorting: true,
     meta: {
@@ -99,20 +114,20 @@ const columns: ColumnDef<GameParticipantRow>[] = [
         cellLink(playerName, `/admin/players/${playerId}/edit`),
         h("br"),
         cellName(invitedByLabel, {
-          class: "text-gray-500 text-[10px]",
+          class: "text-xs text-gray-500 text-[10px]",
         }),
       ]);
     },
   },
   {
     accessorKey: "playerNickname",
-    header: sortableHeader("Apodo"),
+    header: "Apodo",
     title: "Apodo del jugador",
     enableSorting: true,
     cell: ({ row }) => {
       const playerNickname: string = row.getValue("playerNickname") ?? "";
       return cellName(playerNickname, {
-        class: "text-gray-500 italic",
+        class: "text-xs text-gray-500 italic",
       });
     },
   },
@@ -176,6 +191,33 @@ const columns: ColumnDef<GameParticipantRow>[] = [
       return cellName(value.toString());
     },
   },
+  {
+    id: "actions",
+    header: "Acciones",
+    meta: {
+      class: {
+        th: "text-right",
+        td: "text-right",
+      },
+    },
+
+    cell: ({ row }) => {
+      const playerId: string = row.original.player.id;
+      return cellActions({
+        items: [
+          // {
+          //   label: "Editar cancha",
+          //   onClick: (event: Event) =>
+          //     navigateTo(`/admin/playgrounds/${playerId}`),
+          // },
+          {
+            label: "Remover jugador",
+            onClick: (event: Event) => askRemoveParticipant(row.original),
+          },
+        ],
+      });
+    },
+  },
 ];
 
 const columnVisibility = ref<
@@ -212,6 +254,14 @@ const tableRows = computed((): GameParticipantRow[] => {
       >
       <UInput v-model="null" type="date" required class="w-full" />
     </div> -->
+
+    <GameParticipantRemoveModal
+      :open="removeModalOpen"
+      :game-id="props.gameId"
+      :participant-to-remove="participantToRemove"
+      @update:open="(value) => (removeModalOpen = value)"
+      @update:participant="handleParticipantUpdate"
+    />
 
     <UTable
       :columns="columns"

@@ -221,6 +221,103 @@ describe("GameService", () => {
     });
   });
 
+  describe("addParticipantToGame", () => {
+    it("creates a participant relation for a player and returns the refreshed game", async () => {
+      (GameModel.findById as jest.Mock).mockResolvedValue({
+        id: "g1",
+        participants: [],
+      });
+      (GameModel.update as jest.Mock).mockResolvedValue({
+        id: "g1",
+      });
+      (GameModel.findById as jest.Mock).mockResolvedValueOnce({
+        id: "g1",
+        participants: [],
+      });
+      (GameModel.findById as jest.Mock).mockResolvedValueOnce({
+        id: "g1",
+        participants: [{ id: "gp-1", playerId: "p-1" }],
+      });
+
+      const result = await GameService.addParticipantToGame("g1", "p-1");
+
+      expect(GameModel.update).toHaveBeenCalledWith(
+        "g1",
+        expect.objectContaining({
+          participants: {
+            create: expect.objectContaining({
+              playerId: "p-1",
+              confirmationStatus: "CONFIRMED",
+            }),
+          },
+        }),
+      );
+      expect(result.participants).toHaveLength(1);
+    });
+  });
+
+  describe("removeParticipantFromGame", () => {
+    it("deletes the participant relation when the row id is provided", async () => {
+      (GameModel.findById as jest.Mock).mockResolvedValue({
+        id: "g1",
+        participants: [{ id: "gp-1", playerId: "p-1" }],
+      });
+      (GameModel.update as jest.Mock).mockResolvedValue({ id: "g1" });
+      (GameModel.findById as jest.Mock).mockResolvedValueOnce({
+        id: "g1",
+        participants: [{ id: "gp-1", playerId: "p-1" }],
+      });
+      (GameModel.findById as jest.Mock).mockResolvedValueOnce({
+        id: "g1",
+        participants: [],
+      });
+
+      const result = await GameService.removeParticipantFromGame("g1", "gp-1");
+
+      expect(GameModel.update).toHaveBeenCalledWith(
+        "g1",
+        expect.objectContaining({
+          participants: {
+            deleteMany: {
+              OR: [{ id: "gp-1" }, { playerId: "p-1" }],
+            },
+          },
+        }),
+      );
+      expect(result.participants).toEqual([]);
+    });
+
+    it("deletes the participant relation for the selected player", async () => {
+      (GameModel.findById as jest.Mock).mockResolvedValue({
+        id: "g1",
+        participants: [{ id: "gp-1", playerId: "p-1" }],
+      });
+      (GameModel.update as jest.Mock).mockResolvedValue({ id: "g1" });
+      (GameModel.findById as jest.Mock).mockResolvedValueOnce({
+        id: "g1",
+        participants: [{ id: "gp-1", playerId: "p-1" }],
+      });
+      (GameModel.findById as jest.Mock).mockResolvedValueOnce({
+        id: "g1",
+        participants: [],
+      });
+
+      const result = await GameService.removeParticipantFromGame("g1", "p-1");
+
+      expect(GameModel.update).toHaveBeenCalledWith(
+        "g1",
+        expect.objectContaining({
+          participants: {
+            deleteMany: {
+              OR: [{ id: "p-1" }, { playerId: "p-1" }],
+            },
+          },
+        }),
+      );
+      expect(result.participants).toEqual([]);
+    });
+  });
+
   describe("searchGames", () => {
     it("returns games with pagination", async () => {
       const expected = {

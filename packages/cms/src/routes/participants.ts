@@ -8,6 +8,7 @@ import { authenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/rbac";
 import { validate } from "../middleware/validation";
 import { ParticipationService } from "../services/ParticipationService";
+import { GameService } from "../services/GameService";
 import { z } from "zod";
 import { ConfirmationStatus } from "@prisma/client";
 import { createError } from "../middleware/error-handler";
@@ -149,21 +150,38 @@ router.delete(
   },
 );
 
-// DELETE /api/v1/games/:gameId/participants/:participantId - Admin/Editor (T021)
-router.delete(
+// POST /api/v1/games/:gameId/participants/:participantId - Add a player to a game
+router.post(
   "/:participantId",
   authenticate,
   requireRole("EDITOR"),
   validate(gameParticipantParamsSchema, "params"),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await ParticipationService.removeParticipant(
+      const game = await GameService.addParticipantToGame(
         req.params.gameId!,
         req.params.participantId!,
-        req.user!.userId,
-        req.user!.role,
       );
-      res.status(204).end();
+      res.status(201).json({ data: game });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// PATCH /api/v1/games/:gameId/participants/:participantId - Remove a player from a game
+router.patch(
+  "/:participantId",
+  authenticate,
+  requireRole("EDITOR"),
+  validate(gameParticipantParamsSchema, "params"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const game = await GameService.removeParticipantFromGame(
+        req.params.gameId!,
+        req.params.participantId!,
+      );
+      res.json({ data: game });
     } catch (err) {
       next(err);
     }

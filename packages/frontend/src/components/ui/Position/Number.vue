@@ -12,9 +12,7 @@ const props = defineProps<Props>();
 
 const bgColor = "#1a1a1a";
 const textColor = "#FFFFFF";
-
 const emptyBgColor = "#FFFFFF";
-const emptyTextColor = "#1a1a1a";
 
 const jerseyDataUri = ref("");
 
@@ -44,8 +42,8 @@ function updateJerseyUri() {
         sleeveColor: emptyBgColor,
         shirtStyle: "plain",
         shirtStyleDirection: "vertical",
-        textColor: emptyTextColor,
-        textOutlineColor: emptyTextColor,
+        textColor: emptyBgColor,
+        textOutlineColor: emptyBgColor,
         isBack: true,
       });
     }
