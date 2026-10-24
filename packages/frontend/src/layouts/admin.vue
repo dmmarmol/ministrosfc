@@ -27,7 +27,7 @@ const pageTitle = computed(() => {
       }"
     >
       <template #default>
-        <div class="p-4 border-b border-gray-700">
+        <div class="p-4 pl-6 border-b border-gray-700">
           <span class="text-brand font-bold text-lg">Ministros FC</span>
           <p class="text-xs text-gray-400 mt-1">Admin Panel</p>
         </div>
@@ -56,25 +56,43 @@ const pageTitle = computed(() => {
         </nav>
         <!-- User info + logout -->
         <div class="p-4 border-t border-gray-700">
-          <p class="text-xs text-gray-400 truncate mb-2">
+          <p class="text-sm text-gray-400 truncate mb-2 pl-2">
             <!-- @TODO add user icon from a library like Heroicons -->
             {{ authStore.user?.firstName }} {{ authStore.user?.lastName }}
           </p>
-          <NuxtLink
-            to="/"
-            class="inline-block text-xs text-brand hover:opacity-90 transition-opacity mb-2"
-          >
-            <!-- @TODO add Home icon from a library like Heroicons -->
-            Volver al sitio publico
-          </NuxtLink>
-          <br />
-          <button
-            class="text-xs text-red-400 hover:text-red-300 transition-colors"
-            @click="authStore.logout()"
-          >
-            <!-- @TODO add Sign out icon from a library like Heroicons -->
-            Sign out
-          </button>
+          <div class="flex flex-col space-y-2">
+            <UButton
+              to="/profile"
+              variant="link"
+              color="white"
+              size="xs"
+              icon="mdi:account"
+              class="w-full"
+            >
+              Perfil
+            </UButton>
+            <UButton
+              to="/"
+              variant="link"
+              color="white"
+              icon="mdi:home"
+              size="xs"
+              class="w-full"
+            >
+              Volver al sitio publico
+            </UButton>
+            <hr class="text-gray-600" />
+            <UButton
+              variant="link"
+              color="error"
+              size="xs"
+              icon="mdi:logout"
+              class="w-full"
+              @click="authStore.logout()"
+            >
+              Desconectarse
+            </UButton>
+          </div>
         </div>
       </template>
     </USidebar>

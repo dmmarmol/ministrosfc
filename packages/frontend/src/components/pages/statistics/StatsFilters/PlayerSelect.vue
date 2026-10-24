@@ -55,7 +55,7 @@ function handleUpdate(value: SelectItem | undefined) {
 
 <template>
   <USelectMenu
-    id="playground-select"
+    id="player-select"
     :model-value="modelValue"
     @update:model-value="handleUpdate"
     :items="items"

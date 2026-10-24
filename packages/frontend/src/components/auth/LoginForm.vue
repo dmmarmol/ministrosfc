@@ -54,12 +54,15 @@ function handleSubmit() {
     <p v-if="error" class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
       {{ error }}
     </p>
-    <button
+    <UButton
       type="submit"
       :disabled="loading"
-      class="w-full bg-brand text-gray-900 font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-60"
+      variant="solid"
+      color="primary"
+      class="w-full flex justify-center"
+      size="xl"
     >
       {{ loading ? "Iniciando sesión…" : "Iniciar sesión" }}
-    </button>
+    </UButton>
   </form>
 </template>
