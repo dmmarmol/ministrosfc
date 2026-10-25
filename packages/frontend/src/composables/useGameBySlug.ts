@@ -1,13 +1,13 @@
 import { computed } from "vue";
 import { useNuxtApp, useAsyncData, createError } from "nuxt/app";
-import type { Game } from "@ministrosfc/shared";
+import type { Game, GameParticipant } from "@ministrosfc/shared";
 
 type GameBySlug = {
-  gameId: Game["id"];
-  game: Game;
-  participants: Record<string, unknown>[];
-  pending: boolean;
-  error: any;
+  gameId: Ref<Game["id"]>;
+  game: Ref<Game>;
+  participants: Ref<GameParticipant[]>;
+  pending: Ref<boolean>;
+  error: Ref<unknown>;
 };
 
 export function useGameBySlug(slug: string): GameBySlug {
@@ -28,9 +28,9 @@ export function useGameBySlug(slug: string): GameBySlug {
         $api<{ data: any[] }>(`/api/v1/games/${id}/participants`),
       ]);
       return {
-        gameId: id,
-        game: gameRes.data,
-        participants: partRes.data as any[],
+        gameId: id as string,
+        game: gameRes.data as Game,
+        participants: partRes.data as GameParticipant[],
       };
     },
   );
@@ -46,10 +46,10 @@ export function useGameBySlug(slug: string): GameBySlug {
   );
 
   return {
-    gameId: gameId.value,
-    game: game.value,
-    participants: participants.value,
-    pending: pending.value,
-    error: error.value,
+    gameId: gameId,
+    game: game,
+    participants: participants,
+    pending: pending,
+    error: error,
   };
 }
