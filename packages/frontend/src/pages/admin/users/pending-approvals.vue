@@ -45,7 +45,7 @@ async function fetchQueue() {
       params.set("search", search.value.trim());
     }
 
-    const response = await ($api as any)(
+    const response = await $api(
       `/api/v1/admin/users/pending-approvals?${params.toString()}`,
     );
 
@@ -104,7 +104,7 @@ async function approveWithoutMerge() {
 
   actionLoading.value = true;
   try {
-    await ($api as any)(
+    await $api(
       `/api/v1/admin/users/pending-approvals/${selected.value.userId}/approve`,
       {
         method: "POST",
@@ -124,7 +124,7 @@ async function approveWithMerge(mergePlayerId: string) {
 
   actionLoading.value = true;
   try {
-    await ($api as any)(
+    await $api(
       `/api/v1/admin/users/pending-approvals/${selected.value.userId}/approve-merge`,
       {
         method: "POST",
@@ -147,7 +147,7 @@ async function deny(reason: string) {
 
   actionLoading.value = true;
   try {
-    await ($api as any)(
+    await $api(
       `/api/v1/admin/users/pending-approvals/${selected.value.userId}/deny`,
       {
         method: "POST",

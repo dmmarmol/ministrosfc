@@ -29,14 +29,15 @@ export function useStatsFilters() {
   }
 
   const filters = computed<StatsFilters>(() => ({
-    playerSearch: qp.get("playerSearch"),
-    mode: qp.get("mode"),
-    year: qp.get("year"),
-    tournament: qp.get("tournament"),
-    rivalId: qp.get("rivalId"),
-    playerId: qp.get("playerId"),
-    playerStatus: qp.get("playerStatus") || PlayerStatus.ACTIVE,
-    playgroundId: qp.get("playgroundId"),
+    playerSearch: qp.get("playerSearch") ?? "",
+    mode: qp.get("mode") ?? "",
+    year: qp.get("year") ?? "",
+    tournament: qp.get("tournament") ?? "",
+    rivalId: qp.get("rivalId") ?? "",
+    playerId: qp.get("playerId") ?? "",
+    playerStatus:
+      ((qp.get("playerStatus") as PlayerStatus | null) ?? PlayerStatus.ACTIVE),
+    playgroundId: qp.get("playgroundId") ?? "",
   }));
 
   const playerSearch = makeFilter("playerSearch");

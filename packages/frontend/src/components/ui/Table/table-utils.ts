@@ -256,7 +256,7 @@ export function cellClickeableInput(
 
       return () =>
         isEditing.value
-          ? h(UInput, {
+          ? h(resolveComponent("UInput"), {
               modelValue: inputValue.value,
               class: "editable-cell",
               autofocus: true,

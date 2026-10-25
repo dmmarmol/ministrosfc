@@ -3,7 +3,7 @@
  * Most types are re-exported from @ministrosfc/shared; this file centralizes them.
  */
 
-import { PlayerStatRowDTO } from "@ministrosfc/shared";
+import type { PlayerStatRowDTO } from "@ministrosfc/shared";
 
 export type {
   TopScorerDTO,

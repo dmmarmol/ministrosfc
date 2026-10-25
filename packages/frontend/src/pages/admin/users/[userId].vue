@@ -35,7 +35,7 @@ async function fetchPlayer() {
 
   loadingPlayer.value = true;
   try {
-    const response = await ($api as any)(
+    const response = await $api(
       `/api/v1/players/${user.value.playerId}`,
     );
     player.value = response.data ?? null;
@@ -52,7 +52,7 @@ async function saveProfile(payload: {
   email: string;
   expectedUpdatedAt: string;
 }) {
-  await ($api as any)(`/api/v1/admin/users/${userId.value}`, {
+  await $api(`/api/v1/admin/users/${userId.value}`, {
     method: "PATCH",
     body: payload,
   });
@@ -62,7 +62,7 @@ async function saveProfile(payload: {
 async function savePlayer(payload: PlayerFormData) {
   if (!user.value?.playerId) return;
 
-  await ($api as any)(`/api/v1/players/${user.value.playerId}`, {
+  await $api(`/api/v1/players/${user.value.playerId}`, {
     method: "PATCH",
     body: payload,
   });
@@ -84,7 +84,7 @@ async function mergeSelectedPlayer(mergePlayerId: string) {
 
   actionLoading.value = true;
   try {
-    await ($api as any)(`/api/v1/admin/users/${user.value.id}/merge-player`, {
+    await $api(`/api/v1/admin/users/${user.value.id}/merge-player`, {
       method: "POST",
       body: {
         mergePlayerId,

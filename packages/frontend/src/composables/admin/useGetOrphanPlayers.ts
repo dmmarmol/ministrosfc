@@ -41,7 +41,7 @@ export function useGetOrphanPlayers() {
     query: OrphanPlayersQuery = {},
   ): Promise<OrphanPlayerItem[]> {
     const queryString = buildQueryString(query);
-    const response = await ($api as any)(
+    const response = await $api(
       `/api/v1/admin/users/orphan-players?${queryString}`,
     );
 
@@ -53,7 +53,7 @@ export function useGetOrphanPlayers() {
     query: OrphanPlayersQuery = {},
   ): Promise<OrphanPlayerItem[]> {
     const queryString = buildQueryString(query);
-    const response = await ($api as any)(
+    const response = await $api(
       `/api/v1/admin/users/pending-approvals/${userId}/orphan-players?${queryString}`,
     );
 

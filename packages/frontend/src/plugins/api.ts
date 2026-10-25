@@ -12,12 +12,20 @@ export interface ApiError {
   code?: string;
 }
 
+export type NuxtApi = <T = unknown>(
+  path: string,
+  options?: FetchOptions<'json'>,
+) => Promise<T>;
+
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
   const router = useRouter();
 
-  async function api<T = unknown>(path: string, options: FetchOptions<'json'> = {}): Promise<T> {
+  const api: NuxtApi = async <T = unknown>(
+    path: string,
+    options: FetchOptions<'json'> = {},
+  ): Promise<T> => {
     const headers: Record<string, string> = {
       ...(options.headers as Record<string, string> | undefined),
     };
@@ -27,18 +35,18 @@ export default defineNuxtPlugin(() => {
     }
 
     try {
-      return await $fetch<T>(`${config.public.apiBaseUrl}${path}`, {
+      const fetchOptions: any = {
         ...options,
         headers,
-      });
+      };
+
+      return (await $fetch<T>(`${config.public.apiBaseUrl}${path}`, fetchOptions)) as T;
     } catch (err: unknown) {
       const fetchError = err as { status?: number; data?: { message?: string; code?: string } };
 
       if (fetchError.status === 401) {
-        // Try token refresh first
         try {
           await authStore.refresh();
-          // Retry with new token
           return await api<T>(path, options);
         } catch {
           authStore.logout();
@@ -57,9 +65,11 @@ export default defineNuxtPlugin(() => {
         code: fetchError.data?.code,
       } satisfies ApiError;
     }
-  }
+  };
 
   return {
-    provide: { api },
+    provide: {
+      api,
+    },
   };
 });

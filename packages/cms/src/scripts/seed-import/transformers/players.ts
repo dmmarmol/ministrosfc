@@ -71,7 +71,7 @@ interface PlayerData {
   nationalId: string | null;
   photoUrl: string;
   playerType: PlayerType;
-  status: PlayerStatus.ACTIVE;
+  status: PlayerStatus;
   invitedById: null;
 }
 

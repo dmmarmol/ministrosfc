@@ -14,7 +14,7 @@ export function useGetUser<TUser = any>(userId: MaybeRef<string>) {
     error.value = "";
 
     try {
-      const response = await ($api as any)(
+      const response = await $api(
         `/api/v1/admin/users/${unref(userId)}`,
       );
       user.value = response.data;

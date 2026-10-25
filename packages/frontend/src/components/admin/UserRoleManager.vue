@@ -138,7 +138,7 @@ async function saveEdit(userId: string) {
         actionDescription: `¿Cambiar el email de ${fullName} de "${user!.email}" a "${newEmail}"? Esto afecta sus credenciales de acceso.`,
       },
       async () => {
-        await ($api as any)(`/api/v1/admin/users/${userId}`, {
+        await $api(`/api/v1/admin/users/${userId}`, {
           method: "PATCH",
           body: { ...editFields.value },
         });
@@ -149,7 +149,7 @@ async function saveEdit(userId: string) {
   } else {
     // Non-critical edits (first/last name): inline save without confirmation
     try {
-      await ($api as any)(`/api/v1/admin/users/${userId}`, {
+      await $api(`/api/v1/admin/users/${userId}`, {
         method: "PATCH",
         body: {
           firstName: editFields.value.firstName,
@@ -207,7 +207,7 @@ async function fetchUsers() {
     if (roleFilter.value) params.set("role", roleFilter.value);
     if (search.value) params.set("search", search.value);
 
-    const res = await ($api as any)(`/api/v1/admin/users?${params.toString()}`);
+    const res = await $api(`/api/v1/admin/users?${params.toString()}`);
     users.value = res.data;
     meta.value = res.meta;
   } catch (e: any) {
@@ -238,7 +238,7 @@ function requestRoleChange(user: AdminUserListItem, newRole: string) {
       actionDescription: `¿Cambiar el rol de ${fullName} de ${roleLabel[user.role] ?? user.role} a ${roleLabel[newRole] ?? newRole}?`,
     },
     async () => {
-      await ($api as any)(`/api/v1/admin/users/${user.id}/role`, {
+      await $api(`/api/v1/admin/users/${user.id}/role`, {
         method: "PATCH",
         body: { role: newRole },
       });
@@ -264,7 +264,7 @@ function requestStatusToggle(user: AdminUserListItem) {
         : `¿Activar a ${fullName}? Volverá a poder inscribirse en partidos.`,
     },
     async () => {
-      await ($api as any)(`/api/v1/admin/users/${user.id}/player-status`, {
+      await $api(`/api/v1/admin/users/${user.id}/player-status`, {
         method: "PATCH",
         body: { status: newStatus },
       });
@@ -286,7 +286,7 @@ function confirmDelete(user: AdminUserListItem) {
       actionDescription: `¿Eliminar a ${fullName} y su perfil de jugador? Esta acción no se puede deshacer.`,
     },
     async () => {
-      await ($api as any)(`/api/v1/admin/users/${user.id}/player`, {
+      await $api(`/api/v1/admin/users/${user.id}/player`, {
         method: "DELETE",
       });
       deleteTarget.value = null;

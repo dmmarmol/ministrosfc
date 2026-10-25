@@ -1,9 +1,8 @@
-import type { SelectItem } from "./api";
-import { OptionItem } from "./api";
-import { ConfirmationStatus } from "./game-participant";
-import { OpponentTeam } from "./opponent-team";
-import { Player, PlayerType } from "./player";
-import { PlaygroundOption } from "./playground";
+import type { OptionItem, SelectItem } from "./api";
+import type { ConfirmationStatus } from "./game-participant";
+import type { OpponentTeam } from "./opponent-team";
+import type { PlayerType } from "./player";
+import type { PlaygroundOption } from "./playground";
 
 export enum GameStatus {
   SCHEDULED = "SCHEDULED",
@@ -128,11 +127,11 @@ export interface GameParticipant {
   yellowCards: number;
 }
 
-export interface AdminGame extends Game {
+export type AdminGame = Omit<Game, "opponentTeam"> & {
   opponentTeam: OptionItem | null;
   tournament: OptionItem | null;
   confirmedCount: number | null;
-}
+};
 
 export interface GameCreatePayload {
   opponentTeamId: string;
