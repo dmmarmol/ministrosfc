@@ -10,6 +10,7 @@ import type { ColumnDef, ColumnSort } from "../../../../types/table.js";
 import {
   cellActions,
   cellButton,
+  cellClickeableInput,
   cellJerseyNumber,
   cellLink,
   cellName,
@@ -151,7 +152,12 @@ const columns: ColumnDef<GameParticipantRow>[] = [
     },
     cell: ({ row }) => {
       const value: number = row.getValue("goalsScored");
-      return cellName(value.toString());
+      const children = cellName(value.toString());
+
+      // return children;
+      return cellClickeableInput(children, (nextValue) => {
+        console.log("updated value:", nextValue);
+      });
     },
   },
   {
@@ -251,19 +257,10 @@ const tableRows = computed((): GameParticipantRow[] => {
 });
 </script>
 <template>
-  <div>
-    <!-- <div>
-      <label class="block text-xs font-medium text-gray-700 mb-1"
-        >Fecha <span class="text-red-500">*</span></label
-      >
-      <UInput v-model="null" type="date" required class="w-full" />
-    </div> -->
-
-    <UTable
-      :columns="columns"
-      :data="tableRows"
-      :column-visibility="columnVisibility"
-      v-model:sorting="columnSorting"
-    />
-  </div>
+  <UTable
+    :columns="columns"
+    :data="tableRows"
+    :column-visibility="columnVisibility"
+    v-model:sorting="columnSorting"
+  />
 </template>

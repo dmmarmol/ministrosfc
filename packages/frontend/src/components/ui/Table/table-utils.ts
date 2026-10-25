@@ -1,10 +1,11 @@
-import { h, type VNode } from "vue";
+import { defineComponent, h, ref, type PropType, type VNode } from "vue";
 import {
   NuxtLink,
   UButton,
   UDropdownMenu,
   UiPositionLabel,
   UiPositionNumber,
+  UInput,
 } from "#components";
 import type { DropdownMenuItem } from "#ui/components/DropdownMenu.vue";
 import type { ArrayOrNested } from "#ui/types/utils";
@@ -202,4 +203,85 @@ type CellButtonProps = UButtonProps & {
 };
 export function cellButton(label: string, props: CellButtonProps): VNode {
   return h(UButton, props, () => label);
+}
+
+function getVNodeText(
+  vnode: VNode | string | number | null | undefined,
+): string {
+  if (vnode == null) return "";
+  if (typeof vnode === "string" || typeof vnode === "number")
+    return String(vnode);
+
+  if (Array.isArray(vnode.children)) {
+    return vnode.children.map((child) => getVNodeText(child as VNode)).join("");
+  }
+
+  if (typeof vnode.children === "string") return vnode.children;
+
+  return "";
+}
+
+export function cellClickeableInput(
+  cellNode: VNode,
+  onChange?: (value: string) => void,
+): VNode {
+  const EditableCell = defineComponent({
+    name: "EditableCell",
+    props: {
+      cellNode: {
+        type: Object as PropType<VNode>,
+        required: true,
+      },
+      onChange: {
+        type: Function as PropType<(value: string) => void>,
+        required: false,
+        default: undefined,
+      },
+    },
+    setup(props) {
+      const isEditing = ref(false);
+      const inputValue = ref(getVNodeText(props.cellNode));
+
+      const resetInput = () => {
+        inputValue.value = getVNodeText(props.cellNode);
+      };
+
+      const handleKeydown = (event: KeyboardEvent) => {
+        if (event.key !== "Enter") return;
+
+        const nextValue = String(inputValue.value ?? "");
+        props.onChange?.(nextValue);
+        isEditing.value = false;
+      };
+
+      return () =>
+        isEditing.value
+          ? h(UInput, {
+              modelValue: inputValue.value,
+              class: "editable-cell",
+              autofocus: true,
+              "onUpdate:modelValue": (value: string | number | undefined) => {
+                inputValue.value = String(value ?? "");
+              },
+              onKeydown: handleKeydown,
+              onBlur: () => {
+                resetInput();
+                isEditing.value = false;
+              },
+            })
+          : h(
+              "div",
+              {
+                class: "editable-cell cursor-pointer",
+                onClick: () => {
+                  resetInput();
+                  isEditing.value = true;
+                },
+              },
+              [props.cellNode],
+            );
+    },
+  });
+
+  return h(EditableCell, { cellNode, onChange });
 }

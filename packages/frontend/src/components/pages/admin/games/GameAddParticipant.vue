@@ -52,8 +52,6 @@ async function handleSelectPlayer(participantId: string | null) {
   // Refresh the game data after adding the participant
   store.setSelectedGame(refreshedGame);
 }
-console.log("store", { ...store });
-console.log("store.isGameParticipantsFull", store.isGameParticipantsFull);
 </script>
 <template>
   <div class="mb-4">
