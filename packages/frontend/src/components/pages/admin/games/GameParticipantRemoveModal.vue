@@ -20,9 +20,9 @@ async function confirmRemoveParticipant() {
   const gameId = props.gameId;
   const participantId = store.selectedParticipantId;
 
-  await removeGameParticipant(gameId, participantId);
+  const refreshedGame = await removeGameParticipant(gameId, participantId);
   // Refresh the game data after removing the participant
-  store.setSelectedGame(await fetchGameById(gameId));
+  store.setSelectedGame(refreshedGame);
   store.cancelRemoveParticipant();
 }
 

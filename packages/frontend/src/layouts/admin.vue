@@ -56,8 +56,10 @@ const pageTitle = computed(() => {
         </nav>
         <!-- User info + logout -->
         <div class="p-4 border-t border-gray-700">
-          <p class="text-sm text-gray-400 truncate mb-2 pl-2">
-            <!-- @TODO add user icon from a library like Heroicons -->
+          <p
+            v-if="authStore.user"
+            class="text-sm text-gray-400 truncate mb-2 pl-2"
+          >
             {{ authStore.user?.firstName }} {{ authStore.user?.lastName }}
           </p>
           <div class="flex flex-col space-y-2">
@@ -103,7 +105,7 @@ const pageTitle = computed(() => {
         class="bg-white shadow-sm px-6 py-4 flex items-center justify-end"
       >
         <!-- <h1 class="text-lg font-semibold text-gray-800">{{ pageTitle }}</h1> -->
-        <div class="flex flex-col text-right">
+        <div v-if="authStore.user" class="flex flex-col text-right">
           <p class="text-sm text-gray-800">
             Bienvenido,
             <span

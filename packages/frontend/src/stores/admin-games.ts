@@ -20,6 +20,14 @@ export const useAdminGamesStore = defineStore("admin-games", {
         null
       );
     },
+    isGameParticipantsFull: (state) => {
+      debugger;
+      if (!state.selectedGame) return false;
+      if (typeof state.selectedGame.maxPlayers !== "number") return false;
+      return (
+        state.selectedGame.participants.length >= state.selectedGame.maxPlayers
+      );
+    },
   },
   actions: {
     setSelectedGame(game: Game | null) {

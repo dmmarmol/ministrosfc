@@ -24,7 +24,7 @@ const nonParticipantPlayers = computed<SelectItem[]>(() => {
   });
 });
 
-const { addGameParticipant, fetchGameById } = useGames();
+const { addGameParticipant } = useGames();
 const store = useAdminGamesStore();
 
 watch(
@@ -36,18 +36,24 @@ watch(
 
 // Handle the updated model value here
 async function handleSelectPlayer(participantId: string | null) {
+  debugger;
   if (!participantId || !props.game?.id) {
     store.setSelectedParticipantId(null);
     return;
   }
 
+  if (store.isGameParticipantsFull) {
+    store.setSelectedParticipantId(null);
+    return;
+  }
+
   store.setSelectedParticipantId(participantId);
-  await addGameParticipant(props.game.id, participantId);
+  const refreshedGame = await addGameParticipant(props.game.id, participantId);
   // Refresh the game data after adding the participant
-  debugger;
-  const refreshedGame: Game = await fetchGameById(props.game.id);
   store.setSelectedGame(refreshedGame);
 }
+console.log("store", { ...store });
+console.log("store.isGameParticipantsFull", store.isGameParticipantsFull);
 </script>
 <template>
   <div class="mb-4">
@@ -56,6 +62,12 @@ async function handleSelectPlayer(participantId: string | null) {
   <div>
     <USelectMenu
       id="player-select"
+      :disabled="store.isGameParticipantsFull"
+      :title="
+        store.isGameParticipantsFull
+          ? 'Se alcanzó el cupo máximo'
+          : 'Selecciona un jugador'
+      "
       :model-value="modelValue"
       @update:model-value="handleSelectPlayer"
       :items="nonParticipantPlayers"
@@ -67,5 +79,20 @@ async function handleSelectPlayer(participantId: string | null) {
       class="w-full"
       :ui="{ content: 'min-w-fit' }"
     />
+  </div>
+  <div
+    v-if="store.isGameParticipantsFull"
+    class="text-sm text-warning-900 bg-warning-200 border border-warning-300 mt-4 p-4 rounded-sm"
+  >
+    <UIcon
+      name="mdi:warning"
+      size="24"
+      class="inline-block mr-2 text-inherit"
+    />
+    <p class="mb-2">Se ha alcanzado el número máximo de participantes.</p>
+    <p>
+      Remueve a un jugador si deseas agregar uno nuevo o incrementa el cupo
+      máximo.
+    </p>
   </div>
 </template>

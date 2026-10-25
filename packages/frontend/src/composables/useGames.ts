@@ -58,7 +58,7 @@ export function useGames() {
       headers: authHeaders(),
       body: payload,
     });
-    await fetchGames();
+
     return res.data;
   }
 
@@ -71,7 +71,6 @@ export function useGames() {
       headers: authHeaders(),
       body: payload,
     });
-    await fetchGames();
   }
 
   async function deleteGame(id: string): Promise<void> {
@@ -79,7 +78,6 @@ export function useGames() {
       method: "DELETE",
       headers: authHeaders(),
     });
-    await fetchGames();
   }
 
   async function addGameParticipant(
@@ -93,7 +91,7 @@ export function useGames() {
         headers: authHeaders(),
       },
     );
-    await fetchGames();
+
     return res.data;
   }
 
@@ -108,7 +106,7 @@ export function useGames() {
         headers: authHeaders(),
       },
     );
-    await fetchGames();
+
     return res.data;
   }
 

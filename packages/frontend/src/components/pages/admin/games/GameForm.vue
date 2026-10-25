@@ -137,25 +137,27 @@ async function handleSubmit() {
 <template>
   <form @submit.prevent="handleSubmit">
     <div class="grid xl:grid-cols-6 gap-4">
-      <div
-        class="xl:col-span-2 bg-white justify-start rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
-      >
-        <p
-          v-if="error"
-          class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2"
+      <div class="xl:col-span-2">
+        <div
+          class="bg-white justify-start rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
         >
-          {{ error }}
-        </p>
-        <div class="flex flex-col gap-y-4">
-          <GameFormFields
-            :form="form"
-            :teamsData="teamsData"
-            :tournament-data="tournamentData"
-          />
-        </div>
-        <hr class="border-gray-300" />
-        <div>
-          <GameAddParticipant :game="props.game" />
+          <p
+            v-if="error"
+            class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2"
+          >
+            {{ error }}
+          </p>
+          <div class="flex flex-col gap-y-4">
+            <GameFormFields
+              :form="form"
+              :teamsData="teamsData"
+              :tournament-data="tournamentData"
+            />
+          </div>
+          <hr class="border-gray-300" />
+          <div>
+            <GameAddParticipant :game="props.game" />
+          </div>
         </div>
       </div>
       <div class="xl:col-span-4">
