@@ -1,6 +1,7 @@
 import type { SelectItem } from "./api";
 import { OptionItem } from "./api";
 import { ConfirmationStatus } from "./game-participant";
+import { OpponentTeam } from "./opponent-team";
 import { Player, PlayerType } from "./player";
 import { PlaygroundOption } from "./playground";
 
@@ -68,6 +69,7 @@ export interface AdvancedStats {
 
 export interface Game {
   id: string;
+  opponentTeam: OpponentTeam;
   opponentTeamId: string;
   tournamentId?: string | null;
   date: string;

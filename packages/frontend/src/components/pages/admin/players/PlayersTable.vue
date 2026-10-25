@@ -4,7 +4,11 @@ import { PlayerStatus } from "@ministrosfc/shared";
 // import type { Position } from "@ministrosfc/shared";
 import type { ColumnDef } from "~/types/table";
 import { useAuthStore } from "~/stores/auth";
-import { cellJerseyNumber, cellPosition } from "../../../ui/Table/table-utils";
+import {
+  cellButton,
+  cellJerseyNumber,
+  cellPosition,
+} from "../../../ui/Table/table-utils";
 
 export type ExtendAdminPlayerAttr = {
   invitedById?: string | null;
@@ -180,12 +184,13 @@ const columns: ColumnDef<AdminPlayer>[] = [
     cell: ({ row }) => {
       const p = row.original;
       if (!authStore.isAdmin) return null;
-      return h(resolveComponent("UButton"), {
+      return cellButton("Eliminar", {
+        "data-testid": "delete-player-btn",
+        size: "xs",
         variant: "ghost",
         color: "error",
         icon: "mdi:trash-can-outline",
         title: "Eliminar jugador",
-        "data-testid": "delete-player-btn",
         onClick: () => emit("delete", p),
       });
     },

@@ -1,6 +1,6 @@
 import { prisma } from "../../config/database";
 import { CompetitionType, GameStatus } from "@prisma/client";
-import type { CsvImportResultDTO } from "@ministrosfc/shared";
+import { DEFAULT_LINEUP, type CsvImportResultDTO } from "@ministrosfc/shared";
 import { applyTimeToDate, parseCsv, parseDate } from "./helpers";
 import { HistorialCols } from "./column-maps";
 
@@ -172,7 +172,7 @@ export async function importHistorial(
       result.games.updated++;
     } else {
       await prisma.game.create({
-        data: { ...gameData, slug: slugUnique, lineup: "4-4-2" },
+        data: { ...gameData, slug: slugUnique, lineup: DEFAULT_LINEUP },
       });
       result.games.created++;
     }

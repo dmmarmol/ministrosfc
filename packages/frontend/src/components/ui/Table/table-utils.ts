@@ -13,6 +13,7 @@ import {
   type PlayerType,
   type Position,
 } from "@ministrosfc/shared";
+import type { ButtonProps as UButtonProps } from "@nuxt/ui";
 
 export function getSortedIcon(sortDirection: "asc" | "desc" | null): string {
   if (sortDirection === "asc") {
@@ -193,4 +194,12 @@ export function cellPosition(value: Position): VNode {
   return h(UiPositionLabel, {
     position: value,
   });
+}
+
+type CellButtonProps = UButtonProps & {
+  "data-testid"?: string;
+  title?: string;
+};
+export function cellButton(label: string, props: CellButtonProps): VNode {
+  return h(UButton, props, () => label);
 }

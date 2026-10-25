@@ -21,7 +21,7 @@ export function useGames() {
     return { Authorization: `Bearer ${authStore.accessToken}` };
   }
 
-  async function fetchGame(id: string): Promise<Game> {
+  async function fetchGameById(id: string): Promise<Game> {
     loading.value = true;
     error.value = null;
     try {
@@ -116,7 +116,7 @@ export function useGames() {
     games,
     loading,
     error,
-    fetchGame,
+    fetchGameById,
     fetchGames,
     createGame,
     updateGame,

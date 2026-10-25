@@ -20,6 +20,7 @@ import { GameStatus } from "@prisma/client";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
 import {
+  DEFAULT_LINEUP,
   FORMATIONS,
   OPTION_FILTER_ALL,
   type GameSignupState,
@@ -65,7 +66,7 @@ const gameCreateSchema = z
         message: "Invalid formation code",
       })
       .optional()
-      .default("4-4-2"),
+      .default(DEFAULT_LINEUP),
     // Strip server-generated fields silently
     endDate: z.any().optional(),
     slug: z.any().optional(),

@@ -9,6 +9,7 @@ import type { GameFormData } from "./GameForm.vue";
 import type { ColumnDef, ColumnSort } from "../../../../types/table.js";
 import {
   cellActions,
+  cellButton,
   cellJerseyNumber,
   cellLink,
   cellName,
@@ -16,10 +17,10 @@ import {
   sortByPositionEnumOrder,
   sortableHeader,
 } from "../../../ui/Table/table-utils.js";
-import GameParticipantRemoveModal from "./GameParticipantRemoveModal.vue";
+import { useAdminGamesStore } from "../../../../stores/admin-games.js";
 
 export type GameParticipantsFormData = Partial<GameFormData>;
-export type GameParticipantRow = Pick<
+type GameParticipantRow = Pick<
   GameParticipant,
   "id" | "goalsScored" | "yellowCards" | "redCards" | "player"
 > & {
@@ -46,55 +47,33 @@ const props = withDefaults(
   },
 );
 
-const removeModalOpen = ref(false);
-const participantToRemove = ref<GameParticipantRow | null>(null);
-function askRemoveParticipant(participantRow: GameParticipantRow) {
-  participantToRemove.value = participantRow;
-  removeModalOpen.value = true;
-}
-
-async function handleParticipantUpdate(value: GameParticipantRow | null) {
-  participantToRemove.value = value;
-}
+const store = useAdminGamesStore();
 
 const columns: ColumnDef<GameParticipantRow>[] = [
   {
     accessorKey: "id",
   },
   {
-    accessorKey: "jerseyNumber",
-    header: "Dorsal",
-    title: "Dorsal",
-    enableSorting: true,
+    id: "actions",
     meta: {
       class: {
-        td: "text-center flex items-center justify-center",
+        // th: "text-right",
+        th: "text-xs",
+        // td: "text-right",
       },
     },
     cell: ({ row }) => {
-      const jerseyNumber: number = row.getValue("jerseyNumber") ?? null;
-      const playerType: PlayerType = row.original.playerType;
-
-      return cellJerseyNumber({
-        jerseyNumber: jerseyNumber,
-        isGuest: playerType === PlayerType.GUEST,
+      return cellButton("", {
+        size: "sm",
+        variant: "ghost",
+        color: "neutral",
+        icon: "mdi:trash-can-outline",
+        title: "Eliminar jugador",
+        onClick: (event: Event) => {
+          const participantId: string = row.original.id;
+          store.askRemoveParticipant(participantId);
+        },
       });
-    },
-  },
-  {
-    accessorKey: "position",
-    header: sortableHeader("Posición"),
-    title: "Posición",
-    enableSorting: true,
-    sortingFn: sortByPositionEnumOrder,
-    meta: {
-      class: {
-        td: "text-center",
-      },
-    },
-    cell: ({ row }) => {
-      const position: Position = row.getValue("position");
-      return cellPosition(position);
     },
   },
   {
@@ -102,6 +81,11 @@ const columns: ColumnDef<GameParticipantRow>[] = [
     header: sortableHeader("Jugador"),
     title: "Nombre del jugador",
     enableSorting: true,
+    meta: {
+      class: {
+        th: "text-xs",
+      },
+    },
     cell: ({ row }) => {
       const playerName: string = row.getValue("playerName") ?? "";
       const invitedByName: string = row.original.invitedByName ?? "";
@@ -124,11 +108,34 @@ const columns: ColumnDef<GameParticipantRow>[] = [
     header: "Apodo",
     title: "Apodo del jugador",
     enableSorting: true,
+    meta: {
+      class: {
+        th: "text-xs",
+      },
+    },
     cell: ({ row }) => {
       const playerNickname: string = row.getValue("playerNickname") ?? "";
       return cellName(playerNickname, {
         class: "text-xs text-gray-500 italic",
       });
+    },
+  },
+  {
+    accessorKey: "position",
+    header: sortableHeader("Posición"),
+    title: "Posición",
+    enableSorting: true,
+    meta: {
+      class: {
+        th: "text-xs",
+
+        td: "text-center",
+      },
+    },
+    sortingFn: sortByPositionEnumOrder,
+    cell: ({ row }) => {
+      const position: Position = row.getValue("position");
+      return cellPosition(position);
     },
   },
   {
@@ -138,6 +145,7 @@ const columns: ColumnDef<GameParticipantRow>[] = [
     enableSorting: true,
     meta: {
       class: {
+        th: "text-xs",
         td: "text-center",
       },
     },
@@ -153,6 +161,7 @@ const columns: ColumnDef<GameParticipantRow>[] = [
     enableSorting: true,
     meta: {
       class: {
+        th: "text-xs",
         td: "text-center",
       },
     },
@@ -168,6 +177,7 @@ const columns: ColumnDef<GameParticipantRow>[] = [
     enableSorting: true,
     meta: {
       class: {
+        th: "text-xs",
         td: "text-center",
       },
     },
@@ -183,6 +193,7 @@ const columns: ColumnDef<GameParticipantRow>[] = [
     enableSorting: true,
     meta: {
       class: {
+        th: "text-xs",
         td: "text-center",
       },
     },
@@ -192,29 +203,22 @@ const columns: ColumnDef<GameParticipantRow>[] = [
     },
   },
   {
-    id: "actions",
-    header: "Acciones",
+    accessorKey: "jerseyNumber",
+    header: "Dorsal",
+    title: "Dorsal",
+    enableSorting: true,
     meta: {
       class: {
-        th: "text-right",
-        td: "text-right",
+        td: "text-center flex items-center justify-center",
       },
     },
-
     cell: ({ row }) => {
-      const playerId: string = row.original.player.id;
-      return cellActions({
-        items: [
-          // {
-          //   label: "Editar cancha",
-          //   onClick: (event: Event) =>
-          //     navigateTo(`/admin/playgrounds/${playerId}`),
-          // },
-          {
-            label: "Remover jugador",
-            onClick: (event: Event) => askRemoveParticipant(row.original),
-          },
-        ],
+      const jerseyNumber: number = row.getValue("jerseyNumber") ?? null;
+      const playerType: PlayerType = row.original.playerType;
+
+      return cellJerseyNumber({
+        jerseyNumber: jerseyNumber,
+        isGuest: playerType === PlayerType.GUEST,
       });
     },
   },
@@ -254,14 +258,6 @@ const tableRows = computed((): GameParticipantRow[] => {
       >
       <UInput v-model="null" type="date" required class="w-full" />
     </div> -->
-
-    <GameParticipantRemoveModal
-      :open="removeModalOpen"
-      :game-id="props.gameId"
-      :participant-to-remove="participantToRemove"
-      @update:open="(value) => (removeModalOpen = value)"
-      @update:participant="handleParticipantUpdate"
-    />
 
     <UTable
       :columns="columns"

@@ -12,7 +12,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const modelValue = ref<string | null>(null);
-const selectedPlayer = ref<string | null>(null);
+
 const { availablePlayers } = useStatisticsAvailablePlayers(PlayerStatus.ACTIVE);
 const nonParticipantPlayers = computed<SelectItem[]>(() => {
   return availablePlayers.value.filter((player) => {
@@ -24,23 +24,29 @@ const nonParticipantPlayers = computed<SelectItem[]>(() => {
   });
 });
 
-const { addGameParticipant } = useGames();
+const { addGameParticipant, fetchGameById } = useGames();
+const store = useAdminGamesStore();
 
-watch(selectedPlayer, () => {
-  // when selectedPlayer changes, refresh the nonParticipantPlayers list
-  // the nonParticipantPlayers list will automatically update due to the computed property
-  modelValue.value = null;
-});
+watch(
+  () => store.selectedParticipantId,
+  () => {
+    modelValue.value = null;
+  },
+);
 
 // Handle the updated model value here
 async function handleSelectPlayer(participantId: string | null) {
   if (!participantId || !props.game?.id) {
-    selectedPlayer.value = null;
+    store.setSelectedParticipantId(null);
     return;
   }
 
-  selectedPlayer.value = participantId;
+  store.setSelectedParticipantId(participantId);
   await addGameParticipant(props.game.id, participantId);
+  // Refresh the game data after adding the participant
+  debugger;
+  const refreshedGame: Game = await fetchGameById(props.game.id);
+  store.setSelectedGame(refreshedGame);
 }
 </script>
 <template>

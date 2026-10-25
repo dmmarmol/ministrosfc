@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useHead, navigateTo, useRuntimeConfig } from "nuxt/app";
-import { GameStatus, UserRole, DEFAULT_MAX_PLAYERS } from "@ministrosfc/shared";
+import {
+  GameStatus,
+  UserRole,
+  DEFAULT_MAX_PLAYERS,
+  DEFAULT_LINEUP,
+} from "@ministrosfc/shared";
 import { useGameBySlug } from "~/composables/useGameBySlug";
 import { useGameSignup } from "~/composables/useGameSignup";
 import { useAuthStore } from "~/stores/auth";
@@ -46,7 +51,7 @@ const {
 } = useGameSignup(gameId);
 
 // T063: lineup always has a value now; fall back to default if somehow missing
-const effectiveLineup = computed(() => game.value?.lineup ?? "4-4-2");
+const effectiveLineup = computed(() => game.value?.lineup ?? DEFAULT_LINEUP);
 
 // T069: ADMIN/EDITOR/DT can remove any row; PLAYER sees button only on their own row
 const canManageRoster = computed(() => {
