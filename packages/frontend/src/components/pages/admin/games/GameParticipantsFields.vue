@@ -8,7 +8,6 @@ import {
 import type { GameFormData } from "./GameForm.vue";
 import type { ColumnDef, ColumnSort } from "../../../../types/table.js";
 import {
-  cellActions,
   cellButton,
   cellClickeableInput,
   cellJerseyNumber,
@@ -23,7 +22,7 @@ import { useAdminGamesStore } from "../../../../stores/admin-games.js";
 export type GameParticipantsFormData = Partial<GameFormData>;
 type GameParticipantRow = Pick<
   GameParticipant,
-  "id" | "goalsScored" | "yellowCards" | "redCards" | "player"
+  "id" | "goalsScored" | "assists" | "yellowCards" | "redCards" | "player"
 > & {
   jerseyNumber: number | null;
   position: string;
@@ -49,6 +48,7 @@ const props = withDefaults(
 );
 
 const store = useAdminGamesStore();
+const { updateGameParticipantStats } = useGames();
 
 const columns: ColumnDef<GameParticipantRow>[] = [
   {
@@ -151,17 +151,29 @@ const columns: ColumnDef<GameParticipantRow>[] = [
       },
     },
     cell: ({ row }) => {
+      const participantId: string = row.original.id;
       const value: number = row.getValue("goalsScored");
       const children = cellName(value.toString());
 
-      // return children;
-      return cellClickeableInput(children, (nextValue) => {
-        console.log("updated value:", nextValue);
+      return cellClickeableInput(children, async (nextValue) => {
+        if (!props.gameId) return;
+
+        const numericValue = Number(nextValue);
+        if (Number.isNaN(numericValue)) return;
+
+        const refreshedGame = await updateGameParticipantStats(
+          props.gameId,
+          participantId,
+          {
+            goalsScored: numericValue,
+          },
+        );
+        store.setSelectedGame(refreshedGame);
       });
     },
   },
   {
-    accessorKey: "assist",
+    accessorKey: "assists",
     header: sortableHeader("🎯 Asist."),
     title: "Asistencias del jugador",
     enableSorting: true,
@@ -172,8 +184,25 @@ const columns: ColumnDef<GameParticipantRow>[] = [
       },
     },
     cell: ({ row }) => {
-      const value: number = row.getValue("assist");
-      return cellName(value ? value?.toString() : "-");
+      const participantId: string = row.original.id;
+      const value: number = row.getValue("assists");
+      const children = cellName(value ? value?.toString() : "-");
+
+      return cellClickeableInput(children, async (nextValue) => {
+        if (!props.gameId) return;
+
+        const numericValue = Number(nextValue);
+        if (Number.isNaN(numericValue)) return;
+
+        const refreshedGame = await updateGameParticipantStats(
+          props.gameId,
+          participantId,
+          {
+            assists: numericValue,
+          },
+        );
+        store.setSelectedGame(refreshedGame);
+      });
     },
   },
   {
@@ -188,8 +217,25 @@ const columns: ColumnDef<GameParticipantRow>[] = [
       },
     },
     cell: ({ row }) => {
+      const participantId: string = row.original.id;
       const value: number = row.getValue("yellowCards");
-      return cellName(value.toString());
+      const children = cellName(value.toString());
+
+      return cellClickeableInput(children, async (nextValue) => {
+        if (!props.gameId) return;
+
+        const numericValue = Number(nextValue);
+        if (Number.isNaN(numericValue)) return;
+
+        const refreshedGame = await updateGameParticipantStats(
+          props.gameId,
+          participantId,
+          {
+            yellowCards: numericValue,
+          },
+        );
+        store.setSelectedGame(refreshedGame);
+      });
     },
   },
   {
@@ -204,8 +250,25 @@ const columns: ColumnDef<GameParticipantRow>[] = [
       },
     },
     cell: ({ row }) => {
+      const participantId: string = row.original.id;
       const value: number = row.getValue("redCards");
-      return cellName(value.toString());
+      const children = cellName(value.toString());
+
+      return cellClickeableInput(children, async (nextValue) => {
+        if (!props.gameId) return;
+
+        const numericValue = Number(nextValue);
+        if (Number.isNaN(numericValue)) return;
+
+        const refreshedGame = await updateGameParticipantStats(
+          props.gameId,
+          participantId,
+          {
+            redCards: numericValue,
+          },
+        );
+        store.setSelectedGame(refreshedGame);
+      });
     },
   },
   {
@@ -245,6 +308,7 @@ const tableRows = computed((): GameParticipantRow[] => {
     id: t.id,
     player: t.player,
     goalsScored: t.goalsScored,
+    assists: t.assists,
     yellowCards: t.yellowCards,
     redCards: t.redCards,
     jerseyNumber: t.player?.jerseyNumber ?? null,

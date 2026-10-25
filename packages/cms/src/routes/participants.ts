@@ -29,6 +29,23 @@ const statusUpdateSchema = z.object({
   status: z.enum(ConfirmationStatus),
 });
 
+const participantStatsUpdateSchema = z
+  .object({
+    goalsScored: z.coerce.number().int().min(0).optional(),
+    assists: z.coerce.number().int().min(0).optional(),
+    yellowCards: z.coerce.number().int().min(0).optional(),
+    redCards: z.coerce.number().int().min(0).optional(),
+  })
+  .refine(
+    (value) =>
+      Object.values(value).some(
+        (fieldValue) => fieldValue !== undefined && fieldValue !== null,
+      ),
+    {
+      message: "At least one stat field is required",
+    },
+  );
+
 const gameIdSchema = z.object({ gameId: z.uuid() });
 const gameParticipantParamsSchema = z.object({
   gameId: z.uuid(),
@@ -163,6 +180,27 @@ router.post(
         req.params.participantId!,
       );
       res.status(201).json({ data: game });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// PATCH /api/v1/games/:gameId/participants/:participantId/stats - Update participant game stats
+router.patch(
+  "/:participantId/stats",
+  authenticate,
+  requireRole("EDITOR"),
+  validate(gameParticipantParamsSchema, "params"),
+  validate(participantStatsUpdateSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const game = await GameService.updateParticipantStats(
+        req.params.gameId!,
+        req.params.participantId!,
+        req.body,
+      );
+      res.json({ data: game });
     } catch (err) {
       next(err);
     }

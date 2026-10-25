@@ -45,7 +45,6 @@ async function handleSubmit(payload: GameFormData) {
   loading.value = true;
 
   try {
-    debugger;
     const body: GameUpdatePayload = {
       ...payload,
       date: payload.time
@@ -66,7 +65,7 @@ async function handleSubmit(payload: GameFormData) {
 
     await router.push("/admin/games");
   } catch (e: any) {
-    error.value = e?.message ?? "No se pudo guardar el partido.";
+    error.value = e?.message ?? "No se pudo actualizar el partido.";
   } finally {
     loading.value = false;
   }
@@ -99,6 +98,8 @@ async function handleSubmit(payload: GameFormData) {
         submitLabel="Guardar Cambios"
         :game="store.selectedGame"
         @submit="handleSubmit"
+        :error="error"
+        :loading="loading"
       />
     </div>
   </div>

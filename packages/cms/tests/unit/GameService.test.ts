@@ -7,6 +7,9 @@ jest.mock("../../src/config/database", () => ({
     opponentTeam: {
       findUnique: jest.fn(),
     },
+    gameParticipant: {
+      update: jest.fn(),
+    },
   },
 }));
 jest.mock("../../src/utils/slug", () => ({
@@ -315,6 +318,62 @@ describe("GameService", () => {
         }),
       );
       expect(result.participants).toEqual([]);
+    });
+  });
+
+  describe("updateParticipantStats", () => {
+    it("updates the participant stat fields and accepts alias names", async () => {
+      (GameModel.findById as jest.Mock)
+        .mockResolvedValueOnce({
+          id: "g1",
+          participants: [{ id: "gp-1", playerId: "p-1" }],
+        })
+        .mockResolvedValueOnce({
+          id: "g1",
+          participants: [
+            {
+              id: "gp-1",
+              playerId: "p-1",
+              goalsScored: 2,
+              assists: 1,
+              yellowCards: 0,
+              redCards: 0,
+            },
+          ],
+        });
+      (prisma.gameParticipant.update as jest.Mock).mockResolvedValue({
+        id: "gp-1",
+        goalsScored: 2,
+        assists: 1,
+      });
+
+      const result = await GameService.updateParticipantStats("g1", "gp-1", {
+        goalsScored: 2,
+        assists: 1,
+      });
+
+      expect(prisma.gameParticipant.update).toHaveBeenCalledWith({
+        where: { id: "gp-1" },
+        data: {
+          goalsScored: 2,
+          assists: 1,
+        },
+      });
+      expect(result.participants[0].goalsScored).toBe(2);
+      expect(result.participants[0].assists).toBe(1);
+    });
+
+    it("rejects invalid stat payloads", async () => {
+      (GameModel.findById as jest.Mock).mockResolvedValue({
+        id: "g1",
+        participants: [{ id: "gp-1", playerId: "p-1" }],
+      });
+
+      await expect(
+        GameService.updateParticipantStats("g1", "gp-1", {
+          goalsScored: -1,
+        }),
+      ).rejects.toMatchObject({ statusCode: 400 });
     });
   });
 

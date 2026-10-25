@@ -44,10 +44,16 @@ export const formatTimeInput = (value?: string | null) =>
   value?.split("T")[1]?.slice(0, 5) ?? "";
 
 /**
+ * Merges a date picker value (YYYY-MM-DD) and a time picker value (HH:mm)
+ * into a full ISO 8601 datetime string with the browser's local UTC offset
+ * (e.g. "2026-03-28T14:00:00-03:00"). This format is required by the API's
+ * z.string().datetime({ offset: true }) validation. If no time is provided,
+ * midnight (00:00) is used as the default.
+ *
  * Returns an ISO 8601 datetime string with timezone offset from separate date/time fields.
  * Example: 2026-04-12 + 18:00 -> 2026-04-12T18:00:00-03:00
  */
-export function toISOWithOffset(date: string, time: string): string {
+export function toISOWithOffset(date: string, time?: string): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   const safeTime = time || "00:00";
   const dt = new Date(`${date}T${safeTime}:00`);

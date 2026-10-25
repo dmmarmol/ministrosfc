@@ -4,6 +4,7 @@ import { useAuthStore } from "~/stores/auth";
 import type {
   Game,
   GameCreatePayload,
+  GameParticipant,
   GameUpdatePayload,
 } from "@ministrosfc/shared";
 
@@ -110,7 +111,27 @@ export function useGames() {
     return res.data;
   }
 
-  
+  type GameParticipantKeys = Pick<
+    GameParticipant,
+    "goalsScored" | "assists" | "yellowCards" | "redCards"
+  >;
+
+  async function updateGameParticipantStats(
+    gameId: string,
+    participantId: string,
+    payload: Partial<GameParticipantKeys>,
+  ): Promise<Game> {
+    const res = await $fetch<{ data: Game }>(
+      `${baseUrl}/${gameId}/participants/${participantId}/stats`,
+      {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: payload,
+      },
+    );
+
+    return res.data;
+  }
 
   return {
     games,
@@ -123,5 +144,6 @@ export function useGames() {
     deleteGame,
     addGameParticipant,
     removeGameParticipant,
+    updateGameParticipantStats,
   };
 }

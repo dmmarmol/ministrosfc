@@ -6,6 +6,7 @@ import { getRedisClient } from "../config/redis";
 import { prisma } from "../config/database";
 import { type Role, GameStatus } from "@prisma/client";
 import {
+  GameParticipant,
   GameResult,
   type GameCreatePayload,
   type GameUpdatePayload,
@@ -268,6 +269,70 @@ const GameService = {
           ],
         },
       },
+    });
+
+    await GameService.invalidateCache();
+    return GameService.getGameById(gameId);
+  },
+
+  async updateParticipantStats(
+    gameId: string,
+    participantId: string,
+    dto: Record<string, unknown>,
+  ) {
+    const currentGame = await GameService.getGameById(gameId);
+    const matchingParticipant = currentGame.participants?.find(
+      (participant: any) =>
+        participant.id === participantId ||
+        participant.playerId === participantId,
+    );
+
+    if (!matchingParticipant) {
+      throw createError("Game participant not found", 404, ErrorCode.NOT_FOUND);
+    }
+
+    type GameParticipantKeys = Pick<
+      GameParticipant,
+      "goalsScored" | "assists" | "yellowCards" | "redCards"
+    >;
+    type GameParticipantKeyStrings = keyof GameParticipantKeys;
+
+    const fieldMap: Record<string, GameParticipantKeyStrings> = {
+      goalsScored: "goalsScored",
+      assists: "assists",
+      yellowCards: "yellowCards",
+      redCards: "redCards",
+    };
+
+    const data: Partial<GameParticipantKeys> = {};
+
+    for (const [key, value] of Object.entries(dto)) {
+      const mappedKey = fieldMap[key];
+      if (!mappedKey) continue;
+
+      const numericValue = Number(value);
+      if (!Number.isInteger(numericValue) || numericValue < 0) {
+        throw createError(
+          `Invalid value for ${key}`,
+          400,
+          ErrorCode.VALIDATION_ERROR,
+        );
+      }
+
+      data[mappedKey] = numericValue;
+    }
+
+    if (Object.keys(data).length === 0) {
+      throw createError(
+        "At least one stat field must be provided",
+        400,
+        ErrorCode.VALIDATION_ERROR,
+      );
+    }
+
+    await prisma.gameParticipant.update({
+      where: { id: matchingParticipant.id },
+      data,
     });
 
     await GameService.invalidateCache();

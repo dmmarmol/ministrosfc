@@ -4,6 +4,7 @@ const router = useRouter();
 import { ref } from "vue";
 import type { GameFormData } from "../../../components/pages/admin/games/GameForm.vue";
 import GameForm from "../../../components/pages/admin/games/GameForm.vue";
+import { toISOWithOffset, type GameCreatePayload } from "@ministrosfc/shared";
 
 definePageMeta({
   layout: "admin",
@@ -15,21 +16,32 @@ definePageMeta({
 useHead({ title: "Schedule Game – Admin" });
 
 const { createGame } = useGames();
+const loading = ref(false);
+const error = ref("");
 
 async function handleSubmit(payload: GameFormData) {
-  debugger;
-  const saving = ref(false);
-  const error = ref("");
-  saving.value = true;
+  loading.value = true;
 
   try {
-    await createGame(payload);
+    const body: GameCreatePayload = {
+      opponentTeamId: payload.opponentTeamId,
+      date: toISOWithOffset(payload.date, payload.time),
+      competitionType: payload.competitionType,
+      playgroundId: payload.playgroundId ?? null,
+      maxPlayers: Number.isNaN(payload.maxPlayers as any)
+        ? null
+        : (payload.maxPlayers ?? null),
+      participants: payload.participants,
+    };
+    if (payload.tournamentId) body.tournamentId = payload.tournamentId;
+
+    await createGame(body);
 
     await router.push("/admin/games");
   } catch (e: any) {
-    error.value = e?.message ?? "No se pudo guardar el partido.";
+    error.value = e?.message ?? "No se pudo crear el partido.";
   } finally {
-    saving.value = false;
+    loading.value = false;
   }
 }
 </script>
@@ -43,6 +55,11 @@ async function handleSubmit(payload: GameFormData) {
       <h2 class="text-lg font-bold text-gray-900 mb-6">Programar Partido</h2>
     </div>
 
-    <GameForm submitLabel="Crear Partido" @submit="handleSubmit" />
+    <GameForm
+      submitLabel="Crear Partido"
+      @submit="handleSubmit"
+      :error="error"
+      :loading="loading"
+    />
   </div>
 </template>

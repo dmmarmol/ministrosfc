@@ -36,7 +36,6 @@ watch(
 
 // Handle the updated model value here
 async function handleSelectPlayer(participantId: string | null) {
-  debugger;
   if (!participantId || !props.game?.id) {
     store.setSelectedParticipantId(null);
     return;
