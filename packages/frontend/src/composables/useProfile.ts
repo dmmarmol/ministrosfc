@@ -25,8 +25,8 @@ export function useProfile() {
         { headers: { Authorization: `Bearer ${authStore.accessToken}` } },
       );
       profile.value = res.data;
-    } catch (e: any) {
-      error.value = e?.message ?? "Error al cargar el perfil";
+    } catch (e: unknown) {
+      error.value = (e as Error)?.message ?? "Error al cargar el perfil";
     } finally {
       loading.value = false;
     }
@@ -45,8 +45,8 @@ export function useProfile() {
         },
       );
       profile.value = res.data;
-    } catch (e: any) {
-      error.value = e?.message ?? "Error al actualizar el perfil";
+    } catch (e: unknown) {
+      error.value = (e as Error)?.message ?? "Error al actualizar el perfil";
       throw e;
     } finally {
       loading.value = false;
@@ -71,8 +71,8 @@ export function useProfile() {
         profile.value.player.photoUrl = res.data.photoUrl;
       }
       return res.data.photoUrl;
-    } catch (e: any) {
-      error.value = e?.message ?? "Error al subir la foto";
+    } catch (e: unknown) {
+      error.value = (e as Error)?.message ?? "Error al subir la foto";
       throw e;
     } finally {
       loading.value = false;

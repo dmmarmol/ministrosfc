@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { reactive } from "vue";
 import {
   CompetitionType,
   DEFAULT_MAX_PLAYERS,
@@ -11,6 +12,9 @@ import {
 import GameFormFields from "./GameFormFields.vue";
 import GameParticipantsFields from "./GameParticipantsFields.vue";
 import GameAddParticipant from "./GameAddParticipant.vue";
+import { useGames } from "~/composables/useGames";
+import { useOpponentTeams } from "~/composables/useOpponentTeams";
+import { useTournaments } from "~/composables/useTournaments";
 
 export type GameFormData = GameCreatePayload &
   GameUpdatePayload & {

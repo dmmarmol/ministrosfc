@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import type { GameParticipant } from "@ministrosfc/shared";
 import ConfirmationModal from "../../../ui/ConfirmationModal.vue";
+import { useAdminGamesStore } from "~/stores/admin-games";
+import { useGames } from "~/composables/useGames";
 
 const props = defineProps<{
   open: boolean;
   gameId: string | null;
 }>();
 
-const { removeGameParticipant, fetchGameById } = useGames();
+const { removeGameParticipant } = useGames();
 const store = useAdminGamesStore();
 
 function onCancelRemoval() {

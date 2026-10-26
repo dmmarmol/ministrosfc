@@ -4,7 +4,8 @@
  *   - injects the Authorization header from the auth store
  *   - handles 401 (redirect to /login) and surfaces error objects
  */
-import type { FetchOptions } from 'ofetch';
+import type { FetchOptions } from "ofetch";
+import { useAuthStore } from "~/stores/auth";
 
 export interface ApiError {
   statusCode: number;
@@ -14,7 +15,7 @@ export interface ApiError {
 
 export type NuxtApi = <T = unknown>(
   path: string,
-  options?: FetchOptions<'json'>,
+  options?: FetchOptions<"json">,
 ) => Promise<T>;
 
 export default defineNuxtPlugin(() => {
@@ -24,14 +25,14 @@ export default defineNuxtPlugin(() => {
 
   const api: NuxtApi = async <T = unknown>(
     path: string,
-    options: FetchOptions<'json'> = {},
+    options: FetchOptions<"json"> = {},
   ): Promise<T> => {
     const headers: Record<string, string> = {
       ...(options.headers as Record<string, string> | undefined),
     };
 
     if (authStore.accessToken) {
-      headers['Authorization'] = `Bearer ${authStore.accessToken}`;
+      headers["Authorization"] = `Bearer ${authStore.accessToken}`;
     }
 
     try {
@@ -40,9 +41,15 @@ export default defineNuxtPlugin(() => {
         headers,
       };
 
-      return (await $fetch<T>(`${config.public.apiBaseUrl}${path}`, fetchOptions)) as T;
+      return (await $fetch<T>(
+        `${config.public.apiBaseUrl}${path}`,
+        fetchOptions,
+      )) as T;
     } catch (err: unknown) {
-      const fetchError = err as { status?: number; data?: { message?: string; code?: string } };
+      const fetchError = err as {
+        status?: number;
+        data?: { message?: string; code?: string };
+      };
 
       if (fetchError.status === 401) {
         try {
@@ -50,18 +57,22 @@ export default defineNuxtPlugin(() => {
           return await api<T>(path, options);
         } catch {
           authStore.logout();
-          await router.push('/login');
+          await router.push("/login");
           throw err;
         }
       }
 
       if (fetchError.status === 403) {
-        throw { statusCode: 403, message: 'Access forbidden', code: 'FORBIDDEN' } satisfies ApiError;
+        throw {
+          statusCode: 403,
+          message: "Access forbidden",
+          code: "FORBIDDEN",
+        } satisfies ApiError;
       }
 
       throw {
         statusCode: fetchError.status ?? 500,
-        message: fetchError.data?.message ?? 'An unexpected error occurred',
+        message: fetchError.data?.message ?? "An unexpected error occurred",
         code: fetchError.data?.code,
       } satisfies ApiError;
     }

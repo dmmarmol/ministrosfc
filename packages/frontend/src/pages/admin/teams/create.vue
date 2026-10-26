@@ -4,7 +4,6 @@ import { useOpponentTeams } from "~/composables/useOpponentTeams";
 import TeamsForm, {
   type OpponentTeamFormData,
 } from "~/components/pages/admin/teams/OpponentTeamForm.vue";
-import type { AddressSuggestion } from "@ministrosfc/shared";
 
 definePageMeta({
   layout: "admin",
@@ -21,22 +20,16 @@ const { createOpponentTeam } = useOpponentTeams();
 const loading = ref(false);
 const error = ref("");
 
-async function handleSubmit(payload: OpponentTeamFormData) {
+async function handleSubmit(form: OpponentTeamFormData) {
   error.value = "";
   loading.value = true;
   try {
-    await createOpponentTeam({
-      name: payload.name,
-      address: payload.address,
-      ...(payload.latitude != null && payload.longitude != null
-        ? { latitude: payload.latitude, longitude: payload.longitude }
-        : {}),
-    });
+    await createOpponentTeam(form);
     await router.push("/admin/teams");
   } catch (e: unknown) {
     const err = e as { data?: { code?: string }; message?: string };
     error.value =
-      (e instanceof Error ? e.message : null) ?? "Error al crear cancha.";
+      (err instanceof Error ? err.message : null) ?? "Error al crear equipo.";
   } finally {
     loading.value = false;
   }

@@ -3,7 +3,7 @@ import { reactive, ref, computed } from "vue";
 import { PASSWORD_RULES } from "@ministrosfc/shared";
 import EmailInput from "~/components/ui/EmailInput.vue";
 
-const props = defineProps<{
+defineProps<{
   loading: boolean;
   error: string;
 }>();

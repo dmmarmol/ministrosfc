@@ -21,7 +21,6 @@ export const useAdminGamesStore = defineStore("admin-games", {
       );
     },
     isGameParticipantsFull: (state) => {
-      debugger;
       if (!state.selectedGame) return false;
       if (typeof state.selectedGame.maxPlayers !== "number") return false;
       return (

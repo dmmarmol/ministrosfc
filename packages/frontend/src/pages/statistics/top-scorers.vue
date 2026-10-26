@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { NuxtLink, UButton } from "#components";
+import { h, resolveComponent } from "vue";
 import type { ColumnDef } from "~/types/table";
 import { OPTION_FILTER_ALL, PlayerStatus } from "@ministrosfc/shared";
 import type { TopScorerDTO } from "@ministrosfc/shared";
@@ -7,6 +8,7 @@ import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vu
 import TournamentSelect from "~/components/pages/statistics/StatsFilters/TournamentSelect.vue";
 import { useAuthStore } from "~/stores/auth";
 import { getSortedIcon } from "~/components/ui/Table/table-utils";
+import { useStatsFilters } from "~/composables/useStatsFilters";
 
 /**
  * Exclusive DTO to match the UTable Schema

@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import { useAuthStore } from "~/stores/auth";
+import { useRuntimeConfig } from "nuxt/app";
 
 export function useOnboarding() {
   const config = useRuntimeConfig();
@@ -24,8 +25,9 @@ export function useOnboarding() {
         headers: { Authorization: `Bearer ${authStore.accessToken}` },
       });
       return res.data;
-    } catch (e: any) {
-      error.value = e?.message ?? "Error al cargar el estado de onboarding.";
+    } catch (e: unknown) {
+      error.value =
+        (e as Error)?.message ?? "Error al cargar el estado de onboarding.";
       throw e;
     } finally {
       loading.value = false;
@@ -59,11 +61,12 @@ export function useOnboarding() {
         body: dto,
       });
       return res.data;
-    } catch (e: any) {
-      if (e?.data?.code === "DUPLICATE_JERSEY_NUMBER") {
+    } catch (e: unknown) {
+      if ((e as any)?.data?.code === "DUPLICATE_JERSEY_NUMBER") {
         error.value = "Ese número de camiseta ya está en uso.";
       } else {
-        error.value = e?.message ?? "Error al completar el onboarding.";
+        error.value =
+          (e as Error)?.message ?? "Error al completar el onboarding.";
       }
       throw e;
     } finally {

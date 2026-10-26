@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { h } from "vue";
 import {
   PlayerType,
   type GameParticipant,
@@ -15,6 +16,8 @@ import {
   sortByPositionEnumOrder,
 } from "../../ui/Table/table-utils";
 import type { Position } from "postcss";
+import { useAuthStore } from "~/stores/auth";
+import { useAdminGamesStore } from "~/stores/admin-games";
 
 /** Do not export this one to avoid conflicts with GameParticipantRow from admin */
 type PublicGameParticipantRow = {
@@ -73,7 +76,6 @@ const columns: ColumnDef<PublicGameParticipantRow>[] = [
     header: "",
     cell: ({ row }) => {
       const playerType = row.original.player?.playerType;
-      console.log({ playerType });
       return h(
         "span",
         {

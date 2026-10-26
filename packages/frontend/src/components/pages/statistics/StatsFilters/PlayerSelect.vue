@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SelectItem } from "#ui/types";
 import { OPTION_FILTER_ALL, type PlayerStatus } from "@ministrosfc/shared";
+import { useStatisticsAvailablePlayers } from "~/composables/useStatisticsAvailablePlayers";
 
 const props = defineProps<{
   modelValue: string | null;

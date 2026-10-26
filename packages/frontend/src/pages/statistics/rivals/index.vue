@@ -6,6 +6,8 @@ import TournamentSelect from "~/components/pages/statistics/StatsFilters/Tournam
 import RivalSelect from "~/components/pages/statistics/StatsFilters/RivalSelect.vue";
 import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 import PlaygroundSelect from "~/components/pages/admin/playground/PlaygroundSelect.vue";
+import { useStatsFilters } from "~/composables/useStatsFilters";
+import { createTruthyObject } from "~/utils/object.js";
 
 definePageMeta({
   layout: "statistics-private",

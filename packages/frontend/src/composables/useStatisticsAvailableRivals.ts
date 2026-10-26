@@ -1,3 +1,4 @@
+import { type MaybeRef, toRef } from "vue";
 /**
  * Fetches the list of opponent teams for use in statistics filters.
  * Backed by GET /api/v1/teams (public).

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref } from "vue";
+import PlaygroundForm, {
+  type PlaygroundFormData,
+} from "~/components/pages/admin/playground/PlaygroundForm.vue";
 import { usePlaygrounds } from "~/composables/usePlaygrounds";
-import AddressAutocompleteInput from "~/components/AddressAutocompleteInput.vue";
-import type { AddressSuggestion } from "@ministrosfc/shared";
-import type { PlaygroundFormData } from "~/components/pages/admin/playgrounds/PlaygroundForm.vue";
 
 definePageMeta({
   layout: "admin",
@@ -19,11 +19,9 @@ const { createPlayground } = usePlaygrounds();
 
 const loading = ref(false);
 const error = ref("");
-const addressError = ref("");
 
 async function handleSubmit(payload: PlaygroundFormData) {
   error.value = "";
-  addressError.value = "";
   loading.value = true;
   try {
     await createPlayground({
@@ -37,7 +35,7 @@ async function handleSubmit(payload: PlaygroundFormData) {
   } catch (e: unknown) {
     const err = e as { data?: { code?: string }; message?: string };
     if (err?.data?.code === "ADDRESS_NOT_FOUND") {
-      addressError.value =
+      error.value =
         "No se pudo geocodificar la dirección. Por favor, verifica el domicilio.";
     } else {
       error.value =
@@ -65,8 +63,6 @@ async function handleSubmit(payload: PlaygroundFormData) {
       :loading="loading"
       :error="error"
       @submit="handleSubmit"
-      @error="error = $event"
-      @address-error="addressError = $event"
     />
   </div>
 </template>

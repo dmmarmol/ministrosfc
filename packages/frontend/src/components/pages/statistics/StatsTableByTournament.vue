@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { h, computed, ref } from "vue";
 import { type TeamStatPeriodDTO } from "@ministrosfc/shared";
 import { formatStatDate } from "~/utils/stats";
 import type { ColumnDef } from "~/types/table";
@@ -55,10 +55,11 @@ const columns: ColumnDef<TournamentRow>[] = [
     title: "Cancha",
     sortable: true,
     cell: ({ row }) => {
+      const playgroundName: string = row.getValue("playgroundName");
       return h(
         "p",
-        { title: row.getValue("playgroundName"), class: "max-w-48" },
-        cellTruncated(row.getValue("playgroundName")),
+        { title: playgroundName, class: "max-w-48" },
+        cellTruncated(playgroundName),
       );
     },
   },

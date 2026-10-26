@@ -2,6 +2,7 @@
 import type { OpponentTeam } from "@ministrosfc/shared";
 import OpponentTeamForm from "~/components/pages/admin/teams/OpponentTeamForm.vue";
 import PageLoading from "~/components/ui/PageLoading.vue";
+import { useOpponentTeams } from "~/composables/useOpponentTeams";
 
 definePageMeta({
   layout: "admin",
@@ -44,9 +45,7 @@ async function handleSubmit(payload: OpponentTeam) {
   error.value = "";
 
   try {
-    debugger;
     await updateOpponentTeam(teamId.value, payload);
-    debugger;
     await router.push("/admin/teams");
   } catch (e: any) {
     error.value = e?.message ?? "No se pudo guardar el equipo.";

@@ -5,6 +5,7 @@ import { ref } from "vue";
 import type { GameFormData } from "../../../components/pages/admin/games/GameForm.vue";
 import GameForm from "../../../components/pages/admin/games/GameForm.vue";
 import { toISOWithOffset, type GameCreatePayload } from "@ministrosfc/shared";
+import { useGames } from "~/composables/useGames";
 
 definePageMeta({
   layout: "admin",

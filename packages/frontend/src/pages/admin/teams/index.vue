@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick } from "vue";
-import type { OpponentTeam, CompetitionType } from "@ministrosfc/shared";
+import type { OpponentTeam } from "@ministrosfc/shared";
 import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
 import type { ColumnDef, ColumnSort } from "~/types/table";
 import {
@@ -8,6 +8,7 @@ import {
   cellLink,
   cellName,
 } from "~/components/ui/Table/table-utils";
+import { useOpponentTeams } from "~/composables/useOpponentTeams";
 
 definePageMeta({
   layout: "admin",
@@ -109,7 +110,7 @@ const columns: ColumnDef<OpponentTeamRow>[] = [
           },
           {
             label: "Editar equipo",
-            onClick: (event: Event) => navigateTo(`/admin/teams/${teamId}`),
+            onClick: (_event: Event) => navigateTo(`/admin/teams/${teamId}`),
           },
           {
             label: "Borrar equipo",

@@ -9,10 +9,11 @@ import {
   cellPercent,
   cellRate,
   cellPlayerLink,
-  getSortedIcon,
   sortByPositionEnumOrder,
+  sortableHeader,
+  cellPosition,
 } from "~/components/ui/Table/table-utils";
-import { UButton } from "#components";
+import type { Position } from "@ministrosfc/shared";
 
 type PlayerRow = {
   playerId: string;
@@ -45,19 +46,11 @@ const columns: ColumnDef<PlayerRow>[] = [
     },
     sortable: true,
     sortingFn: sortByPositionEnumOrder,
-    header: ({ column }) => {
-      return h(UButton, {
-        variant: "ghost",
-        color: "neutral",
-        label: "Pos",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
+    header: sortableHeader("Pos"),
+    cell: ({ row }) => {
+      const position: Position = row.getValue("position");
+      return cellPosition(position);
     },
-    cell: ({ row }) =>
-      h(resolveComponent("UiPositionLabel"), {
-        position: row.getValue("position"),
-      }),
   },
   {
     accessorKey: "name",
@@ -65,7 +58,7 @@ const columns: ColumnDef<PlayerRow>[] = [
     title: "Jugador",
     sortable: true,
     cell: ({ row }) =>
-      cellPlayerLink(row.original as Record<string, unknown>, {
+      cellPlayerLink(row.original, {
         nicknameKey: "nickname",
       }),
   },
@@ -73,102 +66,46 @@ const columns: ColumnDef<PlayerRow>[] = [
     accessorKey: "games",
     title: "Partidos Jugados",
     sortable: true,
-    header: ({ column }) => {
-      return h(UButton, {
-        variant: "ghost",
-        color: "neutral",
-        label: "PJ",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: sortableHeader("PJ"),
   },
   {
     accessorKey: "wins",
     title: "Partidos Ganados",
     sortable: true,
-    header: ({ column }) => {
-      return h(UButton, {
-        variant: "ghost",
-        color: "neutral",
-        label: "PG",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: sortableHeader("PG"),
     cell: ({ row }) => cellWins(row.getValue("wins")),
   },
   {
     accessorKey: "losses",
     title: "Partidos Perdidos",
     sortable: true,
-    header: ({ column }) => {
-      return h(UButton, {
-        variant: "ghost",
-        color: "neutral",
-        label: "PP",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: sortableHeader("PP"),
     cell: ({ row }) => cellLosses(row.getValue("losses")),
   },
   {
     accessorKey: "draws",
     title: "Partidos Empatados",
     sortable: true,
-    header: ({ column }) => {
-      return h(UButton, {
-        variant: "ghost",
-        color: "neutral",
-        label: "PE",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: sortableHeader("PE"),
     cell: ({ row }) => cellDraws(row.getValue("draws")),
   },
   {
     accessorKey: "goals",
     title: "Goles",
     sortable: true,
-    header: ({ column }) => {
-      return h(UButton, {
-        variant: "ghost",
-        color: "neutral",
-        label: "Goles",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: sortableHeader("Goles"),
   },
   {
     accessorKey: "assists",
     title: "Asistencias",
     sortable: true,
-    header: ({ column }) => {
-      return h(UButton, {
-        variant: "ghost",
-        color: "neutral",
-        label: "Asist.",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: sortableHeader("Asist."),
   },
   {
     accessorKey: "goalRate",
     title: "Promedio de gol",
     sortable: true,
-    header: ({ column }) => {
-      return h(UButton, {
-        variant: "ghost",
-        color: "neutral",
-        label: "Prom.",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: sortableHeader("Prom."),
     cell: ({ row }) => cellRate(row.getValue("goalRate")),
   },
   {
@@ -176,30 +113,14 @@ const columns: ColumnDef<PlayerRow>[] = [
 
     title: "Porcentaje de Victorias",
     sortable: true,
-    header: ({ column }) => {
-      return h(UButton, {
-        variant: "ghost",
-        color: "neutral",
-        label: "Win%",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: sortableHeader("Win%"),
     cell: ({ row }) => cellPercent(row.getValue("winRate")),
   },
   {
     accessorKey: "participationRate",
     title: "Porcentaje de Participación",
     sortable: true,
-    header: ({ column }) => {
-      return h(UButton, {
-        variant: "ghost",
-        color: "neutral",
-        label: "Part.%",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: sortableHeader("Part.%"),
     cell: ({ row }) => cellPercent(row.getValue("participationRate")),
   },
 ];

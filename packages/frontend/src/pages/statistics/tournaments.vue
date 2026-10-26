@@ -5,6 +5,8 @@ import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vu
 import TournamentSelect from "~/components/pages/statistics/StatsFilters/TournamentSelect.vue";
 import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 import PlaygroundSelect from "~/components/pages/admin/playground/PlaygroundSelect.vue";
+import { useStatsFilters } from "~/composables/useStatsFilters";
+import { createTruthyObject } from "~/utils/object.js";
 
 definePageMeta({
   layout: "statistics-private",

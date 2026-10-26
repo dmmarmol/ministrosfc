@@ -2,6 +2,7 @@
 import type { TeamSummaryHeaderDTO } from "@ministrosfc/shared";
 import StatsHeader from "../../components/pages/statistics/StatsHeader.vue";
 import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
+import { useAuthStore } from "~/stores/auth";
 
 definePageMeta({ layout: "statistics", public: true });
 useHead({ title: "Estadísticas – Ministros FC" });

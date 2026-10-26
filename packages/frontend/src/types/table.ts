@@ -2,7 +2,14 @@ import type { TableColumn } from "@nuxt/ui/runtime/components/Table.vue.js";
 import type {
   ColumnSort as NuxtUiColumnSort,
   ColumnPinningState as NuxtUiColumnPin,
+  Column as NuxtUiColumn,
+  HeaderContext as NuxtUiHeaderContext,
 } from "@tanstack/table-core";
+
+export type Column<
+  TData = Record<string, unknown>,
+  TValue = Record<string, unknown>,
+> = NuxtUiHeaderContext<TData, TValue>;
 
 export type ColumnDef<TData = Record<string, unknown>> = TableColumn<TData> & {
   /** Full label rendered as a native title attribute for browser tooltips. */

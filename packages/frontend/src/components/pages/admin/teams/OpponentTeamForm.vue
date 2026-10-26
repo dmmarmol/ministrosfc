@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { reactive } from "vue";
 import {
-  CompetitionType,
   type OpponentTeam,
   type OpponentTeamCreatePayload,
   type OpponentTeamUpdatePayload,
 } from "@ministrosfc/shared";
-import type { DropdownMenuItem } from "#ui/components/DropdownMenu.vue";
 import type { SelectMenuItem } from "#ui/types";
 import type { ChipProps } from "#ui/components/Chip.vue";
 

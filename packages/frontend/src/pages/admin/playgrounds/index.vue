@@ -40,10 +40,11 @@ onMounted(() => {
   fetchPlaygrounds();
 });
 
-function onRowClick(pg: Playground) {
-  mapRef.value?.centerOn(pg.id);
-  highlightedId.value = pg.id;
-}
+/** @TODO investigate if this block can be removed */
+// function onRowClick(pg: Playground) {
+//   mapRef.value?.centerOn(pg.id);
+//   highlightedId.value = pg.id;
+// }
 
 function onPinClick(id: string) {
   highlightedId.value = id;
@@ -78,9 +79,9 @@ function getDeletePlaygroundDescription(
 ): string {
   if (!playgroundRow) return "";
   if (playgroundRow.gameCount > 0) {
-    return `La cancha \'${playgroundRow.name}\' está en uso por ${playgroundRow.gameCount} partido(s). No se puede eliminar hasta que se reasignen o eliminen esos partidos.`;
+    return `La cancha "${playgroundRow.name}" está en uso por ${playgroundRow.gameCount} partido(s). No se puede eliminar hasta que se reasignen o eliminen esos partidos.`;
   }
-  return `¿Eliminar la cancha \'${playgroundToDelete.name}\'? Esta acción no se puede deshacer.`;
+  return `¿Eliminar la cancha <strong>${playgroundRow.name}</strong>? Esta acción no se puede deshacer.`;
 }
 
 /* Table Data */
@@ -129,7 +130,7 @@ const columns: ColumnDef<PlaygroundRow>[] = [
           },
           {
             label: "Editar cancha",
-            onClick: (event: Event) =>
+            onClick: (_event: Event) =>
               navigateTo(`/admin/playgrounds/${playgroundId}`),
           },
           {

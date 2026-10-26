@@ -1,20 +1,23 @@
-import { defineComponent, h, ref, type PropType, type VNode } from "vue";
+import {
+  defineComponent,
+  h,
+  ref,
+  type PropType,
+  type VNode,
+  resolveComponent,
+} from "vue";
 import {
   NuxtLink,
   UButton,
   UDropdownMenu,
   UiPositionLabel,
   UiPositionNumber,
-  UInput,
 } from "#components";
 import type { DropdownMenuItem } from "#ui/components/DropdownMenu.vue";
 import type { ArrayOrNested } from "#ui/types/utils";
-import {
-  positionOrderMap,
-  type PlayerType,
-  type Position,
-} from "@ministrosfc/shared";
+import { positionOrderMap, type Position } from "@ministrosfc/shared";
 import type { ButtonProps as UButtonProps } from "@nuxt/ui";
+import type { Column } from "~/types/table";
 
 export function getSortedIcon(sortDirection: "asc" | "desc" | null): string {
   if (sortDirection === "asc") {
@@ -27,8 +30,10 @@ export function getSortedIcon(sortDirection: "asc" | "desc" | null): string {
   return "i-lucide-arrow-up-down";
 }
 
-export function sortableHeader(label: string): ({ column }: any) => VNode {
-  return ({ column }: any) =>
+export function sortableHeader<T>(
+  label: string,
+): ({ column }: Column<T, unknown>) => VNode {
+  return ({ column }: Column<T, unknown>) =>
     h(UButton, {
       variant: "ghost",
       color: "neutral",

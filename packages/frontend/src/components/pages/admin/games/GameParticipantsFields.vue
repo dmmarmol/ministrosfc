@@ -6,7 +6,7 @@ import {
   type Position,
 } from "@ministrosfc/shared";
 import type { GameFormData } from "./GameForm.vue";
-import type { ColumnDef, ColumnSort } from "../../../../types/table.js";
+import type { ColumnDef, ColumnSort } from "~/types/table.js";
 import {
   cellButton,
   cellClickeableInput,
@@ -16,8 +16,9 @@ import {
   cellPosition,
   sortByPositionEnumOrder,
   sortableHeader,
-} from "../../../ui/Table/table-utils.js";
-import { useAdminGamesStore } from "../../../../stores/admin-games.js";
+} from "~/components/ui/Table/table-utils.js";
+import { useAdminGamesStore } from "~/stores/admin-games";
+import { useGames } from "~/composables/useGames";
 
 export type GameParticipantsFormData = Partial<GameFormData>;
 type GameParticipantRow = Pick<

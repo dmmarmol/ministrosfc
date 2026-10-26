@@ -4,7 +4,6 @@ import PlayerDeleteModal from "~/components/player/PlayerDeleteModal.vue";
 import PlayerForm, {
   type PlayerFormData,
 } from "~/components/pages/admin/players/PlayerForm.vue";
-import { PlayerStatus } from "@ministrosfc/shared";
 
 definePageMeta({
   layout: "admin",
@@ -21,7 +20,7 @@ const router = useRouter();
 const route = useRoute();
 const id = route.params.id as string;
 
-const { data, pending, refresh } = await useAsyncData(`edit-player-${id}`, () =>
+const { data, pending } = await useAsyncData(`edit-player-${id}`, () =>
   $api<{ data: any }>(`/api/v1/players/${id}`),
 );
 const player = computed(() => data.value?.data ?? null);

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { GameStatus, formatDate } from "@ministrosfc/shared";
 
-const props = defineProps<{
+defineProps<{
   game: {
     date: string;
     playground?: { name: string } | null;

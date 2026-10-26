@@ -1,10 +1,10 @@
-import { computed } from "vue";
+import { computed, type Ref } from "vue";
 import { useNuxtApp, useAsyncData, createError } from "nuxt/app";
 import type { Game, GameParticipant } from "@ministrosfc/shared";
 
 type GameBySlug = {
-  gameId: Ref<Game["id"]>;
-  game: Ref<Game>;
+  gameId: Ref<string>;
+  game: Ref<Game | null>;
   participants: Ref<GameParticipant[]>;
   pending: Ref<boolean>;
   error: Ref<unknown>;
@@ -24,8 +24,8 @@ export function useGameBySlug(slug: string): GameBySlug {
       }
       const id = slugRes.data.id;
       const [gameRes, partRes] = await Promise.all([
-        $api<{ data: any }>(`/api/v1/games/${id}`),
-        $api<{ data: any[] }>(`/api/v1/games/${id}/participants`),
+        $api<{ data: Game }>(`/api/v1/games/${id}`),
+        $api<{ data: GameParticipant[] }>(`/api/v1/games/${id}/participants`),
       ]);
       return {
         gameId: id as string,

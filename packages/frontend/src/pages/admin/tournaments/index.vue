@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { nextTick } from "vue";
-import { resolveComponent } from "vue";
+import { h, nextTick } from "vue";
 import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
 import type { ColumnDef, ColumnSort } from "~/types/table";
 import { CompetitionType, type Tournament } from "@ministrosfc/shared";
@@ -10,8 +9,10 @@ import {
   cellLink,
   cellName,
   getSortedIcon,
+  sortableHeader,
 } from "~/components/ui/Table/table-utils";
 import TournamentCompetitionType from "~/components/ui/TournamentCompetitionType.vue";
+import { useTournaments } from "~/composables/useTournaments";
 
 definePageMeta({
   layout: "admin",
@@ -73,15 +74,7 @@ const columns: ColumnDef<TournamentRow>[] = [
   },
   {
     accessorKey: "name",
-    header: ({ column }) => {
-      return h(resolveComponent("UButton"), {
-        variant: "ghost",
-        color: "neutral",
-        label: "Nombre",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: sortableHeader("Nombre"),
     title: "Nombre del torneo",
     sortable: true,
     cell: ({ row }) => {
@@ -92,15 +85,7 @@ const columns: ColumnDef<TournamentRow>[] = [
   },
   {
     accessorKey: "startDate",
-    header: ({ column }) => {
-      return h(resolveComponent("UButton"), {
-        variant: "ghost",
-        color: "neutral",
-        label: "Fecha",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: sortableHeader("Fecha"),
     title: "Duracion del torneo",
     sortable: true,
     cell: ({ row }) => {
@@ -115,15 +100,7 @@ const columns: ColumnDef<TournamentRow>[] = [
   },
   {
     accessorKey: "competitionType",
-    header: ({ column }) => {
-      return h(resolveComponent("UButton"), {
-        variant: "ghost",
-        color: "neutral",
-        label: "Tipo de competición",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: sortableHeader("Tipo de competición"),
     title: "Tipo de competición del torneo",
     sortable: true,
     cell: ({ row }) => {
@@ -150,7 +127,7 @@ const columns: ColumnDef<TournamentRow>[] = [
           },
           {
             label: "Editar torneo",
-            onClick: (event: Event) =>
+            onClick: (_event: Event) =>
               navigateTo(`/admin/tournaments/${tournamentId}`),
           },
           {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useRoute, useHead } from "nuxt/app";
 import { CheckCircleIcon } from "@heroicons/vue/24/solid";
 import {
@@ -9,9 +9,9 @@ import {
   getInitials,
 } from "@ministrosfc/shared";
 import GameParticipantsTable from "../../../components/pages/games/GameParticipantsTable.vue";
-// import { useAuthStore } from "~/stores/auth";
-// import { useGameBySlug } from "~/composables/useGameBySlug";
-// import { useGameSignup } from "~/composables/useGameSignup";
+import { useAuthStore } from "~/stores/auth";
+import { useGameBySlug } from "~/composables/useGameBySlug";
+import { useGameSignup } from "~/composables/useGameSignup";
 
 definePageMeta({ public: true });
 const route = useRoute();
@@ -51,7 +51,7 @@ const isUserAParticipant = computed(() => {
   if (authStore.user?.onboardingCompletedAt === null) {
     return false;
   }
-  debugger;
+
   return participants.value.some(
     (participant) => participant.playerId === authStore.user?.playerId,
   );

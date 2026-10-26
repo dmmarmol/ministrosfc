@@ -42,7 +42,7 @@ function slotY(i: number) {
   return slots.value[i].y * H;
 }
 
-function circleLabel(entry: any | null, idx: number): string {
+function circleLabel(entry: any | null, _idx: number): string {
   if (!entry) return "TBD";
   if (entry.player.playerType === "GUEST") {
     return `I${guestCounters.value.get(entry.participantId) ?? "?"}`;

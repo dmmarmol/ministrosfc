@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import type { PlayerStatRowDTO, PlayerStatus } from "@ministrosfc/shared";
+import type { PlayerStatus } from "@ministrosfc/shared";
+import { useStatisticsAvailablePlayers } from "~/composables/useStatisticsAvailablePlayers";
 import StatsTableByPlayer from "../../../components/pages/statistics/StatsTableByPlayer.vue";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
 import PlayerSelect from "~/components/pages/statistics/StatsFilters/PlayerSelect.vue";
 import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 import type { AllPlayersStatsRow } from "@ministrosfc/cms/src/types/statistics/internal";
+import { useStatsFilters } from "~/composables/useStatsFilters";
+import { createTruthyObject } from "~/utils/object.js";
 
 definePageMeta({
   layout: "statistics-private",
@@ -21,6 +24,8 @@ const {
   playerStatus: playerStatusFilter,
   filters,
 } = useStatsFilters();
+
+const { availablePlayers } = useStatisticsAvailablePlayers();
 
 const { data, pending, refresh } = await useAsyncData(
   "all-player-stats",
@@ -54,6 +59,7 @@ watch(
         class="w-full"
       />
       <PlayerSelect
+        :items="availablePlayers"
         v-model="playerFilter"
         :status="playerStatusFilter as PlayerStatus"
         class="w-full"

@@ -3,13 +3,14 @@ import {
   DEFAULT_LINEUP,
   toISOWithOffset,
   type GameUpdatePayload,
-  type OpponentTeam,
 } from "@ministrosfc/shared";
 import type { GameFormData } from "../../../../components/pages/admin/games/GameForm.vue";
 import GameForm from "../../../../components/pages/admin/games/GameForm.vue";
 import PageLoading from "../../../../components/ui/PageLoading.vue";
 import GameParticipantRemoveModal from "../../../../components/pages/admin/games/GameParticipantRemoveModal.vue";
 import { useAdminGamesStore } from "../../../../stores/admin-games.js";
+import { useGames } from "~/composables/useGames";
+import { useAuthStore } from "~/stores/auth";
 
 definePageMeta({
   layout: "admin",

@@ -45,7 +45,6 @@ async function handleSubmit(payload: TournamentFormData) {
   try {
     await updateTournament(tournamentId.value, payload);
 
-    debugger;
     await router.push("/admin/tournaments");
   } catch (e: any) {
     error.value = e?.message ?? "No se pudo guardar el torneo.";

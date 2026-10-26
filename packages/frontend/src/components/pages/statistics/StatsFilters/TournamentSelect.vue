@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SelectItem } from "#ui/types";
 import { OPTION_FILTER_ALL } from "@ministrosfc/shared";
+import { useStatisticsAvailableTournaments } from "~/composables/useStatisticsAvailableTournaments";
 
 type TournamentOption = SelectItem & {
   value: string;

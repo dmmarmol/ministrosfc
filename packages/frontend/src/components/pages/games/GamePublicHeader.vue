@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { GameStatus, formatDate, getInitials } from "@ministrosfc/shared";
 
-
-const props = defineProps<{
+defineProps<{
   game: {
     date: string;
     location?: string | null;
@@ -15,9 +14,6 @@ const props = defineProps<{
   statusLabel: string;
   statusClass: string;
 }>();
-
-
-}
 </script>
 
 <template>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SelectItem } from "#ui/types";
-import { type OpponentTeam, OPTION_FILTER_ALL } from "@ministrosfc/shared";
+import { OPTION_FILTER_ALL } from "@ministrosfc/shared";
+import { useOpponentTeams } from "~/composables/useOpponentTeams";
 import { resolveSelectedValue } from "~/utils/object";
 
 const props = withDefaults(

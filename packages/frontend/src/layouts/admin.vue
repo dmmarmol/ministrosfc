@@ -9,9 +9,9 @@ const noPadding = computed(
   () => !!(route.meta as Record<string, unknown>).noPadding,
 );
 
-const pageTitle = computed(() => {
-  return (route.meta.pageTitle as string) || "Dashboard";
-});
+// const pageTitle = computed(() => {
+//   return (route.meta.pageTitle as string) || "Dashboard";
+// });
 </script>
 
 <template>

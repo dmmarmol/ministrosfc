@@ -2,11 +2,10 @@
 import type { SelectItem } from "#ui/types";
 
 const props = defineProps<{
+  items: SelectItem[];
   modelValue?: string;
   placeholder?: string;
 }>();
-
-const { availablePlayers: items } = useStatisticsAvailablePlayers();
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: string): void;
@@ -28,8 +27,8 @@ function handleUpdate(value: unknown) {
   <USelectMenu
     :model-value="modelValue"
     @update:model-value="handleUpdate"
-    :items="items"
-    :placeholder="placeholder"
+    :items="props.items"
+    :placeholder="props.placeholder"
     :ui="{ content: 'min-w-fit' }"
     :searchable="true"
     :search-input="{

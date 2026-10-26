@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { useToast } from "@nuxt/ui/composables";
 import ConfirmationModal from "../ui/ConfirmationModal.vue";
-import RegistrationStatusBadge from "../ui/RegistrationStatusBadge.vue";
 import { useAuthStore } from "~/stores/auth";
 
 import {

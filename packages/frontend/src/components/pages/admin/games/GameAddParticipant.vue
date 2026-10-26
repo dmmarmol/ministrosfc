@@ -2,6 +2,9 @@
 import type { SelectItem } from "@nuxt/ui";
 import type { Game } from "@ministrosfc/shared";
 import { PlayerStatus } from "@ministrosfc/shared";
+import { useAdminGamesStore } from "~/stores/admin-games";
+import { useGames } from "~/composables/useGames";
+import { useStatisticsAvailablePlayers } from "~/composables/useStatisticsAvailablePlayers";
 
 type Props = {
   game: Game | null;

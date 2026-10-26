@@ -3,6 +3,7 @@ import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
 import PlaygroundSelect from "~/components/pages/admin/playground/PlaygroundSelect.vue";
+import { useStatsFilters } from "~/composables/useStatsFilters";
 
 definePageMeta({
   layout: "statistics",

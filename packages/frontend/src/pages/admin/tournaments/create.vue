@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useTournaments } from "~/composables/useTournaments";
 import TournamentForm, {
@@ -28,7 +28,6 @@ async function handleSubmit(payload: TournamentFormData) {
   try {
     await createTournament(payload);
 
-    debugger;
     await router.push("/admin/tournaments");
   } catch (e: any) {
     error.value = e?.message ?? "No se pudo guardar el torneo.";

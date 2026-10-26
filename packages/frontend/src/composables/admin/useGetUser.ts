@@ -1,8 +1,9 @@
+import type { User } from "@ministrosfc/shared";
 import { ref, unref, type Ref } from "vue";
 
 type MaybeRef<T> = T | Ref<T>;
 
-export function useGetUser<TUser = any>(userId: MaybeRef<string>) {
+export function useGetUser<TUser = User>(userId: MaybeRef<string>) {
   const { $api } = useNuxtApp();
 
   const user = ref<TUser | null>(null);
@@ -14,9 +15,7 @@ export function useGetUser<TUser = any>(userId: MaybeRef<string>) {
     error.value = "";
 
     try {
-      const response = await $api(
-        `/api/v1/admin/users/${unref(userId)}`,
-      );
+      const response = await $api(`/api/v1/admin/users/${unref(userId)}`);
       user.value = response.data;
     } catch (e: any) {
       error.value = e?.data?.message ?? "No se pudo cargar el usuario.";

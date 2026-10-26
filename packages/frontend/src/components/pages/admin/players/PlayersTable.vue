@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { h } from "vue";
-import { PlayerStatus } from "@ministrosfc/shared";
-// import type { Position } from "@ministrosfc/shared";
+import { h, resolveComponent } from "vue";
+import { type Player, PlayerStatus } from "@ministrosfc/shared";
 import type { ColumnDef } from "~/types/table";
 import { useAuthStore } from "~/stores/auth";
 import {
   cellButton,
   cellJerseyNumber,
+  cellLink,
+  cellName,
   cellPosition,
 } from "../../../ui/Table/table-utils";
 
@@ -86,32 +87,22 @@ const columns: ColumnDef<AdminPlayer>[] = [
     cell: ({ row }) => {
       const p = row.original;
       return h("div", { class: "min-w-0" }, [
-        h(
-          resolveComponent("UButton"),
-          {
-            to: `/admin/players/${p.id}/edit`,
-            class: "truncate",
-            variant: "link",
-            color: "neutral",
-          },
-          () => `${p.firstName} ${p.lastName}`,
-        ),
+        cellButton(`${p.firstName} ${p.lastName}`, {
+          to: `/admin/players/${p.id}/edit`,
+          class: "truncate",
+          variant: "link",
+          color: "neutral",
+        }),
         p.nickname
-          ? h(
-              "span",
-              { class: "text-sm text-gray-400 hidden md:inline" },
-              p.nickname,
-            )
+          ? cellName(p.nickname, {
+              class: "text-sm text-gray-400 hidden md:inline",
+            })
           : null,
         p.playerType === "GUEST"
-          ? h(
-              "span",
-              {
-                class:
-                  "text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full ml-1",
-              },
-              "Invitado",
-            )
+          ? cellName("Invitado", {
+              class:
+                "text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full ml-1",
+            })
           : null,
       ]);
     },
@@ -126,20 +117,14 @@ const columns: ColumnDef<AdminPlayer>[] = [
       const p = row.original;
       if (!p.invitedById) return null;
       if (p.invitedByName) {
-        return h(
-          "a",
-          {
-            href: `/admin/players/${p.invitedById}/edit`,
-            class: "text-xs text-gray-500 hover:underline",
-          },
+        return cellLink(
           p.invitedByName,
+          `/admin/players/${p.invitedById}/edit`,
         );
       }
-      return h(
-        "span",
-        { class: "text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full" },
-        "Invitante eliminado",
-      );
+      return cellName("Invitante eliminado", {
+        class: "text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full",
+      });
     },
   },
   {

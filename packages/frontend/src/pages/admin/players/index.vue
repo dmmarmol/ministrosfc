@@ -7,6 +7,7 @@ import PlayersTable, {
   type AdminPlayer,
   type ExtendAdminPlayerAttr,
 } from "~/components/pages/admin/players/PlayersTable.vue";
+import { createTruthyObject } from "~/utils/object.js";
 
 definePageMeta({
   layout: "admin",

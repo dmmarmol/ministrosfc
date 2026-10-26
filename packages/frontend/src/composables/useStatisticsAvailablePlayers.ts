@@ -7,7 +7,7 @@
  */
 import type { SelectItem } from "#ui/types";
 import { PlayerStatus } from "@ministrosfc/shared";
-import type { MaybeRef } from "vue";
+import { toRef, type MaybeRef } from "vue";
 
 export function useStatisticsAvailablePlayers(
   status?: MaybeRef<PlayerStatus | null>,

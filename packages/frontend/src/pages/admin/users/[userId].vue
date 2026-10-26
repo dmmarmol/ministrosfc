@@ -35,9 +35,7 @@ async function fetchPlayer() {
 
   loadingPlayer.value = true;
   try {
-    const response = await $api(
-      `/api/v1/players/${user.value.playerId}`,
-    );
+    const response = await $api(`/api/v1/players/${user.value.playerId}`);
     player.value = response.data ?? null;
   } catch {
     player.value = null;
@@ -99,6 +97,7 @@ async function mergeSelectedPlayer(mergePlayerId: string) {
   }
 }
 
+/** @TODO Review why this const is unused */
 const userInitialData = computed(() => {
   if (!user.value) return {};
   return {
@@ -146,7 +145,7 @@ await fetchOrphanPlayers();
     <div class="grid grid-cols-12 gap-4">
       <div class="col-span-12 lg:col-span-6">
         <UserEditorPanel
-          :user="(user as User | null)"
+          :user="user as User | null"
           :orphan-players="orphanPlayers"
           :action-loading="actionLoading"
           :loading="loading"

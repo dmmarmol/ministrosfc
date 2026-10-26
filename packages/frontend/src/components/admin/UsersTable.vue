@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { h, resolveComponent } from "vue";
 import {
   UButton,
   UiPlayerStatusBadge,
@@ -12,6 +13,7 @@ import {
   type UserRole,
 } from "@ministrosfc/shared";
 import type { ColumnDef } from "~/types/table";
+import { cellActions } from "../ui/Table/table-utils";
 
 type Props = {
   users: AdminUserListItem[];
@@ -124,15 +126,21 @@ const columns: ColumnDef<AdminUserListItem>[] = [
   {
     id: "actions",
     header: "Acciones",
+    meta: {
+      class: {
+        th: "text-right",
+        td: "text-right",
+      },
+    },
     cell: ({ row }) => {
-      const user = row.original;
-      return h(resolveComponent("UButton"), {
-        variant: "ghost",
-        color: "error",
-        icon: "mdi:trash-can-outline",
-        title: "Eliminar usuario",
-        "data-testid": "delete-user-btn",
-        onClick: () => emit("delete", user),
+      return cellActions({
+        items: [
+          {
+            label: "Eliminar usuario",
+            onClick: (event: Event) => emit("delete", row.original),
+            "data-testid": "delete-user-btn",
+          },
+        ],
       });
     },
   },
