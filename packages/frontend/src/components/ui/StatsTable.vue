@@ -1,92 +1,83 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
 import type { ColumnDef } from "~/types/table";
 
-const props = defineProps<{
-  columns: ColumnDef[];
-  rows: Record<string, unknown>[];
-  loading?: boolean;
-}>();
+type RowData = Record<string, unknown>;
 
-defineSlots<{
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: (props: { row: Record<string, unknown> }) => any;
-}>();
-
-// ── Sort state ────────────────────────────────────────────────────────────────
+const props = withDefaults(
+  defineProps<{
+    columns?: ColumnDef<RowData>[];
+    rows?: RowData[];
+    loading?: boolean;
+  }>(),
+  {
+    columns: () => [],
+    rows: () => [],
+    loading: false,
+  },
+);
 
 const sortKey = ref<string | null>(null);
-const sortDir = ref<"asc" | "desc">("asc");
+const sortDir = ref<"asc" | "desc" | null>(null);
 
 const sortedRows = computed(() => {
-  if (!sortKey.value) return props.rows;
+  if (!sortKey.value || !sortDir.value) {
+    return props.rows;
+  }
 
   const key = sortKey.value;
-  const dir = sortDir.value;
+  const direction = sortDir.value === "asc" ? 1 : -1;
 
-  return [...props.rows].sort((a, b) => {
-    const aVal = a[key];
-    const bVal = b[key];
+  return [...props.rows].sort((left, right) => {
+    const leftValue = left[key];
+    const rightValue = right[key];
 
-    if (aVal == null && bVal == null) return 0;
-    if (aVal == null) return 1;
-    if (bVal == null) return -1;
+    if (leftValue == null && rightValue == null) {
+      return 0;
+    }
+    if (leftValue == null) {
+      return -1 * direction;
+    }
+    if (rightValue == null) {
+      return 1 * direction;
+    }
 
-    const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
-    return dir === "asc" ? cmp : -cmp;
+    if (typeof leftValue === "number" && typeof rightValue === "number") {
+      return (leftValue - rightValue) * direction;
+    }
+
+    return String(leftValue).localeCompare(String(rightValue)) * direction;
   });
 });
 
-/**
- * Handle a sort event from <UiTable>:
- *  – first click on a column  → sort ascending
- *  – second click             → sort descending
- *  – third click              → reset (no sort)
- *  – click on non-sortable    → no-op
- */
-function handleSort(key: string) {
-  const col = props.columns.find((c) => c.key === key);
-  if (!col?.sortable) return;
-
-  if (sortKey.value === key) {
-    if (sortDir.value === "asc") {
-      sortDir.value = "desc";
-    } else {
-      sortKey.value = null;
-      sortDir.value = "asc";
-    }
-  } else {
+function toggleSort(key: string) {
+  if (sortKey.value !== key) {
     sortKey.value = key;
     sortDir.value = "asc";
+    return;
   }
-}
 
-const selectedRow = ref<Record<string, unknown> | null>(null);
+  if (sortDir.value === "asc") {
+    sortDir.value = "desc";
+    return;
+  }
 
-function onHover(_e: Event, row: Record<string, unknown> | null) {
-  selectedRow.value = row;
+  if (sortDir.value === "desc") {
+    sortKey.value = null;
+    sortDir.value = null;
+    return;
+  }
+
+  sortDir.value = "asc";
 }
 </script>
 
 <template>
-  <UiTable
+  <UTable
     :columns="columns"
-    :rows="sortedRows"
+    :data="sortedRows"
     :loading="loading"
     :sort-key="sortKey"
     :sort-dir="sortDir"
-    @sort="handleSort"
-    @hover="onHover"
-  >
-    <!--
-      Forward every slot the consumer provided (e.g. #rank-data, #name-data)
-      through to <UiTable>, which in turn forwards them to <UTable>.
-    -->
-    <template v-for="(_, slotName) in $slots" #[slotName]="slotProps">
-      <slot
-        :name="slotName"
-        v-bind="(slotProps as { row: Record<string, unknown> }) ?? {}"
-      />
-    </template>
-  </UiTable>
+    @sort="toggleSort"
+  />
 </template>

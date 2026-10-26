@@ -28,9 +28,13 @@ async function registerAndLogin(
     firstName: "Test",
     lastName: role,
   });
-  if (role !== "PLAYER") {
-    await prisma.user.update({ where: { email }, data: { role } });
-  }
+  await prisma.user.update({
+    where: { email },
+    data: {
+      registrationStatus: "APPROVED",
+      ...(role !== "PLAYER" ? { role } : {}),
+    },
+  });
   const user = await prisma.user.findUnique({ where: { email } });
   if (createPlayer) {
     await prisma.player.create({
@@ -90,43 +94,44 @@ describe("Admin role management (integration)", () => {
       expect(res.body.meta).toHaveProperty("page", 1);
     });
     describe("PATCH /api/v1/admin/users/:id", () => {
-      it("allows ADMIN to edit user profile fields", async () => {
+      it("allows ADMIN to edit user email", async () => {
         const res = await request(app)
           .patch(`/api/v1/admin/users/${player.userId}`)
           .set("Authorization", `Bearer ${admin.token}`)
           .send({
-            firstName: "Nuevo",
-            lastName: "Apellido",
             email: "nuevo@ministrosfc.test",
           });
 
         expect(res.status).toBe(200);
-        expect(res.body.data.firstName).toBe("Nuevo");
-        expect(res.body.data.lastName).toBe("Apellido");
         expect(res.body.data.email).toBe("nuevo@ministrosfc.test");
       });
 
-      it("allows EDITOR to edit user profile fields", async () => {
+      it("allows EDITOR to edit user email", async () => {
         const res = await request(app)
           .patch(`/api/v1/admin/users/${player2.userId}`)
           .set("Authorization", `Bearer ${editor.token}`)
           .send({
-            firstName: "Editado",
-            lastName: "PorEditor",
             email: "editado@ministrosfc.test",
           });
 
         expect(res.status).toBe(200);
-        expect(res.body.data.firstName).toBe("Editado");
-        expect(res.body.data.lastName).toBe("PorEditor");
         expect(res.body.data.email).toBe("editado@ministrosfc.test");
+      });
+
+      it("allows ADMIN to update user password", async () => {
+        const res = await request(app)
+          .patch(`/api/v1/admin/users/${player.userId}`)
+          .set("Authorization", `Bearer ${admin.token}`)
+          .send({ password: "new-password-123" });
+
+        expect(res.status).toBe(200);
       });
 
       it("rejects non-Editor+ users", async () => {
         const res = await request(app)
           .patch(`/api/v1/admin/users/${admin.userId}`)
           .set("Authorization", `Bearer ${player.token}`)
-          .send({ firstName: "Hacker" });
+          .send({ email: "hacker@ministrosfc.test" });
         expect(res.status).toBe(403);
       });
 

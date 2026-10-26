@@ -5,11 +5,12 @@
  * Returns `availablePlayers` as `{ value: string; label: string }[]`
  * sorted alphabetically by display name.
  */
+import type { SelectItem } from "#ui/types";
 import { PlayerStatus } from "@ministrosfc/shared";
 import type { MaybeRef } from "vue";
 
 export function useStatisticsAvailablePlayers(
-  status?: MaybeRef<string | undefined>,
+  status?: MaybeRef<PlayerStatus | null>,
   enabled: MaybeRef<boolean> = true,
 ) {
   const { $api } = useNuxtApp();
@@ -66,7 +67,7 @@ export function useStatisticsAvailablePlayers(
     { server: false, watch: [queryStatus, isEnabled] },
   );
 
-  const availablePlayers = computed(() => {
+  const availablePlayers = computed((): SelectItem[] => {
     return (data.value?.data ?? [])
       .map((p) => ({
         value: p.id,

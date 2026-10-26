@@ -1,49 +1,66 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from "vue";
 import { useNuxtApp, useAsyncData, useHead } from "nuxt/app";
-import { GameStatus, formatDate } from "@ministrosfc/shared";
+import type { AdminGame } from "@ministrosfc/shared";
+import {
+  GameStatus,
+  GameResult,
+  OPTION_FILTER_ALL,
+  formatDate,
+} from "@ministrosfc/shared";
+import { createTruthyObject } from "~/utils/object";
+import type { FetchOptions } from "ofetch";
 
 import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
+import GameStatusSelect from "~/components/pages/games/GameStatusSelect.vue";
+import GameStatusBadge from "~/components/pages/games/GameStatusBadge.vue";
+import GameResultSelect from "~/components/pages/games/GameResultSelect.vue";
+
 definePageMeta({
   layout: "admin",
   middleware: "auth",
   requiresAuth: true,
   requiresRole: "editor",
+  pageTitle: "Partidos",
 });
 useHead({ title: "Games – Admin" });
 
 const { $api } = useNuxtApp();
-const statusFilter = ref("");
+
+const statusFilter = ref<GameStatus | typeof OPTION_FILTER_ALL>(
+  OPTION_FILTER_ALL,
+);
+const resultFilter = ref<GameResult | typeof OPTION_FILTER_ALL>(
+  OPTION_FILTER_ALL,
+);
 const opponentFilter = ref("");
 
-const { data: teamsData } = await useAsyncData("admin-teams", () =>
-  $api<{ data: any[] }>("/api/v1/teams"),
-);
-const teams = computed(() => teamsData.value?.data ?? []);
-
-const { data, pending, refresh } = await useAsyncData("admin-games", () =>
-  $api<{ data: any[] }>("/api/v1/games", {
-    query: {
-      ...(statusFilter.value ? { status: statusFilter.value } : {}),
-      ...(opponentFilter.value ? { opponentTeamId: opponentFilter.value } : {}),
+const { data, pending, refresh } = await useAsyncData("admin-games", () => {
+  const fetchOptions: FetchOptions<"json"> = {
+    query: createTruthyObject({
+      status:
+        statusFilter.value === OPTION_FILTER_ALL
+          ? undefined
+          : statusFilter.value,
+      result:
+        resultFilter.value === OPTION_FILTER_ALL
+          ? undefined
+          : resultFilter.value,
+      opponentTeamId:
+        opponentFilter.value && opponentFilter.value !== OPTION_FILTER_ALL
+          ? opponentFilter.value
+          : undefined,
       limit: 100,
-    },
-  }),
-);
-watch([statusFilter, opponentFilter], () => refresh());
+    }),
+  };
+
+  return $api<{ data: AdminGame[] }>("/api/v1/games", fetchOptions);
+});
+watch([statusFilter, resultFilter, opponentFilter], () => refresh());
 const games = computed(() => data.value?.data ?? []);
 const gameToDelete = ref<any | null>(null);
 const deleteModalOpen = ref(false);
 const deleteInvoker = ref<HTMLElement | null>(null);
-
-function statusClass(s: string): string {
-  const map: Record<string, string> = {
-    SCHEDULED: "bg-blue-100 text-blue-700",
-    COMPLETED: "bg-green-100 text-green-700",
-    CANCELLED: "bg-gray-100 text-gray-500",
-  };
-  return map[s] ?? "bg-gray-100 text-gray-500";
-}
 
 watch(deleteModalOpen, (isOpen) => {
   if (!isOpen && deleteInvoker.value) {
@@ -107,6 +124,30 @@ function canShareSignup(g: any): boolean {
     (g.maxPlayers == null || (g.confirmedCount ?? 0) < g.maxPlayers)
   );
 }
+
+function getResultState(game: AdminGame): "G" | "E" | "P" | "—" {
+  if (game.status !== GameStatus.COMPLETED) return "—";
+  const home = game.homeTeamScore ?? 0;
+  const away = game.awayTeamScore ?? 0;
+  if (home === away) return "E";
+  return home > away ? "G" : "P";
+}
+
+function getResultTitle(game: AdminGame): string {
+  const state = getResultState(game);
+  if (state === "G") return "Ganado";
+  if (state === "E") return "Empate";
+  if (state === "P") return "Perdido";
+  return "Resultado pendiente";
+}
+
+function getResultTone(game: AdminGame): string {
+  const state = getResultState(game);
+  if (state === "G") return "bg-green-100 text-green-700";
+  if (state === "E") return "bg-yellow-100 text-yellow-700";
+  if (state === "P") return "bg-red-100 text-red-700";
+  return "bg-gray-100 text-gray-500";
+}
 </script>
 
 <template>
@@ -139,33 +180,33 @@ function canShareSignup(g: any): boolean {
 
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-base font-semibold text-gray-700">Partidos</h2>
-      <NuxtLink
+      <UButton
         to="/admin/games/create"
-        class="bg-brand text-gray-900 font-semibold text-sm px-4 py-2 rounded-lg hover:opacity-90"
-        >+ Programar Partido</NuxtLink
+        color="primary"
+        variant="solid"
+        icon="mdi:plus"
+      >
+        Programar Partido</UButton
       >
     </div>
 
     <!-- Filters -->
     <div class="flex flex-col sm:flex-row gap-3 mb-4">
-      <select
+      <GameResultSelect
+        v-model="resultFilter"
+        placeholder="Todos los resultados"
+        class="w-full sm:w-auto"
+        :include-all="true"
+      />
+      <GameStatusSelect
         v-model="statusFilter"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-      >
-        <option value="">Todos los estados</option>
-        <option :value="GameStatus.SCHEDULED">Programado</option>
-        <option :value="GameStatus.COMPLETED">Completado</option>
-        <option :value="GameStatus.CANCELLED">Cancelado</option>
-      </select>
-      <select
+        placeholder="Todos los estados"
+      />
+      <UiTeamSelect
         v-model="opponentFilter"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-      >
-        <option value="">Todos los rivales</option>
-        <option v-for="t in teams" :key="t.id" :value="t.id">
-          {{ t.name }}
-        </option>
-      </select>
+        placeholder="Filtrar por rival"
+        class="w-full sm:w-auto"
+      />
     </div>
 
     <!-- Table -->
@@ -182,82 +223,120 @@ function canShareSignup(g: any): boolean {
       <table v-else class="w-full text-sm">
         <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
           <tr>
+            <th class="px-2 py-3 text-left" title="Resultado"></th>
             <th class="px-4 py-3 text-left">Rival</th>
+            <th class="px-4 py-3 text-center hidden sm:table-cell">Marcador</th>
             <th class="px-4 py-3 text-left hidden sm:table-cell">Fecha</th>
+            <th class="px-4 py-3 text-left hidden sm:table-cell">Torneo</th>
+            <th class="px-4 py-3 text-left hidden sm:table-cell">Cancha</th>
             <th class="px-4 py-3 text-center">Estado</th>
-            <th class="px-4 py-3 text-right hidden sm:table-cell">Marcador</th>
             <th class="px-4 py-3 text-right">Acciones</th>
           </tr>
         </thead>
         <tbody>
           <tr
-            v-for="g in games"
-            :key="g.id"
+            v-for="game in games"
+            :key="game.id"
             class="border-t border-gray-100 hover:bg-gray-50"
           >
-            <td class="px-4 py-3 font-medium text-gray-900">
-              {{ g.opponentTeam?.name ?? "—" }}
-            </td>
-            <td class="px-4 py-3 text-gray-600 hidden sm:table-cell">
-              {{ formatDate(g.date) }}
-            </td>
-            <td class="px-4 py-3 text-center">
+            <!-- Resultado -->
+            <td
+              class="px-4 py-3 text-center text-gray-700 hidden sm:table-cell"
+              title="Resultado"
+            >
               <span
-                :class="statusClass(g.status)"
-                class="text-xs px-2 py-0.5 rounded-full font-medium"
-                >{{
-                  {
-                    SCHEDULED: "Programado",
-                    COMPLETED: "Completado",
-                    CANCELLED: "Cancelado",
-                    IN_PROGRESS: "En juego",
-                  }[g.status] ?? g.status
-                }}</span
+                class="block"
+                :class="[
+                  getResultTone(game),
+                  'text-xs px-2 py-0.5 rounded-sm font-medium',
+                ]"
+                :title="getResultTitle(game)"
               >
+                {{ getResultState(game) }}
+              </span>
             </td>
-            <td class="px-4 py-3 text-right text-gray-700 hidden sm:table-cell">
+            <!-- Rival -->
+            <td class="px-2 py-3 font-medium text-gray-900">
+              <UButton
+                class="truncate"
+                variant="link"
+                color="neutral"
+                :to="`/admin/games/${game.id}/edit`"
+              >
+                {{ game.opponentTeam?.name ?? "—" }}
+              </UButton>
+            </td>
+
+            <!-- Marcador -->
+            <td
+              class="px-4 py-3 text-center text-gray-700 hidden sm:table-cell"
+            >
               {{
-                g.status === GameStatus.COMPLETED
-                  ? `${g.homeTeamScore ?? 0}–${g.awayTeamScore ?? 0}`
+                game.status === GameStatus.COMPLETED
+                  ? `${game.homeTeamScore ?? 0} – ${game.awayTeamScore ?? 0}`
                   : "—"
               }}
             </td>
-            <td class="px-4 py-3 text-right">
+            <!-- Fecha -->
+            <td class="px-4 py-3 text-gray-600 hidden sm:table-cell">
+              {{
+                formatDate(game.date, {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                })
+              }}
+            </td>
+            <!-- Torneo -->
+            <td class="px-4 py-3 text-gray-600 hidden sm:table-cell">
+              {{ game.tournament?.name ?? "—" }}
+            </td>
+            <!-- Cancha -->
+            <td class="px-2 py-3 text-gray-600 hidden sm:table-cell">
+              <p class="truncate max-w-35">
+                {{ game.playground?.name ?? "—" }}
+              </p>
+            </td>
+
+            <td class="px-4 py-3 text-center">
+              <GameStatusBadge :status="game.status" />
+            </td>
+            <td class="pr-4 py-3 text-right">
               <div class="flex items-center justify-end gap-2 flex-wrap">
                 <!-- T012: share-signup link (SCHEDULED + not full) -->
-                <button
-                  v-if="canShareSignup(g)"
-                  class="text-xs text-emerald-600 hover:text-emerald-800 transition-colors"
+                <UButton
+                  v-if="canShareSignup(game)"
+                  variant="link"
+                  color="success"
+                  size="xs"
                   :title="'Copiar link de convocatoria'"
                   @click="
                     shareLink(
-                      `${baseUrl()}/games/${g.slug}/signup`,
+                      `${baseUrl()}/games/${game.slug}/signup`,
                       'Convocatoria',
                     )
                   "
                 >
                   📋 Convocatoria
-                </button>
+                </UButton>
                 <!-- T013: share-detail link (all statuses with slug) -->
-                <button
-                  v-if="g.slug"
-                  class="text-xs text-blue-500 hover:text-blue-700 transition-colors"
+                <UButton
+                  v-if="game.slug"
+                  variant="ghost"
+                  color="primary"
                   :title="'Copiar link del partido'"
-                  @click="shareLink(`${baseUrl()}/games/${g.slug}`, 'Partido')"
-                >
-                  🔗 Link
-                </button>
-                <NuxtLink
-                  :to="`/admin/games/${g.id}/edit`"
-                  class="text-xs text-brand hover:underline"
-                  >Editar</NuxtLink
-                >
-                <button
-                  class="text-xs text-red-400 hover:text-red-600 transition-colors"
-                  @click="askDeleteGame(g, $event)"
-                >
-                  Eliminar
-                </button>
+                  icon="mdi:link"
+                  @click="
+                    shareLink(`${baseUrl()}/games/${game.slug}`, 'Partido')
+                  "
+                />
+                <UButton
+                  data-testid="delete-game-btn"
+                  variant="ghost"
+                  color="error"
+                  icon="mdi:trash-can-outline"
+                  title="Eliminar partido"
+                  @click="askDeleteGame(game, $event)"
+                />
               </div>
             </td>
           </tr>

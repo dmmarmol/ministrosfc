@@ -5,6 +5,7 @@ import { generateGameSlug } from "../utils/slug";
 import { getRedisClient } from "../config/redis";
 import { prisma } from "../config/database";
 import { type Role, GameStatus } from "@prisma/client";
+import { GameResult } from "@ministrosfc/shared";
 
 /** Elapsed milliseconds for one game (100 minutes). */
 const GAME_DURATION_MS = 100 * 60 * 1000;
@@ -49,6 +50,7 @@ interface GameUpdateDTO {
 
 interface SearchOptions {
   status?: GameStatus;
+  result?: GameResult;
   tournamentId?: string;
   opponentTeamId?: string;
   dateFrom?: string;

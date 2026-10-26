@@ -1,3 +1,5 @@
+import type { SelectItem } from "#ui/components/Select.vue";
+
 /**
  * Fetches the list of tournaments for use in statistics filters.
  * Backed by GET /api/v1/tournaments (public, cached 5 min).
@@ -21,17 +23,16 @@ export function useStatisticsAvailableTournaments(
     { server: false, watch: [isEnabled] },
   );
 
-  const availableTournaments = computed(() => {
-    const seen = new Set<string>();
-    const result: { value: string; label: string }[] = [];
-    for (const t of data.value?.data ?? []) {
-      const key = t.name.trim().toLowerCase();
-      if (!seen.has(key)) {
-        seen.add(key);
-        result.push({ value: t.name.trim(), label: t.name.trim() });
-      }
-    }
-    return result;
+  const availableTournaments = computed((): SelectItem[] => {
+    return (
+      data.value?.data.map((item) => {
+        return {
+          item,
+          value: item.id,
+          label: item.name,
+        };
+      }) ?? []
+    );
   });
 
   return { availableTournaments };

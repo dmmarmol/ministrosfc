@@ -5,17 +5,18 @@ import StatsTable from "~/components/ui/StatsTable.vue";
 import type { ColumnDef } from "~/types/table";
 
 /**
- * UiTable stub for StatsTable tests.
+ * UTable stub for StatsTable tests.
  *
  * Renders each sortable column as a <button> that emits `sort` with the column
  * key.  Rows are rendered as data-rowindex divs so we can assert reordering.
  * Also accepts :sort-key and :sort-dir props (ignored in the stub but accepted
  * to avoid warnings).
  */
-const UiTableStub = defineComponent({
-  name: "UiTable",
+const UTableStub = defineComponent({
+  name: "UTable",
   props: {
     columns: { type: Array, default: () => [] },
+    data: { type: Array, default: () => [] },
     rows: { type: Array, default: () => [] },
     sortKey: { type: String, default: null },
     sortDir: { type: String, default: "asc" },
@@ -25,7 +26,11 @@ const UiTableStub = defineComponent({
   setup(props, { emit }) {
     return () => {
       const cols = props.columns as ColumnDef[];
-      const rows = props.rows as Record<string, unknown>[];
+      const rows = (
+        (props.data as Record<string, unknown>[])?.length
+          ? props.data
+          : props.rows
+      ) as Record<string, unknown>[];
 
       return h("div", [
         // Header buttons for sortable columns
@@ -65,8 +70,8 @@ const UiTableStub = defineComponent({
 });
 
 // UTable is registered globally by tests/setup.ts.
-// We only need to override UiTable with a test-friendly stub that exposes
-// sort buttons and row data directly (bypassing the full UiTable render logic).
+// We override it here with a test-friendly stub that exposes
+// sort buttons and row data directly.
 
 let prevComponents: Record<string, unknown>;
 
@@ -74,7 +79,7 @@ beforeAll(() => {
   prevComponents = { ...config.global.components };
   config.global.components = {
     ...prevComponents,
-    UiTable: UiTableStub,
+    UTable: UTableStub,
   };
 });
 afterAll(() => {
@@ -160,11 +165,11 @@ describe("StatsTable", () => {
     expect(getRowGoals(wrapper)).toEqual([3, 7, 10]);
   });
 
-  it("forwards consumer slots through to UiTable", () => {
+  it("forwards consumer slots through to UTable", () => {
     const wrapper = mount(StatsTable, {
       props: { columns, rows },
       slots: {
-        // Provide a custom slot — UiTable stub doesn't use it, but it must not throw
+        // Provide a custom slot — UTable stub doesn't use it, but it must not throw
         "goals-data": "<span class='custom-cell'>custom</span>",
       },
     });

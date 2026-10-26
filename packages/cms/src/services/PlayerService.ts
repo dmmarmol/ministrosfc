@@ -1,3 +1,4 @@
+/* eslint prettier/prettier: ["warn", { "printWidth": 240 }] */
 import { PlayerModel, type PlayerFilters } from "../models/Player";
 import {
   uploadPlayerPhoto,
@@ -9,9 +10,10 @@ import { ErrorCode } from "../utils/error-codes";
 import { PlayerType, PlayerStatus } from "@prisma/client";
 import { getRedisClient, redisKeys } from "../config/redis";
 import { logger } from "../utils/logger";
+import { Player, PlayerCreateDTO } from "@ministrosfc/shared";
 
 const CACHE_TTL_SECONDS = 600; // 10 minutes
-const PLAYER_LIST_CACHE_VERSION = "v3";
+const PLAYER_LIST_CACHE_VERSION = "v4";
 
 export const PlayerService = {
   async createPlayer(
@@ -32,6 +34,7 @@ export const PlayerService = {
         whatsapp?: string;
         emergencyContact?: string;
       };
+      extend?: ("invitedById" | "invitedByName")[];
     },
     photoFile?: UploadedFile,
   ) {
@@ -100,22 +103,7 @@ export const PlayerService = {
 
   async updatePlayer(
     id: string,
-    dto: {
-      firstName?: string;
-      lastName?: string;
-      nickname?: string;
-      position?: string;
-      jerseyNumber?: number;
-      dateOfBirth?: string;
-      height?: number;
-      dominantFoot?: string;
-      nationalId?: string;
-      contact?: {
-        phone?: string;
-        whatsapp?: string;
-        emergencyContact?: string;
-      };
-    },
+    dto: Partial<PlayerCreateDTO>,
     photoFile?: UploadedFile,
   ) {
     const existing = await PlayerModel.findById(id);
@@ -166,6 +154,7 @@ export const PlayerService = {
       ...(dto.dateOfBirth !== undefined
         ? { dateOfBirth: dto.dateOfBirth }
         : {}),
+      ...(dto.invitedById ? { invitedById: dto.invitedById as never } : {}),
       ...(dto.height !== undefined ? { height: dto.height } : {}),
       ...(dto.dominantFoot ? { dominantFoot: dto.dominantFoot as never } : {}),
       ...(dto.nationalId !== undefined ? { nationalId: dto.nationalId } : {}),

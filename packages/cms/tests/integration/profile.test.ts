@@ -31,14 +31,21 @@ describe("Profile endpoints (integration)", () => {
     await cleanDatabase();
 
     // Register a user to get an authenticated token
-    const res = await request(app).post("/api/v1/auth/register").send({
+    await request(app).post("/api/v1/auth/register").send({
       email: "profile@ministrosfc.test",
       password: "Segura123!",
       passwordConfirmation: "Segura123!",
       firstName: "Juan",
       lastName: "Pérez",
     });
-    accessToken = res.body.data.accessToken;
+    await prisma.user.update({
+      where: { email: "profile@ministrosfc.test" },
+      data: { registrationStatus: "APPROVED" },
+    });
+    const loginRes = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: "profile@ministrosfc.test", password: "Segura123!" });
+    accessToken = loginRes.body.data.accessToken;
 
     const user = await prisma.user.findUnique({
       where: { email: "profile@ministrosfc.test" },
@@ -100,14 +107,21 @@ describe("Profile endpoints (integration)", () => {
 
     it("returns 409 for duplicate jersey number", async () => {
       // Register another user with jersey 10
-      const otherRes = await request(app).post("/api/v1/auth/register").send({
+      await request(app).post("/api/v1/auth/register").send({
         email: "other@ministrosfc.test",
         password: "Segura123!",
         passwordConfirmation: "Segura123!",
         firstName: "Pedro",
         lastName: "López",
       });
-      const otherToken = otherRes.body.data.accessToken;
+      await prisma.user.update({
+        where: { email: "other@ministrosfc.test" },
+        data: { registrationStatus: "APPROVED" },
+      });
+      const otherLoginRes = await request(app)
+        .post("/api/v1/auth/login")
+        .send({ email: "other@ministrosfc.test", password: "Segura123!" });
+      const otherToken = otherLoginRes.body.data.accessToken;
 
       const otherUser = await prisma.user.findUnique({
         where: { email: "other@ministrosfc.test" },

@@ -116,6 +116,11 @@ After deployment, the project owner can view logs from both the backend and fron
 - **FR-010**: The total monthly infrastructure cost of the deployed application MUST be $0 using free tiers only.
 - **FR-011**: The deployed application MUST produce logs accessible to the team without direct server access, using the hosting platform's built-in logging at no additional cost.
 - **FR-012**: A documented guide MUST be provided explaining how team members handle sensitive data, how to rotate secrets, and how to set up a local development environment.
+- **FR-013**: The CI/CD design MUST support independent verification and deployment of CMS and frontend so a failure in one pipeline does not hide status in the other.
+- **FR-014**: The deployment process MUST include an operator-triggered database reset workflow for the DEV environment with explicit confirmation controls to prevent accidental data destruction.
+- **FR-015**: The deployment process MUST include a controlled DEV admin-seeding workflow that can run only after a successful DEV database reset.
+- **FR-016**: After any DEV database reset, cached application data MUST be cleared before validation/import steps to prevent stale API responses.
+- **FR-017**: The deployment process MUST define the frontend callback origin as an explicit runtime variable for CMS authentication redirects so DEV and PROD can be configured independently.
 
 ### Key Entities
 
@@ -147,3 +152,125 @@ After deployment, the project owner can view logs from both the backend and fron
 - The project's low traffic volume (small team, amateur club) is well within free tier limits for all selected services.
 - "GitHub Copilot" in the original description refers to GitHub Actions as the CI/CD automation platform.
 - CSV files in `data/` contain player personal data and must be treated as sensitive regardless of the data they currently hold.
+
+## Implemented Deployment Process Acknowledgement
+
+The branch work merged into this specification delivered and validated the following deployment-process capabilities:
+
+1. CI/CD split and branch targeting
+
+- Independent CMS and frontend GitHub Actions workflows are in place.
+- `develop` targets DEV deployment and `main` targets PROD deployment.
+- Deployments remain test-gated (no deploy on failing tests).
+
+2. Hosting deployment hardening
+
+- Deployment configuration for both CMS and frontend has been normalized for reliable runtime startup.
+- Release-time migration/bootstrapping behavior for CMS was aligned with the deployment process so releases are deterministic.
+
+3. DEV reset and seed operational flow
+
+- A dedicated workflow exists to reset DEV CMS database state.
+- A follow-up workflow exists to seed the DEV admin user after reset.
+- Reset flow includes explicit operator confirmation to reduce destructive-operation risk.
+
+4. Cache consistency after reset
+
+- Reset operations now include a post-reset Redis cache flush step (best-effort) to avoid stale reads after DB recreation/import.
+- This addresses previously observed endpoint inconsistencies immediately after reset/import cycles.
+
+5. Environment and secret management in practice
+
+- Runtime secrets remain managed through platform secrets, not repository files.
+- CMS frontend redirect origin is now explicitly configurable via runtime environment, supporting separate DEV/PROD callback behavior.
+
+6. Operational validation performed
+
+- DEV deployment and `import/csv` execution were validated end-to-end during this branch's work.
+- Monitoring/triage relied on hosting logs and workflow run inspection as the primary operational visibility path.
+
+## Deployment Inventory (Implemented)
+
+### Fly.io apps and VM footprint
+
+- PROD CMS app: `ministrosfc-cms`
+- DEV CMS app: `ministrosfc-cms-dev`
+- PROD frontend app: `ministrosfc-frontend`
+- DEV frontend app: `ministrosfc-frontend-dev`
+- CMS VM profile (base runtime target): shared-cpu-1x, 512MB memory
+- Frontend VM profile (base runtime target): shared-cpu-1x, 512MB memory
+
+### Fly.io runtime environment and secrets used
+
+1. CMS runtime vars/secrets
+
+- `API_PORT`
+- `NODE_ENV`
+- `DATABASE_URL`
+- `JWT_SECRET`
+- `JWT_EXPIRY`
+- `REFRESH_TOKEN_EXPIRY`
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+- `REDIS_URL`
+- `REDIS_HOST`
+- `REDIS_PORT`
+- `REDIS_PASSWORD`
+- `CORS_ORIGINS`
+- `FRONTEND_URL`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_REDIRECT_URI`
+
+2. Frontend runtime vars/secrets
+
+- `APP_PORT`
+- `PORT`
+- `NITRO_PORT`
+- `HOST`
+- `NITRO_HOST`
+- `NODE_ENV`
+- `NUXT_PUBLIC_API_BASE_URL`
+- `NUXT_PUBLIC_APP_URL`
+- `NUXT_PUBLIC_CLUB_NAME`
+- `NUXT_PUBLIC_CLUB_SHORT_NAME`
+- `NUXT_PUBLIC_PRIMARY_COLOR`
+
+### GitHub Actions vars/secrets used for deployment and operations
+
+- `FLY_API_TOKEN`
+- `CMS_APP_NAME`
+- `FRONTEND_APP_NAME`
+- `CMS_ADMIN_EMAIL`
+- `CMS_ADMIN_PASSWORD`
+- Manual workflow inputs used operationally: `environment` and reset `confirmation`
+
+### GitHub Actions workflows used
+
+1. Deployment workflows
+
+- `.github/workflows/ci-cms.yml`
+  - CI + deploy for CMS
+  - deploys to DEV on `develop` and to PROD on `main`
+- `.github/workflows/ci-frontend.yml`
+  - CI + deploy for frontend
+  - deploys to DEV on `develop` and to PROD on `main`
+
+2. Development operational workflows
+
+- `.github/workflows/reset-cms-db.yml`
+  - Optional, manual DEV DB reset workflow
+  - Protected by explicit confirmation input
+  - Executes reset script that now includes a post-reset Redis flush
+- `.github/workflows/seed-cms-admin.yml`
+  - Base admin seeding workflow for CMS
+  - supports manual dispatch and post-reset workflow chaining
+
+### Environment mapping used in practice
+
+- `main` branch -> PROD apps (`ministrosfc-cms`, `ministrosfc-frontend`)
+- `develop` branch -> DEV apps (`ministrosfc-cms-dev`, `ministrosfc-frontend-dev`)
+- GitHub Environments map corresponding `CMS_APP_NAME` and `FRONTEND_APP_NAME` per environment

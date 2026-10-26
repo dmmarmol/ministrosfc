@@ -1,1 +1,1 @@
-export const PLAYER_STATUS_FILTER_ALL = "ALL" as const;
+export const OPTION_FILTER_ALL = "ALL" as const;

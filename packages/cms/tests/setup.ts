@@ -24,6 +24,7 @@ export async function cleanDatabase() {
     prisma.player.deleteMany(),
     prisma.opponentTeam.deleteMany(),
     prisma.tournament.deleteMany(),
+    prisma.userApprovalDecision.deleteMany(),
     prisma.user.deleteMany(),
   ]);
 }

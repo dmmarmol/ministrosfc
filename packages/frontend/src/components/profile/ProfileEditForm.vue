@@ -180,16 +180,11 @@ const isActive = computed({
         </select>
       </div>
       <div>
-        <label
-          class="block text-sm font-medium text-gray-700 mb-1"
-          for="jerseyNumberInput"
-        >
-          Número de camiseta
-        </label>
-        <JerseyNumberInput
+        <UiJerseyNumberInput
           v-model="form.jerseyNumber"
           :taken-numbers="takenJerseys"
           @update:model-value="emit('jerseyChange', $event)"
+          label="Número de camiseta"
         />
       </div>
     </div>

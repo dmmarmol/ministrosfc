@@ -31,7 +31,7 @@ describe("Tournament flow (integration)", () => {
     });
     await prisma.user.update({
       where: { email: adminEmail },
-      data: { role: "ADMIN" },
+      data: { role: "ADMIN", registrationStatus: "APPROVED" },
     });
     const loginRes = await request(app)
       .post("/api/v1/auth/login")

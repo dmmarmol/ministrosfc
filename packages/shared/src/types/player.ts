@@ -119,6 +119,7 @@ export interface Player {
   playerType: PlayerType;
   status: PlayerStatus;
   invitedById: string | null;
+  invitedByName?: string | null;
   position: Position | null;
   jerseyNumber: number | null;
   dateOfBirth: string | null;

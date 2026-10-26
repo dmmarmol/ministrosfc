@@ -1,16 +1,7 @@
-/**
- * Unit tests: Statistics filter components
- * Covers: PlayerStatusSelect, YearSelect, TournamentSelect, PlaygroundSelect
- *
- * Each filter is a thin <select> wrapper over a v-model. Tests verify:
- * - Default "all" option is rendered
- * - Dynamic options are rendered from the backing composable
- * - Selecting an option emits the correct model-update value
- * - Default model value is applied correctly
- */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount } from "@vue/test-utils";
-import { ref, nextTick } from "vue";
+import { ref } from "vue";
+import { OPTION_FILTER_ALL, PlayerStatus } from "@ministrosfc/shared";
 
 // ── Nuxt global stubs (none of these components use router/api directly) ─────
 vi.stubGlobal("definePageMeta", vi.fn());
@@ -25,70 +16,69 @@ const availableYearsMock = vi.fn().mockReturnValue({
 });
 const availableTournamentsMock = vi.fn().mockReturnValue({
   availableTournaments: ref([
-    { value: "Copa de Oro", label: "Copa de Oro" },
-    { value: "Liga", label: "Liga" },
-  ]),
-});
-const availablePlaygroundsMock = vi.fn().mockReturnValue({
-  availablePlaygrounds: ref([
-    { value: "pg-1", label: "Cancha Norte" },
-    { value: "pg-2", label: "Cancha Sur" },
+    { value: "t-1", label: "Copa de Oro" },
+    { value: "t-2", label: "Liga" },
   ]),
 });
 
 vi.stubGlobal("useStatisticsAvailableYears", availableYearsMock);
 vi.stubGlobal("useStatisticsAvailableTournaments", availableTournamentsMock);
-vi.stubGlobal("useStatisticsAvailablePlaygrounds", availablePlaygroundsMock);
 
 // ── Lazy imports after stubs ──────────────────────────────────────────────────
 const { default: PlayerStatusSelect } =
-  await import("../../src/components/pages/statistics/StatsFilters/PlayerStatusSelect.vue");
+  await import("../../src/components/ui/Player/Status/Select.vue");
 const { default: YearSelect } =
   await import("../../src/components/pages/statistics/StatsFilters/YearSelect.vue");
 const { default: TournamentSelect } =
   await import("../../src/components/pages/statistics/StatsFilters/TournamentSelect.vue");
-const { default: PlaygroundSelect } =
-  await import("../../src/components/pages/statistics/StatsFilters/PlaygroundSelect.vue");
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("PlayerStatusSelect", () => {
-  it("renders ACTIVE and INACTIVE options", () => {
+  it("renders active and inactive items by default", () => {
     const wrapper = mount(PlayerStatusSelect);
-    const options = wrapper.findAll("option");
-    const values = options.map((o) => o.element.value);
-    expect(values).toContain("ACTIVE");
-    expect(values).toContain("INACTIVE");
+    const items = wrapper
+      .findComponent({ name: "USelectMenu" })
+      .props("items") as Array<{ value: string }>;
+    expect(items.map((item) => item.value)).toEqual([
+      PlayerStatus.ACTIVE,
+      PlayerStatus.INACTIVE,
+    ]);
   });
 
-  it("renders a 'all' option with empty value", () => {
-    const wrapper = mount(PlayerStatusSelect);
-    const emptyOption = wrapper
-      .findAll("option")
-      .find((o) => o.element.value === "");
-    expect(emptyOption).toBeDefined();
+  it("adds the all option only when includeAll is true", () => {
+    const wrapper = mount(PlayerStatusSelect, { props: { includeAll: true } });
+    const items = wrapper
+      .findComponent({ name: "USelectMenu" })
+      .props("items") as Array<{ value: string }>;
+    expect(items[0]?.value).toBe(OPTION_FILTER_ALL);
   });
 
-  it("defaults model to ACTIVE", () => {
-    const wrapper = mount(PlayerStatusSelect);
-    const select = wrapper.find("select");
-    expect(select.element.value).toBe("ACTIVE");
-  });
-
-  it("emits update:modelValue when user selects INACTIVE", async () => {
+  it("shows placeholder state when modelValue is ALL and includeAll is false", () => {
     const wrapper = mount(PlayerStatusSelect, {
-      props: { modelValue: "ACTIVE", "onUpdate:modelValue": vi.fn() },
+      props: { modelValue: OPTION_FILTER_ALL },
     });
-    await wrapper.find("select").setValue("INACTIVE");
-    expect(wrapper.emitted("update:modelValue")?.[0]?.[0]).toBe("INACTIVE");
+    expect(
+      wrapper.findComponent({ name: "USelectMenu" }).props("modelValue"),
+    ).toBeUndefined();
   });
 
-  it("emits empty string when user selects the all-states option", async () => {
+  it("emits selected status values", async () => {
+    const wrapper = mount(PlayerStatusSelect);
+    await wrapper
+      .findComponent({ name: "USelectMenu" })
+      .vm.$emit("update:model-value", PlayerStatus.INACTIVE);
+    expect(wrapper.emitted("update:modelValue")?.[0]?.[0]).toBe(
+      PlayerStatus.INACTIVE,
+    );
+  });
+
+  it("clears to undefined when includeAll is false", async () => {
     const wrapper = mount(PlayerStatusSelect, {
-      props: { modelValue: "ACTIVE", "onUpdate:modelValue": vi.fn() },
+      props: { modelValue: PlayerStatus.ACTIVE },
     });
-    await wrapper.find("select").setValue("");
-    expect(wrapper.emitted("update:modelValue")?.[0]?.[0]).toBe("");
+    await wrapper.findComponent({ name: "USelectMenu" }).vm.$emit("clear");
+    expect(wrapper.emitted("update:modelValue")?.[0]?.[0]).toBeUndefined();
   });
 });
 
@@ -104,119 +94,93 @@ describe("YearSelect", () => {
     });
   });
 
-  it("renders a 'all years' default option with empty value", () => {
+  it("passes available years into USelectMenu items", () => {
     const wrapper = mount(YearSelect);
-    const firstOption = wrapper.find("option");
-    expect(firstOption.element.value).toBe("");
+    const items = wrapper
+      .findComponent({ name: "USelectMenu" })
+      .props("items") as Array<{ value: string }>;
+    expect(items.map((item) => item.value)).toEqual(["2023", "2024"]);
   });
 
-  it("renders one option per available year", () => {
-    const wrapper = mount(YearSelect);
-    const yearOptions = wrapper
-      .findAll("option")
-      .filter((o) => o.element.value !== "");
-    expect(yearOptions).toHaveLength(2);
-    expect(yearOptions[0].element.value).toBe("2023");
-    expect(yearOptions[1].element.value).toBe("2024");
+  it("adds the all-years option only when includeAll is true", () => {
+    const wrapper = mount(YearSelect, { props: { includeAll: true } });
+    const items = wrapper
+      .findComponent({ name: "USelectMenu" })
+      .props("items") as Array<{ value: string }>;
+    expect(items[0]?.value).toBe(OPTION_FILTER_ALL);
   });
 
-  it("shows 'Todos los años' label in the default option", () => {
+  it("uses the current placeholder", () => {
     const wrapper = mount(YearSelect);
-    expect(wrapper.find("option").text()).toContain("años");
+    expect(
+      wrapper.findComponent({ name: "USelectMenu" }).props("placeholder"),
+    ).toBe("Seleccionar año");
   });
 
   it("emits update:modelValue with selected year string", async () => {
-    const wrapper = mount(YearSelect, {
-      props: { modelValue: "", "onUpdate:modelValue": vi.fn() },
-    });
-    await nextTick();
-    await wrapper.find("select").setValue("2023");
+    const wrapper = mount(YearSelect);
+    await wrapper
+      .findComponent({ name: "USelectMenu" })
+      .vm.$emit("update:model-value", "2023");
     expect(wrapper.emitted("update:modelValue")?.[0]?.[0]).toBe("2023");
   });
 
   it("renders no year options when composable returns empty list", () => {
     availableYearsMock.mockReturnValueOnce({ availableYears: ref([]) });
     const wrapper = mount(YearSelect);
-    const yearOptions = wrapper
-      .findAll("option")
-      .filter((o) => o.element.value !== "");
-    expect(yearOptions).toHaveLength(0);
+    const items = wrapper
+      .findComponent({ name: "USelectMenu" })
+      .props("items") as Array<unknown>;
+    expect(items).toHaveLength(0);
   });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("TournamentSelect", () => {
-  it("renders a 'all tournaments' default option", () => {
+  it("passes tournament items through with id values and label text", () => {
     const wrapper = mount(TournamentSelect);
-    const firstOption = wrapper.find("option");
-    expect(firstOption.element.value).toBe("");
+    const items = wrapper
+      .findComponent({ name: "USelectMenu" })
+      .props("items") as Array<{ value: string; label: string }>;
+    expect(items).toEqual([
+      { value: "t-1", label: "Copa de Oro" },
+      { value: "t-2", label: "Liga" },
+    ]);
   });
 
-  it("renders one option per available tournament", () => {
-    const wrapper = mount(TournamentSelect);
-    const tournamentOptions = wrapper
-      .findAll("option")
-      .filter((o) => o.element.value !== "");
-    expect(tournamentOptions).toHaveLength(2);
-    expect(tournamentOptions[0].text()).toBe("Copa de Oro");
-    expect(tournamentOptions[1].text()).toBe("Liga");
-  });
-
-  it("option values are tournament names (not IDs)", () => {
-    const wrapper = mount(TournamentSelect);
-    const options = wrapper
-      .findAll("option")
-      .filter((o) => o.element.value !== "");
-    for (const opt of options) {
-      // value must equal label (name-based, not UUID-based)
-      expect(opt.element.value).toBe(opt.text());
-    }
-  });
-
-  it("emits update:modelValue with tournament name when selected", async () => {
+  it("shows placeholder state when modelValue is ALL and includeAll is false", () => {
     const wrapper = mount(TournamentSelect, {
-      props: { modelValue: "", "onUpdate:modelValue": vi.fn() },
+      props: { modelValue: OPTION_FILTER_ALL },
     });
-    await nextTick();
-    await wrapper.find("select").setValue("Copa de Oro");
+    expect(
+      wrapper.findComponent({ name: "USelectMenu" }).props("modelValue"),
+    ).toBeUndefined();
+  });
+
+  it("emits the tournament label when the select returns an id", async () => {
+    const wrapper = mount(TournamentSelect);
+    await wrapper
+      .findComponent({ name: "USelectMenu" })
+      .vm.$emit("update:model-value", "t-1");
     expect(wrapper.emitted("update:modelValue")?.[0]?.[0]).toBe("Copa de Oro");
   });
 
-  it("emits empty string when all-tournaments option is selected", async () => {
-    const wrapper = mount(TournamentSelect, {
-      props: { modelValue: "Copa de Oro", "onUpdate:modelValue": vi.fn() },
-    });
-    await wrapper.find("select").setValue("");
+  it("emits ALL only when includeAll is enabled", async () => {
+    const wrapper = mount(TournamentSelect, { props: { includeAll: true } });
+    await wrapper
+      .findComponent({ name: "USelectMenu" })
+      .vm.$emit("update:model-value", OPTION_FILTER_ALL);
+    expect(wrapper.emitted("update:modelValue")?.[0]?.[0]).toBe(
+      OPTION_FILTER_ALL,
+    );
+  });
+
+  it("clears to an empty string when ALL is selected without includeAll", async () => {
+    const wrapper = mount(TournamentSelect);
+    await wrapper
+      .findComponent({ name: "USelectMenu" })
+      .vm.$emit("update:model-value", OPTION_FILTER_ALL);
     expect(wrapper.emitted("update:modelValue")?.[0]?.[0]).toBe("");
-  });
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-describe("PlaygroundSelect", () => {
-  it("renders a 'all playgrounds' default option", () => {
-    const wrapper = mount(PlaygroundSelect);
-    const firstOption = wrapper.find("option");
-    expect(firstOption.element.value).toBe("");
-  });
-
-  it("renders one option per available playground", () => {
-    const wrapper = mount(PlaygroundSelect);
-    const pgOptions = wrapper
-      .findAll("option")
-      .filter((o) => o.element.value !== "");
-    expect(pgOptions).toHaveLength(2);
-    expect(pgOptions[0].text()).toBe("Cancha Norte");
-    expect(pgOptions[1].text()).toBe("Cancha Sur");
-  });
-
-  it("emits update:modelValue with playground id when selected", async () => {
-    const wrapper = mount(PlaygroundSelect, {
-      props: { modelValue: "", "onUpdate:modelValue": vi.fn() },
-    });
-    await nextTick();
-    await wrapper.find("select").setValue("pg-1");
-    expect(wrapper.emitted("update:modelValue")?.[0]?.[0]).toBe("pg-1");
   });
 });

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SelectItem } from "#ui/types";
 import type { PlayerRivalPeriodDTO } from "@ministrosfc/shared";
 
 const props = defineProps<{ playerId: string }>();
@@ -16,8 +17,13 @@ const { data: rivalsData, pending } = await useAsyncData(
 const rivals = computed(() => rivalsData.value?.data ?? []);
 
 // Derive select options directly from the rival data — always in sync
-const teamsWithData = computed(() =>
-  rivals.value.map((r) => ({ id: r.rivalId, name: r.rivalName })),
+const teamOptions = computed((): SelectItem[] =>
+  rivals.value
+    .sort((a, b) => (a.gamesPlayed >= b.gamesPlayed ? -1 : 1))
+    .map((r) => ({
+      value: r.rivalId,
+      label: `${r.rivalName} (${r.gamesPlayed} PJ)`,
+    })),
 );
 
 const selectedRivalId = ref<string>("");
@@ -45,144 +51,139 @@ function toggleRival(rivalId: string) {
 
 <template>
   <div class="space-y-4">
-    <!-- Team filter -->
-    <div class="flex flex-col gap-1">
-      <label for="rival-team-select" class="text-sm font-medium text-gray-700">
-        Equipo
-      </label>
-      <select
-        id="rival-team-select"
-        v-model="selectedRivalId"
-        class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand max-w-xs"
-      >
-        <option value="">Selecciona un equipo</option>
-        <option v-for="team in teamsWithData" :key="team.id" :value="team.id">
-          {{ team.name }}
-        </option>
-      </select>
-    </div>
+    <header class="flex justify-between items-center">
+      <slot name="header"></slot>
+      <!-- Team filter -->
+      <div class="flex flex-col gap-1">
+        <USelectMenu
+          id="rival-team-select"
+          v-model="selectedRivalId"
+          :items="teamOptions"
+          placeholder="Selecciona un equipo"
+          value-key="value"
+          label-key="label"
+          :clear="true"
+          :ui="{ content: 'min-w-fit' }"
+          :search-input="{
+            placeholder: 'Buscar equipo...',
+            icon: 'i-lucide-search',
+          }"
+        />
+      </div>
+    </header>
 
     <div v-if="pending" class="text-center text-muted-foreground py-8">
       Cargando...
     </div>
-    <template v-else-if="selectedRivalId">
-      <div
-        v-if="filteredRivals.length === 0"
-        class="text-center text-muted-foreground py-8"
+    <div
+      v-else-if="filteredRivals.length === 0"
+      class="text-center text-muted-foreground py-8"
+    >
+      Sin datos para este equipo.
+    </div>
+    <div v-else class="space-y-2">
+      <UiAccordion
+        v-for="row in filteredRivals"
+        :key="row.rivalId"
+        :open="expandedRivals.includes(row.rivalId)"
+        @toggle="toggleRival(row.rivalId)"
       >
-        Sin datos para este equipo.
-      </div>
-      <div v-else class="space-y-2">
-        <UiAccordion
-          v-for="row in filteredRivals"
-          :key="row.rivalId"
-          :open="expandedRivals.includes(row.rivalId)"
-          @toggle="toggleRival(row.rivalId)"
-        >
-          <template #header>
-            <div class="overflow-x-auto w-full">
-              <div
-                class="grid items-center gap-x-3 px-4 py-3 text-gray-900 min-w-max"
-                style="
-                  grid-template-columns: 9rem 3rem 3rem 3rem 3rem 3rem 3rem 3rem 4rem;
-                "
+        <template #header>
+          <div
+            class="grid items-center gap-x-3 px-4 py-3 text-gray-900 w-full"
+            style="
+              grid-template-columns: 9rem 3rem 3rem 3rem 3rem 3rem 3rem 3rem 4rem;
+            "
+          >
+            <span class="font-semibold text-sm truncate">{{
+              row.rivalName
+            }}</span>
+            <span class="text-sm"
+              ><abbr title="Partidos Jugados">PJ</abbr>
+              {{ row.gamesPlayed }}</span
+            >
+            <span class="text-sm text-green-600"
+              ><abbr title="Partidos Ganados">PG</abbr> {{ row.wins }}</span
+            >
+            <span class="text-sm text-red-500"
+              ><abbr title="Partidos Perdidos">PP</abbr> {{ row.losses }}</span
+            >
+            <span class="text-sm text-yellow-500"
+              ><abbr title="Partidos Empatados">PE</abbr> {{ row.draws }}</span
+            >
+            <span class="text-sm"
+              ><abbr title="Goles a Favor">GF</abbr> {{ row.goalsFor }}</span
+            >
+            <span class="text-sm"
+              ><abbr title="Goles en Contra">GC</abbr>
+              {{ row.goalsAgainst }}</span
+            >
+            <span class="text-sm font-medium text-brand"
+              ><abbr title="Goles del Jugador">G</abbr>
+              {{ row.playerGoals }}</span
+            >
+            <span
+              class="text-sm"
+              :class="
+                row.goalsFor - row.goalsAgainst > 0
+                  ? 'text-green-600'
+                  : row.goalsFor - row.goalsAgainst < 0
+                    ? 'text-red-500'
+                    : ''
+              "
+            >
+              <abbr title="Diferencia de Gol">DG</abbr>
+              {{ row.goalsFor - row.goalsAgainst > 0 ? "+" : ""
+              }}{{ row.goalsFor - row.goalsAgainst }}
+            </span>
+          </div>
+        </template>
+
+        <template #content>
+          <div class="overflow-x-auto">
+            <ul class="divide-y min-w-max">
+              <li
+                v-for="match in row.matches"
+                :key="match.date + match.homeScore + match.awayScore"
+                class="grid items-center gap-x-3 px-4 py-2 text-sm text-gray-900"
+                style="grid-template-columns: 6rem 3.5rem 5rem 1fr 4rem auto"
               >
-                <span class="font-semibold text-sm truncate">{{
-                  row.rivalName
-                }}</span>
-                <span class="text-sm"
-                  ><abbr title="Partidos Jugados">PJ</abbr>
-                  {{ row.gamesPlayed }}</span
-                >
-                <span class="text-sm text-green-600"
-                  ><abbr title="Partidos Ganados">PG</abbr> {{ row.wins }}</span
-                >
-                <span class="text-sm text-red-500"
-                  ><abbr title="Partidos Perdidos">PP</abbr>
-                  {{ row.losses }}</span
-                >
-                <span class="text-sm text-yellow-500"
-                  ><abbr title="Partidos Empatados">PE</abbr>
-                  {{ row.draws }}</span
-                >
-                <span class="text-sm"
-                  ><abbr title="Goles a Favor">GF</abbr>
-                  {{ row.goalsFor }}</span
-                >
-                <span class="text-sm"
-                  ><abbr title="Goles en Contra">GC</abbr>
-                  {{ row.goalsAgainst }}</span
-                >
-                <span class="text-sm font-medium text-brand"
-                  ><abbr title="Goles del Jugador">G</abbr>
-                  {{ row.playerGoals }}</span
+                <span>{{ match.date }}</span>
+                <span class="font-mono font-bold"
+                  >{{ match.homeScore }}–{{ match.awayScore }}</span
                 >
                 <span
-                  class="text-sm"
-                  :class="
-                    row.goalsFor - row.goalsAgainst > 0
-                      ? 'text-green-600'
-                      : row.goalsFor - row.goalsAgainst < 0
-                        ? 'text-red-500'
-                        : ''
-                  "
+                  :class="{
+                    'text-green-600 font-medium': match.result === 'W',
+                    'text-red-500 font-medium': match.result === 'L',
+                    'text-yellow-500 font-medium': match.result === 'D',
+                  }"
                 >
-                  <abbr title="Diferencia de Gol">DG</abbr>
-                  {{ row.goalsFor - row.goalsAgainst > 0 ? "+" : ""
-                  }}{{ row.goalsFor - row.goalsAgainst }}
+                  {{
+                    match.result === "W"
+                      ? "Victoria"
+                      : match.result === "L"
+                        ? "Derrota"
+                        : "Empate"
+                  }}
                 </span>
-              </div>
-            </div>
-          </template>
-
-          <template #content>
-            <div class="overflow-x-auto">
-              <ul class="divide-y min-w-max">
-                <li
-                  v-for="match in row.matches"
-                  :key="match.date + match.homeScore + match.awayScore"
-                  class="grid items-center gap-x-3 px-4 py-2 text-sm text-gray-900"
-                  style="grid-template-columns: 6rem 3.5rem 5rem 1fr 4rem auto"
+                <span class="text-xs text-muted-foreground truncate">{{
+                  match.tournament ?? ""
+                }}</span>
+                <span class="text-sm font-medium text-brand whitespace-nowrap">
+                  ⚽ {{ match.playerGoals }}
+                </span>
+                <NuxtLink
+                  :to="`/games/${match.slug}`"
+                  class="text-xs text-brand text-right hover:underline whitespace-nowrap"
                 >
-                  <span>{{ match.date }}</span>
-                  <span class="font-mono font-bold"
-                    >{{ match.homeScore }}–{{ match.awayScore }}</span
-                  >
-                  <span
-                    :class="{
-                      'text-green-600 font-medium': match.result === 'W',
-                      'text-red-500 font-medium': match.result === 'L',
-                      'text-yellow-500 font-medium': match.result === 'D',
-                    }"
-                  >
-                    {{
-                      match.result === "W"
-                        ? "Victoria"
-                        : match.result === "L"
-                          ? "Derrota"
-                          : "Empate"
-                    }}
-                  </span>
-                  <span class="text-xs text-muted-foreground truncate">{{
-                    match.tournament ?? ""
-                  }}</span>
-                  <span
-                    class="text-sm font-medium text-brand whitespace-nowrap"
-                  >
-                    ⚽ {{ match.playerGoals }}
-                  </span>
-                  <NuxtLink
-                    :to="`/games/${match.slug}`"
-                    class="text-xs text-brand text-right hover:underline whitespace-nowrap"
-                  >
-                    Ir al partido
-                  </NuxtLink>
-                </li>
-              </ul>
-            </div>
-          </template>
-        </UiAccordion>
-      </div>
-    </template>
+                  Ir al partido
+                </NuxtLink>
+              </li>
+            </ul>
+          </div>
+        </template>
+      </UiAccordion>
+    </div>
   </div>
 </template>

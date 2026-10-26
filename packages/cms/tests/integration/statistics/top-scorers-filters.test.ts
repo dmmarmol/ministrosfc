@@ -124,6 +124,22 @@ describe("GET /api/v1/statistics/top-scorers — filter scenarios", () => {
       expect(Array.isArray(res.body.data)).toBe(true);
     });
 
+    it("accepts status=ALL (treated as no filter)", async () => {
+      const res = await request(app).get(
+        "/api/v1/statistics/top-scorers?limit=10&status=ALL",
+      );
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body.data)).toBe(true);
+    });
+
+    it("accepts empty status (treated as ALL)", async () => {
+      const res = await request(app).get(
+        "/api/v1/statistics/top-scorers?limit=10&status=",
+      );
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body.data)).toBe(true);
+    });
+
     it("rejects an invalid status value with 400", async () => {
       const res = await request(app).get(
         "/api/v1/statistics/top-scorers?limit=10&status=UNKNOWN",

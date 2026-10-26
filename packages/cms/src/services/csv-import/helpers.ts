@@ -32,7 +32,7 @@ export function parseCsv(buffer: Buffer): Record<string, string>[] {
  * that downstream `parseCsv` calls can address correctly.
  *
  * @param buf             Raw CSV buffer (any encoding parseable by csv-parse).
- * @param idColumn        Header name for the UUID column (e.g. "ID", "JugadorID").
+ * @param idColumn        Header name for the UUID column (e.g. "ID", "Apodo").
  * @param resolveColumns  Optional map of { originalHeader → newHeader } for
  *                        duplicate-column disambiguation. Applied left-to-right,
  *                        so later occurrences of the same header get a different name.
@@ -159,7 +159,9 @@ export function parseDate(raw: string): Date | null {
 }
 
 /** Parse HH:MM into 24h UTC components. Returns null for blank/invalid. */
-export function parseTime(raw: string): { hours: number; minutes: number } | null {
+export function parseTime(
+  raw: string,
+): { hours: number; minutes: number } | null {
   if (!raw || raw.trim() === "") return null;
 
   const match = raw.trim().match(/^(\d{1,2}):(\d{2})$/);

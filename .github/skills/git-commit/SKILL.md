@@ -14,12 +14,14 @@ Create standardized, semantic git commits using the Conventional Commits specifi
 ## Conventional Commit Format
 
 ```
-<type>[optional scope]: <description>
+<type>(<scope>): <description>
 
 [optional body]
 
 [optional footer(s)]
 ```
+
+> The scope is optional. Omit it (and the parentheses) when the change is not scoped to a specific module.
 
 ## Commit Types
 
@@ -93,18 +95,14 @@ Analyze the diff to determine:
 ### 4. Execute Commit
 
 ```bash
-# Single line
-git commit -m "<type>[scope]: <description>"
+# Single line (no body/footer)
+git commit -m "<type>(<scope>): <description>"
 
-# Multi-line with body/footer
-git commit -m "$(cat <<'EOF'
-<type>[scope]: <description>
+# With body
+git commit -m "<type>(<scope>): <description>" -m "<body>"
 
-<optional body>
-
-<optional footer>
-EOF
-)"
+# With body and footer
+git commit -m "<type>(<scope>): <description>" -m "<body>" -m "<footer>"
 ```
 
 ## Best Practices

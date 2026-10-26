@@ -19,7 +19,12 @@ import { z } from "zod";
 import { GameStatus } from "@prisma/client";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
-import { FORMATIONS, type GameSignupState } from "@ministrosfc/shared";
+import {
+  FORMATIONS,
+  OPTION_FILTER_ALL,
+  type GameSignupState,
+  GameResult,
+} from "@ministrosfc/shared";
 
 const router = Router();
 
@@ -124,9 +129,19 @@ const gameUpdateSchema = z
   });
 
 const gameFilterSchema = paginationSchema.extend({
-  status: z.enum(GameStatus).optional(),
+  status: z.preprocess(
+    (value) => (value === "" ? OPTION_FILTER_ALL : value),
+    z.union([z.enum(GameStatus), z.literal(OPTION_FILTER_ALL)]).optional(),
+  ),
+  result: z.preprocess(
+    (value) => (value === "" ? OPTION_FILTER_ALL : value),
+    z.union([z.enum(GameResult), z.literal(OPTION_FILTER_ALL)]).optional(),
+  ),
   tournamentId: z.string().optional(),
-  opponentTeamId: z.uuid().optional(),
+  opponentTeamId: z.preprocess(
+    (value) => (value === "" ? OPTION_FILTER_ALL : value),
+    z.union([z.uuid(), z.literal(OPTION_FILTER_ALL)]).optional(),
+  ),
   dateFrom: z.string().optional(),
   dateTo: z.string().optional(),
 });
@@ -174,7 +189,20 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const query = gameFilterSchema.parse(req.query);
-      const result = await GameService.searchGames(query);
+      const effectiveStatus =
+        query.status === OPTION_FILTER_ALL ? undefined : query.status;
+      const effectiveOpponentTeamId =
+        query.opponentTeamId === OPTION_FILTER_ALL
+          ? undefined
+          : query.opponentTeamId;
+      const effectiveResult =
+        query.result === OPTION_FILTER_ALL ? undefined : query.result;
+      const result = await GameService.searchGames({
+        ...query,
+        status: effectiveStatus,
+        opponentTeamId: effectiveOpponentTeamId,
+        result: effectiveResult,
+      });
       // Map _count.participants → confirmedCount (T043)
       const games = result.results.map((g: any) => {
         const { _count, ...rest } = g;
