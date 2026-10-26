@@ -65,6 +65,15 @@ module.exports = {
         "no-unused-vars": "off",
       },
     },
+    // Test files
+    {
+      files: ["**/*.test.ts"],
+      parser: "@typescript-eslint/parser",
+      rules: {
+        "@typescript-eslint/no-explicit-any": "off",
+        "no-unused-vars": "off",
+      },
+    },
     {
       files: ["**/*.vue", "**/*.ts"],
       parser: "vue-eslint-parser",
