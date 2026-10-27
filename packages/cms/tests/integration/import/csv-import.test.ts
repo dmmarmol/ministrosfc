@@ -37,6 +37,45 @@ const APARICIONES_CSV = Buffer.from(
 `,
 );
 
+async function submitImportAndAwaitResult(
+  files: Record<string, Buffer>,
+  authToken: string,
+) {
+  const req = request(app)
+    .post("/api/v1/import/csv")
+    .set("Authorization", `Bearer ${authToken}`);
+
+  for (const [name, buffer] of Object.entries(files)) {
+    req.attach(name, buffer, `${name}.csv`);
+  }
+
+  const res = await req;
+  expect(res.status).toBe(202);
+  expect(res.body.data?.jobId).toBeTruthy();
+
+  const jobId = res.body.data.jobId;
+  let job: any;
+
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const poll = await request(app)
+      .get(`/api/v1/import/jobs/${jobId}`)
+      .set("Authorization", `Bearer ${authToken}`);
+
+    expect(poll.status).toBe(200);
+    job = poll.body.data;
+
+    if (job.status === "completed" || job.status === "failed") {
+      break;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+
+  expect(job?.status).toBe("completed");
+  expect(job?.result).toBeTruthy();
+  return job;
+}
+
 describe("CSV Import (integration)", () => {
   let adminToken: string;
 
@@ -88,16 +127,17 @@ describe("CSV Import (integration)", () => {
     expect(res.body.error).toMatch(/Missing required files/);
   });
 
-  it("POST /api/v1/import/csv → 200 with correct counts (happy path)", async () => {
-    const res = await request(app)
-      .post("/api/v1/import/csv")
-      .set("Authorization", `Bearer ${adminToken}`)
-      .attach("historial", HISTORIAL_CSV, "historial.csv")
-      .attach("jugadores", JUGADORES_CSV, "jugadores.csv")
-      .attach("apariciones", APARICIONES_CSV, "apariciones.csv");
+  it("POST /api/v1/import/csv → 202 with final counts (happy path)", async () => {
+    const job = await submitImportAndAwaitResult(
+      {
+        historial: HISTORIAL_CSV,
+        jugadores: JUGADORES_CSV,
+        apariciones: APARICIONES_CSV,
+      },
+      adminToken,
+    );
 
-    expect(res.status).toBe(200);
-    const data = res.body.data;
+    const data = job.result;
     expect(data.players.created).toBeGreaterThanOrEqual(2);
     expect(data.games.created).toBe(2);
     expect(data.appearances.created).toBe(2);
@@ -116,15 +156,16 @@ describe("CSV Import (integration)", () => {
   });
 
   it("POST /api/v1/import/csv → idempotent: re-import creates 0 new records", async () => {
-    const res = await request(app)
-      .post("/api/v1/import/csv")
-      .set("Authorization", `Bearer ${adminToken}`)
-      .attach("historial", HISTORIAL_CSV, "historial.csv")
-      .attach("jugadores", JUGADORES_CSV, "jugadores.csv")
-      .attach("apariciones", APARICIONES_CSV, "apariciones.csv");
+    const job = await submitImportAndAwaitResult(
+      {
+        historial: HISTORIAL_CSV,
+        jugadores: JUGADORES_CSV,
+        apariciones: APARICIONES_CSV,
+      },
+      adminToken,
+    );
 
-    expect(res.status).toBe(200);
-    const data = res.body.data;
+    const data = job.result;
     expect(data.players.created).toBe(0);
     expect(data.games.created).toBe(0);
     expect(data.appearances.created).toBe(0);
@@ -146,14 +187,16 @@ Carlos Minimal,,,,,,,,,,,, ACTIVE
 `,
     );
 
-    const res = await request(app)
-      .post("/api/v1/import/csv")
-      .set("Authorization", `Bearer ${adminToken}`)
-      .attach("historial", sparseHistorial, "historial.csv")
-      .attach("jugadores", sparseJugadores, "jugadores.csv")
-      .attach("apariciones", emptyApariciones, "apariciones.csv");
+    const job = await submitImportAndAwaitResult(
+      {
+        historial: sparseHistorial,
+        jugadores: sparseJugadores,
+        apariciones: emptyApariciones,
+      },
+      adminToken,
+    );
 
-    expect(res.status).toBe(200);
+    expect(job.status).toBe("completed");
   });
 
   it("POST /api/v1/import/csv → aparición with no matching game is skipped with warning", async () => {
@@ -163,15 +206,16 @@ Carlos Minimal,,,,,,,,,,,, ACTIVE
 `,
     );
 
-    const res = await request(app)
-      .post("/api/v1/import/csv")
-      .set("Authorization", `Bearer ${adminToken}`)
-      .attach("historial", HISTORIAL_CSV, "historial.csv")
-      .attach("jugadores", JUGADORES_CSV, "jugadores.csv")
-      .attach("apariciones", aparicionesNoMatch, "apariciones.csv");
+    const job = await submitImportAndAwaitResult(
+      {
+        historial: HISTORIAL_CSV,
+        jugadores: JUGADORES_CSV,
+        apariciones: aparicionesNoMatch,
+      },
+      adminToken,
+    );
 
-    expect(res.status).toBe(200);
-    const data = res.body.data;
+    const data = job.result;
     expect(data.appearances.skipped).toBeGreaterThanOrEqual(1);
     expect(
       data.warnings.some((w: string) => w.includes("no matching game")),
@@ -218,16 +262,17 @@ describe("CSV Import – canchas.csv extension (T048)", () => {
   });
 
   it("(a) canchas happy path: POST all 4 CSVs → playgrounds.created > 0 and matched games have playgroundId", async () => {
-    const res = await request(app)
-      .post("/api/v1/import/csv")
-      .set("Authorization", `Bearer ${adminToken}`)
-      .attach("historial", HISTORIAL_CSV, "historial.csv")
-      .attach("jugadores", JUGADORES_CSV, "jugadores.csv")
-      .attach("apariciones", APARICIONES_CSV, "apariciones.csv")
-      .attach("canchas", CANCHAS_CSV, "canchas.csv");
+    const job = await submitImportAndAwaitResult(
+      {
+        historial: HISTORIAL_CSV,
+        jugadores: JUGADORES_CSV,
+        apariciones: APARICIONES_CSV,
+        canchas: CANCHAS_CSV,
+      },
+      adminToken,
+    );
 
-    expect(res.status).toBe(200);
-    const data = res.body.data;
+    const data = job.result;
     expect(data.playgrounds.created).toBeGreaterThan(0);
 
     // Verify at least one game has playgroundId set in DB
@@ -239,16 +284,17 @@ describe("CSV Import – canchas.csv extension (T048)", () => {
   });
 
   it("(b) re-upload → playgrounds.created === 0, updated > 0", async () => {
-    const res = await request(app)
-      .post("/api/v1/import/csv")
-      .set("Authorization", `Bearer ${adminToken}`)
-      .attach("historial", HISTORIAL_CSV, "historial.csv")
-      .attach("jugadores", JUGADORES_CSV, "jugadores.csv")
-      .attach("apariciones", APARICIONES_CSV, "apariciones.csv")
-      .attach("canchas", CANCHAS_CSV, "canchas.csv");
+    const job = await submitImportAndAwaitResult(
+      {
+        historial: HISTORIAL_CSV,
+        jugadores: JUGADORES_CSV,
+        apariciones: APARICIONES_CSV,
+        canchas: CANCHAS_CSV,
+      },
+      adminToken,
+    );
 
-    expect(res.status).toBe(200);
-    const data = res.body.data;
+    const data = job.result;
     expect(data.playgrounds.created).toBe(0);
     expect(data.playgrounds.updated).toBeGreaterThan(0);
   });
@@ -260,16 +306,17 @@ describe("CSV Import – canchas.csv extension (T048)", () => {
 `,
     );
 
-    const res = await request(app)
-      .post("/api/v1/import/csv")
-      .set("Authorization", `Bearer ${adminToken}`)
-      .attach("historial", historialUnmatched, "historial.csv")
-      .attach("jugadores", JUGADORES_CSV, "jugadores.csv")
-      .attach("apariciones", APARICIONES_CSV, "apariciones.csv")
-      .attach("canchas", CANCHAS_CSV, "canchas.csv");
+    const job = await submitImportAndAwaitResult(
+      {
+        historial: historialUnmatched,
+        jugadores: JUGADORES_CSV,
+        apariciones: APARICIONES_CSV,
+        canchas: CANCHAS_CSV,
+      },
+      adminToken,
+    );
 
-    expect(res.status).toBe(200);
-    const data = res.body.data;
+    const data = job.result;
     expect(
       data.warnings.some((w: string) =>
         w.toLowerCase().includes("cancha desconocida"),
@@ -278,15 +325,16 @@ describe("CSV Import – canchas.csv extension (T048)", () => {
   });
 
   it("(d) omit canchas → import completes without error, playgrounds counters all zero", async () => {
-    const res = await request(app)
-      .post("/api/v1/import/csv")
-      .set("Authorization", `Bearer ${adminToken}`)
-      .attach("historial", HISTORIAL_CSV, "historial.csv")
-      .attach("jugadores", JUGADORES_CSV, "jugadores.csv")
-      .attach("apariciones", APARICIONES_CSV, "apariciones.csv");
+    const job = await submitImportAndAwaitResult(
+      {
+        historial: HISTORIAL_CSV,
+        jugadores: JUGADORES_CSV,
+        apariciones: APARICIONES_CSV,
+      },
+      adminToken,
+    );
 
-    expect(res.status).toBe(200);
-    const data = res.body.data;
+    const data = job.result;
     expect(data.playgrounds.created).toBe(0);
     expect(data.playgrounds.updated).toBe(0);
     expect(data.playgrounds.skipped).toBe(0);
@@ -335,15 +383,16 @@ Carlos Alberto López,Carlitos,,15/06/1992,,178,7,Diestro,Mediocampista,,,, ACTI
 `,
     );
 
-    const res = await request(app)
-      .post("/api/v1/import/csv")
-      .set("Authorization", `Bearer ${adminToken}`)
-      .attach("historial", HISTORIAL_CSV, "historial.csv")
-      .attach("jugadores", jugadoresNombre, "jugadores.csv")
-      .attach("apariciones", emptyApariciones, "apariciones.csv");
+    const job = await submitImportAndAwaitResult(
+      {
+        historial: HISTORIAL_CSV,
+        jugadores: jugadoresNombre,
+        apariciones: emptyApariciones,
+      },
+      adminToken,
+    );
 
-    expect(res.status).toBe(200);
-    expect(res.body.data.players.created).toBeGreaterThanOrEqual(1);
+    expect(job.result.players.created).toBeGreaterThanOrEqual(1);
 
     const { prisma } = await import("../../../src/config/database");
     const player = await prisma.player.findFirst({
@@ -364,14 +413,14 @@ Pedro Ríos,Pedrito,,,,,,,"Delantero, Mediocampista",,,,ACTIVE
 `,
     );
 
-    const res = await request(app)
-      .post("/api/v1/import/csv")
-      .set("Authorization", `Bearer ${adminToken}`)
-      .attach("historial", HISTORIAL_CSV, "historial.csv")
-      .attach("jugadores", jugadoresMultiPos, "jugadores.csv")
-      .attach("apariciones", emptyApariciones, "apariciones.csv");
-
-    expect(res.status).toBe(200);
+    await submitImportAndAwaitResult(
+      {
+        historial: HISTORIAL_CSV,
+        jugadores: jugadoresMultiPos,
+        apariciones: emptyApariciones,
+      },
+      adminToken,
+    );
 
     const { prisma } = await import("../../../src/config/database");
     const player = await prisma.player.findFirst({
@@ -393,14 +442,14 @@ Luis Suárez,El Pistolero,,,,,,,,, +54911234567,,ACTIVE
 `,
     );
 
-    const res = await request(app)
-      .post("/api/v1/import/csv")
-      .set("Authorization", `Bearer ${adminToken}`)
-      .attach("historial", HISTORIAL_CSV, "historial.csv")
-      .attach("jugadores", jugadoresTelefono, "jugadores.csv")
-      .attach("apariciones", emptyApariciones, "apariciones.csv");
-
-    expect(res.status).toBe(200);
+    await submitImportAndAwaitResult(
+      {
+        historial: HISTORIAL_CSV,
+        jugadores: jugadoresTelefono,
+        apariciones: emptyApariciones,
+      },
+      adminToken,
+    );
 
     const { prisma } = await import("../../../src/config/database");
     const player = await prisma.player.findFirst({
@@ -424,12 +473,14 @@ Luis Suárez,El Pistolero,,,,,,,,, +54911234567,,ACTIVE
     );
 
     // Second import
-    await request(app)
-      .post("/api/v1/import/csv")
-      .set("Authorization", `Bearer ${adminToken}`)
-      .attach("historial", HISTORIAL_CSV, "historial.csv")
-      .attach("jugadores", jugadoresTelefono, "jugadores.csv")
-      .attach("apariciones", emptyApariciones, "apariciones.csv");
+    await submitImportAndAwaitResult(
+      {
+        historial: HISTORIAL_CSV,
+        jugadores: jugadoresTelefono,
+        apariciones: emptyApariciones,
+      },
+      adminToken,
+    );
 
     const { prisma } = await import("../../../src/config/database");
     const player = await prisma.player.findFirst({
@@ -458,14 +509,14 @@ Roberto Gómez,Tito,,,,,,,,,,,ACTIVE
       return prisma.player.count();
     })();
 
-    const res = await request(app)
-      .post("/api/v1/import/csv")
-      .set("Authorization", `Bearer ${adminToken}`)
-      .attach("historial", HISTORIAL_CSV, "historial.csv")
-      .attach("jugadores", jugadoresApodo, "jugadores.csv")
-      .attach("apariciones", aparicionesApodo, "apariciones.csv");
-
-    expect(res.status).toBe(200);
+    await submitImportAndAwaitResult(
+      {
+        historial: HISTORIAL_CSV,
+        jugadores: jugadoresApodo,
+        apariciones: aparicionesApodo,
+      },
+      adminToken,
+    );
 
     const { prisma } = await import("../../../src/config/database");
     const afterCount = await prisma.player.count();
