@@ -156,7 +156,7 @@ const columns: ColumnDef<GameParticipantRow>[] = [
       const value: number = row.getValue("goalsScored");
       const children = cellName(value.toString());
 
-      return cellClickeableInput(children, async (nextValue) => {
+      async function onInputClick(nextValue: string) {
         if (!props.gameId) return;
 
         const numericValue = Number(nextValue);
@@ -170,7 +170,9 @@ const columns: ColumnDef<GameParticipantRow>[] = [
           },
         );
         store.setSelectedGame(refreshedGame);
-      });
+      }
+
+      return cellClickeableInput(children, onInputClick);
     },
   },
   {
