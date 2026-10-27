@@ -47,10 +47,6 @@ export default defineConfig({
       "~": resolve(__dirname, "src"),
       "@": resolve(__dirname, "src"),
       "#components": resolve(__dirname, "tests/stubs/components.ts"),
-      "#build/nuxt.config.mjs": resolve(
-        __dirname,
-        "tests/stubs/nuxt.config.mjs",
-      ),
     },
   },
 });

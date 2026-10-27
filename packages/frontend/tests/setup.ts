@@ -11,6 +11,11 @@
  */
 import { config } from "@vue/test-utils";
 import { computed, defineComponent, h, ref } from "vue";
+import { vi } from "vitest";
+
+vi.mock("#build/nuxt.config.mjs", () => ({
+  default: {},
+}));
 
 if (!("computed" in globalThis)) {
   Object.assign(globalThis, { computed });

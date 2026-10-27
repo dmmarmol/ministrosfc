@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { FORMATION_SLOTS, assignPlayersToSlots } from "~/utils/formations";
+import type { GameParticipant } from "@ministrosfc/shared";
 
 const props = defineProps<{
   lineup: string;
-  roster: any[];
+  roster: GameParticipant[];
 }>();
 
 const emit = defineEmits<{
-  (e: "circle-hover", participantId: string): void;
+  (e: "circle-hover", id: string): void;
   (e: "circle-unhover"): void;
 }>();
 
@@ -29,23 +30,25 @@ const guestCounters = computed(() => {
   let n = 1;
   for (const entry of assigned.value) {
     if (entry && entry.player.playerType === "GUEST") {
-      map.set(entry.participantId, n++);
+      map.set(entry.id, n++);
     }
   }
   return map;
 });
 
 function slotX(i: number) {
-  return slots.value[i].x * W;
+  const slot = slots.value[i];
+  return slot ? slot.x * W : 0;
 }
 function slotY(i: number) {
-  return slots.value[i].y * H;
+  const slot = slots.value[i];
+  return slot ? slot.y * H : 0;
 }
 
-function circleLabel(entry: any | null, _idx: number): string {
+function circleLabel(entry: GameParticipant | null, _idx: number): string {
   if (!entry) return "TBD";
   if (entry.player.playerType === "GUEST") {
-    return `I${guestCounters.value.get(entry.participantId) ?? "?"}`;
+    return `I${guestCounters.value.get(entry.id) ?? "?"}`;
   }
   if (entry.player.jerseyNumber != null)
     return String(entry.player.jerseyNumber);
@@ -55,19 +58,19 @@ function circleLabel(entry: any | null, _idx: number): string {
   return (f + l).toUpperCase() || "?";
 }
 
-function circleFill(entry: any | null): string {
+function circleFill(entry: GameParticipant | null): string {
   if (!entry) return "#e5e7eb"; // gray-200
   if (entry.player.playerType === "GUEST") return "#fef3c7"; // amber-100
   return "#d1fae5"; // green-100
 }
 
-function circleStroke(entry: any | null): string {
+function circleStroke(entry: GameParticipant | null): string {
   if (!entry) return "#9ca3af";
   if (entry.player.playerType === "GUEST") return "#d97706";
   return "#059669";
 }
 
-function circleTextFill(entry: any | null): string {
+function circleTextFill(entry: GameParticipant | null): string {
   if (!entry) return "#6b7280";
   if (entry.player.playerType === "GUEST") return "#92400e";
   return "#065f46";
@@ -215,9 +218,9 @@ function circleTextFill(entry: any | null): string {
         v-for="(entry, idx) in assigned"
         :key="idx"
         class="cursor-pointer"
-        @mouseenter="entry && emit('circle-hover', entry.participantId)"
+        @mouseenter="entry && emit('circle-hover', entry.id)"
         @mouseleave="emit('circle-unhover')"
-        @touchstart.prevent="entry && emit('circle-hover', entry.participantId)"
+        @touchstart.prevent="entry && emit('circle-hover', entry.id)"
       >
         <circle
           :cx="slotX(idx)"

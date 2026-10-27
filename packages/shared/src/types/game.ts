@@ -1,7 +1,7 @@
 import type { OptionItem, SelectItem } from "./api";
 import type { ConfirmationStatus } from "./game-participant";
 import type { OpponentTeam } from "./opponent-team";
-import type { PlayerType } from "./player";
+import type { PlayerType, Position } from "./player";
 import type { PlaygroundOption } from "./playground";
 
 export enum GameStatus {
@@ -119,7 +119,7 @@ export interface GameParticipant {
     lastName: string;
     nickname: string;
     playerType: PlayerType;
-    position: string | null;
+    position: Position | null;
   };
   playerId: string;
   redCards: number;

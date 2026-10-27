@@ -2,7 +2,7 @@
 // Coordinates are normalized 0–1 (x = horizontal, y = vertical, 0=top/goal, 1=bottom/goal).
 // slotType maps to player position groups for assignment.
 
-import type { Position } from "@ministrosfc/shared";
+import type { GameParticipant, Position } from "@ministrosfc/shared";
 
 export type SlotType = "GK" | "DEF" | "MID" | "FWD";
 
@@ -220,8 +220,8 @@ export function positionToSlotType(position: Position): SlotType {
  */
 export function assignPlayersToSlots(
   lineup: string,
-  roster: any[],
-): Array<any | null> {
+  roster: GameParticipant[],
+): Array<GameParticipant | null> {
   const slots = FORMATION_SLOTS[lineup];
   if (!slots || !roster.length) return Array(11).fill(null);
 
@@ -239,18 +239,18 @@ export function assignPlayersToSlots(
     const slot = slots[i]!;
     const match = sorted.find(
       (p) =>
-        !usedIds.has(p.participantId) &&
+        !usedIds.has(p.id) &&
         p.player.position &&
-        positionToSlotType(p.player.position) === slot.slotType,
+        positionToSlotType(p.player.position!) === slot.slotType,
     );
     if (match) {
       assignment[i] = match;
-      usedIds.add(match.participantId);
+      usedIds.add(match.id);
     }
   }
 
   // Pass 2: fill remaining slots with leftover players (sorted by confirmedAt)
-  const remaining = sorted.filter((p) => !usedIds.has(p.participantId));
+  const remaining = sorted.filter((p) => !usedIds.has(p.id));
   for (let i = 0; i < slots.length; i++) {
     if (assignment[i] === null && remaining.length > 0) {
       assignment[i] = remaining.shift()!;

@@ -4,7 +4,6 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
-import type { Mock } from "vitest";
 
 // Stub Nuxt globals before importing the store
 vi.stubGlobal("useRuntimeConfig", () => ({
