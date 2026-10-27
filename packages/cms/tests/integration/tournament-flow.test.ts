@@ -39,7 +39,7 @@ describe("Tournament flow (integration)", () => {
     adminToken = loginRes.body.data.accessToken;
 
     const teamRes = await request(app)
-      .post("/api/v1/teams")
+      .post("/api/v1/opponent-teams")
       .set("Authorization", `Bearer ${adminToken}`)
       .send({ name: "Tournament Opponent FC" });
     opponentTeamId = teamRes.body.data.id;

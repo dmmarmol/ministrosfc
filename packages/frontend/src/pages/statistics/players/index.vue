@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PlayerStatus } from "@ministrosfc/shared";
+import { OPTION_FILTER_ALL, type PlayerStatus } from "@ministrosfc/shared";
 import { useStatisticsAvailablePlayers } from "~/composables/useStatisticsAvailablePlayers";
 import StatsTableByPlayer from "../../../components/pages/statistics/StatsTableByPlayer.vue";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
@@ -26,6 +26,12 @@ const {
 } = useStatsFilters();
 
 const { availablePlayers } = useStatisticsAvailablePlayers();
+
+const selectedPlayerStatus = computed<PlayerStatus | null>(() => {
+  const value = playerStatusFilter.value;
+  if (!value || value === OPTION_FILTER_ALL) return null;
+  return value as PlayerStatus;
+});
 
 const { data, pending, refresh } = await useAsyncData(
   "all-player-stats",
@@ -55,13 +61,13 @@ watch(
       <YearSelect v-model="yearFilter" class="w-full" />
       <UiPlayerStatusSelect
         include-all
-        v-model="playerStatusFilter as PlayerStatus"
+        v-model="playerStatusFilter"
         class="w-full"
       />
       <PlayerSelect
         :items="availablePlayers"
         v-model="playerFilter"
-        :status="playerStatusFilter as PlayerStatus"
+        :status="selectedPlayerStatus"
         class="w-full"
       />
     </div>

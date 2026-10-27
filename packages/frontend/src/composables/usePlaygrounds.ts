@@ -30,10 +30,10 @@ export function usePlaygrounds() {
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : "Error al cargar canchas";
+      return null;
     } finally {
       loading.value = false;
     }
-    throw new Error("Unexpected error in fetchPlayground");
   }
 
   async function fetchPlaygrounds(): Promise<Playground[]> {
@@ -46,10 +46,10 @@ export function usePlaygrounds() {
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : "Error al cargar canchas";
+      return [];
     } finally {
       loading.value = false;
     }
-    throw new Error("Unexpected error in fetchPlaygrounds");
   }
 
   async function createPlayground(

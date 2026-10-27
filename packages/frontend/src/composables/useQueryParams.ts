@@ -1,3 +1,5 @@
+import { useRoute, useRouter } from "vue-router";
+
 /**
  * Thin reactive wrapper over the current route's query string.
  *

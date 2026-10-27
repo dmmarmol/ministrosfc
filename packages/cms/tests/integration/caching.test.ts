@@ -27,8 +27,8 @@ describe("Caching (integration)", () => {
     expect(res.headers["cache-control"]).toMatch(/public/);
   });
 
-  it("GET /api/v1/teams → Cache-Control: public, max-age=600", async () => {
-    const res = await request(app).get("/api/v1/teams");
+  it("GET /api/v1/opponent-teams → Cache-Control: public, max-age=600", async () => {
+    const res = await request(app).get("/api/v1/opponent-teams");
     expect(res.status).toBe(200);
     expect(res.headers["cache-control"]).toMatch(/max-age=600/);
   });

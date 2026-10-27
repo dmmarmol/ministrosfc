@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount } from "@vue/test-utils";
-import { ref } from "vue";
 import { OPTION_FILTER_ALL, PlayerStatus } from "@ministrosfc/shared";
 
 // ── Nuxt global stubs (none of these components use router/api directly) ─────
@@ -8,21 +7,41 @@ vi.stubGlobal("definePageMeta", vi.fn());
 vi.stubGlobal("useHead", vi.fn());
 
 // ── Composable mocks ──────────────────────────────────────────────────────────
-const availableYearsMock = vi.fn().mockReturnValue({
-  availableYears: ref([
-    { value: "2023", label: "2023" },
-    { value: "2024", label: "2024" },
-  ]),
-});
-const availableTournamentsMock = vi.fn().mockReturnValue({
-  availableTournaments: ref([
-    { value: "t-1", label: "Copa de Oro" },
-    { value: "t-2", label: "Liga" },
-  ]),
-});
+const {
+  availableYearsMock,
+  availableTournamentsMock,
+  availableYearsState,
+  availableTournamentsState,
+} = vi.hoisted(() => ({
+  availableYearsMock: vi.fn(),
+  availableTournamentsMock: vi.fn(),
+  availableYearsState: {
+    value: [
+      { value: "2023", label: "2023" },
+      { value: "2024", label: "2024" },
+    ],
+  },
+  availableTournamentsState: {
+    value: [
+      { value: "t-1", label: "Copa de Oro" },
+      { value: "t-2", label: "Liga" },
+    ],
+  },
+}));
 
-vi.stubGlobal("useStatisticsAvailableYears", availableYearsMock);
-vi.stubGlobal("useStatisticsAvailableTournaments", availableTournamentsMock);
+vi.mock("~/composables/useStatisticsAvailableYears", () => ({
+  useStatisticsAvailableYears: () => {
+    availableYearsMock();
+    return { availableYears: availableYearsState };
+  },
+}));
+
+vi.mock("~/composables/useStatisticsAvailableTournaments", () => ({
+  useStatisticsAvailableTournaments: () => {
+    availableTournamentsMock();
+    return { availableTournaments: availableTournamentsState };
+  },
+}));
 
 // ── Lazy imports after stubs ──────────────────────────────────────────────────
 const { default: PlayerStatusSelect } =
@@ -86,12 +105,10 @@ describe("PlayerStatusSelect", () => {
 
 describe("YearSelect", () => {
   beforeEach(() => {
-    availableYearsMock.mockReturnValue({
-      availableYears: ref([
-        { value: "2023", label: "2023" },
-        { value: "2024", label: "2024" },
-      ]),
-    });
+    availableYearsState.value = [
+      { value: "2023", label: "2023" },
+      { value: "2024", label: "2024" },
+    ];
   });
 
   it("passes available years into USelectMenu items", () => {
@@ -126,7 +143,7 @@ describe("YearSelect", () => {
   });
 
   it("renders no year options when composable returns empty list", () => {
-    availableYearsMock.mockReturnValueOnce({ availableYears: ref([]) });
+    availableYearsState.value = [];
     const wrapper = mount(YearSelect);
     const items = wrapper
       .findComponent({ name: "USelectMenu" })

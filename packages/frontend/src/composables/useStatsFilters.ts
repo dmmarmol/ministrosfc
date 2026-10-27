@@ -2,6 +2,8 @@ import { computed } from "vue";
 import { OPTION_FILTER_ALL, PlayerStatus } from "@ministrosfc/shared";
 import { useQueryParams } from "~/composables/useQueryParams";
 
+type PlayerStatusFilter = PlayerStatus | typeof OPTION_FILTER_ALL;
+
 export interface StatsFilters {
   playerSearch: string;
   mode: string;
@@ -9,7 +11,7 @@ export interface StatsFilters {
   tournament: string;
   rivalId: string;
   playerId: string;
-  playerStatus: PlayerStatus;
+  playerStatus: PlayerStatusFilter;
   playgroundId: string;
 }
 
@@ -36,7 +38,7 @@ export function useStatsFilters() {
     rivalId: qp.get("rivalId") ?? "",
     playerId: qp.get("playerId") ?? "",
     playerStatus:
-      ((qp.get("playerStatus") as PlayerStatus | null) ?? PlayerStatus.ACTIVE),
+      (qp.get("playerStatus") as PlayerStatusFilter) || PlayerStatus.ACTIVE,
     playgroundId: qp.get("playgroundId") ?? "",
   }));
 

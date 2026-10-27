@@ -105,7 +105,7 @@ describe("RBAC (integration)", () => {
 
     // Opponent team (for game creation)
     const tr = await request(app)
-      .post("/api/v1/teams")
+      .post("/api/v1/opponent-teams")
       .set("Authorization", `Bearer ${adminToken}`)
       .send({ name: "RBAC Opponent" });
     opponentTeamId = tr.body.data.id;
@@ -138,9 +138,9 @@ describe("RBAC (integration)", () => {
       expect(res.status).toBe(401);
     });
 
-    it("POST /api/v1/teams → 401 (auth required)", async () => {
+    it("POST /api/v1/opponent-teams → 401 (auth required)", async () => {
       const res = await request(app)
-        .post("/api/v1/teams")
+        .post("/api/v1/opponent-teams")
         .send({ name: "Unauth Team" });
       expect(res.status).toBe(401);
     });
