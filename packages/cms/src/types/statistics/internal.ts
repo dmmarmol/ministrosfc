@@ -3,7 +3,7 @@
  * These are not exported to the API; they support internal aggregation logic.
  */
 
-import { Position } from "@ministrosfc/shared";
+export type { AllPlayersStatsRow } from "@ministrosfc/shared";
 
 /**
  * Represents aggregated team statistics for a single period/group.
@@ -40,27 +40,4 @@ export interface PlayerAggregateStats {
   yellowCards: number;
   redCards: number;
   totalMinutes: number;
-}
-
-/**
- * Player stats row used in getAllPlayerStats aggregation.
- */
-export interface AllPlayersStatsRow {
-  playerId: string;
-  playerName: string;
-  playerNickname?: string;
-  position: Position;
-  gamesPlayed: number;
-  wins: number;
-  losses: number;
-  draws: number;
-  goals: number;
-  assists: number;
-  yellowCards: number;
-  redCards: number;
-  winRate: number;
-  goalRate: number;
-  participationRate: number;
-  invitedBy: string;
-  invitedById: string;
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import type { AllPlayersStatsRow } from "@ministrosfc/cms/src/types/statistics/internal";
+import type { AllPlayersStatsRow } from "@ministrosfc/shared";
 import type { ColumnDef } from "~/types/table";
 import {
   cellWins,
