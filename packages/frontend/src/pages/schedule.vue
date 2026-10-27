@@ -13,7 +13,7 @@ const activeTab = ref("upcoming");
 const opponentFilter = ref("");
 
 const { data: teamsData } = await useAsyncData("schedule-teams", () =>
-  $api<{ data: any[] }>("/api/v1/teams"),
+  $api<{ data: any[] }>("/api/v1/opponent-teams"),
 );
 const teams = computed(() => teamsData.value?.data ?? []);
 

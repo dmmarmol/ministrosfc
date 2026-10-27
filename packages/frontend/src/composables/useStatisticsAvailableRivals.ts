@@ -1,7 +1,7 @@
 import { type MaybeRef, toRef } from "vue";
 /**
  * Fetches the list of opponent teams for use in statistics filters.
- * Backed by GET /api/v1/teams (public).
+ * Backed by GET /api/v1/opponent-teams (public).
  *
  * Returns `availableRivals` as `{ value: string; label: string }[]`
  * sorted alphabetically by name.
@@ -16,7 +16,9 @@ export function useStatisticsAvailableRivals(
     "statistics-available-rivals",
     () =>
       isEnabled.value
-        ? $api<{ data: { id: string; name: string }[] }>("/api/v1/teams")
+        ? $api<{ data: { id: string; name: string }[] }>(
+            "/api/v1/opponent-teams",
+          )
         : Promise.resolve(null),
     { server: false, watch: [isEnabled] },
   );
