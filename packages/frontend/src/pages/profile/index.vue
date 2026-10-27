@@ -109,11 +109,12 @@ function roleBadgeClass(role: string): string {
             >
               Nombre
             </label>
-            <input
+            <UInput
               v-model="form.firstName"
               type="text"
               :disabled="!editMode"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white disabled:bg-gray-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-brand/50"
+              size="xl"
+              class="w-full"
             />
           </div>
           <div>
@@ -122,11 +123,12 @@ function roleBadgeClass(role: string): string {
             >
               Apellido
             </label>
-            <input
+            <UInput
               v-model="form.lastName"
               type="text"
               :disabled="!editMode"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white disabled:bg-gray-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-brand/50"
+              size="xl"
+              class="w-full"
             />
           </div>
         </div>
@@ -164,27 +166,38 @@ function roleBadgeClass(role: string): string {
         </p>
 
         <!-- Action Buttons -->
-        <div v-if="editMode" class="flex gap-2">
-          <button
-            class="flex-1 bg-brand text-gray-900 font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity"
-            @click="saveChanges"
+        <div class="flex justify-end">
+          <div v-if="editMode" class="flex gap-2">
+            <UButton
+              type="button"
+              variant="outline"
+              color="neutral"
+              size="xl"
+              @click="editMode = false"
+            >
+              Cancelar
+            </UButton>
+            <UButton
+              type="button"
+              variant="solid"
+              color="primary"
+              size="xl"
+              @click="saveChanges"
+            >
+              {{ loading ? "Guardando…" : "Guardar cambios" }}
+            </UButton>
+          </div>
+          <UButton
+            v-else
+            type="button"
+            variant="ghost"
+            color="primary"
+            size="xl"
+            @click="editMode = true"
           >
-            Guardar cambios
-          </button>
-          <button
-            class="flex-1 border border-gray-300 text-gray-700 font-semibold py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-            @click="editMode = false"
-          >
-            Cancelar
-          </button>
+            Editar
+          </UButton>
         </div>
-        <button
-          v-else
-          class="text-sm text-brand font-semibold hover:underline"
-          @click="editMode = true"
-        >
-          Editar
-        </button>
       </div>
 
       <!-- Player Profile Link -->

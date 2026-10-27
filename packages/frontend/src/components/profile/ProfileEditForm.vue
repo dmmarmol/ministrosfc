@@ -265,12 +265,14 @@ const isActive = computed({
       {{ error }}
     </p>
 
-    <button
+    <UButton
       type="submit"
       :disabled="loading || jerseyIsTaken"
-      class="w-full bg-brand text-gray-900 font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-60"
+      class="w-full"
+      variant="ghost"
+      color="primary"
     >
       {{ loading ? "Guardando…" : "Guardar cambios" }}
-    </button>
+    </UButton>
   </form>
 </template>
