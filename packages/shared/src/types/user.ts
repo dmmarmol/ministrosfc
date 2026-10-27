@@ -5,12 +5,24 @@ export enum UserRole {
   PLAYER = "PLAYER",
 }
 
+export enum RegistrationStatus {
+  PENDING_APPROVAL = "PENDING_APPROVAL",
+  APPROVED = "APPROVED",
+  DENIED = "DENIED",
+}
+
+export enum ApprovalDecisionType {
+  APPROVE_NO_MERGE = "APPROVE_NO_MERGE",
+  APPROVE_WITH_MERGE = "APPROVE_WITH_MERGE",
+}
+
 export interface User {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
   role: UserRole;
+  registrationStatus?: RegistrationStatus;
   playerId?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -23,6 +35,7 @@ export interface UserCreateDTO {
   firstName: string;
   lastName: string;
   role?: UserRole;
+  registrationStatus?: RegistrationStatus;
   playerId?: string;
 }
 

@@ -58,6 +58,9 @@ export const ProfileService = {
       throw createError("Player profile not found", 404, ErrorCode.NOT_FOUND);
     }
 
+    const profileFirstName = user.firstName ?? user.player.firstName;
+    const profileLastName = user.lastName ?? user.player.lastName;
+
     const invitedGuests = await prisma.player.findMany({
       where: {
         invitedById: user.player.id,
@@ -79,8 +82,8 @@ export const ProfileService = {
       user: {
         id: user.id,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: profileFirstName,
+        lastName: profileLastName,
         role: user.role as unknown as UserRole,
         hasPassword: user.passwordHash != null,
         hasGoogle: user.googleSubjectId != null,

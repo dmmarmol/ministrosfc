@@ -6,13 +6,22 @@ definePageMeta({
   middleware: "auth",
   requiresAuth: true,
   requiresRole: "editor",
+  pageTitle: "Usuarios",
 });
 </script>
 
 <template>
   <div>
-    <div class="flex items-center justify-between mb-6">
+    <div class="mb-6 flex items-center justify-between">
       <h2 class="text-base font-semibold text-gray-700">Usuarios</h2>
+      <UButton
+        to="/admin/users/pending-approvals"
+        variant="solid"
+        color="primary"
+        icon="mdi:account-search"
+      >
+        Revisar aprobaciones pendientes
+      </UButton>
     </div>
 
     <UserRoleManager />

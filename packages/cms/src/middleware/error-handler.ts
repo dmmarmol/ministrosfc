@@ -1,4 +1,5 @@
 import { type Request, type Response, type NextFunction } from "express";
+import { ZodError } from "zod";
 import { logger } from "../utils/logger";
 import { ErrorCode } from "../utils/error-codes";
 
@@ -14,6 +15,15 @@ export function globalErrorHandler(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _next: NextFunction,
 ): void {
+  if (err instanceof ZodError) {
+    res.status(400).json({
+      code: ErrorCode.VALIDATION_ERROR,
+      message: err.issues.map((issue) => issue.message).join(", "),
+      statusCode: 400,
+    });
+    return;
+  }
+
   const statusCode = err.statusCode ?? 500;
   const isProduction = process.env.NODE_ENV === "production";
 

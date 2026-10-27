@@ -39,7 +39,7 @@ vi.mock("~/components/ui/DropdownAddMore.vue", () => {
 });
 
 // Import AFTER mocks are wired
-const { default: SignupAddPlayer } = await import("../SignupAddPlayer.vue");
+import SignupAddPlayer from "../SignupAddPlayer.vue";
 
 // ------------------------------------------------------------------
 // Helpers

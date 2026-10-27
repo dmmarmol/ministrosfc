@@ -14,6 +14,7 @@
  */
 import { prisma } from "../config/database";
 import type { Game, GameStatus, Prisma } from "@prisma/client";
+import { GameResult, OPTION_FILTER_ALL } from "@ministrosfc/shared";
 
 export interface PaginatedResult<T> {
   results: T[];
@@ -25,6 +26,7 @@ export interface PaginatedResult<T> {
 
 interface FindManyOptions {
   status?: GameStatus;
+  result?: string; // GameResult or OPTION_FILTER_ALL
   tournamentId?: string;
   opponentTeamId?: string;
   dateFrom?: string;
@@ -57,6 +59,9 @@ const GameModel = {
                 position: true,
                 playerType: true,
                 invitedById: true,
+                invitedBy: {
+                  select: { id: true, firstName: true, lastName: true },
+                },
               },
             },
             confirmedBy: {
@@ -83,7 +88,9 @@ const GameModel = {
    * can type-narrow the `results` array to whatever include/select payload they
    * requested (e.g. `PaginatedResult<GameWithOpponent>`).
    */
-  async findMany<T = Game>(options: FindManyOptions = {}): Promise<PaginatedResult<T>> {
+  async findMany<T = Game>(
+    options: FindManyOptions = {},
+  ): Promise<PaginatedResult<T>> {
     const page = options.page ?? 1;
     const limit = Math.min(options.limit ?? 20, 100);
     const skip = (page - 1) * limit;
@@ -100,11 +107,31 @@ const GameModel = {
         (where.date as Prisma.DateTimeFilter).lte = new Date(options.dateTo);
     }
 
+    // Result filtering: when result is specified (not ALL/empty), only query completed games with scores
+    const hasResultFilter =
+      options.result && options.result !== OPTION_FILTER_ALL;
+    if (hasResultFilter) {
+      where.status = "COMPLETED";
+      where.homeTeamScore = { not: null };
+      where.awayTeamScore = { not: null };
+    }
+
+    // Helper function to compute game result from scores
+    const computeResult = (
+      homeScore: number | null,
+      awayScore: number | null,
+    ): string | null => {
+      if (homeScore === null || awayScore === null) return null;
+      if (homeScore > awayScore) return GameResult.WIN;
+      if (homeScore < awayScore) return GameResult.LOSS;
+      return GameResult.DRAW;
+    };
+
     const [games, total] = await Promise.all([
       prisma.game.findMany({
         where,
-        skip,
-        take: limit,
+        skip: hasResultFilter ? 0 : skip,
+        take: hasResultFilter ? 1000 : limit,
         orderBy: { date: "desc" },
         include: {
           opponentTeam: { select: { id: true, name: true, logoUrl: true } },
@@ -128,7 +155,26 @@ const GameModel = {
       prisma.game.count({ where }),
     ]);
 
-    return { results: games as T[], total, page, limit, totalPages: Math.ceil(total / limit) };
+    // Filter by result in memory if needed
+    let filtered = games;
+    if (hasResultFilter) {
+      filtered = games.filter((game) => {
+        const result = computeResult(game.homeTeamScore, game.awayTeamScore);
+        return result === options.result;
+      });
+    }
+
+    // Apply pagination after filtering
+    const paginatedGames = filtered.slice(skip, skip + limit);
+    const filteredTotal = filtered.length;
+
+    return {
+      results: paginatedGames as T[],
+      total: hasResultFilter ? filteredTotal : total,
+      page,
+      limit,
+      totalPages: Math.ceil((hasResultFilter ? filteredTotal : total) / limit),
+    };
   },
 
   async update(id: string, data: Prisma.GameUpdateInput): Promise<Game> {

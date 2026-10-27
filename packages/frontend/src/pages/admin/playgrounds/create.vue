@@ -1,52 +1,41 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref } from "vue";
+import PlaygroundForm, {
+  type PlaygroundFormData,
+} from "~/components/pages/admin/playground/PlaygroundForm.vue";
 import { usePlaygrounds } from "~/composables/usePlaygrounds";
-import AddressAutocompleteInput from "~/components/AddressAutocompleteInput.vue";
-import type { AddressSuggestion } from "@ministrosfc/shared";
 
 definePageMeta({
   layout: "admin",
   middleware: "auth",
   requiresAuth: true,
   requiresRole: "editor",
+  pageTitle: "Crear Cancha",
 });
 useHead({ title: "Nueva Cancha – Admin" });
 
 const router = useRouter();
 const { createPlayground } = usePlaygrounds();
 
-const form = reactive({
-  name: "",
-  address: "",
-  latitude: null as number | null,
-  longitude: null as number | null,
-});
 const loading = ref(false);
 const error = ref("");
-const addressError = ref("");
 
-function onAddressSelect(suggestion: AddressSuggestion | null) {
-  form.latitude = suggestion?.lat ?? null;
-  form.longitude = suggestion?.lon ?? null;
-}
-
-async function submit() {
+async function handleSubmit(payload: PlaygroundFormData) {
   error.value = "";
-  addressError.value = "";
   loading.value = true;
   try {
     await createPlayground({
-      name: form.name,
-      address: form.address,
-      ...(form.latitude != null && form.longitude != null
-        ? { latitude: form.latitude, longitude: form.longitude }
+      name: payload.name,
+      address: payload.address,
+      ...(payload.latitude != null && payload.longitude != null
+        ? { latitude: payload.latitude, longitude: payload.longitude }
         : {}),
     });
     await router.push("/admin/playgrounds");
   } catch (e: unknown) {
     const err = e as { data?: { code?: string }; message?: string };
     if (err?.data?.code === "ADDRESS_NOT_FOUND") {
-      addressError.value =
+      error.value =
         "No se pudo geocodificar la dirección. Por favor, verifica el domicilio.";
     } else {
       error.value =
@@ -60,66 +49,20 @@ async function submit() {
 
 <template>
   <div class="max-w-lg">
-    <NuxtLink
-      to="/admin/playgrounds"
-      class="text-sm text-gray-500 hover:text-brand mb-4 inline-block"
-    >
-      ← Volver a Canchas
-    </NuxtLink>
-    <h2 class="text-lg font-bold text-gray-900 mb-6">Nueva Cancha</h2>
+    <header class="mb-4">
+      <UiBackButton to="/admin/playgrounds" label="Volver a Canchas" />
+    </header>
 
-    <form
-      class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
-      @submit.prevent="submit"
-    >
-      <div v-if="error" class="text-sm text-red-600 bg-red-50 rounded p-3">
-        {{ error }}
-      </div>
+    <div class="mb-4">
+      <h2 class="text-lg font-bold text-gray-900 mb-6">Nueva Cancha</h2>
+    </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1"
-          >Nombre <span class="text-red-500">*</span></label
-        >
-        <input
-          v-model="form.name"
-          type="text"
-          required
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
-          placeholder="Ej: Cancha del Club Sportivo"
-        />
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1"
-          >Dirección <span class="text-red-500">*</span></label
-        >
-        <AddressAutocompleteInput
-          v-model="form.address"
-          required
-          placeholder="Ej: Av. Corrientes 1234, Buenos Aires"
-          :class="{ 'border-red-400': addressError }"
-          @select="onAddressSelect"
-        />
-        <p v-if="addressError" class="mt-1 text-xs text-red-600">
-          {{ addressError }}
-        </p>
-      </div>
-
-      <div class="flex gap-3 pt-2">
-        <button
-          type="submit"
-          :disabled="loading"
-          class="bg-brand text-gray-900 font-semibold text-sm px-5 py-2 rounded-lg hover:opacity-90 disabled:opacity-50"
-        >
-          {{ loading ? "Guardando…" : "Crear Cancha" }}
-        </button>
-        <NuxtLink
-          to="/admin/playgrounds"
-          class="text-sm text-gray-500 hover:text-brand py-2"
-        >
-          Cancelar
-        </NuxtLink>
-      </div>
-    </form>
+    <PlaygroundForm
+      :playground="null"
+      submitLabel="Crear Cancha"
+      :loading="loading"
+      :error="error"
+      @submit="handleSubmit"
+    />
   </div>
 </template>

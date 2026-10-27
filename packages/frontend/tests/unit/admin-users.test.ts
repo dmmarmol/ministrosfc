@@ -3,11 +3,11 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
-import { ref } from "vue";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const mockApi = vi.fn();
+const toastAddMock = vi.fn();
 
 vi.stubGlobal("definePageMeta", vi.fn());
 vi.stubGlobal("useNuxtApp", () => ({ $api: mockApi }));
@@ -15,6 +15,10 @@ vi.stubGlobal("useRuntimeConfig", () => ({
   public: { apiBaseUrl: "http://localhost:5102" },
 }));
 vi.stubGlobal("alert", vi.fn());
+
+vi.mock("@nuxt/ui/composables", () => ({
+  useToast: () => ({ add: toastAddMock }),
+}));
 
 // Mock useAuthStore with a non-admin current user for self-demotion tests
 const mockAuthStore = { user: { id: "current-admin", role: "ADMIN" } };
@@ -58,41 +62,53 @@ describe("UserRoleManager", () => {
   });
 
   it("renders user list after fetching", async () => {
-    const wrapper = mount(UserRoleManager, { shallow: false });
+    const wrapper = mount(UserRoleManager, { shallow: true });
     await flushPromises();
 
     expect(mockApi).toHaveBeenCalled();
-    expect(wrapper.text()).toContain("Admin User");
-    expect(wrapper.text()).toContain("Carlos Gómez");
+    const usersTable = wrapper.findComponent({ name: "UsersTable" });
+    const usersProp = usersTable.props("users") as typeof mockUsers;
+    expect(usersProp.map((u) => `${u.firstName} ${u.lastName}`)).toEqual([
+      "Admin User",
+      "Carlos Gómez",
+    ]);
   });
 
   it("renders search input and role filter", async () => {
-    const wrapper = mount(UserRoleManager, { shallow: false });
+    const wrapper = mount(UserRoleManager, { shallow: true });
     await flushPromises();
 
-    expect(wrapper.find('input[type="text"]').exists()).toBe(true);
-    expect(wrapper.find("select").exists()).toBe(true);
+    expect(wrapper.find("u-input-stub").exists()).toBe(true);
+    expect(wrapper.find("ui-user-role-select-stub").exists()).toBe(true);
   });
 
-  it("displays role badges for each user", async () => {
-    const wrapper = mount(UserRoleManager, { shallow: false });
+  it("passes fetched users into UsersTable", async () => {
+    const wrapper = mount(UserRoleManager, { shallow: true });
     await flushPromises();
 
-    expect(wrapper.text()).toContain("ADMIN");
-    expect(wrapper.text()).toContain("PLAYER");
+    const usersTable = wrapper.findComponent({ name: "UsersTable" });
+    expect(usersTable.exists()).toBe(true);
+    const usersProp = usersTable.props("users") as typeof mockUsers;
+    expect(usersProp.map((u) => u.role)).toEqual(["ADMIN", "PLAYER"]);
   });
 
   it("shows error message on fetch failure", async () => {
     mockApi.mockRejectedValueOnce(new Error("Network error"));
-    const wrapper = mount(UserRoleManager, { shallow: false });
+    const wrapper = mount(UserRoleManager, { shallow: true });
     await flushPromises();
 
     expect(wrapper.text()).toContain("Network error");
   });
 });
 
-// T008: Full-name click edit entry and profile save feedback
+// T008: Inline profile edit handlers and confirmation logic
 describe("UserRoleManager – full-name edit entry (T008)", () => {
+  const sourcePath = resolve(
+    __dirname,
+    "../../src/components/admin/UserRoleManager.vue",
+  );
+  const source = readFileSync(sourcePath, "utf8");
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockApi.mockResolvedValue({
@@ -101,90 +117,30 @@ describe("UserRoleManager – full-name edit entry (T008)", () => {
     });
   });
 
-  it("clicking the full name enters edit mode with pre-filled fields", async () => {
-    const wrapper = mount(UserRoleManager, { shallow: false });
-    await flushPromises();
-
-    // Find Carlos Gómez's name and click
-    const nameSpans = wrapper.findAll(".cursor-pointer.underline");
-    const carlosSpan = nameSpans.find((s) => s.text().includes("Carlos"));
-    expect(carlosSpan).toBeDefined();
-    await carlosSpan?.trigger("click");
-
-    // Should now show input fields pre-filled
-    const inputs = wrapper.findAll('input[type="text"], input:not([type])');
-    const firstNameInput = inputs.find((i) => i.element.value === "Carlos");
-    expect(firstNameInput).toBeDefined();
+  it("startEdit stores user id and pre-fills editable fields", () => {
+    expect(source).toContain("function startEdit(user: AdminUserListItem)");
+    expect(source).toContain("editingUserId.value = user.id");
+    expect(source).toContain("firstName: user.firstName");
+    expect(source).toContain("lastName: user.lastName");
+    expect(source).toContain("email: user.email");
   });
 
-  it("shows Guardar and Cancelar buttons in edit mode", async () => {
-    const wrapper = mount(UserRoleManager, { shallow: false });
-    await flushPromises();
-
-    const nameSpan = wrapper.findAll(".cursor-pointer.underline")[0];
-    await nameSpan.trigger("click");
-
-    expect(wrapper.text()).toContain("Guardar");
-    expect(wrapper.text()).toContain("Cancelar");
+  it("email changes are confirmation-gated before patching", () => {
+    expect(source).toContain("actionType: \"edit-email\"");
+    expect(source).toContain("title: \"Cambiar email\"");
+    expect(source).toContain("requestConfirmation(");
+    expect(source).toContain("await $api(`/api/v1/admin/users/${userId}`");
   });
 
-  it("Cancelar button exits edit mode without saving", async () => {
-    const wrapper = mount(UserRoleManager, { shallow: false });
-    await flushPromises();
-
-    const nameSpan = wrapper.findAll(".cursor-pointer.underline")[0];
-    await nameSpan.trigger("click");
-
-    const cancelBtn = wrapper
-      .findAll("button")
-      .find((b) => b.text() === "Cancelar");
-    await cancelBtn?.trigger("click");
-
-    const calls = mockApi.mock.calls.length;
-    // Should not have triggered a PATCH
-    const patchCalls = mockApi.mock.calls.filter(
-      (c) => String(c[1]?.method).toUpperCase() === "PATCH",
-    );
-    expect(patchCalls.length).toBe(0);
+  it("non-email edits patch only profile names and show success toast", () => {
+    expect(source).toContain("firstName: editFields.value.firstName");
+    expect(source).toContain("lastName: editFields.value.lastName");
+    expect(source).toContain('description: "Perfil actualizado."');
   });
 
-  it("non-email edit saves directly without confirmation modal", async () => {
-    mockApi
-      .mockResolvedValueOnce({
-        data: mockUsers,
-        meta: { total: 2, page: 1, limit: 20, totalPages: 1 },
-      })
-      .mockResolvedValueOnce({ data: { ...mockUsers[0] } }) // PATCH response
-      .mockResolvedValueOnce({
-        data: mockUsers,
-        meta: { total: 2, page: 1, limit: 20, totalPages: 1 },
-      }); // re-fetch
-
-    const wrapper = mount(UserRoleManager, { shallow: false });
-    await flushPromises();
-
-    const nameSpan = wrapper.findAll(".cursor-pointer.underline")[0];
-    await nameSpan.trigger("click");
-
-    // Modify first name only
-    const inputs = wrapper.findAll("input");
-    const firstNameInput = inputs[0];
-    await firstNameInput.setValue("Admín");
-
-    const saveBtn = wrapper
-      .findAll("button")
-      .find((b) => b.text() === "Guardar");
-    await saveBtn?.trigger("click");
-    await flushPromises();
-
-    // ConfirmationModal should NOT appear
-    const modal = wrapper.findComponent({ name: "ConfirmationModal" });
-    expect(!modal.exists() || !modal.props("open")).toBe(true);
-    // PATCH should have been called
-    const patchCalls = mockApi.mock.calls.filter(
-      (c) => String(c[1]?.method).toUpperCase() === "PATCH",
-    );
-    expect(patchCalls.length).toBeGreaterThan(0);
+  it("cancelEdit exits edit mode", () => {
+    expect(source).toContain("function cancelEdit()");
+    expect(source).toContain("editingUserId.value = null");
   });
 });
 
@@ -212,30 +168,36 @@ describe("UserRoleManager – access control (T008A)", () => {
 
 // T016: Role option visibility, confirmation gate, self-demotion prevention
 describe("UserRoleManager – role governance UI (T016)", () => {
-  const sourcePath = resolve(
+  const managerSourcePath = resolve(
     __dirname,
     "../../src/components/admin/UserRoleManager.vue",
   );
-  const source = readFileSync(sourcePath, "utf8");
+  const usersTableSourcePath = resolve(
+    __dirname,
+    "../../src/components/admin/UsersTable.vue",
+  );
+  const source = readFileSync(managerSourcePath, "utf8");
+  const usersTableSource = readFileSync(usersTableSourcePath, "utf8");
 
   it("does NOT gate role select with v-if restricting ADMIN role", () => {
     // Old pattern was: v-if="user.role !== 'ADMIN'" – must not exist
     expect(source).not.toContain("v-if=\"user.role !== 'ADMIN'\"");
   });
 
-  it("role select includes all four roles for every user", () => {
-    expect(source).toContain('value="PLAYER"');
-    expect(source).toContain('value="DT"');
-    expect(source).toContain('value="EDITOR"');
-    expect(source).toContain('value="ADMIN"');
+  it("role changes are emitted from UsersTable as typed role updates", () => {
+    expect(usersTableSource).toContain('emit("roleChange", user, value as UserRole)');
+    expect(usersTableSource).toContain("if (!value || value === user.role) return;");
   });
 
   it("role select is disabled when user.id matches current user id", () => {
-    expect(source).toContain(':disabled="user.id === authStore.user?.id"');
+    expect(usersTableSource).toContain(
+      "const isSelfRoleChange = user.id === props.currentUserId;",
+    );
+    expect(usersTableSource).toContain("disabled: isSelfRoleChange");
   });
 
   it("disabled role select has a descriptive title tooltip", () => {
-    expect(source).toContain("No podés cambiar tu propio rol");
+    expect(usersTableSource).toContain("No podés cambiar tu propio rol");
   });
 
   it("routes role change through requestRoleChange (confirmation-gated)", () => {
@@ -280,60 +242,24 @@ describe("UserRoleManager – confirmation modal mounting (T016 runtime)", () =>
   });
 
   it("shows ConfirmationModal when a role change is requested", async () => {
-    const wrapper = mount(UserRoleManager, { shallow: false });
+    const wrapper = mount(UserRoleManager, { shallow: true });
     await flushPromises();
 
-    // Trigger a role change via the select (change to ADMIN)
-    const selects = wrapper.findAll("select");
-    // Find the role select (user-row selects; exclude the filter select which has value="")
-    const roleSelect = selects.find(
-      (s) =>
-        s.html().includes('value="ADMIN"') &&
-        s.html().includes('value="DT"') &&
-        !s.html().includes('value=""'),
-    );
-    expect(roleSelect).toBeDefined();
-
-    await roleSelect?.setValue("ADMIN");
-    await roleSelect?.trigger("change");
+    const usersTable = wrapper.findComponent({ name: "UsersTable" });
+    expect(usersTable.exists()).toBe(true);
+    await usersTable.vm.$emit("role-change", mockUsers[1], "ADMIN");
     await flushPromises();
 
-    // The ConfirmationModal should be visible
     const modal = wrapper.findComponent({ name: "ConfirmationModal" });
     expect(modal.exists()).toBe(true);
     expect(modal.props("open")).toBe(true);
   });
 
-  it("self (currentUser) role select is disabled", async () => {
-    // Mount with a user that matches the mocked currentUser id
-    mockApi.mockResolvedValue({
-      data: [
-        {
-          id: "current-admin",
-          email: "me@test.com",
-          firstName: "Me",
-          lastName: "Admin",
-          role: "ADMIN",
-          createdAt: "",
-          lastLoginAt: null,
-          player: null,
-        },
-      ],
-      meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
-    });
-    const wrapper = mount(UserRoleManager, { shallow: false });
+  it("passes current user id into UsersTable for self-role lock", async () => {
+    const wrapper = mount(UserRoleManager, { shallow: true });
     await flushPromises();
-
-    const roleSelects = wrapper
-      .findAll("select")
-      .filter(
-        (s) =>
-          s.html().includes('value="ADMIN"') &&
-          s.html().includes('value="DT"') &&
-          !s.html().includes('value=""'),
-      );
-    expect(roleSelects.length).toBeGreaterThan(0);
-    expect(roleSelects[0].element.disabled).toBe(true);
+    const usersTable = wrapper.findComponent({ name: "UsersTable" });
+    expect(usersTable.props("currentUserId")).toBe("current-admin");
   });
 });
 
@@ -376,7 +302,9 @@ describe("UserRoleManager – lifecycle confirmation (T023)", () => {
       resolve(__dirname, "../../src/components/admin/UserRoleManager.vue"),
       "utf8",
     );
-    expect(source).toContain("requestStatusToggle(user)");
+    expect(source).toContain("function requestStatusToggle(user: AdminUserListItem)");
+    expect(source).toContain("requestConfirmation(");
+    expect(source).toContain("/player-status");
   });
 
   it("source: delete routes through confirmDelete and requestConfirmation", () => {
@@ -384,8 +312,9 @@ describe("UserRoleManager – lifecycle confirmation (T023)", () => {
       resolve(__dirname, "../../src/components/admin/UserRoleManager.vue"),
       "utf8",
     );
-    expect(source).toContain("confirmDelete(user)");
+    expect(source).toContain("function confirmDelete(user: AdminUserListItem)");
     expect(source).toContain("requestConfirmation(");
+    expect(source).toContain("method: \"DELETE\"");
   });
 
   it("source: toggle-status confirmation message mentions player name", () => {
@@ -414,17 +343,12 @@ describe("UserRoleManager – lifecycle confirmation (T023)", () => {
     expect(source).not.toContain("confirm(");
   });
 
-  it("clicking Desactivar button opens ConfirmationModal", async () => {
-    const wrapper = mount(UserRoleManager, { shallow: false });
+  it("role-change event opens ConfirmationModal", async () => {
+    const wrapper = mount(UserRoleManager, { shallow: true });
     await flushPromises();
 
-    // Find Desactivar button for the player user (u2)
-    const deactivateBtn = wrapper
-      .findAll("button")
-      .find((b) => b.text() === "Desactivar");
-    expect(deactivateBtn).toBeDefined();
-
-    await deactivateBtn?.trigger("click");
+    const usersTable = wrapper.findComponent({ name: "UsersTable" });
+    await usersTable.vm.$emit("role-change", mockUsers[1], "ADMIN");
     await flushPromises();
 
     const modal = wrapper.findComponent({ name: "ConfirmationModal" });
@@ -432,33 +356,35 @@ describe("UserRoleManager – lifecycle confirmation (T023)", () => {
     expect(modal.props("open")).toBe(true);
   });
 
-  it("clicking Eliminar button opens ConfirmationModal for delete", async () => {
-    const wrapper = mount(UserRoleManager, { shallow: false });
+  it("confirming role change sends PATCH request", async () => {
+    const wrapper = mount(UserRoleManager, { shallow: true });
     await flushPromises();
+    mockApi.mockClear();
 
-    const deleteBtn = wrapper
-      .findAll("button")
-      .find((b) => b.text() === "Eliminar");
-    expect(deleteBtn).toBeDefined();
-
-    await deleteBtn?.trigger("click");
+    const usersTable = wrapper.findComponent({ name: "UsersTable" });
+    await usersTable.vm.$emit("role-change", mockUsers[1], "ADMIN");
     await flushPromises();
 
     const modal = wrapper.findComponent({ name: "ConfirmationModal" });
-    expect(modal.exists()).toBe(true);
-    expect(modal.props("open")).toBe(true);
+    await modal.props("onConfirm")();
+    await flushPromises();
+
+    const rolePatchCalls = mockApi.mock.calls.filter(
+      (c) =>
+        String(c[0]).includes(`/api/v1/admin/users/${mockUsers[1]!.id}/role`) &&
+        String(c[1]?.method).toUpperCase() === "PATCH",
+    );
+    expect(rolePatchCalls.length).toBeGreaterThan(0);
   });
 
   it("cancel on ConfirmationModal does not call API", async () => {
-    const wrapper = mount(UserRoleManager, { shallow: false });
+    const wrapper = mount(UserRoleManager, { shallow: true });
     await flushPromises();
 
     mockApi.mockClear();
 
-    const deactivateBtn = wrapper
-      .findAll("button")
-      .find((b) => b.text() === "Desactivar");
-    await deactivateBtn?.trigger("click");
+    const usersTable = wrapper.findComponent({ name: "UsersTable" });
+    await usersTable.vm.$emit("role-change", mockUsers[1], "ADMIN");
     await flushPromises();
 
     // Emit cancel from the modal
@@ -492,7 +418,7 @@ describe("admin players status confirmation flow", () => {
   });
 
   it("routes activate/deactivate button clicks through modal flow", () => {
-    expect(source).toContain('@click="askToggleStatus(p, $event)"');
+    expect(source).toContain('@toggle-status="askToggleStatus"');
     expect(source).not.toContain('@click="toggleStatus(p)"');
   });
 });

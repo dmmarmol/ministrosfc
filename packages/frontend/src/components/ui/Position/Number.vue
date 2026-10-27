@@ -6,32 +6,47 @@ type Props = {
   jerseyNumber: number | null;
   isGuest?: boolean;
   isJersey?: boolean;
+  class?: string;
 };
 const props = defineProps<Props>();
 
 const bgColor = "#1a1a1a";
 const textColor = "#FFFFFF";
+const emptyBgColor = "#FFFFFF";
 
 const jerseyDataUri = ref("");
 
 function updateJerseyUri() {
   // soccer-jersey relies on DOM APIs; avoid SSR evaluation.
-  if (import.meta.server || !props.jerseyNumber) {
+  if (import.meta.server) {
     jerseyDataUri.value = "";
     return;
   }
 
   try {
-    jerseyDataUri.value = SoccerJersey.draw({
-      shirtText: props.jerseyNumber.toString(),
-      shirtColor: bgColor,
-      sleeveColor: bgColor,
-      shirtStyle: "plain",
-      shirtStyleDirection: "vertical",
-      textColor: textColor,
-      textOutlineColor: textColor,
-      isBack: true,
-    });
+    if (props.jerseyNumber) {
+      jerseyDataUri.value = SoccerJersey.draw({
+        shirtText: props.jerseyNumber.toString(),
+        shirtColor: bgColor,
+        sleeveColor: bgColor,
+        shirtStyle: "plain",
+        shirtStyleDirection: "vertical",
+        textColor: textColor,
+        textOutlineColor: textColor,
+        isBack: true,
+      });
+    } else {
+      jerseyDataUri.value = SoccerJersey.draw({
+        shirtText: "",
+        shirtColor: emptyBgColor,
+        sleeveColor: emptyBgColor,
+        shirtStyle: "plain",
+        shirtStyleDirection: "vertical",
+        textColor: emptyBgColor,
+        textOutlineColor: emptyBgColor,
+        isBack: true,
+      });
+    }
   } catch {
     jerseyDataUri.value = "";
   }
@@ -41,11 +56,11 @@ onMounted(updateJerseyUri);
 watch(() => props.jerseyNumber, updateJerseyUri);
 </script>
 <template>
-  <div v-if="!props.isGuest && props.jerseyNumber">
+  <div v-if="!props.isGuest">
     <img
-      v-if="props.isJersey && jerseyDataUri"
+      v-if="props.isJersey"
       :src="jerseyDataUri"
-      class="w-8 h-8"
+      :class="['w-8 h-8', props.class]"
       alt="Camiseta"
     />
     <span

@@ -3,6 +3,7 @@ import { UserModel } from "../models/User";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
 import type { Position } from "@prisma/client";
+import { PlayerType, PlayerStatus } from "@prisma/client";
 
 interface OnboardingDTO {
   isPlayer: boolean;
@@ -46,13 +47,16 @@ const OnboardingService = {
     }
 
     if (dto.isPlayer) {
+      const playerFirstName = user.firstName ?? "Jugador";
+      const playerLastName = user.lastName ?? "Ministros";
+
       // Validate jersey uniqueness if provided
       if (dto.jerseyNumber != null) {
         const taken = await prisma.player.findFirst({
           where: {
             jerseyNumber: dto.jerseyNumber,
             status: "ACTIVE",
-            playerType: "REGISTERED",
+            playerType: PlayerType.REGISTERED,
           },
         });
         if (taken) {
@@ -67,10 +71,10 @@ const OnboardingService = {
       // Create Player and link to User
       const player = await prisma.player.create({
         data: {
-          firstName: user.firstName,
-          lastName: user.lastName,
-          playerType: "REGISTERED",
-          status: "ACTIVE",
+          firstName: user.firstName ?? "",
+          lastName: user.lastName ?? "",
+          playerType: PlayerType.REGISTERED,
+          status: PlayerStatus.ACTIVE,
           position: dto.position ?? undefined,
           jerseyNumber: dto.jerseyNumber ?? undefined,
           contactInfo: { create: {} },
@@ -86,8 +90,8 @@ const OnboardingService = {
         user: {
           id: updated.id,
           email: updated.email,
-          firstName: updated.firstName,
-          lastName: updated.lastName,
+          firstName: player.firstName,
+          lastName: player.lastName,
           role: updated.role,
           playerId: player.id,
           onboardingCompletedAt: updated.onboardingCompletedAt,

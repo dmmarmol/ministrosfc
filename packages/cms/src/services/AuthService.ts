@@ -5,6 +5,7 @@ import { getRedisClient } from "../config/redis";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
 import type { Role } from "@prisma/client";
+import { RegistrationStatus } from "@ministrosfc/shared";
 import crypto from "crypto";
 
 interface TokenPayload {
@@ -13,6 +14,57 @@ interface TokenPayload {
 }
 
 const REFRESH_TOKEN_PREFIX = "session:refresh:";
+const AUTH_SERVICE_UNAVAILABLE_MESSAGE =
+  "Authentication service temporarily unavailable. Please try again.";
+
+function isRedisConnectionError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+  return (
+    message.includes("connection is closed") ||
+    message.includes("econnrefused") ||
+    message.includes("socket closed") ||
+    message.includes("connect etimedout") ||
+    message.includes("connection timeout")
+  );
+}
+
+async function runWithRedisRetry<T>(
+  operation: (redis: ReturnType<typeof getRedisClient>) => Promise<T>,
+): Promise<T> {
+  const redis = getRedisClient();
+
+  const runOnce = async (): Promise<T> => {
+    if (redis.status === "wait" || redis.status === "end") {
+      await redis.connect();
+    }
+    return operation(redis);
+  };
+
+  try {
+    return await runOnce();
+  } catch (error) {
+    if (!isRedisConnectionError(error)) {
+      throw error;
+    }
+
+    try {
+      return await runOnce();
+    } catch (retryError) {
+      if (isRedisConnectionError(retryError)) {
+        throw createError(
+          AUTH_SERVICE_UNAVAILABLE_MESSAGE,
+          503,
+          ErrorCode.INTERNAL_ERROR,
+        );
+      }
+      throw retryError;
+    }
+  }
+}
 
 const AuthService = {
   generateTokens(payload: TokenPayload) {
@@ -40,29 +92,35 @@ const AuthService = {
         ErrorCode.INVALID_CREDENTIALS,
       );
 
+    if (user.registrationStatus === "PENDING_APPROVAL") {
+      throw createError(
+        "Tu cuenta está pendiente de aprobación",
+        403,
+        ErrorCode.PENDING_APPROVAL,
+      );
+    }
+
     const { accessToken, refreshToken } = AuthService.generateTokens({
       userId: user.id,
       role: user.role,
     });
 
     // Store refresh token in Redis (30 days = 2592000 seconds)
-    const redis = getRedisClient();
-    await redis.setex(
-      `${REFRESH_TOKEN_PREFIX}${refreshToken}`,
-      2592000,
-      user.id,
+    await runWithRedisRetry((redis) =>
+      redis.setex(`${REFRESH_TOKEN_PREFIX}${refreshToken}`, 2592000, user.id),
     );
 
     // Update lastLoginAt
     await UserModel.update(user.id, { lastLoginAt: new Date() });
+    const names = await UserModel.resolveUserNames(user);
 
     return {
       accessToken,
       refreshToken,
       user: {
         id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: names.firstName,
+        lastName: names.lastName,
         email: user.email,
         role: user.role,
         playerId: user.playerId,
@@ -94,38 +152,20 @@ const AuthService = {
       firstName: dto.firstName,
       lastName: dto.lastName,
       role: "PLAYER",
+      registrationStatus: RegistrationStatus.PENDING_APPROVAL,
     });
-
-    const { accessToken, refreshToken } = AuthService.generateTokens({
-      userId: user.id,
-      role: user.role,
-    });
-
-    const redis = getRedisClient();
-    await redis.setex(
-      `${REFRESH_TOKEN_PREFIX}${refreshToken}`,
-      2592000,
-      user.id,
-    );
 
     return {
-      accessToken,
-      refreshToken,
-      user: {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        onboardingCompletedAt: user.onboardingCompletedAt ?? null,
-      },
-      nextStep: "/auth/onboarding",
+      status: "pending" as const,
+      message: "Tu cuenta está pendiente de aprobación",
+      userId: user.id,
     };
   },
 
   async refresh(refreshToken: string) {
-    const redis = getRedisClient();
-    const userId = await redis.get(`${REFRESH_TOKEN_PREFIX}${refreshToken}`);
+    const userId = await runWithRedisRetry((redis) =>
+      redis.get(`${REFRESH_TOKEN_PREFIX}${refreshToken}`),
+    );
     if (!userId)
       throw createError(
         "Invalid or expired refresh token",
@@ -140,19 +180,23 @@ const AuthService = {
       AuthService.generateTokens({ userId: user.id, role: user.role });
 
     // Rotate refresh token
-    await redis.del(`${REFRESH_TOKEN_PREFIX}${refreshToken}`);
-    await redis.setex(
-      `${REFRESH_TOKEN_PREFIX}${newRefreshToken}`,
-      2592000,
-      user.id,
-    );
+    await runWithRedisRetry(async (redis) => {
+      await redis.del(`${REFRESH_TOKEN_PREFIX}${refreshToken}`);
+      await redis.setex(
+        `${REFRESH_TOKEN_PREFIX}${newRefreshToken}`,
+        2592000,
+        user.id,
+      );
+      return "OK";
+    });
 
     return { accessToken, refreshToken: newRefreshToken };
   },
 
   async logout(refreshToken: string) {
-    const redis = getRedisClient();
-    await redis.del(`${REFRESH_TOKEN_PREFIX}${refreshToken}`);
+    await runWithRedisRetry((redis) =>
+      redis.del(`${REFRESH_TOKEN_PREFIX}${refreshToken}`),
+    );
   },
 
   async googleAuth(payload: {
@@ -161,42 +205,47 @@ const AuthService = {
     given_name: string;
     family_name: string;
   }) {
-    const redis = getRedisClient();
-
     // (a) Find by googleSubjectId → sign in
     let user = await UserModel.findByGoogleSubjectId(payload.sub);
     if (user) {
-      await UserModel.update(user.id, { lastLoginAt: new Date() });
+      const existingBySubjectUser = user;
+      await UserModel.update(existingBySubjectUser.id, {
+        lastLoginAt: new Date(),
+      });
 
       const { accessToken, refreshToken } = AuthService.generateTokens({
-        userId: user.id,
-        role: user.role,
+        userId: existingBySubjectUser.id,
+        role: existingBySubjectUser.role,
       });
-      await redis.setex(
-        `${REFRESH_TOKEN_PREFIX}${refreshToken}`,
-        2592000,
-        user.id,
+      await runWithRedisRetry((redis) =>
+        redis.setex(
+          `${REFRESH_TOKEN_PREFIX}${refreshToken}`,
+          2592000,
+          existingBySubjectUser.id,
+        ),
       );
 
-      const nextStep = user.onboardingCompletedAt
-        ? user.role === "ADMIN" || user.role === "EDITOR"
+      const nextStep = existingBySubjectUser.onboardingCompletedAt
+        ? existingBySubjectUser.role === "ADMIN" ||
+          existingBySubjectUser.role === "EDITOR"
           ? "/admin/dashboard"
           : "/player/games"
         : "/auth/onboarding";
+      const names = await UserModel.resolveUserNames(existingBySubjectUser);
 
       return {
         accessToken,
         refreshToken,
         nextStep,
         user: {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role,
-          playerId: user.playerId,
+          id: existingBySubjectUser.id,
+          firstName: names.firstName,
+          lastName: names.lastName,
+          email: existingBySubjectUser.email,
+          role: existingBySubjectUser.role,
+          playerId: existingBySubjectUser.playerId,
           onboardingCompletedAt:
-            user.onboardingCompletedAt?.toISOString() ?? null,
+            existingBySubjectUser.onboardingCompletedAt?.toISOString() ?? null,
         },
       };
     }
@@ -204,40 +253,45 @@ const AuthService = {
     // (b) Find by email → link googleSubjectId + sign in
     user = await UserModel.findByEmail(payload.email);
     if (user) {
-      await UserModel.update(user.id, {
+      const existingByEmailUser = user;
+      await UserModel.update(existingByEmailUser.id, {
         googleSubjectId: payload.sub,
         lastLoginAt: new Date(),
       });
 
       const { accessToken, refreshToken } = AuthService.generateTokens({
-        userId: user.id,
-        role: user.role,
+        userId: existingByEmailUser.id,
+        role: existingByEmailUser.role,
       });
-      await redis.setex(
-        `${REFRESH_TOKEN_PREFIX}${refreshToken}`,
-        2592000,
-        user.id,
+      await runWithRedisRetry((redis) =>
+        redis.setex(
+          `${REFRESH_TOKEN_PREFIX}${refreshToken}`,
+          2592000,
+          existingByEmailUser.id,
+        ),
       );
 
-      const nextStep = user.onboardingCompletedAt
-        ? user.role === "ADMIN" || user.role === "EDITOR"
+      const nextStep = existingByEmailUser.onboardingCompletedAt
+        ? existingByEmailUser.role === "ADMIN" ||
+          existingByEmailUser.role === "EDITOR"
           ? "/admin/dashboard"
           : "/player/games"
         : "/auth/onboarding";
+      const names = await UserModel.resolveUserNames(existingByEmailUser);
 
       return {
         accessToken,
         refreshToken,
         nextStep,
         user: {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role,
-          playerId: user.playerId,
+          id: existingByEmailUser.id,
+          firstName: names.firstName,
+          lastName: names.lastName,
+          email: existingByEmailUser.email,
+          role: existingByEmailUser.role,
+          playerId: existingByEmailUser.playerId,
           onboardingCompletedAt:
-            user.onboardingCompletedAt?.toISOString() ?? null,
+            existingByEmailUser.onboardingCompletedAt?.toISOString() ?? null,
         },
       };
     }
@@ -255,10 +309,12 @@ const AuthService = {
       userId: newUser.id,
       role: newUser.role,
     });
-    await redis.setex(
-      `${REFRESH_TOKEN_PREFIX}${refreshToken}`,
-      2592000,
-      newUser.id,
+    await runWithRedisRetry((redis) =>
+      redis.setex(
+        `${REFRESH_TOKEN_PREFIX}${refreshToken}`,
+        2592000,
+        newUser.id,
+      ),
     );
 
     return {
@@ -267,8 +323,8 @@ const AuthService = {
       nextStep: "/auth/onboarding",
       user: {
         id: newUser.id,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
+        firstName: newUser.firstName ?? "",
+        lastName: newUser.lastName ?? "",
         email: newUser.email,
         role: newUser.role,
         playerId: null,

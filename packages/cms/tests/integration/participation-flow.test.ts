@@ -35,7 +35,7 @@ describe("Participation flow (integration)", () => {
     });
     await prisma.user.update({
       where: { email: adminEmail },
-      data: { role: "ADMIN" },
+      data: { role: "ADMIN", registrationStatus: "APPROVED" },
     });
     const loginAdmin = await request(app)
       .post("/api/v1/auth/login")
@@ -43,14 +43,21 @@ describe("Participation flow (integration)", () => {
     adminToken = loginAdmin.body.data.accessToken;
 
     // Create player user
-    const regPlayer = await request(app).post("/api/v1/auth/register").send({
+    await request(app).post("/api/v1/auth/register").send({
       email: playerEmail,
       password: "Player!Part99",
       passwordConfirmation: "Player!Part99",
       firstName: "Player",
       lastName: "Part Test",
     });
-    playerToken = regPlayer.body.data.accessToken;
+    await prisma.user.update({
+      where: { email: playerEmail },
+      data: { registrationStatus: "APPROVED" },
+    });
+    const loginPlayer = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: playerEmail, password: "Player!Part99" });
+    playerToken = loginPlayer.body.data.accessToken;
 
     // Create a player record linked to this user
     const playerUser = await prisma.user.findUnique({
@@ -59,7 +66,7 @@ describe("Participation flow (integration)", () => {
 
     // Create opponent team
     const teamRes = await request(app)
-      .post("/api/v1/teams")
+      .post("/api/v1/opponent-teams")
       .set("Authorization", `Bearer ${adminToken}`)
       .send({ name: "Participation Opponent" });
     opponentTeamId = teamRes.body.data.id;

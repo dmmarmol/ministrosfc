@@ -3,8 +3,10 @@ import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 import StatsTableByTournament from "../../components/pages/statistics/StatsTableByTournament.vue";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
 import TournamentSelect from "~/components/pages/statistics/StatsFilters/TournamentSelect.vue";
-import PlaygroundSelect from "~/components/pages/statistics/StatsFilters/PlaygroundSelect.vue";
 import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
+import PlaygroundSelect from "~/components/pages/admin/playground/PlaygroundSelect.vue";
+import { useStatsFilters } from "~/composables/useStatsFilters";
+import { createTruthyObject } from "~/utils/object.js";
 
 definePageMeta({
   layout: "statistics-private",
@@ -28,16 +30,12 @@ const { data, pending, refresh } = await useAsyncData(
     $api<{ data: TeamStatPeriodDTO[] }>(
       "/api/v1/statistics/team/by-tournament",
       {
-        query: {
-          ...(filters.value.year ? { year: filters.value.year } : {}),
-          ...(filters.value.rivalId ? { rivalId: filters.value.rivalId } : {}),
-          ...(filters.value.tournament
-            ? { tournamentName: filters.value.tournament }
-            : {}),
-          ...(filters.value.playgroundId
-            ? { playgroundId: filters.value.playgroundId }
-            : {}),
-        },
+        query: createTruthyObject({
+          year: filters.value.year,
+          rivalId: filters.value.rivalId,
+          tournamentName: filters.value.tournament,
+          playgroundId: filters.value.playgroundId,
+        }),
       },
     ),
   { server: false },
@@ -53,10 +51,10 @@ watch(
 
 <template>
   <div>
-    <div class="flex flex-wrap gap-3 mb-6">
-      <YearSelect v-model="yearFilter" />
-      <TournamentSelect v-model="tournamentFilter" />
-      <PlaygroundSelect v-model="playgroundFilter" />
+    <div class="flex gap-3 mb-6">
+      <YearSelect v-model="yearFilter" class="w-full" />
+      <TournamentSelect v-model="tournamentFilter" class="w-full" />
+      <PlaygroundSelect v-model="playgroundFilter" class="w-full" />
     </div>
     <StatsTitle>Estadísticas por Torneo</StatsTitle>
     <StatsTableByTournament :rows="rows" :loading="pending" />

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { GameStatus, formatDate } from "@ministrosfc/shared";
 
-const props = defineProps<{
+defineProps<{
   game: {
     date: string;
     playground?: { name: string } | null;
@@ -57,12 +57,14 @@ const emit = defineEmits<{
       v-if="game.status === GameStatus.SCHEDULED && game.slug"
       class="mt-4 pt-4 border-t border-white/10"
     >
-      <button
-        class="text-sm text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+      <UButton
+        variant="link"
+        color="emerald"
+        class="text-sm font-medium"
         @click="emit('copy-signup-link')"
       >
         📋 Copiar link de convocatoria
-      </button>
+      </UButton>
     </div>
   </div>
 </template>

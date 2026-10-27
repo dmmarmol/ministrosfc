@@ -1,20 +1,20 @@
 export interface OpponentTeam {
   id: string;
   name: string;
-  logoUrl?: string | null;
-  colors?: string | null;
-  city?: string | null;
-  country?: string | null;
+  shortName?: string;
+  logoUrl?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  city?: string;
+  country?: string;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface OpponentTeamCreateDTO {
-  name: string;
-  logoUrl?: string;
-  colors?: string;
-  city?: string;
-  country?: string;
-}
+export type OpponentTeamCreatePayload = Omit<
+  OpponentTeam,
+  "id" | "createdAt" | "updatedAt"
+>;
 
-export interface OpponentTeamUpdateDTO extends Partial<OpponentTeamCreateDTO> {}
+export interface OpponentTeamUpdatePayload extends Partial<OpponentTeamCreatePayload> {}

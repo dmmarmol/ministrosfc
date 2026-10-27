@@ -2,7 +2,7 @@ import { ref, computed, type Ref } from "vue";
 import { useNuxtApp } from "nuxt/app";
 import type { GameSignupPageDTO, RosterEntry } from "@ministrosfc/shared";
 
-export function useGameSignup(gameId: Ref<string>) {
+export function useGameSignup(gameId: string) {
   const { $api } = useNuxtApp();
 
   const data = ref<GameSignupPageDTO | null>(null);
@@ -26,7 +26,7 @@ export function useGameSignup(gameId: Ref<string>) {
     error.value = null;
     try {
       const res = await $api<{ data: GameSignupPageDTO }>(
-        `/api/v1/games/${gameId.value}/signup-page`,
+        `/api/v1/games/${gameId}/signup-page`,
       );
       data.value = res.data;
     } catch (e: any) {
@@ -67,7 +67,7 @@ export function useGameSignup(gameId: Ref<string>) {
     try {
       const res = await $api<{
         data: { entry: RosterEntry; confirmedCount: number; isFull: boolean };
-      }>(`/api/v1/games/${gameId.value}/participants/signup`, {
+      }>(`/api/v1/games/${gameId}/participants/signup`, {
         method: "POST",
         body: { mode: "self" },
       });
@@ -109,7 +109,7 @@ export function useGameSignup(gameId: Ref<string>) {
     try {
       const res = await $api<{
         data: { entry: RosterEntry; confirmedCount: number; isFull: boolean };
-      }>(`/api/v1/games/${gameId.value}/participants/signup`, {
+      }>(`/api/v1/games/${gameId}/participants/signup`, {
         method: "POST",
         body: { mode: "proxy", targetPlayerId },
       });
@@ -124,16 +124,16 @@ export function useGameSignup(gameId: Ref<string>) {
   async function removeParticipant(participantId: string) {
     error.value = null;
     try {
-      await $api(
-        `/api/v1/games/${gameId.value}/participants/${participantId}`,
-        { method: "DELETE" },
-      );
+      await $api(`/api/v1/games/${gameId}/participants/${participantId}`, {
+        method: "DELETE",
+      });
       if (!data.value) return;
       const idx = data.value.roster.findIndex(
         (r) => r.participantId === participantId,
       );
       if (idx >= 0) {
         const removed = data.value.roster[idx];
+        if (!removed) return;
         data.value.roster.splice(idx, 1);
         data.value.confirmedCount = Math.max(0, data.value.confirmedCount - 1);
         data.value.isFull = false;
@@ -151,7 +151,7 @@ export function useGameSignup(gameId: Ref<string>) {
   async function unregisterSelf() {
     error.value = null;
     try {
-      await $api(`/api/v1/games/${gameId.value}/participants/self`, {
+      await $api(`/api/v1/games/${gameId}/participants/self`, {
         method: "DELETE",
       });
       if (!data.value) return;

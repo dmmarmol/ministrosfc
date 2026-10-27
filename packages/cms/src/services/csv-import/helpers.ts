@@ -5,7 +5,7 @@
 import { parse } from "csv-parse/sync";
 import { randomUUID } from "crypto";
 import { Foot, PlayerStatus } from "@prisma/client";
-import { Position } from "@ministrosfc/shared";
+import { Position, positionMap, spanishPositionMap } from "@ministrosfc/shared";
 
 // ─── CSV parsing ──────────────────────────────────────────────────────────────
 
@@ -32,7 +32,7 @@ export function parseCsv(buffer: Buffer): Record<string, string>[] {
  * that downstream `parseCsv` calls can address correctly.
  *
  * @param buf             Raw CSV buffer (any encoding parseable by csv-parse).
- * @param idColumn        Header name for the UUID column (e.g. "ID", "JugadorID").
+ * @param idColumn        Header name for the UUID column (e.g. "ID", "Apodo").
  * @param resolveColumns  Optional map of { originalHeader → newHeader } for
  *                        duplicate-column disambiguation. Applied left-to-right,
  *                        so later occurrences of the same header get a different name.
@@ -158,6 +158,49 @@ export function parseDate(raw: string): Date | null {
   return null;
 }
 
+/** Parse HH:MM into 24h UTC components. Returns null for blank/invalid. */
+export function parseTime(
+  raw: string,
+): { hours: number; minutes: number } | null {
+  if (!raw || raw.trim() === "") return null;
+
+  const match = raw.trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return null;
+
+  const hours = Number.parseInt(match[1] ?? "", 10);
+  const minutes = Number.parseInt(match[2] ?? "", 10);
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    return null;
+  }
+
+  return { hours, minutes };
+}
+
+/** Return a new UTC datetime by applying HH:MM onto an existing UTC date. */
+export function applyTimeToDate(date: Date, rawTime: string): Date {
+  const parsed = parseTime(rawTime);
+  if (!parsed) return new Date(date.getTime());
+
+  return new Date(
+    Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      parsed.hours,
+      parsed.minutes,
+      0,
+      0,
+    ),
+  );
+}
+
 /** Parse a date of birth string → "YYYY-MM-DD" string, or null. */
 export function parseDOB(raw: string): string | null {
   const d = parseDate(raw);
@@ -174,8 +217,8 @@ export function stripCountAnnotation(header: string): string {
 
 /**
  * Split a full name into firstName + lastName.
- * First whitespace-separated token → firstName; remainder → lastName.
- * Example: "Juan García López" → { firstName: "Juan", lastName: "García López" }
+ * Last whitespace-separated token → lastName; everything before → firstName.
+ * Example: "Juan García López" → { firstName: "Juan García", lastName: "López" }
  */
 export function splitName(full: string): {
   firstName: string;
@@ -183,8 +226,8 @@ export function splitName(full: string): {
 } {
   const parts = full.trim().split(/\s+/);
   if (parts.length === 1) return { firstName: parts[0]!, lastName: "-" };
-  const firstName = parts[0]!;
-  const lastName = parts.slice(1).join(" ");
+  const lastName = parts[parts.length - 1]!;
+  const firstName = parts.slice(0, -1).join(" ");
   return { firstName, lastName };
 }
 
@@ -205,32 +248,22 @@ export function mapFoot(raw: string): Foot | null {
   if (v === "ambidiestro" || v === "ambidextro") return Foot.AMBIDEXTROUS;
   return null;
 }
-const positionMap: Record<Position, string> = {
-  [Position.GK]: "GK",
-  [Position.CB]: "CB",
-  [Position.RB]: "RB",
-  [Position.LB]: "LB",
-  [Position.RWB]: "RWB",
-  [Position.LWB]: "LWB",
-  [Position.DMF]: "DMF",
-  [Position.CMF]: "CMF",
-  [Position.AMF]: "AMF",
-  [Position.RMF]: "RMF",
-  [Position.LMF]: "LMF",
-  [Position.SS]: "SS",
-  [Position.CF]: "CF",
-  [Position.RWF]: "RWF",
-  [Position.LWF]: "LWF",
-};
 
 /**
  * Map a raw position string to a position code.
  * Accepts a comma-separated list — only the first value is used.
+ * Recognises both short enum codes (e.g. "CF") and Spanish names (e.g. "Delantero").
  * Example: "Delantero, Mediocampista" → "CF"
  */
 export function mapPosition(raw: string): string | null {
   const first = raw?.split(",")[0] ?? "";
-  const v = first.trim() as Position;
+  const v = first.trim();
 
-  return positionMap[v] ?? null;
+  // Direct short-code match (e.g. "CF", "DMF")
+  if (positionMap[v as Position] !== undefined)
+    return positionMap[v as Position]!;
+
+  // Spanish name lookup (case-insensitive)
+  const enumVal = spanishPositionMap[v.toLowerCase()];
+  return enumVal !== undefined ? positionMap[enumVal]! : null;
 }

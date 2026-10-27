@@ -3,7 +3,7 @@
  * Covers: login page back button → /, onboarding back button → /login
  * Also validates open redirect prevention in onboarding (T038 / T035A)
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -61,7 +61,7 @@ describe("onboarding back button source (T037)", () => {
 
   it("uses computed backPath for the back destination", () => {
     expect(src).toContain("backPath");
-    expect(src).toContain(":to=\"backPath\"");
+    expect(src).toContain(':to="backPath"');
   });
 });
 
@@ -118,9 +118,8 @@ vi.mock("../../src/composables/useJerseyAvailability", () => ({
   }),
 }));
 
-const { default: BackButton } = await import(
-  "../../src/components/ui/BackButton.vue"
-);
+const { default: BackButton } =
+  await import("../../src/components/ui/BackButton.vue");
 const { default: LoginPage } = await import("../../src/pages/login.vue");
 
 describe("BackButton component runtime (T039)", () => {
@@ -134,7 +133,11 @@ describe("BackButton component runtime (T039)", () => {
 
   it("defaults to to='/' and label='Volver'", () => {
     const wrapper = mount(BackButton, {
-      global: { stubs: { NuxtLink: { props: ["to"], template: "<a :href='to'><slot /></a>" } } },
+      global: {
+        stubs: {
+          NuxtLink: { props: ["to"], template: "<a :href='to'><slot /></a>" },
+        },
+      },
     });
     expect(wrapper.find("a").attributes("href")).toBe("/");
     expect(wrapper.text()).toContain("Volver");

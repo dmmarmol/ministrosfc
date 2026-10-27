@@ -22,6 +22,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   (e: "update:modelValue", value: string): void;
   (e: "select", suggestion: AddressSuggestion | null): void;
+  (e: "error", error: unknown): void;
 }>();
 
 const suggestions = ref<AddressSuggestion[]>([]);
@@ -56,10 +57,11 @@ function onInput(event: Event) {
       );
       suggestions.value = result.data;
       open.value = true;
-    } catch {
+    } catch (e) {
       error.value = "No se pueden cargar sugerencias en este momento";
       suggestions.value = [];
       open.value = true;
+      emit("error", e);
     } finally {
       loading.value = false;
     }

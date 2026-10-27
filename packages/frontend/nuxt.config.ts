@@ -1,3 +1,5 @@
+import { defineNuxtConfig } from "nuxt/config";
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   future: { compatibilityVersion: 4 },
@@ -21,17 +23,11 @@ export default defineNuxtConfig({
     public: {
       apiBaseUrl:
         process.env.NUXT_PUBLIC_API_BASE_URL ?? "http://localhost:5102",
-      brandColor: process.env.NUXT_PUBLIC_BRAND_COLOR ?? "#D4AF37",
-      teamName: process.env.NUXT_PUBLIC_TEAM_NAME ?? "Ministros F.C.",
     },
   },
 
   // Server-side rendering enabled for public SEO
   ssr: true,
-
-  nitro: {
-    port: parseInt(process.env.NUXT_PORT ?? "5103", 10),
-  },
 
   // Bind the Vite dev server to the configured host.
   // Default is localhost; set NUXT_HOST=0.0.0.0 in .env.local to also accept
@@ -84,14 +80,4 @@ export default defineNuxtConfig({
     appManifest: false,
   },
 
-  colorMode: {
-    // Use an app-specific key to avoid stale values from previous runs on the same origin.
-    storageKey: "ministrosfc-color-mode",
-    preference: "light",
-    fallback: "light",
-  },
-
-  ui: {
-    colorMode: false,
-  },
 });

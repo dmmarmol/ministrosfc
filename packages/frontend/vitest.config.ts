@@ -46,10 +46,7 @@ export default defineConfig({
     alias: {
       "~": resolve(__dirname, "src"),
       "@": resolve(__dirname, "src"),
-      "#build/nuxt.config.mjs": resolve(
-        __dirname,
-        "tests/stubs/nuxt.config.mjs",
-      ),
+      "#components": resolve(__dirname, "tests/stubs/components.ts"),
     },
   },
 });

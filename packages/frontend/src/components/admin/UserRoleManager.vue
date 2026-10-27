@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { useToast } from "@nuxt/ui/composables";
 import ConfirmationModal from "../ui/ConfirmationModal.vue";
 import { useAuthStore } from "~/stores/auth";
 
-import type { AdminUserListItem } from "@ministrosfc/shared/src/types/api";
+import {
+  type AdminUserListItem,
+  type UserRole,
+  OPTION_FILTER_ALL,
+} from "@ministrosfc/shared";
+import UsersTable from "./UsersTable.vue";
 
 const authStore = useAuthStore();
 
@@ -21,6 +27,7 @@ interface Meta {
 }
 
 const { $api } = useNuxtApp();
+const toast = useToast();
 
 const users = ref<AdminUserListItem[]>([]);
 
@@ -54,41 +61,34 @@ function requestConfirmation(
   confirmationPending.value = action;
 }
 
-// --- Toast feedback ---
-const toastMessage = ref("");
-const toastType = ref<"success" | "error">("success");
-let toastTimer: ReturnType<typeof setTimeout> | null = null;
-
-function showToast(msg: string, type: "success" | "error" = "success") {
-  toastMessage.value = msg;
-  toastType.value = type;
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    toastMessage.value = "";
-  }, 3000);
-}
-
 async function executeConfirmation() {
   if (!confirmationPending.value) return;
   isConfirmationLoading.value = true;
   try {
     await confirmationPending.value();
-    showToast("Cambio aplicado correctamente.");
+    toast.add({
+      description: "Cambio aplicado correctamente.",
+      color: "success",
+    });
   } catch (e: any) {
     cancelConfirmation();
     const status = e?.response?.status ?? e?.status;
     if (status === 409) {
-      showToast(
-        "Otro administrador modificó este usuario. Recargá e intentá de nuevo.",
-        "error",
-      );
+      toast.add({
+        description:
+          "Otro administrador modificó este usuario. Recargá e intentá de nuevo.",
+        color: "error",
+      });
     } else if (status === 403) {
-      showToast(
-        e?.data?.message ?? "No tenés permisos para esta acción.",
-        "error",
-      );
+      toast.add({
+        description: e?.data?.message ?? "No tenés permisos para esta acción.",
+        color: "error",
+      });
     } else {
-      showToast("Ocurrió un error de red. Intentá de nuevo.", "error");
+      toast.add({
+        description: "Ocurrió un error de red. Intentá de nuevo.",
+        color: "error",
+      });
     }
     return;
   } finally {
@@ -138,7 +138,7 @@ async function saveEdit(userId: string) {
         actionDescription: `¿Cambiar el email de ${fullName} de "${user!.email}" a "${newEmail}"? Esto afecta sus credenciales de acceso.`,
       },
       async () => {
-        await ($api as any)(`/api/v1/admin/users/${userId}`, {
+        await $api(`/api/v1/admin/users/${userId}`, {
           method: "PATCH",
           body: { ...editFields.value },
         });
@@ -149,7 +149,7 @@ async function saveEdit(userId: string) {
   } else {
     // Non-critical edits (first/last name): inline save without confirmation
     try {
-      await ($api as any)(`/api/v1/admin/users/${userId}`, {
+      await $api(`/api/v1/admin/users/${userId}`, {
         method: "PATCH",
         body: {
           firstName: editFields.value.firstName,
@@ -157,17 +157,20 @@ async function saveEdit(userId: string) {
         },
       });
       editingUserId.value = null;
-      showToast("Perfil actualizado.");
+      toast.add({ description: "Perfil actualizado.", color: "success" });
       await fetchUsers();
     } catch (e: any) {
       const status = e?.response?.status ?? e?.status;
       if (status === 409) {
-        showToast(
-          "Conflicto: el usuario fue modificado por otro proceso.",
-          "error",
-        );
+        toast.add({
+          description: "Conflicto: el usuario fue modificado por otro proceso.",
+          color: "error",
+        });
       } else {
-        showToast(e?.data?.message ?? "Error al guardar cambios.", "error");
+        toast.add({
+          description: e?.data?.message ?? "Error al guardar cambios.",
+          color: "error",
+        });
       }
     }
   }
@@ -180,7 +183,7 @@ const meta = ref<Meta | null>(null);
 const loading = ref(false);
 const error = ref("");
 const search = ref("");
-const roleFilter = ref("");
+const roleFilter = ref<UserRole | typeof OPTION_FILTER_ALL>(OPTION_FILTER_ALL);
 const page = ref(1);
 const deleteTarget = ref<AdminUserListItem | null>(null);
 
@@ -204,7 +207,7 @@ async function fetchUsers() {
     if (roleFilter.value) params.set("role", roleFilter.value);
     if (search.value) params.set("search", search.value);
 
-    const res = await ($api as any)(`/api/v1/admin/users?${params.toString()}`);
+    const res = await $api(`/api/v1/admin/users?${params.toString()}`);
     users.value = res.data;
     meta.value = res.meta;
   } catch (e: any) {
@@ -235,7 +238,7 @@ function requestRoleChange(user: AdminUserListItem, newRole: string) {
       actionDescription: `¿Cambiar el rol de ${fullName} de ${roleLabel[user.role] ?? user.role} a ${roleLabel[newRole] ?? newRole}?`,
     },
     async () => {
-      await ($api as any)(`/api/v1/admin/users/${user.id}/role`, {
+      await $api(`/api/v1/admin/users/${user.id}/role`, {
         method: "PATCH",
         body: { role: newRole },
       });
@@ -261,7 +264,7 @@ function requestStatusToggle(user: AdminUserListItem) {
         : `¿Activar a ${fullName}? Volverá a poder inscribirse en partidos.`,
     },
     async () => {
-      await ($api as any)(`/api/v1/admin/users/${user.id}/player-status`, {
+      await $api(`/api/v1/admin/users/${user.id}/player-status`, {
         method: "PATCH",
         body: { status: newStatus },
       });
@@ -283,7 +286,7 @@ function confirmDelete(user: AdminUserListItem) {
       actionDescription: `¿Eliminar a ${fullName} y su perfil de jugador? Esta acción no se puede deshacer.`,
     },
     async () => {
-      await ($api as any)(`/api/v1/admin/users/${user.id}/player`, {
+      await $api(`/api/v1/admin/users/${user.id}/player`, {
         method: "DELETE",
       });
       deleteTarget.value = null;
@@ -317,24 +320,20 @@ onMounted(fetchUsers);
   <div>
     <!-- Filters -->
     <div class="flex flex-col sm:flex-row gap-3 mb-4">
-      <input
+      <UInput
         v-model="search"
         type="text"
         placeholder="Buscar por nombre o email…"
-        class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+        class="flex-1"
         @input="debouncedFetch"
+        size="lg"
       />
-      <select
+      <UiUserRoleSelect
         v-model="roleFilter"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-        @change="fetchUsers"
-      >
-        <option value="">Todos los roles</option>
-        <option value="ADMIN">Admin</option>
-        <option value="EDITOR">Editor</option>
-        <option value="DT">DT</option>
-        <option value="PLAYER">Player</option>
-      </select>
+        class="w-48"
+        size="lg"
+        include-all
+      />
     </div>
 
     <!-- Loading -->
@@ -347,130 +346,11 @@ onMounted(fetchUsers);
 
     <!-- User list -->
     <div v-else class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
-          <tr>
-            <th class="px-4 py-3 text-left">Usuario</th>
-            <th class="px-4 py-3 text-left">Rol</th>
-            <th class="px-4 py-3 text-left">Estado jugador</th>
-            <th class="px-4 py-3 text-right">Acciones</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-          <tr v-for="user in users" :key="user.id">
-            <td class="px-4 py-3">
-              <div v-if="editingUserId === user.id">
-                <input
-                  v-model="editFields.firstName"
-                  class="border rounded px-1 py-0.5 text-xs w-20 mr-1"
-                />
-                <input
-                  v-model="editFields.lastName"
-                  class="border rounded px-1 py-0.5 text-xs w-20 mr-1"
-                />
-                <input
-                  v-model="editFields.email"
-                  class="border rounded px-1 py-0.5 text-xs w-36"
-                />
-                <button
-                  class="ml-2 text-xs px-2 py-1 rounded bg-green-100 text-green-700"
-                  @click="saveEdit(user.id)"
-                >
-                  Guardar
-                </button>
-                <button
-                  class="ml-1 text-xs px-2 py-1 rounded bg-gray-100 text-gray-600"
-                  @click="cancelEdit"
-                >
-                  Cancelar
-                </button>
-              </div>
-              <div v-else>
-                <span
-                  class="font-medium text-gray-900 cursor-pointer underline decoration-dotted"
-                  @click="startEdit(user)"
-                >
-                  {{ user.firstName }} {{ user.lastName }}
-                </span>
-                <div class="text-xs text-gray-400">{{ user.email }}</div>
-              </div>
-            </td>
-            <td class="px-4 py-3">
-              <span
-                class="inline-block px-2 py-0.5 rounded text-xs font-semibold"
-                :class="roleBadgeClass(user.role)"
-              >
-                {{ user.role }}
-              </span>
-            </td>
-            <td class="px-4 py-3">
-              <span
-                v-if="user.player"
-                class="inline-block px-2 py-0.5 rounded text-xs font-semibold"
-                :class="
-                  user.player.status === 'ACTIVE'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-gray-100 text-gray-500'
-                "
-              >
-                {{ user.player.status === "ACTIVE" ? "Activo" : "Inactivo" }}
-              </span>
-              <span v-else class="text-xs text-gray-300">—</span>
-            </td>
-            <td class="px-4 py-3 text-right space-x-2">
-              <!-- Role change: visible for all users, disabled for current user -->
-              <select
-                class="border border-gray-300 rounded px-2 py-1 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-                :class="{
-                  'opacity-40 cursor-not-allowed':
-                    user.id === authStore.user?.id,
-                }"
-                :value="user.role"
-                :disabled="user.id === authStore.user?.id"
-                :title="
-                  user.id === authStore.user?.id
-                    ? 'No podés cambiar tu propio rol'
-                    : undefined
-                "
-                @change="
-                  requestRoleChange(
-                    user,
-                    ($event.target as HTMLSelectElement).value,
-                  )
-                "
-              >
-                <option value="PLAYER">Player</option>
-                <option value="DT">DT</option>
-                <option value="EDITOR">Editor</option>
-                <option value="ADMIN">Admin</option>
-              </select>
-
-              <!-- Toggle player status -->
-              <button
-                v-if="user.player"
-                class="text-xs px-2 py-1 rounded border"
-                :class="
-                  user.player.status === 'ACTIVE'
-                    ? 'border-orange-300 text-orange-600 hover:bg-orange-50'
-                    : 'border-green-300 text-green-600 hover:bg-green-50'
-                "
-                @click="requestStatusToggle(user)"
-              >
-                {{ user.player.status === "ACTIVE" ? "Desactivar" : "Activar" }}
-              </button>
-
-              <!-- Delete player -->
-              <button
-                v-if="user.player"
-                class="text-xs px-2 py-1 rounded border border-red-300 text-red-600 hover:bg-red-50"
-                @click="confirmDelete(user)"
-              >
-                Eliminar
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <UsersTable
+        :users="users"
+        :current-user-id="authStore.user?.id"
+        @role-change="requestRoleChange"
+      />
 
       <!-- Pagination -->
       <div
@@ -479,21 +359,23 @@ onMounted(fetchUsers);
       >
         <span>{{ meta.total }} usuarios</span>
         <div class="flex gap-2">
-          <button
+          <UButton
             :disabled="page <= 1"
-            class="px-3 py-1 border rounded disabled:opacity-40"
+            variant="outline"
+            color="neutral"
             @click="goPage(page - 1)"
           >
             ← Anterior
-          </button>
+          </UButton>
           <span class="px-2 py-1">{{ page }} / {{ meta.totalPages }}</span>
-          <button
+          <UButton
             :disabled="page >= meta.totalPages"
-            class="px-3 py-1 border rounded disabled:opacity-40"
+            variant="outline"
+            color="neutral"
             @click="goPage(page + 1)"
           >
             Siguiente →
-          </button>
+          </UButton>
         </div>
       </div>
     </div>
@@ -514,20 +396,5 @@ onMounted(fetchUsers);
         }
       "
     />
-
-    <!-- Toast feedback -->
-    <transition name="fade">
-      <div
-        v-if="toastMessage"
-        class="fixed bottom-6 left-1/2 -translate-x-1/2 text-sm px-4 py-2 rounded-lg shadow-lg z-50"
-        :class="
-          toastType === 'error'
-            ? 'bg-red-600 text-white'
-            : 'bg-gray-900 text-white'
-        "
-      >
-        {{ toastMessage }}
-      </div>
-    </transition>
   </div>
 </template>

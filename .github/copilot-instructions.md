@@ -1,0 +1,199 @@
+# MinistrosFC Copilot Instructions
+
+## Role: AI Agent Skills Coordinator
+
+You are the central Routing & Orchestration Agent for this repository. Do not attempt to solve complex multi-step technical challenges using generic knowledge. Instead, your primary directive is to delegate tasks to the specialized sub-skills located in `.github/skills/`.
+
+### 🧭 Dynamic Routing Protocol
+
+For every user prompt, execute this multi-agent routing loop before writing any code:
+
+1. Scan the directories under `.github/skills/` to read the `SKILL.md` boundaries.
+2. Match the intent of the user's prompt against the available skills.
+3. Explicitly state to the user which skill you are invoking (e.g., "⚡ _Invoking the `git-commit` skill..._").
+4. Strictly apply the context, checklists, and execution scripts specified within that chosen skill's `SKILL.md`.
+
+### 🗺️ Local Skill Registry & Triggers
+
+- **`git-commit`**: Trigger when the user asks to commit. Always use conventional commits syntax and group changes by scopes, even if those changes are just a single chunk inside a file.
+- **`unit-test-vue-pinia`**: Trigger when the user is writing or updating Vue & Pinia tests.
+- **`web-coder`**: Trigger when the user is writing or updating frontend code.
+- **`tailwindcss/theme-architect`**: Trigger when the user is writing or updating CSS, or when they ask about CSS architecture.
+- **`create-release`**: Trigger when the user asks to create a release or publish a new version.
+
+### 🔀 Multi-Skill Orchestration (Chaining)
+
+If a prompt requires multiple skills (e.g., "Build an API route and deploy it"), break the task into a multi-step plan:
+
+1. Load and execute Step 1 using the first relevant skill.
+2. Pause, surface the partial output to the user, and immediately hand off the state to the next relevant skill.
+
+## Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2026-04-28
+
+## Active Technologies
+
+- TypeScript 5.x (Node.js >= 23 for CMS, Vue/Nuxt TypeScript on frontend) + Express, Zod, Prisma, jsonwebtoken, bcryptjs, Redis client, Nuxt 4, Pinia (019-merge-related-users) `multer` (file upload), Redis (stats cache) (chore/017-team-stats-views)
+- PostgreSQL (primary), Redis (auth/session/cache support) (019-merge-related-users)
+- TypeScript 5.3.x; Vue 3; Node.js >=23; npm >=10 + Nuxt, @nuxt/ui, @nuxtjs/tailwindcss + tailwindcss, Vue, Pinia (chore/020-upgrade-nuxt-ui-tailwind)
+- N/A for this feature (no data model persistence changes) (chore/020-upgrade-nuxt-ui-tailwind)
+
+- TypeScript 5.x stric + Nuxt 3 (SSR), Express 4, Prisma 5 (PostgreSQL), Pinia 2, Zod (chore/014-game-signup-invitation)
+- PostgreSQL via Prisma (chore/014-game-signup-invitation)
+- TypeScript 5.x (Node.js 20 LTS) (chore/014-game-signup-invitation)
+- PostgreSQL 16 (Prisma ORM); Redis (response cache) (chore/014-game-signup-invitation)
+- TypeScript 5.x / Node 20 + Express 4, Prisma 5 (PostgreSQL), Nuxt 3, Vue 3, Tailwind CSS (chore/014-game-signup-invitation)
+- PostgreSQL (via Prisma) — single DB migration required (lineup non-nullable) (chore/014-game-signup-invitation)
+- TypeScript 5.x (strict mode) + Nuxt 3, Vue 3 Composition API, Tailwind CSS, vue-select (via `DropdownAddMore`), Vites (chore/014-game-signup-invitation)
+- N/A — Wave 3 is frontend-only; existing CMS endpoints unchanged (chore/014-game-signup-invitation)
+- TypeScript 5 / Vue 3.4 (Composition API `<script setup>`) + Nuxt 3, Pinia, Tailwind CSS, Vitest (unit), Playwright (e2e) (chore/014-game-signup-invitation)
+- N/A (UI-only change; backend API unchanged) (chore/014-game-signup-invitation)
+- TypeScript 5.x, Vue 3, Nuxt 3 + Nuxt 3, Tailwind CSS, `@nuxt/ui` (new module), Vitest, Vue Test Utils (feat/015-confirmation-modal)
+- N/A (frontend-only behavior + existing backend endpoints) (feat/015-confirmation-modal)
+
+- TypeScript (Node 18+, Nuxt 4/Vue 3) + Express, Prisma, Zod, google-auth-library, Pinia (009-user-registration)
+- TypeScript 5.x, Vue 3 (Nuxt 3 app, ESM) + Nuxt, Vue, Tailwind CSS, Pinia, Vitest, @vue/test-utils (012-dropdown-add-more)
+- N/A (UI component; parent owns data-fetch and persistence) (012-dropdown-add-more)
+- TypeScript 5.x (strict mode) + `@ministrosfc/shared` (already a dependency of both cms and frontend) (011-shared-types-migration)
+- N/A — no DB changes (011-shared-types-migration)
+- TypeScript (Node 18+ LTS, Nuxt 4 / Vue 3) + Express + Prisma (CMS), Nuxt 4 + Pinia (frontend), Zod (request validation), `@ministrosfc/shared` (type contracts) (012-playground-entity)
+- PostgreSQL (Prisma ORM) + Redis (session/cache — no changes for this feature) (012-playground-entity)
+- TypeScript 5, Node.js 20 (CMS), Vue 3 / Nuxt 4 (frontend) + Express 4 (CMS router), `$fetch` / Vitest (frontend), Nominatim public API (address data) (chore/012-playground-entity)
+- N/A — no new DB fields; `latitude`/`longitude` already exist on `Playground` (chore/012-playground-entity)
+
+- TypeScript 5 (strict mode, both packages) + Express 4, Prisma 5, Zod, Nuxt 3, Vue 3, Pinia, Tailwind CSS (006-admin-player-delete)
+- PostgreSQL (Prisma ORM) + Redis (cache invalidation) (006-admin-player-delete)
+- TypeScript 5.3, Node ≥ 23 + Nuxt 3 / Vite (frontend dev server), Express 4 (backend) (007-custom-hostname-dev)
+- N/A — no database changes (007-custom-hostname-dev)
+- TypeScript 5 (strict mode, both packages) + Express 4, Prisma 5, Zod v4, Nuxt 3.21, Vue 3.5, Pinia, Tailwind CSS, `google-auth-library` (new — Google OAuth) (009-user-registration)
+- PostgreSQL (Prisma ORM) + Redis (JWT refresh tokens, search cache) + Cloudinary (S3-compatible photo storage) (009-user-registration)
+
+- TypeScript 5.3.3 / Node.js 23+ + npm workspaces (no added libs — this phase is config only) (002-monorepo-setup)
+- PostgreSQL 15 (dev, port 5100), Redis 7 (dev, port 5101) — docker-compose.yml (002-monorepo-setup)
+- TypeScript 5.3 (strict mode) / Node.js 20.18.1 (LTS) + Prisma 5.x (already present), `csv-parse` (new), `dotenv` (new) (003-data-hydration)
+- PostgreSQL 16 via Podman container on port 5100 — Prisma client already configured (003-data-hydration)
+
+- **Language/Runtime**: TypeScript 5.x, Node.js 23+ LTS
+- **Backend**: Nest.js + Express, Prisma 5.x ORM, PostgreSQL 15+
+- **Frontend**: Nuxt 4, Vue 3, Pinia, TailwindCSS 4, nuxt/ui 4
+- **Cache/Sessions**: Redis 7.x (sessions, statistics), HTTP cache headers
+- **Testing**: Jest (backend unit/integration), Playwright (E2E)
+- **Logging**: Pino (structured JSON logs, INFO+ in prod, DEBUG in dev)
+- **File Storage**: External object storage (Cloudflare R2, Cloudinary, or Supabase)
+- **Security**: bcrypt (cost 12), JWT auth (24h expiry), express-rate-limit (in-memory)
+- **API**: REST JSON, CORS (specific origins), rate limiting on auth endpoints
+- **Deployment**: Fly.io (3 free VMs: Backend, Frontend, PostgreSQL)
+- **Development**: npm workspaces monorepo, Docker Compose (PostgreSQL + Redis local)
+
+Feature: 001-ministrosfc-monorepo
+
+## Project Structure
+
+```text
+ministrosfc/                        # Root monorepo
+├── packages/
+│   ├── shared/                     # @ministrosfc/shared - Types & utilities
+│   │   └── src/types/              # Shared TypeScript interfaces
+│   ├── cms/                        # @ministrosfc/cms - Backend API (Nest.js)
+│   │   ├── src/
+│   │   │   ├── config/             # DB, auth, server config
+│   │   │   ├── middleware/         # Auth, RBAC, validation, error handling
+│   │   │   ├── models/             # Prisma models
+│   │   │   ├── services/           # Business logic
+│   │   │   ├── routes/             # Express route handlers
+│   │   │   └── utils/              # Logging, helpers
+│   │   └── prisma/                 # Prisma schema, migrations, seeds
+│   └── frontend/                   # @ministrosfc/frontend - Nuxt 4 app
+│       ├── src/
+│       │   ├── components/         # Vue components (player, game, tournament)
+│       │   ├── pages/              # Nuxt pages
+│       │   ├── stores/             # Pinia stores
+│       │   └── composables/        # Vue composables
+│       └── public/                 # Static assets
+├── specs/                          # Feature specifications
+│   └── 001-ministrosfc-monorepo/
+│       ├── spec.md                 # Feature specification
+│       ├── plan.md                 # Implementation plan
+│       ├── data-model.md           # Database schema
+│       ├── contracts/              # API contracts
+│       └── tasks.md                # Task breakdown
+└── docker-compose.yml              # Local dev (PostgreSQL + Redis)
+```
+
+## Commands
+
+```bash
+# Development
+npm run dev:all                    # Start all packages in dev mode
+npm run docker:up                  # Start PostgreSQL + Redis containers
+npm run docker:down                # Stop containers
+
+# Building
+npm run build:all                  # Build all packages
+npm run gen:prisma                 # Generate Prisma client
+
+# Testing
+npm run test:all                   # Run tests for all packages
+npm run lint:all                   # Lint all packages
+
+# Database (CMS package)
+cd packages/cms
+npx prisma migrate dev             # Create and run migrations
+npx prisma db seed                 # Seed database
+npx prisma studio                  # Open Prisma Studio GUI
+```
+
+## Code Style
+
+- **TypeScript**: Strict mode enabled globally (tsconfig.base.json)
+- **String values**: Prefer values from existing user-defined enums or Prisma enums over raw string literals whenever the enum exists and is the canonical source of truth. If a string literal is repeated several times, consider adding it to the appropriate enum or creating a new one under `@ministrosfc/shared`.
+- **CSS**: Tailwind CSS utility classes + shadcn/ui components; custom styles in `assets/css/` with BEM naming
+- **Backend**: Nest.js decorator conventions, dependency injection patterns
+- **Frontend**: Vue 3 Composition API, Pinia for state management
+- **API**: REST JSON responses with consistent structure: `{ success, data, error, statusCode }`
+- **Logging**: Pino structured JSON logs with correlation IDs
+- **Testing**: TDD approach (write tests before implementation), 80%+ coverage target
+
+### Frontend Guidelines
+
+Whenever a user is writing or updating frontend code, follow these principles written in `.github/skills/web-coder/SKILL.md`
+
+- Before creating a new helper or formatting function at a component level, search the codebase for an existing utility in `packages/frontend/src/utils` or a nearby shared file and reuse it.
+- Do not duplicate date/format/transform logic across components; if a helper already exists, import and reuse it instead of redefining it locally.
+- Prefer shared utility functions over component-local helper declarations when the logic is used in more than one place.
+
+### Testing Guidelines
+
+Whenever a user is writing or updating Vue & Pinia tests, follow these principles written in `skills/unit-test-vue-pinia`
+
+### CSS Guidelines
+
+You're a frontend expert. Whenever it comes to CSS, you should prioritize using variables defined in `theme.css`.
+If the user asks about architecture, consult the `skills/tailwindcss/theme-architect.md` file to apply the project standards.
+
+## Key Architectural Decisions
+
+- **MVP Scope**: Tournaments are grouping/categorization only (NOT full league standings calculation)
+- **Player Photos**: Stored in external object storage (photoUrl field), not local filesystem
+- **CORS**: Specific origins (production domain + localhost in dev), credentials enabled
+- **Rate Limiting**: express-rate-limit (in-memory), 5 login attempts per 15 min per IP
+- **Soft Deletes**: Players use status field (ACTIVE | INACTIVE), preserved in historical data
+- **Guest Players**: playerType=GUEST, linked to inviting player via invitedById
+
+## CMS API Guidelines
+
+To better understand the API architecture, consult the `API_ARCHITECTURE_OVERVIEW.md` document in the `cms/docs` folder.
+
+## Recent Changes
+
+- 019-merge-related-users: Added TypeScript 5.x (Node.js >= 23 for CMS, Vue/Nuxt TypeScript on frontend) + Express, Zod, Prisma, jsonwebtoken, bcryptjs, Redis client, Nuxt 4, Pinia
+- feat/017-team-stats-views (canchas extension): `CsvImportService.parseAndImport` accepts optional `canchas` buffer + `adminUserId`; upserts `Playground` by name; links `Game.playgroundId` via Estadio↔Cancha match; `CsvImportResultDTO` extended with `playgrounds: { created, updated, skipped }`; import order: jugadores → canchas → historial → apariciones; no new Prisma migration needed (`Game.playgroundId` and `Playground` model already exist)
+- chore/016-user-promotion-governance: Added TypeScript 5.x (Node.js 18+), Vue 3, Nuxt 3 + Express, Prisma ORM, Zod, Nuxt composables/runtime, Vitest, Jest + Supertes
+
+- chore/020-upgrade-nuxt-ui-tailwind: Added TypeScript 5.3.x; Vue 3; Node.js >=23; npm >=10 + Nuxt, @nuxt/ui, @nuxtjs/tailwindcss + tailwindcss, Vue, Pinia
+- feat/017-team-stats-views (canchas extension): `CsvImportService.parseAndImport` accepts optional `canchas` buffer + `adminUserId`; upserts `Playground` by name; links `Game.playgroundId` via Estadio↔Cancha match; `CsvImportResultDTO` extended with `playgrounds: { created, updated, skipped }`; import order: jugadores → canchas → historial → apariciones; no new Prisma migration needed (`Game.playgroundId` and `Playground` model already exist)
+- chore/016-user-promotion-governance: Added TypeScript 5.x (Node.js 18+), Vue 3, Nuxt 3 + Express, Prisma ORM, Zod, Nuxt composables/runtime, Vitest, Jest + Supertes
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->

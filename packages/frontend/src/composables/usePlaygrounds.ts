@@ -21,15 +21,32 @@ export function usePlaygrounds() {
     return { Authorization: `Bearer ${authStore.accessToken}` };
   }
 
-  async function fetchPlaygrounds(): Promise<void> {
+  async function fetchPlayground(id: string): Promise<Playground | null> {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await $fetch<{ data: Playground }>(`${baseUrl}/${id}`);
+      return res.data;
+    } catch (err) {
+      error.value =
+        err instanceof Error ? err.message : "Error al cargar canchas";
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function fetchPlaygrounds(): Promise<Playground[]> {
     loading.value = true;
     error.value = null;
     try {
       const res = await $fetch<{ data: Playground[] }>(baseUrl);
       playgrounds.value = res.data;
+      return playgrounds.value;
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : "Error al cargar canchas";
+      return [];
     } finally {
       loading.value = false;
     }
@@ -71,6 +88,7 @@ export function usePlaygrounds() {
     playgrounds,
     loading,
     error,
+    fetchPlayground,
     fetchPlaygrounds,
     createPlayground,
     updatePlayground,

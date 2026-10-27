@@ -8,6 +8,7 @@ import { authenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/rbac";
 import { validate } from "../middleware/validation";
 import { ParticipationService } from "../services/ParticipationService";
+import { GameService } from "../services/GameService";
 import { z } from "zod";
 import { ConfirmationStatus } from "@prisma/client";
 import { createError } from "../middleware/error-handler";
@@ -27,6 +28,23 @@ const confirmSchema = z.object({
 const statusUpdateSchema = z.object({
   status: z.enum(ConfirmationStatus),
 });
+
+const participantStatsUpdateSchema = z
+  .object({
+    goalsScored: z.coerce.number().int().min(0).optional(),
+    assists: z.coerce.number().int().min(0).optional(),
+    yellowCards: z.coerce.number().int().min(0).optional(),
+    redCards: z.coerce.number().int().min(0).optional(),
+  })
+  .refine(
+    (value) =>
+      Object.values(value).some(
+        (fieldValue) => fieldValue !== undefined && fieldValue !== null,
+      ),
+    {
+      message: "At least one stat field is required",
+    },
+  );
 
 const gameIdSchema = z.object({ gameId: z.uuid() });
 const gameParticipantParamsSchema = z.object({
@@ -149,21 +167,59 @@ router.delete(
   },
 );
 
-// DELETE /api/v1/games/:gameId/participants/:participantId - Admin/Editor (T021)
-router.delete(
+// POST /api/v1/games/:gameId/participants/:participantId - Add a player to a game
+router.post(
   "/:participantId",
   authenticate,
   requireRole("EDITOR"),
   validate(gameParticipantParamsSchema, "params"),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await ParticipationService.removeParticipant(
+      const game = await GameService.addParticipantToGame(
         req.params.gameId!,
         req.params.participantId!,
-        req.user!.userId,
-        req.user!.role,
       );
-      res.status(204).end();
+      res.status(201).json({ data: game });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// PATCH /api/v1/games/:gameId/participants/:participantId/stats - Update participant game stats
+router.patch(
+  "/:participantId/stats",
+  authenticate,
+  requireRole("EDITOR"),
+  validate(gameParticipantParamsSchema, "params"),
+  validate(participantStatsUpdateSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const game = await GameService.updateParticipantStats(
+        req.params.gameId!,
+        req.params.participantId!,
+        req.body,
+      );
+      res.json({ data: game });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// PATCH /api/v1/games/:gameId/participants/:participantId - Remove a player from a game
+router.patch(
+  "/:participantId",
+  authenticate,
+  requireRole("EDITOR"),
+  validate(gameParticipantParamsSchema, "params"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const game = await GameService.removeParticipantFromGame(
+        req.params.gameId!,
+        req.params.participantId!,
+      );
+      res.json({ data: game });
     } catch (err) {
       next(err);
     }

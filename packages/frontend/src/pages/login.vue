@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useAuthStore } from "~/stores/auth";
 import LoginForm from "~/components/auth/LoginForm.vue";
 import RegisterForm from "~/components/auth/RegisterForm.vue";
 import GoogleSignInButton from "~/components/auth/GoogleSignInButton.vue";
+import PendingApprovalBanner from "~/components/auth/PendingApprovalBanner.vue";
 import BackButton from "~/components/ui/BackButton.vue";
 
 definePageMeta({ layout: false, middleware: "auth", authPage: true });
@@ -15,6 +16,7 @@ const route = useRoute();
 const isRegisterMode = ref(false);
 const loading = ref(false);
 const error = ref("");
+const pendingApprovalMessage = ref("");
 
 const GOOGLE_ERROR_MESSAGES: Record<string, string> = {
   google_cancelled: "Inicio de sesión con Google cancelado.",
@@ -30,6 +32,7 @@ const googleError = computed(() => {
 function toggleMode() {
   isRegisterMode.value = !isRegisterMode.value;
   error.value = "";
+  pendingApprovalMessage.value = "";
 }
 
 async function navigateAfterAuth() {
@@ -48,6 +51,7 @@ async function navigateAfterAuth() {
 
 async function handleLogin(payload: { email: string; password: string }) {
   error.value = "";
+  pendingApprovalMessage.value = "";
   loading.value = true;
   try {
     await authStore.login(payload.email, payload.password);
@@ -69,10 +73,12 @@ async function handleRegister(payload: {
   passwordConfirmation: string;
 }) {
   error.value = "";
+  pendingApprovalMessage.value = "";
   loading.value = true;
   try {
-    await authStore.register(payload);
-    await router.push("/auth/onboarding");
+    const result = await authStore.register(payload);
+    pendingApprovalMessage.value = result.message;
+    isRegisterMode.value = false;
   } catch (e: any) {
     error.value = e?.message ?? "Error al registrarse. Intentá de nuevo.";
   } finally {
@@ -126,6 +132,11 @@ onMounted(() => {
           :loading="loading"
           :error="error"
           @submit="handleRegister"
+        />
+
+        <PendingApprovalBanner
+          v-if="pendingApprovalMessage"
+          :message="pendingApprovalMessage"
         />
 
         <div class="relative my-2">

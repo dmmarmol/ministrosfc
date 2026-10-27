@@ -1,16 +1,61 @@
 <script setup lang="ts">
-const model = defineModel<string>({ default: "" });
+import type { SelectItem } from "#ui/types";
+import { OPTION_FILTER_ALL } from "@ministrosfc/shared";
+import { useStatisticsAvailableRivals } from "~/composables/useStatisticsAvailableRivals";
+
+const props = withDefaults(
+  defineProps<{
+    modelValue?: string | typeof OPTION_FILTER_ALL;
+    includeAll?: boolean;
+  }>(),
+  {
+    modelValue: OPTION_FILTER_ALL,
+    includeAll: false,
+  },
+);
+const emit = defineEmits<{
+  (
+    e: "update:modelValue",
+    value: string | typeof OPTION_FILTER_ALL | undefined,
+  ): void;
+}>();
+
 const { availableRivals } = useStatisticsAvailableRivals();
+
+const optionAll: SelectItem = {
+  value: OPTION_FILTER_ALL,
+  label: "Todos los rivales",
+};
+const items = computed<SelectItem[]>(() =>
+  props.includeAll
+    ? [optionAll, ...availableRivals.value]
+    : availableRivals.value,
+);
+function handleUpdate(value: SelectItem | undefined) {
+  if (typeof value === "string") {
+    emit("update:modelValue", value);
+    return;
+  }
+  if (value && typeof value === "object" && "value" in value) {
+    emit("update:modelValue", value.value as string);
+    return;
+  }
+  emit("update:modelValue", "");
+  return;
+}
 </script>
 
 <template>
-  <select
-    v-model="model"
-    class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-  >
-    <option value="">Todos los rivales</option>
-    <option v-for="r in availableRivals" :key="r.value" :value="r.value">
-      {{ r.label }}
-    </option>
-  </select>
+  <USelectMenu
+    v-bind="$attrs"
+    :model-value="modelValue"
+    @update:model-value="handleUpdate"
+    :items="items"
+    value-key="value"
+    label-key="label"
+    placeholder="Seleccionar rival"
+    :search-input="true"
+    :clear="true"
+    :ui="{ content: 'min-w-fit' }"
+  />
 </template>

@@ -1,6 +1,6 @@
 // --- Governance Helper Functions ---
 
-import { UserRole } from "@ministrosfc/shared/src/types/user";
+import { UserRole } from "@ministrosfc/shared";
 
 export function canPromote(
   actor: UserRole,
@@ -64,6 +64,7 @@ import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
 import { logger } from "../utils/logger";
 import type { Role } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 interface CreateUserDTO {
   email: string;
@@ -84,9 +85,27 @@ const UserService = {
   },
 
   async getUserById(id: string) {
-    const user = await UserModel.findById(id);
+    const user = await prisma.user.findUnique({
+      where: { id },
+      include: {
+        player: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            status: true,
+            jerseyNumber: true,
+            photoUrl: true,
+          },
+        },
+      },
+    });
     if (!user) throw createError("User not found", 404, ErrorCode.NOT_FOUND);
+    const displayFirstName = user.player?.firstName ?? user.firstName;
+    const displayLastName = user.player?.lastName ?? user.lastName;
     const { passwordHash: _, ...safeUser } = user as any;
+    safeUser.firstName = displayFirstName;
+    safeUser.lastName = displayLastName;
     return safeUser;
   },
 
@@ -109,7 +128,12 @@ const UserService = {
 
   async updateAdminUserProfile(
     userId: string,
-    updates: { firstName?: string; lastName?: string; email?: string },
+    updates: {
+      email?: string;
+      firstName?: string;
+      lastName?: string;
+      password?: string;
+    },
     expectedUpdatedAt?: string,
   ) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -130,13 +154,7 @@ const UserService = {
     }
 
     // Build update data with trimmed values
-    const data: { firstName?: string; lastName?: string; email?: string } = {};
-    if (updates.firstName !== undefined) {
-      data.firstName = updates.firstName.trim();
-    }
-    if (updates.lastName !== undefined) {
-      data.lastName = updates.lastName.trim();
-    }
+    const data: { email?: string; passwordHash?: string; firstName?: string; lastName?: string } = {};
     if (updates.email !== undefined) {
       const trimmedEmail = updates.email.trim().toLowerCase();
       // Check email uniqueness
@@ -147,6 +165,15 @@ const UserService = {
         throw createError("Email already in use", 409, ErrorCode.CONFLICT);
       }
       data.email = trimmedEmail;
+    }
+    if (updates.firstName !== undefined) {
+      data.firstName = updates.firstName.trim();
+    }
+    if (updates.lastName !== undefined) {
+      data.lastName = updates.lastName.trim();
+    }
+    if (updates.password !== undefined) {
+      data.passwordHash = await bcrypt.hash(updates.password, 12);
     }
 
     const updated = await prisma.user.update({
@@ -192,11 +219,14 @@ const UserService = {
           firstName: true,
           lastName: true,
           role: true,
+          registrationStatus: true,
           createdAt: true,
           lastLoginAt: true,
           player: {
             select: {
               id: true,
+              firstName: true,
+              lastName: true,
               status: true,
               jerseyNumber: true,
               photoUrl: true,
@@ -206,8 +236,15 @@ const UserService = {
       }),
       prisma.user.count({ where }),
     ]);
+
+    const normalizedUsers = users.map((user) => ({
+      ...user,
+      firstName: user.player?.firstName ?? user.firstName ?? "",
+      lastName: user.player?.lastName ?? user.lastName ?? "",
+    }));
+
     return {
-      data: users,
+      data: normalizedUsers,
       meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
     };
   },

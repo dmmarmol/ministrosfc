@@ -34,6 +34,8 @@ describe("Google OAuth (integration)", () => {
   beforeEach(async () => {
     await cleanDatabase();
     jest.clearAllMocks();
+    delete process.env.FRONTEND_URL;
+    delete process.env.CORS_ORIGINS;
   });
 
   describe("GET /api/v1/auth/google", () => {
@@ -225,6 +227,29 @@ describe("Google OAuth (integration)", () => {
 
       expect(res.status).toBe(302);
       expect(res.headers.location).toContain("/login?error=google_failed");
+    });
+
+    it("falls back to first CORS origin when FRONTEND_URL is unset", async () => {
+      process.env.CORS_ORIGINS =
+        "https://ministrosfc-frontend-dev.fly.dev,https://ministrosfc-frontend.fly.dev";
+      mockFns.getToken.mockRejectedValue(new Error("Token exchange failed"));
+
+      const initRes = await request(app).get("/api/v1/auth/google");
+      const cookies = initRes.headers["set-cookie"];
+      const stateCookie = Array.isArray(cookies)
+        ? cookies.find((c: string) => c.startsWith("google_oauth_state="))
+        : cookies;
+      const stateMatch = initRes.headers.location?.match(/state=([^&]+)/);
+      const state = stateMatch ? stateMatch[1] : "";
+
+      const res = await request(app)
+        .get(`/api/v1/auth/google/callback?code=bad-code&state=${state}`)
+        .set("Cookie", stateCookie || "");
+
+      expect(res.status).toBe(302);
+      expect(res.headers.location).toBe(
+        "https://ministrosfc-frontend-dev.fly.dev/login?error=google_failed",
+      );
     });
   });
 });

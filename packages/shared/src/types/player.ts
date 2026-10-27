@@ -32,6 +32,20 @@ export enum Position {
   LWF = "LWF" /** Extremo Izquierdo */,
 }
 
+/**
+ * Canonical sort order for positions, following the enum declaration order.
+ * ASC uses this order directly; DESC is the reverse.
+ */
+export const positionOrderMap: Record<Position, number> = Object.values(
+  Position,
+).reduce(
+  (acc, position, index) => {
+    acc[position] = index;
+    return acc;
+  },
+  {} as Record<Position, number>,
+);
+
 export const PositionDisplayName = {
   [Position.GK]: "Portero",
   [Position.CB]: "Defensa Central",
@@ -45,10 +59,56 @@ export const PositionDisplayName = {
   [Position.RMF]: "Mediocampista Derecho",
   [Position.LMF]: "Mediocampista Izquierdo",
   [Position.SS]: "Segundo Delantero",
-  [Position.CF]: "Delantero Centro",
   [Position.RWF]: "Extremo Derecho",
   [Position.LWF]: "Extremo Izquierdo",
+  [Position.CF]: "Delantero Centro",
 } as const;
+
+/** Maps each Position enum value to its short code string. */
+export const positionMap: Record<Position, string> = {
+  [Position.GK]: "GK",
+  [Position.CB]: "CB",
+  [Position.RB]: "RB",
+  [Position.LB]: "LB",
+  [Position.RWB]: "RWB",
+  [Position.LWB]: "LWB",
+  [Position.DMF]: "DMF",
+  [Position.CMF]: "CMF",
+  [Position.AMF]: "AMF",
+  [Position.RMF]: "RMF",
+  [Position.LMF]: "LMF",
+  [Position.SS]: "SS",
+  [Position.CF]: "CF",
+  [Position.RWF]: "RWF",
+  [Position.LWF]: "LWF",
+};
+
+/** Maps Spanish informal position names (lowercase) to their Position enum value. */
+export const spanishPositionMap: Record<string, Position> = {
+  portero: Position.GK,
+  arquero: Position.GK,
+  golero: Position.GK,
+  "defensa central": Position.CB,
+  defensa: Position.CB,
+  zaguero: Position.CB,
+  central: Position.CB,
+  "lateral derecho": Position.RB,
+  "lateral izquierdo": Position.LB,
+  "carrilero derecho": Position.RWB,
+  "carrilero izquierdo": Position.LWB,
+  "mediocampista defensivo": Position.DMF,
+  "mediocampista central": Position.CMF,
+  mediocampista: Position.CMF,
+  "mediocampista ofensivo": Position.AMF,
+  enganche: Position.AMF,
+  "mediocampista derecho": Position.RMF,
+  "mediocampista izquierdo": Position.LMF,
+  "segundo delantero": Position.SS,
+  "delantero centro": Position.CF,
+  delantero: Position.CF,
+  "extremo derecho": Position.RWF,
+  "extremo izquierdo": Position.LWF,
+};
 
 export enum Foot {
   LEFT = "LEFT",
@@ -73,6 +133,7 @@ export interface Player {
   playerType: PlayerType;
   status: PlayerStatus;
   invitedById: string | null;
+  invitedByName?: string | null;
   position: Position | null;
   jerseyNumber: number | null;
   dateOfBirth: string | null;

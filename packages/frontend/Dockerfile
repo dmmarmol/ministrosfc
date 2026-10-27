@@ -35,7 +35,7 @@ ENV API_URL_PUBLIC=$API_URL_PUBLIC
 
 # Copy node_modules from dependencies stage
 COPY --from=dependencies /app/node_modules ./node_modules
-COPY --from=dependencies /app/packages/*/node_modules ./packages/*/node_modules
+COPY --from=dependencies /app/packages/frontend/node_modules ./packages/frontend/node_modules
 
 # Copy source code
 COPY . .
@@ -60,7 +60,7 @@ RUN apk add --no-cache dumb-init curl
 
 # Copy node_modules for production (production dependencies only)
 COPY --from=dependencies /app/node_modules ./node_modules
-COPY --from=dependencies /app/packages/*/node_modules ./packages/*/node_modules
+COPY --from=dependencies /app/packages/frontend/node_modules ./packages/frontend/node_modules
 
 # Copy built application from builder stage
 COPY --from=builder /app/packages/frontend/.output ./packages/frontend/.output
@@ -79,15 +79,15 @@ COPY .env* ./
 RUN addgroup -g 1001 -S nodejs && adduser -S nuxtjs -u 1001
 USER nuxtjs
 
-# Health check (Nuxt runs on 5103 by default)
+# Health check (deploy runtime defaults to 3000; local dev still uses 5103)
 HEALTHCHECK --interval=15s --timeout=5s --retries=5 --start-period=30s \
-  CMD curl -f http://localhost:${APP_PORT:-5103}/ || exit 1
+  CMD curl -f http://localhost:${APP_PORT:-3000}/ || exit 1
 
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Expose default Nuxt port
-EXPOSE 5103
+# Expose deployed Nuxt port
+EXPOSE 3000
 
 # Start Nuxt application
 CMD ["node", "packages/frontend/.output/server/index.mjs"]

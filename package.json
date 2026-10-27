@@ -1,6 +1,6 @@
 {
   "name": "ministrosfc",
-  "version": "0.10.0",
+  "version": "0.12.0",
   "description": "Amateur football team platform - Monorepo",
   "private": true,
   "author": {
@@ -12,11 +12,12 @@
     "packages/*"
   ],
   "scripts": {
+    "prepare": "pre-commit install || true",
     "docker:up": "podman-compose up -d",
     "docker:down": "podman-compose down",
     "docker:logs": "podman-compose logs -f",
     "build:all": "npm run build --workspaces --if-present",
-    "dev:all": "concurrently --kill-others-on-fail --names \"cms,frontend\" \"npm run dev --workspace=@ministrosfc/cms\" \"npm run dev --workspace=@ministrosfc/frontend\"",
+    "dev:all": "npm run clean --workspace=@ministrosfc/frontend && concurrently --kill-others-on-fail --names \"cms,frontend\" \"npm run dev --workspace=@ministrosfc/cms\" \"npm run dev --workspace=@ministrosfc/frontend\"",
     "test:all": "npm test --workspaces --if-present",
     "gen:prisma": "npm run prisma:generate --workspace=@ministrosfc/cms",
     "db:reset": "npm run db:reset --workspace=@ministrosfc/cms",

@@ -31,7 +31,7 @@ describe("Tournament flow (integration)", () => {
     });
     await prisma.user.update({
       where: { email: adminEmail },
-      data: { role: "ADMIN" },
+      data: { role: "ADMIN", registrationStatus: "APPROVED" },
     });
     const loginRes = await request(app)
       .post("/api/v1/auth/login")
@@ -39,7 +39,7 @@ describe("Tournament flow (integration)", () => {
     adminToken = loginRes.body.data.accessToken;
 
     const teamRes = await request(app)
-      .post("/api/v1/teams")
+      .post("/api/v1/opponent-teams")
       .set("Authorization", `Bearer ${adminToken}`)
       .send({ name: "Tournament Opponent FC" });
     opponentTeamId = teamRes.body.data.id;

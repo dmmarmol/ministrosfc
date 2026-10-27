@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { formatCompetitionType } from "~/utils/stats";
+
 definePageMeta({ public: true });
 const { $api } = useNuxtApp();
 const route = useRoute();
@@ -20,10 +22,6 @@ useHead(() => ({
     ? `${tournament.value.name} – Ministros FC`
     : "Tournament",
 }));
-
-function formatFormat(fmt: string): string {
-  return fmt?.replace(/_/g, " ").toLowerCase() ?? "";
-}
 </script>
 
 <template>
@@ -40,7 +38,7 @@ function formatFormat(fmt: string): string {
       <!-- Header -->
       <div class="bg-gray-900 text-white rounded-2xl p-6 mb-8">
         <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
-          {{ formatFormat(tournament.format) }}
+          {{ formatCompetitionType(tournament.format) }}
         </p>
         <h1 class="text-2xl font-bold mb-1">{{ tournament.name }}</h1>
         <p v-if="tournament.description" class="text-gray-300 text-sm mb-4">

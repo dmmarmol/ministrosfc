@@ -1,0 +1,136 @@
+name: CMS CI/CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment (manual deploys are development only)"
+        required: true
+        default: "development"
+        type: choice
+        options:
+          - development
+  release:
+    types: [published]
+  push:
+    branches:
+      - "**"
+    paths:
+      - "packages/cms/**"
+      - "packages/shared/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/ci-cms.yml"
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - "packages/cms/**"
+      - "packages/shared/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/ci-cms.yml"
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # CMS integration tests (requires PostgreSQL)
+  # ─────────────────────────────────────────────────────────────────────────────
+  build-cms:
+    name: Build CMS
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: dev
+          POSTGRES_PASSWORD: dev123
+          POSTGRES_DB: ministrosfc_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            packages/cms/node_modules
+            packages/shared/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Cache Prisma engines
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/prisma
+            packages/cms/node_modules/.prisma
+          key: prisma-engines-${{ runner.os }}-${{ hashFiles('packages/cms/prisma/schema.prisma') }}
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --ignore-scripts
+        timeout-minutes: 10
+
+      - name: Generate Prisma client
+        working-directory: packages/cms
+        run: npx prisma generate
+
+      - name: Run CMS tests
+        working-directory: packages/cms
+        run: npm test
+        env:
+          NODE_ENV: test
+          TEST_DATABASE_URL: postgresql://dev:dev123@localhost:5432/ministrosfc_test
+          DATABASE_URL: postgresql://dev:dev123@localhost:5432/ministrosfc_test
+          JWT_SECRET: ci-test-secret-key-at-least-64-chars-long-for-ci-suite-only
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Deploy CMS
+  #   release (published) → environment: production → ministrosfc-cms
+  #   push to develop     → environment: development → ministrosfc-cms-dev
+  #   workflow_dispatch   → environment: development → ministrosfc-cms-dev
+  # Production is ONLY reachable via a published GitHub Release.
+  # ─────────────────────────────────────────────────────────────────────────────
+  deploy-cms:
+    name: Deploy CMS
+    needs: [build-cms]
+    if: |
+      github.event_name == 'release' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/develop')
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'release' && 'production' || 'development' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy CMS to Fly.io
+        run: flyctl deploy --config packages/cms/fly.toml --app ${{ secrets.CMS_APP_NAME }} --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

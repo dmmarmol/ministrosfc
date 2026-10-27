@@ -1,5 +1,6 @@
 import { computed } from "vue";
 import { useNuxtApp, useAsyncData } from "nuxt/app";
+import type { PlayerStatus, Position } from "@ministrosfc/shared";
 
 export interface PlayerContactInfo {
   id: string;
@@ -14,9 +15,9 @@ export interface Player {
   lastName: string;
   nickname?: string | null;
   jerseyNumber?: number | null;
-  position?: string | null;
+  position?: Position | null;
   photoUrl?: string | null;
-  status?: string | null;
+  status: PlayerStatus;
   playerType?: string | null;
   birthDate?: string | null;
   nationality?: string | null;

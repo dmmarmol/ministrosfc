@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { UserRole, PlayerStatus } from "@ministrosfc/shared";
+import {
+  UserRole,
+  PlayerStatus,
+  DEFAULT_DATE_LOCALE,
+} from "@ministrosfc/shared";
 
 const props = defineProps<{
   firstName: string;
@@ -21,7 +25,10 @@ const initials = computed(() =>
 
 const memberSince = computed(() => {
   const d = new Date(props.createdAt);
-  return d.toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+  return d.toLocaleDateString(DEFAULT_DATE_LOCALE, {
+    month: "long",
+    year: "numeric",
+  });
 });
 
 const roleBadgeClass = computed(() => {

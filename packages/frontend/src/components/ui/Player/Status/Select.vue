@@ -1,29 +1,30 @@
 <script setup lang="ts">
 import type { SelectItem } from "#ui/types";
-import { PLAYER_STATUS_FILTER_ALL, PlayerStatus } from "@ministrosfc/shared";
+import { OPTION_FILTER_ALL, PlayerStatus } from "@ministrosfc/shared";
+import { resolveSelectedValue } from "~/utils/object";
 
 const props = withDefaults(
   defineProps<{
-    modelValue?: PlayerStatus | typeof PLAYER_STATUS_FILTER_ALL;
+    modelValue?: PlayerStatus | typeof OPTION_FILTER_ALL;
     singlePlayer?: boolean;
     includeAll?: boolean;
   }>(),
   {
-    modelValue: PLAYER_STATUS_FILTER_ALL,
+    modelValue: OPTION_FILTER_ALL,
     singlePlayer: false,
-    includeAll: true,
+    includeAll: false,
   },
 );
 
 const emit = defineEmits<{
   (
     e: "update:modelValue",
-    value: PlayerStatus | typeof PLAYER_STATUS_FILTER_ALL | undefined,
+    value: PlayerStatus | typeof OPTION_FILTER_ALL | undefined,
   ): void;
 }>();
 
 const optionAll: SelectItem = {
-  value: PLAYER_STATUS_FILTER_ALL,
+  value: OPTION_FILTER_ALL,
   label: "Todos los estados",
 };
 const statusItems: SelectItem[] = [
@@ -36,35 +37,56 @@ const statusItems: SelectItem[] = [
     label: props.singlePlayer ? "Inactivo" : "Inactivos",
   },
 ];
-const items: SelectItem[] = props.includeAll
-  ? [optionAll, ...statusItems]
-  : statusItems;
+
+const items = computed<SelectItem[]>(() =>
+  props.includeAll ? [optionAll, ...statusItems] : statusItems,
+);
+
+const selectModelValue = computed(() => {
+  if (!props.includeAll && props.modelValue === OPTION_FILTER_ALL) {
+    return undefined;
+  }
+  return props.modelValue;
+});
+
+function emitClearedValue() {
+  emit("update:modelValue", props.includeAll ? OPTION_FILTER_ALL : undefined);
+}
 
 function handleUpdate(value: unknown) {
-  if (typeof value !== "string") {
-    emit("update:modelValue", PLAYER_STATUS_FILTER_ALL);
+  const selectedValue = resolveSelectedValue(value);
+
+  if (!selectedValue) {
+    emitClearedValue();
     return;
   }
 
-  if (value === PLAYER_STATUS_FILTER_ALL) {
-    emit("update:modelValue", PLAYER_STATUS_FILTER_ALL);
+  if (selectedValue === OPTION_FILTER_ALL && props.includeAll) {
+    emit("update:modelValue", OPTION_FILTER_ALL);
     return;
   }
 
-  if (Object.values(PlayerStatus).includes(value as PlayerStatus)) {
-    emit("update:modelValue", value as PlayerStatus);
+  if (Object.values(PlayerStatus).includes(selectedValue as PlayerStatus)) {
+    emit("update:modelValue", selectedValue as PlayerStatus);
     return;
   }
 
-  emit("update:modelValue", PLAYER_STATUS_FILTER_ALL);
+  emitClearedValue();
 }
 </script>
 
 <template>
-  <USelect
-    :model-value="props.modelValue"
+  <USelectMenu
+    v-bind="$attrs"
+    :model-value="selectModelValue"
     @update:model-value="handleUpdate"
-    class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-48"
+    @clear="emitClearedValue"
+    :clear="props.includeAll || undefined"
     :items="items"
+    value-key="value"
+    label-key="label"
+    :search-input="false"
+    placeholder="Todos los estados"
+    :ui="{ content: 'min-w-fit' }"
   />
 </template>

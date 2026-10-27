@@ -70,6 +70,7 @@ All services run via **PODMAN** with **docker-compose.yml** for orchestration.
 | **Testing**        | Jest               | Latest  | Unit and integration testing                              |
 | **API Docs**       | Swagger/OpenAPI    | 7.x     | Auto-generated interactive API documentation              |
 | **Linting**        | ESLint + Prettier  | Latest  | Code quality                                              |
+| **Icons**          | Iconify            | Latest  | https://icon-sets.iconify.design/mdi/page-2.html          |
 
 ### Architecture
 

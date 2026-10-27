@@ -1,16 +1,10 @@
 import { TournamentModel } from "../models/Tournament";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
-
-interface TournamentCreateDTO {
-  name: string;
-  competitionType: string;
-  description?: string;
-  startDate: string;
-  endDate: string;
-}
-
-interface TournamentUpdateDTO extends Partial<TournamentCreateDTO> {}
+import type {
+  TournamentCreatePayload,
+  TournamentUpdatePayload,
+} from "@ministrosfc/shared";
 
 interface SearchOptions {
   competitionType?: string;
@@ -19,7 +13,7 @@ interface SearchOptions {
 }
 
 const TournamentService = {
-  async createTournament(dto: TournamentCreateDTO) {
+  async createTournament(dto: TournamentCreatePayload) {
     const start = new Date(dto.startDate);
     const end = new Date(dto.endDate);
     if (start >= end) {
@@ -53,7 +47,7 @@ const TournamentService = {
     return TournamentModel.findMany(options);
   },
 
-  async updateTournament(id: string, dto: TournamentUpdateDTO) {
+  async updateTournament(id: string, dto: TournamentUpdatePayload) {
     await TournamentService.getTournamentById(id);
     const data: any = {};
     if (dto.name) data.name = dto.name;

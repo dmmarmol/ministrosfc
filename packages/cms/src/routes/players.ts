@@ -5,7 +5,7 @@ import {
   type NextFunction,
 } from "express";
 import multer from "multer";
-import { authenticate } from "../middleware/auth";
+import { authenticate, optionalAuthenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/rbac";
 import {
   validate,
@@ -14,7 +14,8 @@ import {
 } from "../middleware/validation";
 import { PlayerService } from "../services/PlayerService";
 import { z } from "zod";
-import { PLAYER_STATUS_FILTER_ALL } from "@ministrosfc/shared";
+import { OPTION_FILTER_ALL } from "@ministrosfc/shared";
+import type { PlayerCreateDTO } from "@ministrosfc/shared";
 import { PlayerType, PlayerStatus } from "@prisma/client";
 import { logger } from "../utils/logger";
 
@@ -68,48 +69,89 @@ const playerStatusSchema = z.object({
   status: z.enum(PlayerStatus),
 });
 
+const playerExtendSchema = z.preprocess(
+  (value) => {
+    if (value === undefined) return [];
+    return Array.isArray(value) ? value : [value];
+  },
+  z.array(z.enum(["invitedById", "invitedByName"])).default([]),
+);
+
 const playerFilterSchema = paginationSchema.extend({
-  status: z
-    .union([z.enum(PlayerStatus), z.literal(PLAYER_STATUS_FILTER_ALL)])
-    .optional(),
+  status: z.preprocess(
+    (value) => (value === "" ? OPTION_FILTER_ALL : value),
+    z.union([z.enum(PlayerStatus), z.literal(OPTION_FILTER_ALL)]).optional(),
+  ),
   position: z.string().optional(),
   search: z.string().optional(),
   playerType: z.enum(PlayerType).optional(),
+  extend: playerExtendSchema,
 });
 
 // GET /api/v1/players - Public
-router.get("/", async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const query = playerFilterSchema.parse(req.query);
-    const { status, position, search, playerType } = query;
-    const effectiveStatus =
-      status === PLAYER_STATUS_FILTER_ALL
-        ? null
-        : status ?? PlayerStatus.ACTIVE;
+router.get(
+  "/",
+  optionalAuthenticate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = playerFilterSchema.parse(req.query);
+      const { status, position, search, playerType, extend } = query;
+      const hasExtend = extend.length > 0;
 
-    const result = await PlayerService.searchPlayers({
-      status: effectiveStatus,
-      position,
-      search,
-      playerType,
-      page: query.page,
-      limit: query.limit,
-    });
+      if (hasExtend && !req.user) {
+        res.status(401).json({
+          code: "UNAUTHORIZED",
+          message: "Authentication required when using extend",
+          statusCode: 401,
+        });
+        return;
+      }
 
-    res.setHeader("Cache-Control", "public, max-age=300");
-    res.json({
-      data: result.players,
-      meta: {
-        total: result.total,
-        page: result.page,
-        limit: result.limit,
-        totalPages: result.totalPages,
-      },
-    });
-  } catch (err) {
-    next(err);
-  }
-});
+      if (
+        hasExtend &&
+        req.user &&
+        req.user.role !== "ADMIN" &&
+        req.user.role !== "EDITOR"
+      ) {
+        res.status(403).json({
+          code: "FORBIDDEN",
+          message: "Insufficient permissions to use extend",
+          statusCode: 403,
+        });
+        return;
+      }
+
+      const effectiveStatus =
+        status === OPTION_FILTER_ALL ? null : (status ?? PlayerStatus.ACTIVE);
+
+      const result = await PlayerService.searchPlayers({
+        status: effectiveStatus,
+        position,
+        search,
+        playerType,
+        page: query.page,
+        limit: query.limit,
+        extend,
+      });
+
+      res.setHeader(
+        "Cache-Control",
+        hasExtend ? "private, no-store" : "public, max-age=300",
+      );
+      res.json({
+        data: result.players,
+        meta: {
+          total: result.total,
+          page: result.page,
+          limit: result.limit,
+          totalPages: result.totalPages,
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 // GET /api/v1/players/:id - Public
 router.get(
@@ -174,7 +216,7 @@ router.patch(
 
       const player = await PlayerService.updatePlayer(
         req.params.id!,
-        dto,
+        dto as Partial<PlayerCreateDTO>,
         photoFile,
       );
       res.json({ data: player });

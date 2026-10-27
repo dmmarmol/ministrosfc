@@ -1,6 +1,7 @@
 import { computed } from "vue";
 import { useNuxtApp, useAsyncData } from "nuxt/app";
 import { toValue, type MaybeRefOrGetter } from "vue";
+import { type PlayerStatsResponse } from "@ministrosfc/shared";
 
 export interface PlayerStats {
   appearances: number;
@@ -9,12 +10,6 @@ export interface PlayerStats {
   yellowCards: number;
   redCards: number;
   totalMinutes: number;
-}
-
-export interface PlayerStatsResponse {
-  player: Record<string, unknown>;
-  stats: PlayerStats;
-  availableYears: number[];
 }
 
 export function useGetPlayerStatsById(

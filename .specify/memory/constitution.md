@@ -1,19 +1,24 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.9.1 → 1.9.2 (PATCH — Git conventions: semantic commit grouping rule added)
+Version change: 1.10.1 → 1.11.0 (MINOR — CMS domain architecture + type/validation reuse policy)
 Ratified: 2026-03-17
-Last Amended: 2026-04-19
+Last Amended: 2026-05-08
 
-Amendment: Git Commit Conventions extended with a new "Semantic Commit Grouping"
-sub-rule. Files MUST be staged and committed in groups of semantic value; mixing
-unrelated changes in a single commit is forbidden.
+Amendment: Added a mandatory CMS domain architecture rule for `packages/cms`
+that centralizes domain-local types and reusable Zod validation schemas under
+`src/types/<domain>/` for model/service/route reuse. This establishes a single
+source of truth for CMS domain contracts while preserving Principle VII for
+cross-package contracts in `@ministrosfc/shared`.
 
 Modified sections:
-  ✅ Git and Commit Conventions — added "Semantic Commit Grouping" sub-rule
-  ✅ Code Review Standards — new gate: commits must not mix unrelated file changes
+  ✅ Principle VII: Shared Types and Cross-Package Contracts — added CMS domain-local type architecture and validation reuse rules
+  ✅ File Organization — added canonical `packages/cms/src/types/<domain>/` layout
+  ✅ Code Review Standards — added CMS type/validation single-source gate
 
 Prior amendments (preserved):
+  ✅ v1.10.1 — public-repo secret hygiene rule
+  ✅ v1.9.2 — Git Commit Conventions: semantic commit grouping rule
   ✅ v1.9.0 — Package Version Management: git tag MUST be created on every version bump
   ✅ v1.8.0 — Principle V: Page Meta Declaration sub-rule
   ✅ v1.7.0 — Principle V: Page Component Decomposition sub-rule
@@ -21,6 +26,16 @@ Prior amendments (preserved):
   ✅ v1.5.0 — Branch naming convention updated
   ✅ v1.4.0 — Package version bump prompt
   ✅ v1.3.0 — Speckit Workflow Continuity mandate
+
+Templates requiring updates:
+  ✅ updated: .specify/templates/plan-template.md
+  ✅ updated: .specify/templates/tasks-template.md
+  ✅ updated: .specify/templates/spec-template.md
+  ⚠ pending: .specify/templates/commands/*.md (directory not present in repository)
+
+Runtime guidance docs:
+  ✅ reviewed: README.md (no constitution-reference changes required)
+  ✅ reviewed: packages/cms/README.md (no constitution-reference changes required)
 
 Follow-up TODOs:
   - Migrate ProfileData (packages/frontend/src/composables/useProfile.ts)
@@ -33,7 +48,7 @@ Follow-up TODOs:
 
 # Ministros FC Constitution
 
-**Version**: 1.9.2 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-04-19
+**Version**: 1.11.0 | **Ratified**: 2026-03-17 | **Last Amended**: 2026-05-08
 
 This constitution establishes the architectural principles, development workflows, and governance rules for the Ministros FC platform—an amateur football team management system. It serves as the authoritative source of truth for all engineering decisions.
 
@@ -279,9 +294,76 @@ calls outside `useQueryParams` as a constitution violation
 
 **Enforcement:** TypeScript project references (`tsconfig.json`), ESLint `no-restricted-imports` rule (future), code review gate, @TODO resolution required before spec close
 
+#### CMS Domain Type Architecture and Validation Reuse (NON-NEGOTIABLE)
+
+**MUST** centralize domain-local contracts in `packages/cms/src/types/<domain>/` and reuse them across route, service, and model layers.
+
+- Any type used by both `packages/cms/src/services/*` and `packages/cms/src/models/*` MUST be defined in a domain module under `packages/cms/src/types/<domain>/`.
+- Any Zod schema used to validate route query/body/params for a CMS domain MUST be defined in `packages/cms/src/types/<domain>/queries.ts` and imported by route handlers; route files MUST NOT keep duplicate inline schema definitions for reusable filters.
+- Domain modules MUST expose an `index.ts` barrel and should separate concerns into:
+  - `queries.ts` (request filters and validation schemas)
+  - `responses.ts` (domain response DTOs)
+  - `internal.ts` (model/service internal aggregation types)
+- `packages/cms/src/types/index.ts` MUST re-export domain barrels for discoverability.
+- Cross-package contracts still belong to `@ministrosfc/shared` per Principle VII. `packages/cms/src/types/<domain>/` is for CMS-internal reuse only.
+- A type or schema duplicated across route/service/model in the same domain is a constitution violation unless explicitly justified in plan.md Complexity Tracking.
+
+**Rationale:** Inline payload/filter typing in multiple layers drifts quickly and causes silent behavior mismatches between validation and query logic. Domain-local centralized contracts keep route validation, service signatures, and model filters aligned while still promoting true cross-package contracts to `@ministrosfc/shared`.
+
+**Examples:**
+
+- ✅ Good: `packages/cms/src/types/statistics/queries.ts` exports `teamStatsQuerySchema` and `TeamStatsFiltersByRival`; both `routes/statistics.ts` and `services/StatisticsService.ts` import the same definitions
+- ✅ Good: `packages/cms/src/types/statistics/internal.ts` defines aggregate rows consumed by both `services` and `models`
+- ❌ Bad: `routes/statistics.ts` defines `teamStatsQuerySchema` inline while `services/StatisticsService.ts` and `models/Statistics.ts` redeclare the same filter shape separately
+- ❌ Bad: moving CMS-only internal helper types into `@ministrosfc/shared` without cross-package consumers
+
+**Enforcement:** Constitution Check gates in plan-template.md, setup/foundational tasks in tasks-template.md, and PR review gate in Code Review Standards
+
 ---
 
-## Development Stack and Constraints
+### VIII. Changelog Management
+
+**MUST** maintain both a root project changelog and a per-package changelog for every workspace package.
+
+#### Root Changelog (`CHANGELOG.md` at repo root)
+
+- Serves as the **authoritative project-level release log** covering all packages and all features.
+- MUST document every version with high-level summaries of what changed, grouped by version tag.
+- Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) with sections: `Added`, `Changed`, `Fixed`, `Removed`.
+- MUST be updated as part of every version bump commit — no version bump without a root changelog entry.
+
+#### Per-Package Changelogs (`packages/*/CHANGELOG.md`)
+
+- Every workspace package (`packages/cms`, `packages/frontend`, `packages/shared`) MUST have its own `CHANGELOG.md` at its root.
+- Per-package changelogs document **only the changes relevant to that package** at each version — not cross-package entries.
+- MUST mirror the same version tags as the root changelog for the versions that affected that package.
+- An `## [Unreleased]` section MUST be maintained at the top and promoted to a versioned entry on every release.
+- Package changelogs SHOULD reference the root changelog for full project context.
+
+#### Release Process Integration
+
+- On every version bump:
+  1. Promote `## [Unreleased]` → `## [X.Y.Z] — YYYY-MM-DD` in the root `CHANGELOG.md`.
+  2. Do the same in each `packages/*/CHANGELOG.md` that has unreleased entries.
+  3. Add a fresh empty `## [Unreleased]` section above the new versioned entry in all files.
+  4. Commit all changelog updates together with the version bump in a single atomic commit.
+- **MUST NOT** bump a package version without updating its `CHANGELOG.md`.
+- **MUST NOT** update a `CHANGELOG.md` in a separate commit from the version bump it documents.
+
+**Context:** Per-package changelogs enable consumers of individual packages to track their exact
+upgrade surface. The root changelog gives maintainers and stakeholders a single-document view
+of the project's release history. Without both layers, version bumps lose traceability.
+
+**Examples:**
+
+- ✅ Good: Version bump commit touches `package.json`, `packages/cms/CHANGELOG.md`, and root `CHANGELOG.md` atomically.
+- ✅ Good: `packages/shared/CHANGELOG.md` lists only type additions; root `CHANGELOG.md` cross-references the same release with full context.
+- ❌ Bad: Version bumped in `package.json` with no changelog entry anywhere.
+- ❌ Bad: Root changelog updated but `packages/cms/CHANGELOG.md` left at the old version with stale `[Unreleased]` content.
+- ❌ Bad: Changelog update committed separately from the version bump.
+
+**Enforcement:** Code review gate (see Code Review Standards); treat a version bump without a
+corresponding changelog update as a constitution violation.
 
 ### Technology Standards
 
@@ -348,6 +430,28 @@ packages/frontend/
     └── routes/
 ```
 
+For `packages/cms` (domain-contract structure):
+
+```
+packages/cms/
+└── src/
+  ├── routes/
+  ├── services/
+  ├── models/
+  └── types/
+    ├── index.ts
+    ├── statistics/
+    │   ├── index.ts
+    │   ├── queries.ts
+    │   ├── responses.ts
+    │   └── internal.ts
+    └── <domain>/
+      ├── index.ts
+      ├── queries.ts
+      ├── responses.ts
+      └── internal.ts
+```
+
 ### Naming Conventions
 
 - **Components**: PascalCase (`PlayerCard.tsx`, `RosterForm.tsx`)
@@ -398,7 +502,7 @@ packages/frontend/
    - Squash merge to main (one commit per feature)
    - Verify deployment in staging
    - Tag release version for production
-   - Update CHANGELOG
+   - Update root `CHANGELOG.md` and affected per-package `CHANGELOG.md` files
 
 ### Speckit Workflow Continuity
 
@@ -445,8 +549,9 @@ a constitution violation in PR reviews.
   > **A) Minor** (X.Y+1.0) — new feature or capability
   > **B) Patch** (X.Y.Z+1) — improvement, fix, or refinement
   > **C) Skip** — do not bump version now"
-- If the user chooses A or B, the agent MUST update the `version` field in the **root** `package.json`
-  and commit the change together with the spec (or as a follow-up commit on the same branch).
+- If the user chooses A or B, the agent MUST update the `version` field in the **root** `package.json`,
+  update the root `CHANGELOG.md` and any relevant `packages/*/CHANGELOG.md` (promoting `[Unreleased]`
+  to the new version), and commit all changes together.
 - **MUST** create an annotated git tag matching the new version immediately after the version commit:
   ```bash
   git tag -a vX.Y.Z -m "Release vX.Y.Z"
@@ -519,6 +624,7 @@ chore(deps): upgrade typescript to 5.x
 - Disabled tests or skipped tests in main
 - Console.log() statements (use proper logging)
 - Secrets or credentials
+- Hardcoded default credentials (e.g., seed/admin emails or passwords)
 - Commented-out code (delete or explain in commit message)
 
 #### Semantic Commit Grouping (NON-NEGOTIABLE)
@@ -560,12 +666,14 @@ commits enable per-change revert, cherry-pick, and pinpointed blame.
 - [ ] Naming conventions followed
 - [ ] New code has adequate tests
 - [ ] Breaking changes are documented
-- [ ] CHANGELOG updated if user-facing
+- [ ] **Changelog updated**: root `CHANGELOG.md` updated for any user-facing change; per-package `CHANGELOG.md` updated for any change to that package
 - [ ] Types used by more than one package are defined in `@ministrosfc/shared`, not duplicated locally
+- [ ] **CMS domain contracts**: Any reusable route/service/model type or Zod filter schema in `packages/cms` is centralized under `packages/cms/src/types/<domain>/` and imported (no duplicate inline declarations)
 - [ ] **Page decomposition (Principle V)**: No `pages/` file contains inline template blocks exceeding ~30 lines; feature areas extracted to `components/pages/<feature-path>/`
 - [ ] **Page meta declaration (Principle V)**: Every `pages/` file has a `definePageMeta` call with explicit visibility; public pages use `definePageMeta({ public: true })`
 - [ ] **URL query params (Principle VI)**: All query-param reads use `useQueryParams().get(key)`; all writes use `useQueryParams().set/remove()`; no direct `router.push({ query })` calls outside the composable
 - [ ] **Semantic commit grouping (Git Conventions)**: Each commit in the branch represents one coherent unit of change; commits mixing unrelated files MUST be flagged and rebased before merge
+- [ ] **Public-repo secret hygiene**: No hardcoded credentials in source/workflows (including seed defaults); runtime credentials loaded from env vars or protected GitHub/Fly secrets
 
 **Review focus areas:**
 

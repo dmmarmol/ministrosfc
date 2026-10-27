@@ -1,3 +1,4 @@
+import type { SelectItem } from "#ui/types";
 import { computed, toRef } from "vue";
 import type { MaybeRef } from "vue";
 
@@ -21,7 +22,7 @@ export function useStatisticsAvailableYears(enabled: MaybeRef<boolean> = true) {
     { server: false, watch: [isEnabled] },
   );
 
-  const availableYears = computed(() =>
+  const availableYears = computed((): SelectItem[] =>
     (data.value?.data ?? []).map((y) => ({
       value: String(y),
       label: String(y),

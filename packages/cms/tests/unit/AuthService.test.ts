@@ -1,5 +1,6 @@
 import { AuthService } from "../../src/services/AuthService";
 import { UserModel } from "../../src/models/User";
+import { RegistrationStatus } from "@ministrosfc/shared";
 import jwt from "jsonwebtoken";
 
 const mockRedis = {
@@ -16,6 +17,13 @@ jest.mock("../../src/config/redis", () => ({
 jest.mock("../../src/models/User");
 
 describe("AuthService", () => {
+  beforeEach(() => {
+    (UserModel.resolveUserNames as jest.Mock).mockImplementation(async (user) => ({
+      firstName: user.firstName,
+      lastName: user.lastName,
+    }));
+  });
+
   afterEach(() => jest.clearAllMocks());
 
   describe("generateTokens", () => {
@@ -74,7 +82,7 @@ describe("AuthService", () => {
   });
 
   describe("register", () => {
-    it("creates a PLAYER role user with firstName/lastName and returns nextStep", async () => {
+    it("creates a PLAYER role user and returns pending approval payload", async () => {
       (UserModel.findByEmail as jest.Mock).mockResolvedValue(null);
       const created = {
         id: "u2",
@@ -93,13 +101,14 @@ describe("AuthService", () => {
         firstName: "New",
         lastName: "User",
       });
-      expect(res.user.role).toBe("PLAYER");
-      expect(res.user.firstName).toBe("New");
-      expect(res.user.lastName).toBe("User");
-      expect(res.user.onboardingCompletedAt).toBeNull();
-      expect(res.nextStep).toBe("/auth/onboarding");
+      expect(res.status).toBe("pending");
+      expect(res.message).toContain("pendiente de aprobación");
+      expect(res.userId).toBe("u2");
       expect((UserModel.create as jest.Mock).mock.calls[0][0].role).toBe(
         "PLAYER",
+      );
+      expect((UserModel.create as jest.Mock).mock.calls[0][0].registrationStatus).toBe(
+        RegistrationStatus.PENDING_APPROVAL,
       );
     });
 
@@ -121,13 +130,13 @@ describe("AuthService", () => {
         firstName: "Default",
         lastName: "Role",
       });
-      expect(res.user.role).toBe("PLAYER");
+      expect(res.status).toBe("pending");
       expect((UserModel.create as jest.Mock).mock.calls[0][0].role).toBe(
         "PLAYER",
       );
     });
 
-    it("stores refresh token in Redis", async () => {
+    it("does not store refresh token in Redis on register", async () => {
       (UserModel.findByEmail as jest.Mock).mockResolvedValue(null);
       (UserModel.create as jest.Mock).mockResolvedValue({
         id: "u3",
@@ -145,12 +154,8 @@ describe("AuthService", () => {
         firstName: "Redis",
         lastName: "Test",
       });
-      expect(mockRedis.setex).toHaveBeenCalledWith(
-        expect.stringContaining("session:refresh:"),
-        2592000,
-        "u3",
-      );
-      expect(res.refreshToken).toBeTruthy();
+      expect(res.status).toBe("pending");
+      expect(mockRedis.setex).not.toHaveBeenCalled();
     });
 
     it("throws 409 when email already in use", async () => {

@@ -2,7 +2,8 @@
 // PostgreSQL database schema for the Ministros FC platform
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -76,6 +77,17 @@ enum ConfirmationStatus {
   DECLINED
 }
 
+enum RegistrationStatus {
+  PENDING_APPROVAL
+  APPROVED
+  DENIED
+}
+
+enum ApprovalDecisionType {
+  APPROVE_NO_MERGE
+  APPROVE_WITH_MERGE
+}
+
 // ─────────────────────────────────────────
 // USER
 // ─────────────────────────────────────────
@@ -84,13 +96,17 @@ model User {
   id              String    @id @default(uuid())
   email           String    @unique
   passwordHash    String?
-  firstName       String    @db.VarChar(255)
-  lastName        String    @db.VarChar(255)
+  firstName       String?   @db.VarChar(255)
+  lastName        String?   @db.VarChar(255)
   googleSubjectId String?   @unique
   role            Role      @default(PLAYER)
+  registrationStatus RegistrationStatus @default(PENDING_APPROVAL)
   player          Player?   @relation(fields: [playerId], references: [id], onDelete: SetNull)
   playerId        String?   @unique
   onboardingCompletedAt DateTime?
+
+  approvalDecisions         UserApprovalDecision[] @relation("ApprovedUserDecisions")
+  reviewedApprovalDecisions UserApprovalDecision[] @relation("ReviewerDecisions")
 
   playgroundsCreated Playground[] @relation("PlaygroundCreatedBy")
   playgroundsUpdated Playground[] @relation("PlaygroundUpdatedBy")
@@ -101,7 +117,23 @@ model User {
 
   @@index([email])
   @@index([role])
+  @@index([registrationStatus])
   @@index([googleSubjectId])
+}
+
+model UserApprovalDecision {
+  id           String               @id @default(uuid())
+  user         User                 @relation("ApprovedUserDecisions", fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  reviewer     User                 @relation("ReviewerDecisions", fields: [reviewerId], references: [id], onDelete: Restrict)
+  reviewerId   String
+  decisionType ApprovalDecisionType
+  mergePlayerId String?
+  createdAt    DateTime             @default(now())
+
+  @@index([userId])
+  @@index([reviewerId])
+  @@index([createdAt])
 }
 
 // ─────────────────────────────────────────
@@ -164,12 +196,15 @@ model Contact {
 // ─────────────────────────────────────────
 
 model OpponentTeam {
-  id      String  @id @default(uuid())
-  name    String  @unique @db.VarChar(255)
-  logoUrl String?
-  colors  String? @db.VarChar(100)
-  city    String? @db.VarChar(255)
-  country String? @db.VarChar(100)
+  id             String  @id @default(uuid())
+  name           String  @unique @db.VarChar(255)
+  shortName      String? @db.VarChar(10)
+  logoUrl        String?
+  primaryColor   String? @db.VarChar(50)
+  secondaryColor String? @db.VarChar(50)
+  city           String? @db.VarChar(255)
+  country        String? @db.VarChar(100)
+  notes          String? @db.Text
 
   games Game[] @relation("OpponentGames")
 

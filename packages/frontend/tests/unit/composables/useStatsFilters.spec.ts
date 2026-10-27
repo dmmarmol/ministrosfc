@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { useQueryParams } from "../../../src/composables/useQueryParams";
 import {
   useStatsFilters,
   type StatsFilters,
@@ -7,14 +6,15 @@ import {
 
 type MockRoute = { query: Partial<Record<keyof StatsFilters, string>> };
 
-const pushMock = vi.fn();
-const mockRoute: MockRoute = { query: {} };
+const { pushMock, mockRoute } = vi.hoisted(() => ({
+  pushMock: vi.fn(),
+  mockRoute: { query: {} } as MockRoute,
+}));
 
-// Stub Nuxt auto-imports as globals (composables call these without explicit imports)
-vi.stubGlobal("useRoute", () => mockRoute);
-vi.stubGlobal("useRouter", () => ({ push: pushMock }));
-// Real useQueryParams implementation — it will pick up the mocked useRoute/useRouter globals
-vi.stubGlobal("useQueryParams", useQueryParams);
+vi.mock("vue-router", () => ({
+  useRoute: () => mockRoute,
+  useRouter: () => ({ push: pushMock }),
+}));
 
 describe("useStatsFilters", () => {
   beforeEach(() => {

@@ -10,8 +10,8 @@ process.env.DATABASE_URL = TEST_DB_URL;
 process.env.NODE_ENV = "test";
 process.env.JWT_SECRET =
   "test-secret-key-at-least-64-chars-long-for-test-suite-only-do-not-use";
-process.env.REDIS_HOST = "localhost";
-process.env.REDIS_PORT = "5101";
+// Do not override REDIS_HOST/REDIS_PORT here — env-setup.js already sets them
+// respecting CI env vars (6379) with fallback to local dev (5101).
 
 const prisma = new PrismaClient({ datasources: { db: { url: TEST_DB_URL } } });
 
@@ -20,9 +20,11 @@ export async function cleanDatabase() {
     prisma.gameParticipant.deleteMany(),
     prisma.statistics.deleteMany(),
     prisma.game.deleteMany(),
+    prisma.playground.deleteMany(),
     prisma.player.deleteMany(),
     prisma.opponentTeam.deleteMany(),
     prisma.tournament.deleteMany(),
+    prisma.userApprovalDecision.deleteMany(),
     prisma.user.deleteMany(),
   ]);
 }

@@ -1,8 +1,19 @@
 import { prisma } from "../../config/database";
 import { ConfirmationStatus, PlayerStatus, PlayerType } from "@prisma/client";
 import type { CsvImportResultDTO } from "@ministrosfc/shared";
+import { logger } from "../../utils/logger";
 import { parseCsv, parseDate, splitName, ensureExternalIds } from "./helpers";
 import { AparicionesCols } from "./column-maps";
+
+export interface AparicionesProgress {
+  processedRows: number;
+  totalRows: number;
+  elapsedMs: number;
+  created: number;
+  updated: number;
+  skipped: number;
+  warnings: number;
+}
 
 /**
  * Parse apariciones.csv and upsert GameParticipant records.
@@ -17,6 +28,7 @@ export async function importApariciones(
   result: CsvImportResultDTO,
   warnings: string[],
   playerNameToId: Map<string, string>,
+  onProgress?: (progress: AparicionesProgress) => void,
 ): Promise<void> {
   // Ensure every row has a stable JugadorID UUID.
   // Also disambiguates the duplicate "Jugador" header (col 5 = full name, col 6 = nickname → JugadorNickname).
@@ -24,8 +36,28 @@ export async function importApariciones(
     { header: "Jugador", occurrenceIndex: 1, newName: "JugadorNickname" },
   ]);
   const rows = parseCsv(normalised);
+  const totalRows = rows.length;
+  const stageStartMs = Date.now();
+  const progressEveryRows = 100;
 
-  for (const row of rows) {
+  const emitProgress = (processedRows: number): void => {
+    const progress: AparicionesProgress = {
+      processedRows,
+      totalRows,
+      elapsedMs: Date.now() - stageStartMs,
+      created: result.appearances.created,
+      updated: result.appearances.updated,
+      skipped: result.appearances.skipped,
+      warnings: warnings.length,
+    };
+
+    logger.info(progress, "CSV import apariciones progress");
+    onProgress?.(progress);
+  };
+
+  emitProgress(0);
+
+  for (const [index, row] of rows.entries()) {
     const fechaRaw = row[AparicionesCols.fecha]?.trim();
     const date = parseDate(fechaRaw ?? "");
     if (!date) {
@@ -37,37 +69,66 @@ export async function importApariciones(
     const rivalName = row[AparicionesCols.rival]?.trim();
     const tournamentName = row[AparicionesCols.torneo]?.trim() || null;
 
-    // Resolve tournament id — must be year-scoped so same-named tournaments in
-    // different calendar years are kept distinct (mirrors import-historial logic).
-    let tournamentId: string | null = null;
-    if (tournamentName) {
-      const gameYear = date.getUTCFullYear();
-      const yearStart = new Date(Date.UTC(gameYear, 0, 1));
-      const yearEnd = new Date(Date.UTC(gameYear, 11, 31));
-      const t = await prisma.tournament.findFirst({
-        where: {
-          name: { equals: tournamentName, mode: "insensitive" },
-          startDate: { gte: yearStart, lte: yearEnd },
-        },
-        select: { id: true },
-      });
-      tournamentId = t?.id ?? null;
-    }
+    // Resolve tournament and opponent in parallel
+    const [tournamentIdResult, opponentIdResult] = await Promise.all([
+      tournamentName
+        ? (async () => {
+            const gameYear = date.getUTCFullYear();
+            const yearStart = new Date(Date.UTC(gameYear, 0, 1));
+            const yearEnd = new Date(Date.UTC(gameYear, 11, 31));
+            const t = await prisma.tournament.findFirst({
+              where: {
+                name: { equals: tournamentName, mode: "insensitive" },
+                startDate: { gte: yearStart, lte: yearEnd },
+              },
+              select: { id: true },
+            });
+            return t?.id ?? null;
+          })()
+        : Promise.resolve(null),
+      rivalName
+        ? (async () => {
+            const opponent = await prisma.opponentTeam.findFirst({
+              where: { name: { equals: rivalName, mode: "insensitive" } },
+              select: { id: true },
+            });
+            return opponent?.id ?? null;
+          })()
+        : Promise.resolve(null),
+    ]);
 
-    // Resolve opponent id
-    const opponent = rivalName
-      ? await prisma.opponentTeam.findFirst({
-          where: { name: { equals: rivalName, mode: "insensitive" } },
-          select: { id: true },
-        })
-      : null;
+    const tournamentId = tournamentIdResult;
+    const opponentId = opponentIdResult;
 
-    // Lookup game
-    const game = opponent
+    // Lookup game — only if we have opponent
+    const game = opponentId
       ? await prisma.game.findFirst({
           where: {
-            date,
-            opponentTeamId: opponent.id,
+            date: {
+              gte: new Date(
+                Date.UTC(
+                  date.getUTCFullYear(),
+                  date.getUTCMonth(),
+                  date.getUTCDate(),
+                  0,
+                  0,
+                  0,
+                  0,
+                ),
+              ),
+              lt: new Date(
+                Date.UTC(
+                  date.getUTCFullYear(),
+                  date.getUTCMonth(),
+                  date.getUTCDate() + 1,
+                  0,
+                  0,
+                  0,
+                  0,
+                ),
+              ),
+            },
+            opponentTeamId: opponentId,
             tournamentId: tournamentId ?? null,
           },
           select: { id: true },
@@ -182,6 +243,14 @@ export async function importApariciones(
         },
       });
       result.appearances.created++;
+    }
+
+    const processedRows = index + 1;
+    if (
+      processedRows % progressEveryRows === 0 ||
+      processedRows === totalRows
+    ) {
+      emitProgress(processedRows);
     }
   }
 }

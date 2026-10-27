@@ -1,8 +1,16 @@
 <script setup lang="ts">
-import type { PlayerStatRowDTO } from "@ministrosfc/shared";
+import {
+  OPTION_FILTER_ALL,
+  type PlayerStatus,
+  type AllPlayersStatsRow,
+} from "@ministrosfc/shared";
+import { useStatisticsAvailablePlayers } from "~/composables/useStatisticsAvailablePlayers";
 import StatsTableByPlayer from "../../../components/pages/statistics/StatsTableByPlayer.vue";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
 import PlayerSelect from "~/components/pages/statistics/StatsFilters/PlayerSelect.vue";
+import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
+import { useStatsFilters } from "~/composables/useStatsFilters";
+import { createTruthyObject } from "~/utils/object.js";
 
 definePageMeta({
   layout: "statistics-private",
@@ -20,19 +28,25 @@ const {
   filters,
 } = useStatsFilters();
 
+const { availablePlayers } = useStatisticsAvailablePlayers();
+
+const selectedPlayerStatus = computed<PlayerStatus | null>(() => {
+  const value = playerStatusFilter.value;
+  if (!value || value === OPTION_FILTER_ALL) return null;
+  return value as PlayerStatus;
+});
+
 const { data, pending, refresh } = await useAsyncData(
   "all-player-stats",
   () =>
-    $api<{ data: PlayerStatRowDTO[] }>("/api/v1/statistics/players", {
-      query: {
-        status: filters.value.playerStatus,
-        ...(filters.value.year ? { year: filters.value.year } : {}),
-        ...(filters.value.rivalId ? { rivalId: filters.value.rivalId } : {}),
-        ...(filters.value.tournament
-          ? { tournamentName: filters.value.tournament }
-          : {}),
-        ...(filters.value.playerId ? { playerId: filters.value.playerId } : {}),
-      },
+    $api<{ data: AllPlayersStatsRow[] }>("/api/v1/statistics/players", {
+      query: createTruthyObject({
+        status: filters.value?.playerStatus,
+        year: filters.value?.year,
+        rivalId: filters.value?.rivalId,
+        tournamentName: filters.value?.tournament,
+        playerId: filters.value?.playerId,
+      }),
     }),
   { server: false },
 );
@@ -46,12 +60,21 @@ watch(
 
 <template>
   <div>
-    <div class="flex flex-wrap gap-3 mb-6">
-      <YearSelect v-model="yearFilter" />
-      <UiPlayerStatusSelect v-model="playerStatusFilter" />
-      <PlayerSelect v-model="playerFilter" :status="playerStatusFilter" />
+    <div class="flex gap-3 mb-6">
+      <YearSelect v-model="yearFilter" class="w-full" />
+      <UiPlayerStatusSelect
+        include-all
+        v-model="playerStatusFilter"
+        class="w-full"
+      />
+      <PlayerSelect
+        :items="availablePlayers"
+        v-model="playerFilter"
+        :status="selectedPlayerStatus"
+        class="w-full"
+      />
     </div>
     <StatsTitle>Estadísticas de Jugadores</StatsTitle>
-    <StatsTableByPlayer :rows="rows" mode="all" :loading="pending" />
+    <StatsTableByPlayer :rows="rows" :loading="pending" />
   </div>
 </template>

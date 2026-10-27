@@ -3,6 +3,27 @@
   "compilerOptions": {
     "strict": true,
     "verbatimModuleSyntax": true,
-    "skipLibCheck": true
-  }
+    "skipLibCheck": true,
+    "paths": {
+      "@ministrosfc/shared": ["../shared/src/index.ts"],
+      "@ministrosfc/shared/*": ["../shared/src/*"],
+      "~": ["./src"],
+      "~/*": ["./src/*"],
+      "@": ["./src"],
+      "@/*": ["./src/*"],
+      "~~": [".."],
+      "~~/*": ["../*"],
+      "@@": [".."],
+      "@@/*": ["../*"],
+      "#components": ["./.nuxt/components"],
+      "#ui": ["../../node_modules/@nuxt/ui/dist/runtime"],
+      "#ui/*": ["../../node_modules/@nuxt/ui/dist/runtime/*"]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/*.spec.ts",
+    "src/**/__tests__/**/*"
+  ]
 }

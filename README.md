@@ -227,6 +227,15 @@ npm run test:e2e # Run E2E tests (Playwright)
 - [Tournament API](./specs/001-ministrosfc-monorepo/contracts/tournament-contract.md)
 - [Auth API](./specs/001-ministrosfc-monorepo/contracts/auth-contract.md)
 
+### Copilot Agents
+
+The workspace includes CMS backend-focused custom agents for monorepo API work:
+
+- `ministrosfc.api-manager`: use for CMS backend API architecture and implementation with REST-first design, separation of concerns, functional decomposition, and integration-test-driven backend changes.
+- `ministrosfc.cms-prisma-migrations`: use for Prisma schema updates, migrations, model/query behavior, seed or backfill scripts, and persistence-layer safety checks.
+
+The default agent also auto-loads backend instructions for `packages/cms/**/*.ts` and frontend shared-contract instructions for `packages/frontend/src/**/*.ts` and `packages/frontend/src/**/*.vue`.
+
 ---
 
 ## 🛠️ Development
@@ -347,7 +356,9 @@ cd packages/frontend && npm run build
 
 ### Fly.io (Selected Platform - Free Tier)
 
-See complete deployment guide: [deployment.md](./specs/001-ministrosfc-monorepo/deployment.md)
+See the full deployment guide: [deployment.md](./specs/001-ministrosfc-monorepo/deployment.md)
+
+For environment setup, first-time infrastructure provisioning, and secret rotation, see the **[spec 018 quickstart](./specs/018-deployment-process/quickstart.md)**.
 
 ```bash
 # Install Fly CLI

@@ -8,5 +8,7 @@ process.env.DATABASE_URL =
   "postgresql://dev:dev123@localhost:5100/ministrosfc_test";
 process.env.JWT_SECRET =
   "test-secret-key-at-least-64-chars-long-for-test-suite-only-do-not-use";
-process.env.REDIS_HOST = "localhost";
-process.env.REDIS_PORT = "5101";
+// Read REDIS_HOST/PORT from the environment first so CI values (6379) are respected.
+// Fall back to local docker-compose ports (5101) when not provided.
+process.env.REDIS_HOST = process.env.REDIS_HOST || "localhost";
+process.env.REDIS_PORT = process.env.REDIS_PORT || "5101";

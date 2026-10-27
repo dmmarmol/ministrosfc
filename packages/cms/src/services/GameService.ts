@@ -5,6 +5,12 @@ import { generateGameSlug } from "../utils/slug";
 import { getRedisClient } from "../config/redis";
 import { prisma } from "../config/database";
 import { type Role, GameStatus } from "@prisma/client";
+import {
+  GameParticipant,
+  GameResult,
+  type GameCreatePayload,
+  type GameUpdatePayload,
+} from "@ministrosfc/shared";
 
 /** Elapsed milliseconds for one game (100 minutes). */
 const GAME_DURATION_MS = 100 * 60 * 1000;
@@ -18,37 +24,9 @@ const NON_ADMIN_ALLOWED_FIELDS = new Set([
   "lineup",
 ]);
 
-interface GameCreateDTO {
-  date: string;
-  location?: string;
-  notes?: string;
-  opponentTeamId: string;
-  tournamentId?: string;
-  competitionType?: string;
-  playgroundId?: string | null;
-  maxPlayers?: number | null;
-  lineup?: string | null;
-  // endDate and slug are server-generated — stripped from DTO on route
-}
-
-interface GameUpdateDTO {
-  date?: string;
-  location?: string;
-  notes?: string;
-  opponentTeamId?: string;
-  tournamentId?: string;
-  competitionType?: string;
-  status?: GameStatus;
-  homeTeamScore?: number;
-  awayTeamScore?: number;
-  playgroundId?: string | null;
-  maxPlayers?: number | null;
-  lineup?: string | null;
-  // endDate and slug are server-generated — stripped from DTO on route
-}
-
 interface SearchOptions {
   status?: GameStatus;
+  result?: GameResult;
   tournamentId?: string;
   opponentTeamId?: string;
   dateFrom?: string;
@@ -59,8 +37,40 @@ interface SearchOptions {
 
 const CACHE_TTL = 300; // 5 min
 
+function buildInvitedByName(player: any): string | null {
+  if (!player?.invitedBy) {
+    return null;
+  }
+
+  return `${player.invitedBy.firstName} ${player.invitedBy.lastName}`.trim();
+}
+
+function serializeGameParticipants(game: any): any {
+  if (!game || !Array.isArray(game.participants)) {
+    return game;
+  }
+
+  return {
+    ...game,
+    participants: game.participants.map((participant: any) => {
+      const invitedByName = buildInvitedByName(participant?.player);
+
+      return {
+        ...participant,
+        invitedByName,
+        player: participant?.player
+          ? {
+              ...participant.player,
+              invitedByName,
+            }
+          : participant?.player,
+      };
+    }),
+  };
+}
+
 const GameService = {
-  async createGame(dto: GameCreateDTO) {
+  async createGame(dto: GameCreatePayload) {
     const gameDate = new Date(dto.date);
     const endDate = new Date(gameDate.getTime() + GAME_DURATION_MS);
 
@@ -100,14 +110,14 @@ const GameService = {
 
     const game = await GameModel.create(data);
     await GameService.invalidateCache();
-    return game;
+    return GameService.getGameById(game.id);
   },
 
   async getGameById(id: string) {
     const game = await GameModel.findById(id);
     if (!game)
       throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
-    return game;
+    return serializeGameParticipants(game);
   },
 
   async searchGames(options: SearchOptions = {}) {
@@ -132,7 +142,7 @@ const GameService = {
     return result;
   },
 
-  async updateGame(id: string, dto: GameUpdateDTO, requestingRole: Role) {
+  async updateGame(id: string, dto: GameUpdatePayload, requestingRole: Role) {
     const currentGame = await GameService.getGameById(id);
 
     // DT and EDITOR roles share the non-admin restrictions.
@@ -206,7 +216,127 @@ const GameService = {
     }
 
     await GameService.invalidateCache();
-    return updated;
+    return GameService.getGameById(updated.id);
+  },
+
+  async addParticipantToGame(gameId: string, participantId: string) {
+    const currentGame = await GameService.getGameById(gameId);
+    const playerId =
+      currentGame.participants?.find(
+        (participant: any) => participant.id === participantId,
+      )?.playerId ?? participantId;
+
+    const alreadyParticipates = currentGame.participants?.some(
+      (participant: any) => participant.playerId === playerId,
+    );
+
+    if (alreadyParticipates) {
+      return currentGame;
+    }
+
+    await GameModel.update(gameId, {
+      participants: {
+        create: {
+          playerId,
+          confirmationStatus: "CONFIRMED",
+          confirmedAt: new Date(),
+        },
+      },
+    });
+
+    await GameService.invalidateCache();
+    return GameService.getGameById(gameId);
+  },
+
+  async removeParticipantFromGame(gameId: string, participantId: string) {
+    const currentGame = await GameService.getGameById(gameId);
+    const matchingParticipant = currentGame.participants?.find(
+      (participant: any) =>
+        participant.id === participantId ||
+        participant.playerId === participantId,
+    );
+
+    if (!matchingParticipant) {
+      return currentGame;
+    }
+
+    await GameModel.update(gameId, {
+      participants: {
+        deleteMany: {
+          OR: [
+            { id: participantId },
+            { playerId: matchingParticipant.playerId ?? participantId },
+          ],
+        },
+      },
+    });
+
+    await GameService.invalidateCache();
+    return GameService.getGameById(gameId);
+  },
+
+  async updateParticipantStats(
+    gameId: string,
+    participantId: string,
+    dto: Record<string, unknown>,
+  ) {
+    const currentGame = await GameService.getGameById(gameId);
+    const matchingParticipant = currentGame.participants?.find(
+      (participant: any) =>
+        participant.id === participantId ||
+        participant.playerId === participantId,
+    );
+
+    if (!matchingParticipant) {
+      throw createError("Game participant not found", 404, ErrorCode.NOT_FOUND);
+    }
+
+    type GameParticipantKeys = Pick<
+      GameParticipant,
+      "goalsScored" | "assists" | "yellowCards" | "redCards"
+    >;
+    type GameParticipantKeyStrings = keyof GameParticipantKeys;
+
+    const fieldMap: Record<string, GameParticipantKeyStrings> = {
+      goalsScored: "goalsScored",
+      assists: "assists",
+      yellowCards: "yellowCards",
+      redCards: "redCards",
+    };
+
+    const data: Partial<GameParticipantKeys> = {};
+
+    for (const [key, value] of Object.entries(dto)) {
+      const mappedKey = fieldMap[key];
+      if (!mappedKey) continue;
+
+      const numericValue = Number(value);
+      if (!Number.isInteger(numericValue) || numericValue < 0) {
+        throw createError(
+          `Invalid value for ${key}`,
+          400,
+          ErrorCode.VALIDATION_ERROR,
+        );
+      }
+
+      data[mappedKey] = numericValue;
+    }
+
+    if (Object.keys(data).length === 0) {
+      throw createError(
+        "At least one stat field must be provided",
+        400,
+        ErrorCode.VALIDATION_ERROR,
+      );
+    }
+
+    await prisma.gameParticipant.update({
+      where: { id: matchingParticipant.id },
+      data,
+    });
+
+    await GameService.invalidateCache();
+    return GameService.getGameById(gameId);
   },
 
   async deleteGame(id: string) {

@@ -2,7 +2,7 @@
 import { Position, PositionDisplayName } from "@ministrosfc/shared";
 
 type Props = {
-  position: Position | null;
+  position?: Position | null;
 };
 
 const pesPositionClassMap = {
@@ -34,8 +34,9 @@ const displayName = props.position
     :class="[
       'inline-block w-10 flex-shrink-0 mt-0.5 py-0.5 rounded',
       'text-white text-[14px] text-center font-bold',
-      'bg-gray-900 border-b-4',
-      `${props.position ? pesPositionClassMap[props.position] : 'text-gray-500'}`,
+      'border-b-4',
+      `${props.position ? 'bg-gray-900' : 'bg-gray-300'}`,
+      `${props.position ? pesPositionClassMap[props.position] : 'text-gray-500 border-gray-400'}`,
     ]"
     :title="displayName"
   >

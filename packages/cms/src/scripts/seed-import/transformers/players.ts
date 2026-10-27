@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { Position } from "@prisma/client";
+import { Position, PlayerType, PlayerStatus } from "@prisma/client";
 import type { ParsedJugadorRow } from "../parsers/parseJugadores";
 import type { IdMap } from "../types";
 
@@ -70,8 +70,8 @@ interface PlayerData {
   position: Position | null;
   nationalId: string | null;
   photoUrl: string;
-  playerType: "REGISTERED" | "GUEST";
-  status: "ACTIVE";
+  playerType: PlayerType;
+  status: PlayerStatus;
   invitedById: null;
 }
 
@@ -116,9 +116,9 @@ export function buildPlayers(rows: ParsedJugadorRow[]): BuildPlayersResult {
       nationalId: row.DNI?.trim() || null,
       photoUrl: PLACEHOLDER_PHOTO,
       playerType: isGuest(row.firstName, row.lastName, nickname)
-        ? "GUEST"
-        : "REGISTERED",
-      status: "ACTIVE",
+        ? PlayerType.GUEST
+        : PlayerType.REGISTERED,
+      status: PlayerStatus.ACTIVE,
       invitedById: null,
     });
 

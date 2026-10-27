@@ -1,0 +1,44 @@
+name: Reset CMS Database
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        default: development
+        type: choice
+        options:
+          - development
+          - production
+      confirmation:
+        description: "Type RESET_DB to confirm destructive reset"
+        required: true
+        type: string
+
+jobs:
+  reset-db:
+    name: Reset database
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate reset confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ inputs.confirmation }}" != "RESET_DB" ]]; then
+            echo "Invalid confirmation. Refusing to reset database."
+            exit 1
+          fi
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Reset DB on Fly app
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          CMS_APP_NAME: ${{ secrets.CMS_APP_NAME }}
+          RESET_CONFIRMATION: ${{ inputs.confirmation }}
+        run: ./scripts/seed-admin/reset-cms-db.sh

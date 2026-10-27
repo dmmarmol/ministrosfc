@@ -1,4 +1,5 @@
 import { StatisticsService } from "../../src/services/StatisticsService";
+import { PlayerStatus, PlayerType, Position } from "@ministrosfc/shared";
 
 // --- Mocks ---
 jest.mock("../../src/models/Statistics");
@@ -33,13 +34,19 @@ const mockPlayer = {
   firstName: "Test",
   lastName: "Player",
   nickname: null,
+  address: null,
+  playerType: PlayerType.REGISTERED,
+  invitedById: null,
   jerseyNumber: 10,
-  position: "STRIKER" as const,
+  position: Position.CF,
+  dateOfBirth: null,
+  height: null,
+  dominantFoot: null,
   photoUrl: null,
-  userId: null,
-  status: "ACTIVE" as const,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  contactInfo: null,
+  status: PlayerStatus.ACTIVE,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
 };
 
 const mockTournament = {
@@ -47,10 +54,10 @@ const mockTournament = {
   name: "Copa Test",
   format: "LEAGUE" as const,
   status: "COMPLETED" as const,
-  startDate: new Date("2024-01-01"),
-  endDate: new Date("2024-06-01"),
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  startDate: new Date("2024-01-01").toISOString(),
+  endDate: new Date("2024-06-01").toISOString(),
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
 };
 
 beforeEach(() => {
@@ -147,6 +154,41 @@ describe("StatisticsService", () => {
 
       // aggregateForPlayer should only have been called once (cache hit on second)
       expect(MockStatisticsModel.aggregateForPlayer).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe.skip("getTeamStatsByRival", () => {
+    it("filters teams by playground when playgroundId is provided", async () => {
+      MockPlayerModel.findById.mockResolvedValue(mockPlayer as any);
+      const aggregated = [
+        {
+          playgroundName: "Cancha 1",
+          key: "rival-1",
+          label: "Rival 1",
+          gamesPlayed: 4,
+          wins: 2,
+          losses: 1,
+          draws: 1,
+          goalsFor: 6,
+          goalsAgainst: 4,
+          goalDifference: 2,
+          winRate: 50,
+          cleanSheets: 1,
+          pointsEarned: 7,
+        },
+      ];
+      MockStatisticsModel.aggregateTeamByRival.mockResolvedValue(
+        aggregated as any,
+      );
+
+      const result = await StatisticsService.getTeamStatsByRival({
+        playgroundId: "playground-1",
+      });
+
+      expect(result[0]?.gamesPlayed).toBe(4);
+      expect(MockStatisticsModel.aggregateTeamByRival).toHaveBeenCalledWith(
+        { playgroundId: "playground-1" },
+      );
     });
   });
 

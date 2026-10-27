@@ -1,7 +1,16 @@
-import { computed } from "vue";
+import { computed, type Ref } from "vue";
 import { useNuxtApp, useAsyncData, createError } from "nuxt/app";
+import type { Game, GameParticipant } from "@ministrosfc/shared";
 
-export function useGameBySlug(slug: string) {
+type GameBySlug = {
+  gameId: Ref<string>;
+  game: Ref<Game | null>;
+  participants: Ref<GameParticipant[]>;
+  pending: Ref<boolean>;
+  error: Ref<unknown>;
+};
+
+export function useGameBySlug(slug: string): GameBySlug {
   const { $api } = useNuxtApp();
 
   const { data, pending, error } = useAsyncData(
@@ -15,13 +24,13 @@ export function useGameBySlug(slug: string) {
       }
       const id = slugRes.data.id;
       const [gameRes, partRes] = await Promise.all([
-        $api<{ data: any }>(`/api/v1/games/${id}`),
-        $api<{ data: any[] }>(`/api/v1/games/${id}/participants`),
+        $api<{ data: Game }>(`/api/v1/games/${id}`),
+        $api<{ data: GameParticipant[] }>(`/api/v1/games/${id}/participants`),
       ]);
       return {
-        gameId: id,
-        game: gameRes.data,
-        participants: partRes.data as any[],
+        gameId: id as string,
+        game: gameRes.data as Game,
+        participants: partRes.data as GameParticipant[],
       };
     },
   );
@@ -36,5 +45,11 @@ export function useGameBySlug(slug: string) {
     ),
   );
 
-  return { gameId, game, participants, pending, error };
+  return {
+    gameId: gameId,
+    game: game,
+    participants: participants,
+    pending: pending,
+    error: error,
+  };
 }

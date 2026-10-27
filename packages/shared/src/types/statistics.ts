@@ -1,4 +1,5 @@
-import { Game } from "./game";
+import type { Game } from "./game";
+import { type Position } from "./player";
 
 export interface Statistics {
   id: string;
@@ -36,6 +37,22 @@ export interface TournamentStatisticsDTO {
   topScorers: PlayerStatisticsDTO[];
   topAssists: PlayerStatisticsDTO[];
   mostAppearances: PlayerStatisticsDTO[];
+}
+
+// Top scorers list response
+export interface TopScorerDTO {
+  player?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    nickname?: string | null;
+    jerseyNumber?: number | null;
+    position?: string | null;
+    photoUrl?: string | null;
+  };
+  goalsScored: number;
+  assists: number;
+  appearances: number;
 }
 
 // Team stats for a single period (year, tournament, or rival)
@@ -93,6 +110,7 @@ export interface PlayerStatRowDTO {
   playerId: string;
   playerName: string;
   playerNickname?: string;
+  position: string;
   gamesPlayed: number;
   wins: number;
   losses: number;
@@ -137,6 +155,86 @@ export interface PlayerRivalPeriodDTO {
   goalsAgainst: number;
   playerGoals: number;
   matches: PlayerRivalMatchDTO[];
+}
+
+/**
+ * Response shape for GET /statistics/players/:id
+ */
+export interface PlayerStatsResponse {
+  player: PlayerStatRowDTO;
+  stats: {
+    appearances: number;
+    goalsScored: number;
+    assists: number;
+    yellowCards: number;
+    redCards: number;
+    totalMinutes: number;
+  };
+  availableYears: number[];
+}
+
+/**
+ * Player stats row used in GET /statistics/players aggregation.
+ */
+export type AllPlayersStatsRow = Omit<PlayerStatRowDTO, "position"> & {
+  position: Position;
+  invitedBy: string;
+  invitedById: string;
+};
+
+/**
+ * Response shape for GET /statistics/tournaments/:id
+ */
+export interface TournamentStatsResponse {
+  tournament: {
+    id: string;
+    name: string;
+    startDate: string;
+    endDate?: string | null;
+    playgroundId: string;
+  };
+  ministrosRecord: {
+    wins: number;
+    losses: number;
+    draws: number;
+  };
+  playerStats: Array<{
+    player?: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      nickname?: string | null;
+      jerseyNumber?: number | null;
+      position?: string | null;
+    };
+    appearances: number;
+    goalsScored: number;
+    assists: number;
+    yellowCards: number;
+    redCards: number;
+  }>;
+}
+
+/**
+ * Response shape for GET /statistics/team/summary
+ */
+export interface TeamSummaryResponse {
+  totalGames: number;
+  totalWins: number;
+  totalLosses: number;
+  totalDraws: number;
+  totalGoalsFor: number;
+  totalGoalsAgainst: number;
+  winRate: number;
+  rivalMostPlayed: { name: string; count: number };
+  rivalMostWins: { name: string; count: number };
+  rivalMostLosses: { name: string; count: number };
+  rivalMostDraws: { name: string; count: number };
+  bestWin: { rival: string; tournament: string; date: string; score: string };
+  worstLoss: { rival: string; tournament: string; date: string; score: string };
+  rivalMostGoalsFor: { name: string; totalGoals: number };
+  rivalMostGoalsAgainst: { name: string; totalGoals: number };
+  topScorer: { id: string; name: string; goals: number };
 }
 
 /** Determines which filter selects are shown in the statistics filter bar. */

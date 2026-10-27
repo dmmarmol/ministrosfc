@@ -3,13 +3,19 @@ app = "ministrosfc-cms"
 primary_region = "gru"
 
 [build]
+  dockerfile = "Dockerfile"
+
+[deploy]
+  # Run Prisma migrations atomically before traffic switches to the new version.
+  # If the migration fails, the release is aborted and the old version stays live.
+  release_command = "node_modules/.bin/prisma migrate deploy --schema=packages/cms/prisma/schema.prisma"
 
 [http_service]
   internal_port = 5102
   force_https = true
   auto_stop_machines = true
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
 
 [env]
   API_PORT = "5102"

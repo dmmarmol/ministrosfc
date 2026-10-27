@@ -1,8 +1,20 @@
+import type { OptionItem, SelectItem } from "./api";
+import type { ConfirmationStatus } from "./game-participant";
+import type { OpponentTeam } from "./opponent-team";
+import type { PlayerType, Position } from "./player";
+import type { PlaygroundOption } from "./playground";
+
 export enum GameStatus {
   SCHEDULED = "SCHEDULED",
   IN_PROGRESS = "IN_PROGRESS",
   COMPLETED = "COMPLETED",
   CANCELLED = "CANCELLED",
+}
+
+export enum GameResult {
+  WIN = "WIN",
+  LOSS = "LOSS",
+  DRAW = "DRAW",
 }
 
 /**
@@ -17,6 +29,14 @@ export enum CompetitionType {
   PLAYOFF = "PLAYOFF",
   SEASON = "SEASON",
 }
+
+export const competitionTypeItems: SelectItem[] = [
+  { value: CompetitionType.LEAGUE, label: "Liga" },
+  { value: CompetitionType.CUP, label: "Copa" },
+  { value: CompetitionType.PLAYOFF, label: "Playoff" },
+  { value: CompetitionType.SEASON, label: "Temporada" },
+  { value: CompetitionType.FRIENDLY, label: "Amistoso" },
+];
 
 export const FORMATIONS = [
   "4-4-2",
@@ -48,18 +68,14 @@ export interface AdvancedStats {
 
 export interface Game {
   id: string;
+  opponentTeam: OpponentTeam;
   opponentTeamId: string;
   tournamentId?: string | null;
   date: string;
+  time?: string | null;
   location?: string | null;
   playgroundId?: string | null;
-  playground?: {
-    id: string;
-    name: string;
-    address: string;
-    latitude: number | null;
-    longitude: number | null;
-  } | null;
+  playground?: PlaygroundOption | null;
   competitionType: CompetitionType;
   status: GameStatus;
   homeTeamScore?: number | null;
@@ -70,6 +86,7 @@ export interface Game {
   notes?: string | null;
   // Feature 014: game signup fields (read-only, server-generated)
   maxPlayers: number | null;
+  participants: GameParticipant[];
   slug: string;
   lineup: FormationCode | null;
   endDate: string;
@@ -79,18 +96,59 @@ export interface Game {
   updatedAt: string;
 }
 
-export interface GameCreateDTO {
+export interface GameParticipant {
+  assists: number;
+  confirmationStatus: ConfirmationStatus;
+  confirmedAt: string | null;
+  confirmedBy: string | null;
+  confirmedById: string | null;
+  createdAt: string;
+  gameId: string;
+  goalsScored: number;
+  id: string;
+  invitedByName: string | null;
+  isStarter: boolean | null;
+  minutesPlayed: number | null;
+  notes: string | null;
+  player: {
+    firstName: string;
+    id: string;
+    invitedById: string;
+    invitedByName?: string;
+    jerseyNumber: number | null;
+    lastName: string;
+    nickname: string;
+    playerType: PlayerType;
+    position: Position | null;
+  };
+  playerId: string;
+  redCards: number;
+  updatedAt: string;
+  yellowCards: number;
+}
+
+export type AdminGame = Omit<Game, "opponentTeam"> & {
+  opponentTeam: OptionItem | null;
+  tournament: OptionItem | null;
+  confirmedCount: number | null;
+};
+
+export interface GameCreatePayload {
   opponentTeamId: string;
   tournamentId?: string;
   date: string;
+  time?: string;
   location?: string;
   competitionType?: CompetitionType;
-  maxPlayers?: number;
   lineup?: FormationCode;
+  notes?: string;
+  playgroundId?: string | null;
+  maxPlayers?: number | null;
+  participants?: GameParticipant[];
   // endDate is server-generated (date + 100 min) — do NOT include in payloads
 }
 
-export interface GameUpdateDTO {
+export interface GameUpdatePayload {
   date?: string;
   location?: string;
   competitionType?: CompetitionType;
@@ -104,5 +162,7 @@ export interface GameUpdateDTO {
   tournamentId?: string;
   maxPlayers?: number | null;
   lineup?: FormationCode | null;
+  opponentTeamId?: string;
+  playgroundId?: string | null;
   // endDate is server-generated (date + 100 min) — do NOT include in payloads
 }

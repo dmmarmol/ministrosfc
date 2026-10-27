@@ -148,6 +148,21 @@
     },
     "npx jest": true,
     "npx vitest": true,
-    "node_modules/.bin/jest": true
-  }
+    "node_modules/.bin/jest": true,
+    "npx eslint": true
+  },
+  "jest.virtualFolders": [
+    {
+      "name": "cms",
+      "rootPath": "packages/cms",
+      "jestCommandLine": "npm test --",
+      "runMode": "on-demand"
+    },
+    {
+      "name": "shared",
+      "rootPath": "packages/shared",
+      "jestCommandLine": "npm test --",
+      "runMode": "on-demand"
+    }
+  ]
 }
