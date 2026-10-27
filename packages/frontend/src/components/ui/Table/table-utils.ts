@@ -10,6 +10,7 @@ import {
   NuxtLink,
   UButton,
   UDropdownMenu,
+  UInput,
   UiPositionLabel,
   UiPositionNumber,
 } from "#components";
@@ -261,7 +262,7 @@ export function cellClickeableInput(
 
       return () =>
         isEditing.value
-          ? h(resolveComponent("UInput"), {
+          ? h(UInput, {
               modelValue: inputValue.value,
               class: "editable-cell",
               autofocus: true,

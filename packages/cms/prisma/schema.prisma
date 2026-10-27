@@ -88,6 +88,23 @@ enum ApprovalDecisionType {
   APPROVE_WITH_MERGE
 }
 
+enum ImportJobStatus {
+  queued
+  processing
+  completed
+  failed
+  cancelled
+}
+
+enum ImportStage {
+  start
+  jugadores
+  canchas
+  historial
+  apariciones
+  finish
+}
+
 // ─────────────────────────────────────────
 // USER
 // ─────────────────────────────────────────
@@ -110,6 +127,7 @@ model User {
 
   playgroundsCreated Playground[] @relation("PlaygroundCreatedBy")
   playgroundsUpdated Playground[] @relation("PlaygroundUpdatedBy")
+  importJobs         ImportJob[] @relation("UserImportJobs")
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -134,6 +152,77 @@ model UserApprovalDecision {
   @@index([userId])
   @@index([reviewerId])
   @@index([createdAt])
+}
+
+model ImportJob {
+  id               String          @id @default(uuid())
+  status           ImportJobStatus @default(queued)
+  currentStage     ImportStage     @default(start)
+  progressPercent  Int             @default(0)
+  submittedBy      User?           @relation("UserImportJobs", fields: [submittedByUserId], references: [id], onDelete: SetNull)
+  submittedByUserId String?
+  fileChecksum     String?
+  fileMeta         Json?
+  resultJson       Json?
+  warningsJson     Json?
+  errorJson        Json?
+  workerLockToken  String?
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  lastHeartbeatAt  DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  stageProgress ImportStageProgress[]
+  warnings      ImportWarning[]
+  errors        ImportError[]
+
+  @@index([status])
+  @@index([submittedByUserId])
+  @@index([fileChecksum])
+}
+
+model ImportStageProgress {
+  id              String      @id @default(uuid())
+  importJob       ImportJob   @relation(fields: [importJobId], references: [id], onDelete: Cascade)
+  importJobId     String
+  stage           ImportStage
+  percentComplete Int         @default(0)
+  processedRows   Int?
+  totalRows       Int?
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  detailsJson     Json?
+  createdAt       DateTime    @default(now())
+
+  @@index([importJobId])
+  @@index([stage])
+}
+
+model ImportWarning {
+  id          String      @id @default(uuid())
+  importJob   ImportJob   @relation(fields: [importJobId], references: [id], onDelete: Cascade)
+  importJobId String
+  code        String?
+  message     String      @db.Text
+  stage       ImportStage?
+  createdAt   DateTime    @default(now())
+
+  @@index([importJobId])
+}
+
+model ImportError {
+  id          String      @id @default(uuid())
+  importJob   ImportJob   @relation(fields: [importJobId], references: [id], onDelete: Cascade)
+  importJobId String
+  code        String
+  message     String      @db.Text
+  stage       ImportStage?
+  recoverable Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+
+  @@index([importJobId])
+  @@index([code])
 }
 
 // ─────────────────────────────────────────

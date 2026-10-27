@@ -5,11 +5,10 @@ import {
   type NextFunction,
 } from "express";
 import multer from "multer";
+import { createHash } from "node:crypto";
 import { authenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/rbac";
-import { CsvImportService } from "../services/CsvImportService";
-import { getRedisClient } from "../config/redis";
-import { type CsvImportProgress } from "src/services/csv-import/handler";
+import { ImportJobService } from "../services/import-jobs/ImportJobService";
 
 const router = Router();
 
@@ -18,13 +17,17 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB per file
 });
 
-const CSV_IMPORT_SOFT_TIMEOUT_MS = Number.parseInt(
-  process.env.CSV_IMPORT_SOFT_TIMEOUT_MS ?? "180000",
-  10,
-);
+const buildFileChecksum = (...files: Array<Buffer | undefined>) =>
+  createHash("sha256")
+    .update(
+      Buffer.concat(
+        files.filter((file): file is Buffer => Boolean(file)).map((file) => file),
+      ),
+    )
+    .digest("hex");
 
 // POST /api/v1/import/csv
-// Admin-only: upload historial, jugadores, apariciones CSV files
+// Admin-only: create a durable import job and return immediately.
 router.post(
   "/csv",
   authenticate,
@@ -37,13 +40,7 @@ router.post(
   ]),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const startMs = Date.now();
       const userId = (req as any).user?.userId;
-      const softTimeoutMs =
-        Number.isFinite(CSV_IMPORT_SOFT_TIMEOUT_MS) &&
-        CSV_IMPORT_SOFT_TIMEOUT_MS > 0
-          ? CSV_IMPORT_SOFT_TIMEOUT_MS
-          : 180000;
       const files = req.files as
         | Record<string, Express.Multer.File[]>
         | undefined;
@@ -75,98 +72,65 @@ router.post(
         return;
       }
 
-      let latestProgress: CsvImportProgress | null = null;
+      const fileChecksum = buildFileChecksum(
+        historialFile.buffer,
+        jugadoresFile.buffer,
+        aparicionesFile.buffer,
+        canchasFile?.buffer,
+      );
 
-      const importPromise = CsvImportService.parseAndImport({
-        historial: historialFile.buffer,
-        jugadores: jugadoresFile.buffer,
-        apariciones: aparicionesFile.buffer,
-        canchas: canchasFile?.buffer,
-        adminUserId: userId,
-        onProgress: (progress) => {
-          latestProgress = progress;
-        },
+      const existingJob = await ImportJobService.getDuplicateJob({
+        userId,
+        fileChecksum,
       });
 
-      const raceResult = await Promise.race<
-        | { type: "done"; result: Awaited<typeof importPromise> }
-        | { type: "timeout" }
-      >([
-        importPromise.then((result) => ({ type: "done", result })),
-        new Promise<{ type: "timeout" }>((resolve) => {
-          setTimeout(() => resolve({ type: "timeout" }), softTimeoutMs);
-        }),
-      ]);
-
-      const flushRedisCache = async () => {
-        try {
-          await getRedisClient().flushall();
-        } catch {
-          // Non-fatal — import succeeded even if cache flush fails
-        }
-      };
-
-      if (raceResult.type === "timeout") {
-        req.log?.warn(
+      if (existingJob) {
+        req.log?.info(
           {
             route: "POST /api/v1/import/csv",
             userId,
-            elapsedMs: Date.now() - startMs,
-            softTimeoutMs,
-            progress: latestProgress,
+            jobId: existingJob.id,
           },
-          "CSV import still running after soft timeout",
+          "Returning existing CSV import job for duplicate request",
         );
 
-        importPromise
-          .then(async (finalResult) => {
-            req.log?.info(
-              {
-                route: "POST /api/v1/import/csv",
-                userId,
-                elapsedMs: Date.now() - startMs,
-                result: finalResult,
-              },
-              "CSV import completed after soft-timeout response",
-            );
-            await flushRedisCache();
-          })
-          .catch((backgroundErr: any) => {
-            req.log?.error(
-              {
-                route: "POST /api/v1/import/csv",
-                message: backgroundErr?.message,
-              },
-              "CSV import failed after soft-timeout response",
-            );
-          });
-
         res.status(202).json({
-          data: {
-            status: "processing",
-            elapsedMs: Date.now() - startMs,
-            softTimeoutMs,
-            progress: latestProgress,
-          },
+          data: await ImportJobService.toJobSnapshot(existingJob),
         });
         return;
       }
 
-      const result = raceResult.result;
+      const job = await ImportJobService.createJob({
+        userId,
+        fileChecksum,
+        fileMeta: {
+          historial: { originalname: historialFile.originalname, size: historialFile.size },
+          jugadores: { originalname: jugadoresFile.originalname, size: jugadoresFile.size },
+          apariciones: { originalname: aparicionesFile.originalname, size: aparicionesFile.size },
+          canchas: canchasFile ? { originalname: canchasFile.originalname, size: canchasFile.size } : null,
+        },
+      });
 
       req.log?.info(
         {
           route: "POST /api/v1/import/csv",
           userId,
-          elapsedMs: Date.now() - startMs,
-          result,
+          jobId: job.id,
         },
-        "CSV import completed",
+        "CSV import job created",
       );
 
-      await flushRedisCache();
+      res.status(202).json({
+        data: await ImportJobService.toJobSnapshot(job),
+      });
 
-      res.status(200).json({ data: result });
+      void ImportJobService.processImportJob(job.id, {
+        historial: historialFile.buffer,
+        jugadores: jugadoresFile.buffer,
+        apariciones: aparicionesFile.buffer,
+        canchas: canchasFile?.buffer,
+        adminUserId: userId,
+      });
     } catch (err: any) {
       if (
         err?.code === "CSV_INVALID_CLOSING_QUOTE" ||
@@ -190,6 +154,31 @@ router.post(
         },
         "CSV import failed with unexpected error",
       );
+      next(err);
+    }
+  },
+);
+
+router.get(
+  "/jobs/:jobId",
+  authenticate,
+  requireRole("ADMIN"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { jobId } = req.params;
+      if (!jobId) {
+        res.status(400).json({ error: "Import job id is required" });
+        return;
+      }
+
+      const job = await ImportJobService.getJobById(jobId);
+      if (!job) {
+        res.status(404).json({ error: "Import job not found" });
+        return;
+      }
+
+      res.status(200).json({ data: await ImportJobService.toJobSnapshot(job, true) });
+    } catch (err) {
       next(err);
     }
   },
