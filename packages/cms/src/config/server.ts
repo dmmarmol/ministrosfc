@@ -23,6 +23,7 @@ import { onboardingRouter } from "../routes/onboarding";
 import { playgroundRouter } from "../routes/playgrounds";
 import { addressRouter } from "../routes/address";
 import { importRouter } from "../routes/import";
+import { ImportJobService } from "../services/import-jobs/ImportJobService";
 
 export function createApp(): Application {
   const app = express();
@@ -81,6 +82,8 @@ export function createApp(): Application {
   app.use("/api/v1/playgrounds", playgroundRouter);
   app.use("/api/v1/address", addressRouter);
   app.use("/api/v1/import", importRouter);
+
+  void ImportJobService.recoverInterruptedJobs();
 
   // Global error handler (must be last)
   app.use(globalErrorHandler);
