@@ -9,7 +9,11 @@ import { StatisticsService } from "../services/StatisticsService";
 import { TournamentModel } from "../models/Tournament";
 import { authenticate } from "../middleware/auth";
 import { z } from "zod";
-import { OPTION_FILTER_ALL } from "@ministrosfc/shared";
+import {
+  ApiResponse,
+  OPTION_FILTER_ALL,
+  TopScorerDTO,
+} from "@ministrosfc/shared";
 import { PlayerStatus } from "@prisma/client";
 import {
   topScorersQuerySchema,
@@ -81,7 +85,7 @@ router.get(
         if (!tournament) {
           // tournamentName was explicitly provided but matched nothing — return empty
           res.setHeader("Cache-Control", "public, max-age=60");
-          res.json({ data: [] });
+          res.json({ data: [] } as ApiResponse<TopScorerDTO[]>);
           return;
         }
         tournamentId = tournament.id;
@@ -96,7 +100,7 @@ router.get(
         query.year,
       );
       res.setHeader("Cache-Control", "public, max-age=300");
-      res.json({ data });
+      res.json({ data } as ApiResponse<TopScorerDTO[]>);
     } catch (err) {
       next(err);
     }

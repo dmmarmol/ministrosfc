@@ -36,7 +36,8 @@ export default defineNuxtPlugin(() => {
     }
 
     try {
-      const fetchOptions: any = {
+      // real type is NitroFetchOptions but it's not exported
+      const fetchOptions: Record<string, unknown> = {
         ...options,
         headers,
       };

@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { NuxtLink, UButton } from "#components";
-import { h, resolveComponent } from "vue";
 import type { ColumnDef } from "~/types/table";
 import { OPTION_FILTER_ALL, PlayerStatus } from "@ministrosfc/shared";
-import type { TopScorerDTO } from "@ministrosfc/shared";
+import type { TopScorerDTO, Position, ApiResponse } from "@ministrosfc/shared";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
 import TournamentSelect from "~/components/pages/statistics/StatsFilters/TournamentSelect.vue";
 import { useAuthStore } from "~/stores/auth";
-import { getSortedIcon } from "~/components/ui/Table/table-utils";
+import {
+  cellLink,
+  cellName,
+  cellPosition,
+  sortableHeader,
+} from "~/components/ui/Table/table-utils";
 import { useStatsFilters } from "~/composables/useStatsFilters";
 
 /**
@@ -57,7 +60,7 @@ const playerSearch = ref("");
 const { data, pending, refresh } = await useAsyncData(
   "top-scorers",
   () =>
-    $api<{ data: TopScorerDTO[] }>("/api/v1/statistics/top-scorers", {
+    $api<ApiResponse<TopScorerDTO[]>>("/api/v1/statistics/top-scorers", {
       query: {
         limit: 50,
         ...(yearFilter.value ? { year: yearFilter.value } : {}),
@@ -88,15 +91,10 @@ const columns: ColumnDef<TopScorerRow>[] = [
   {
     accessorKey: "position",
     header: "Pos",
-    meta: {
-      class: {
-        th: "w-16 text-center",
-      },
+    cell: ({ row }) => {
+      const position: Position = row.getValue("position");
+      return cellPosition(position);
     },
-    cell: ({ row }) =>
-      h(resolveComponent("UiPositionLabel"), {
-        position: row.getValue("position"),
-      }),
   },
   {
     accessorKey: "name",
@@ -109,75 +107,43 @@ const columns: ColumnDef<TopScorerRow>[] = [
       const value = data.name;
 
       return playerId
-        ? h(
-            NuxtLink,
-            {
-              class: "font-medium hover:text-brand transition-colors",
-              to: `/players/${playerId}`,
-            },
-            () => value,
-          )
-        : h("span", {}, () => value);
+        ? cellLink(value, `/players/${playerId}`)
+        : cellName(value);
     },
   },
   {
     accessorKey: "goalsScored",
     title: "Goles",
     sortable: true,
-    header: ({ column }) => {
-      return h(UButton, {
-        variant: "ghost",
-        color: "neutral",
-        label: "Goles",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: sortableHeader("Goles"),
   },
   {
     accessorKey: "assists",
     title: "Asistencias",
     sortable: true,
-    header: ({ column }) => {
-      return h(UButton, {
-        variant: "ghost",
-        color: "neutral",
-        label: "Asist.",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: sortableHeader("Asist."),
   },
   {
     accessorKey: "appearances",
     title: "Partidos Jugados",
     sortable: true,
-    header: ({ column }) => {
-      return h(UButton, {
-        variant: "ghost",
-        color: "neutral",
-        label: "PJ",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: sortableHeader("PJ"),
   },
   {
     accessorKey: "goalRate",
     title: "Promedio de gol",
     sortable: true,
     cell({ row }) {
-      return h("span", {}, row.getValue("goalRate").toFixed(2) + "%");
+      const goalRate: number = row.getValue("goalRate");
+      if (Number.isNaN(goalRate)) {
+        return cellName("0%");
+      }
+
+      const displayGoalRate: string =
+        goalRate * 100 > 0 ? goalRate.toFixed(2) + "%" : "0%";
+      return cellName(displayGoalRate);
     },
-    header: ({ column }) => {
-      return h(UButton, {
-        variant: "ghost",
-        color: "neutral",
-        label: "Prom. Gol",
-        icon: getSortedIcon(column.getIsSorted() || null),
-        onClick: () => column.toggleSorting(),
-      });
-    },
+    header: sortableHeader("Prom. Gol"),
   },
 ];
 
