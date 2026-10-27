@@ -1,7 +1,9 @@
+import { DEFAULT_DATE_LOCALE } from "../constants";
+
 export function formatDateTime(
   dateString: string,
   options: Intl.DateTimeFormatOptions,
-  locale: string = "es-AR",
+  locale: string = DEFAULT_DATE_LOCALE,
 ): string {
   // Date-only strings (YYYY-MM-DD) are parsed as UTC midnight by the Date constructor.
   // Appending T00:00:00 makes them local-midnight instead, preventing an off-by-one day
@@ -21,7 +23,7 @@ export function formatDate(
     month: "short",
     year: "numeric",
   },
-  locale: string = "es-AR",
+  locale: string = DEFAULT_DATE_LOCALE,
 ): string {
   return formatDateTime(dateString, options, locale);
 }
@@ -32,7 +34,7 @@ export function formatTime(
     hour: "2-digit",
     minute: "2-digit",
   },
-  locale: string = "es-AR",
+  locale: string = DEFAULT_DATE_LOCALE,
 ): string {
   return formatDateTime(dateString, options, locale);
 }

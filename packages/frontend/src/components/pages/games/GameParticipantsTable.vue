@@ -45,7 +45,6 @@ const props = withDefaults(
 );
 
 const store = useAdminGamesStore();
-const authStore = useAuthStore();
 
 const columns: ColumnDef<PublicGameParticipantRow>[] = [
   {

@@ -32,6 +32,9 @@ export interface TeamStatRow {
  */
 export interface PlayerAggregateStats {
   appearances: number;
+  wins: number;
+  losses: number;
+  draws: number;
   goalsScored: number;
   assists: number;
   yellowCards: number;
@@ -58,4 +61,6 @@ export interface AllPlayersStatsRow {
   winRate: number;
   goalRate: number;
   participationRate: number;
+  invitedBy: string;
+  invitedById: string;
 }

@@ -12,6 +12,7 @@ import {
   sortByPositionEnumOrder,
   sortableHeader,
   cellPosition,
+  cellName,
 } from "~/components/ui/Table/table-utils";
 import type { Position } from "@ministrosfc/shared";
 
@@ -63,15 +64,27 @@ const columns: ColumnDef<PlayerRow>[] = [
       }),
   },
   {
+    accessorKey: "invitedBy",
+    header: "Invitado",
+    title: "Invitado Por",
+    sortable: true,
+    cell: ({ row }) => {
+      const invitedBy: string = row.getValue("invitedBy");
+      return invitedBy ? cellName(invitedBy) : null;
+    },
+  },
+  {
     accessorKey: "games",
     title: "Partidos Jugados",
     sortable: true,
+    meta: { class: { td: "text-center" } },
     header: sortableHeader("PJ"),
   },
   {
     accessorKey: "wins",
     title: "Partidos Ganados",
     sortable: true,
+    meta: { class: { td: "text-center" } },
     header: sortableHeader("PG"),
     cell: ({ row }) => cellWins(row.getValue("wins")),
   },
@@ -79,6 +92,7 @@ const columns: ColumnDef<PlayerRow>[] = [
     accessorKey: "losses",
     title: "Partidos Perdidos",
     sortable: true,
+    meta: { class: { td: "text-center" } },
     header: sortableHeader("PP"),
     cell: ({ row }) => cellLosses(row.getValue("losses")),
   },
@@ -86,6 +100,7 @@ const columns: ColumnDef<PlayerRow>[] = [
     accessorKey: "draws",
     title: "Partidos Empatados",
     sortable: true,
+    meta: { class: { td: "text-center" } },
     header: sortableHeader("PE"),
     cell: ({ row }) => cellDraws(row.getValue("draws")),
   },
@@ -93,18 +108,21 @@ const columns: ColumnDef<PlayerRow>[] = [
     accessorKey: "goals",
     title: "Goles",
     sortable: true,
+    meta: { class: { td: "text-center" } },
     header: sortableHeader("Goles"),
   },
   {
     accessorKey: "assists",
     title: "Asistencias",
     sortable: true,
+    meta: { class: { td: "text-center" } },
     header: sortableHeader("Asist."),
   },
   {
     accessorKey: "goalRate",
     title: "Promedio de gol",
     sortable: true,
+    meta: { class: { td: "text-center" } },
     header: sortableHeader("Prom."),
     cell: ({ row }) => cellRate(row.getValue("goalRate")),
   },
@@ -113,6 +131,7 @@ const columns: ColumnDef<PlayerRow>[] = [
 
     title: "Porcentaje de Victorias",
     sortable: true,
+    meta: { class: { td: "text-center" } },
     header: sortableHeader("Win%"),
     cell: ({ row }) => cellPercent(row.getValue("winRate")),
   },
@@ -120,6 +139,7 @@ const columns: ColumnDef<PlayerRow>[] = [
     accessorKey: "participationRate",
     title: "Porcentaje de Participación",
     sortable: true,
+    meta: { class: { td: "text-center" } },
     header: sortableHeader("Part.%"),
     cell: ({ row }) => cellPercent(row.getValue("participationRate")),
   },

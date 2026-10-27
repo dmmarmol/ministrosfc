@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from "vue";
+import { DEFAULT_DATE_LOCALE } from "@ministrosfc/shared";
 
 definePageMeta({ middleware: "auth", requiresAuth: true });
 useHead({ title: "Perfil de Usuario – Ministros FC" });
@@ -59,7 +60,7 @@ async function saveChanges() {
 }
 
 function memberSince(date: string): string {
-  return new Date(date).toLocaleDateString("es-AR", {
+  return new Date(date).toLocaleDateString(DEFAULT_DATE_LOCALE, {
     month: "long",
     year: "numeric",
   });

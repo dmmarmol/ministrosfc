@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { PendingApprovalQueueItem } from "@ministrosfc/shared";
+import {
+  DEFAULT_DATE_LOCALE,
+  type PendingApprovalQueueItem,
+} from "@ministrosfc/shared";
 
 defineProps<{
   rows: PendingApprovalQueueItem[];
@@ -49,7 +52,9 @@ const emit = defineEmits<{
             <p class="text-xs text-gray-500">{{ item.email }}</p>
           </td>
           <td class="px-4 py-3 text-gray-600">
-            {{ new Date(item.submittedAt).toLocaleDateString("es-AR") }}
+            {{
+              new Date(item.submittedAt).toLocaleDateString(DEFAULT_DATE_LOCALE)
+            }}
           </td>
           <td class="px-4 py-3">
             <template v-if="item.suggestions.length > 0">

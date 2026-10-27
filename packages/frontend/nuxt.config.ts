@@ -79,4 +79,5 @@ export default defineNuxtConfig({
   experimental: {
     appManifest: false,
   },
+
 });

@@ -3,6 +3,7 @@ import { useAuthStore } from "~/stores/auth";
 
 const authStore = useAuthStore();
 const route = useRoute();
+const router = useRouter();
 const openSlideover = ref(true);
 
 const noPadding = computed(
@@ -12,6 +13,10 @@ const noPadding = computed(
 // const pageTitle = computed(() => {
 //   return (route.meta.pageTitle as string) || "Dashboard";
 // });
+const handleLogout = () => {
+  authStore.logout();
+  router.push("/");
+};
 </script>
 
 <template>
@@ -28,7 +33,9 @@ const noPadding = computed(
     >
       <template #default>
         <div class="p-4 pl-6 border-b border-gray-700">
-          <span class="text-brand font-bold text-lg">Ministros FC</span>
+          <NuxtLink to="/admin/dashboard" class="flex items-center space-x-2">
+            <span class="text-brand font-bold text-lg">Ministros FC</span>
+          </NuxtLink>
           <p class="text-xs text-gray-400 mt-1">Admin Panel</p>
         </div>
         <nav class="flex-1 flex flex-col p-4 space-y-2">
@@ -90,7 +97,7 @@ const noPadding = computed(
               size="xs"
               icon="mdi:logout"
               class="w-full"
-              @click="authStore.logout()"
+              @click="handleLogout"
             >
               Desconectarse
             </UButton>

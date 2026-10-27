@@ -52,7 +52,7 @@ const StatisticsService = {
   },
 
   async getAllPlayerStats(filters?: AggregatePlayersAllFilters) {
-    const key = `cache:stats:players:all:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}:${filters?.tournamentName ?? "all"}:${filters?.playerId ?? "all"}:${filters?.status ?? "all"}`;
+    const key = `cache:stats:players:all:v2:${filters?.year ?? "all"}:${filters?.rivalId ?? "all"}:${filters?.tournamentName ?? "all"}:${filters?.playerId ?? "all"}:${filters?.status ?? "all"}`;
     return withCache(key, () => StatisticsModel.aggregatePlayersAll(filters));
   },
 

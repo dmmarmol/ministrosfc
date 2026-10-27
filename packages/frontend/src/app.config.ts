@@ -1,5 +1,4 @@
-import { defineAppConfig } from "nuxt/app";
-
+// @ts-ignore Ignore TypeScript error for defineAppConfig not being defined globally
 export default defineAppConfig({
   ui: {
     button: {
