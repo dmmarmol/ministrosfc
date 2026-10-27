@@ -23,7 +23,7 @@ const {
 
 const [{ data: teamData }, { data, pending, refresh }] = await Promise.all([
   useAsyncData(`rival-team-${rivalId}`, () =>
-    $api<{ data: { name: string } }>(`/api/v1/teams/${rivalId}`),
+    $api<{ data: { name: string } }>(`/api/v1/opponent-teams/${rivalId}`),
   ),
   useAsyncData(
     `rival-stats-${rivalId}`,
