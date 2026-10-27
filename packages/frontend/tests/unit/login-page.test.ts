@@ -33,9 +33,10 @@ function mountPage() {
           template:
             "<button data-testid=\"register-form\" @click=\"$emit('submit', { firstName: 'Juan', lastName: 'Perez', email: 'u@test.com', password: 'Password1!', passwordConfirmation: 'Password1!', isPlayer: true })\">Register Form</button>",
         },
-        GoogleSignInButton: {
-          template: '<div data-testid="google-signin">Google</div>',
-        },
+        // @TODO Temporary disable Google sign in
+        // GoogleSignInButton: {
+        //   template: '<div data-testid="google-signin">Google</div>',
+        // },
       },
     },
   });
@@ -53,7 +54,8 @@ describe("login page mode toggle", () => {
 
     expect(wrapper.find('[data-testid="login-form"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="register-form"]').exists()).toBe(false);
-    expect(wrapper.find('[data-testid="google-signin"]').exists()).toBe(true);
+    // @TODO Temporary disable google sign in
+    expect(wrapper.find('[data-testid="google-signin"]').exists()).toBe(false);
     expect(wrapper.text()).toContain("¿No tenés cuenta? Registrate");
   });
 
@@ -80,6 +82,7 @@ describe("login page mode toggle", () => {
     await Promise.resolve();
 
     expect(wrapper.find('[data-testid="register-form"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="google-signin"]').exists()).toBe(true);
+    // @TODO Temporary disable google sign in
+    expect(wrapper.find('[data-testid="google-signin"]').exists()).toBe(false);
   });
 });

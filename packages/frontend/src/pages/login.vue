@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from "vue";
 import { useAuthStore } from "~/stores/auth";
 import LoginForm from "~/components/auth/LoginForm.vue";
 import RegisterForm from "~/components/auth/RegisterForm.vue";
-import GoogleSignInButton from "~/components/auth/GoogleSignInButton.vue";
+// import GoogleSignInButton from "~/components/auth/GoogleSignInButton.vue";
 import PendingApprovalBanner from "~/components/auth/PendingApprovalBanner.vue";
 import BackButton from "~/components/ui/BackButton.vue";
 
@@ -148,6 +148,7 @@ onMounted(() => {
           </div>
         </div>
 
+        <!-- @TODO Temporary disable google sign in -->
         <!-- <GoogleSignInButton /> -->
 
         <p class="text-center text-sm text-gray-500 mt-4">
