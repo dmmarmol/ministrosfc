@@ -1,4 +1,5 @@
 import type { Game } from "./game";
+export type { PlayerStatsResponse } from "@ministrosfc/cms/src/types/statistics/responses";
 
 export interface Statistics {
   id: string;

@@ -1,7 +1,7 @@
 import { computed } from "vue";
 import { useNuxtApp, useAsyncData } from "nuxt/app";
 import { toValue, type MaybeRefOrGetter } from "vue";
-import { type PlayerStatsResponse } from "@ministrosfc/cms/src/types/statistics/responses";
+import { type PlayerStatsResponse } from "@ministrosfc/shared";
 
 export interface PlayerStats {
   appearances: number;
