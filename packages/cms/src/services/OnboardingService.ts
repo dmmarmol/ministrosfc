@@ -47,6 +47,9 @@ const OnboardingService = {
     }
 
     if (dto.isPlayer) {
+      const playerFirstName = user.firstName ?? "Jugador";
+      const playerLastName = user.lastName ?? "Ministros";
+
       // Validate jersey uniqueness if provided
       if (dto.jerseyNumber != null) {
         const taken = await prisma.player.findFirst({

@@ -60,7 +60,7 @@ describe("Game CRUD (integration)", () => {
 
     // Create opponent team
     const teamRes = await request(app)
-      .post("/api/v1/teams")
+      .post("/api/v1/opponent-teams")
       .set("Authorization", `Bearer ${adminToken}`)
       .send({ name: "Test Opponent FC" });
     expect(teamRes.status).toBe(201);

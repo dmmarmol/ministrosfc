@@ -1,5 +1,5 @@
 import { StatisticsService } from "../../src/services/StatisticsService";
-import { Player, Tournament } from "@ministrosfc/shared";
+import { PlayerStatus, PlayerType, Position } from "@ministrosfc/shared";
 
 // --- Mocks ---
 jest.mock("../../src/models/Statistics");
@@ -29,29 +29,35 @@ const MockTournamentModel = TournamentModel as jest.Mocked<
 >;
 const MockPlayerModel = PlayerModel as jest.Mocked<typeof PlayerModel>;
 
-const mockPlayer: Player = {
+const mockPlayer = {
   id: "player-1",
   firstName: "Test",
   lastName: "Player",
   nickname: null,
+  address: null,
+  playerType: PlayerType.REGISTERED,
+  invitedById: null,
   jerseyNumber: 10,
-  position: "STRIKER" as const,
+  position: Position.CF,
+  dateOfBirth: null,
+  height: null,
+  dominantFoot: null,
   photoUrl: null,
-  userId: null,
-  status: "ACTIVE" as const,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  contactInfo: null,
+  status: PlayerStatus.ACTIVE,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
 };
 
-const mockTournament: Tournament = {
+const mockTournament = {
   id: "tournament-1",
   name: "Copa Test",
   format: "LEAGUE" as const,
   status: "COMPLETED" as const,
-  startDate: new Date("2024-01-01"),
-  endDate: new Date("2024-06-01"),
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  startDate: new Date("2024-01-01").toISOString(),
+  endDate: new Date("2024-06-01").toISOString(),
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
 };
 
 beforeEach(() => {
@@ -154,33 +160,34 @@ describe("StatisticsService", () => {
   describe.skip("getTeamStatsByRival", () => {
     it("filters teams by playground when playgroundId is provided", async () => {
       MockPlayerModel.findById.mockResolvedValue(mockPlayer as any);
-      const aggregated = {
-        appearances: 4,
-        goalsScored: 3,
-        assists: 1,
-        yellowCards: 0,
-        redCards: 0,
-        totalMinutes: 360,
-      };
+      const aggregated = [
+        {
+          playgroundName: "Cancha 1",
+          key: "rival-1",
+          label: "Rival 1",
+          gamesPlayed: 4,
+          wins: 2,
+          losses: 1,
+          draws: 1,
+          goalsFor: 6,
+          goalsAgainst: 4,
+          goalDifference: 2,
+          winRate: 50,
+          cleanSheets: 1,
+          pointsEarned: 7,
+        },
+      ];
       MockStatisticsModel.aggregateTeamByRival.mockResolvedValue(
         aggregated as any,
       );
 
-      const result = await StatisticsService.getTeamStatsByRival(
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        "playground-1",
-      );
+      const result = await StatisticsService.getTeamStatsByRival({
+        playgroundId: "playground-1",
+      });
 
-      expect(result.stats.appearances).toBe(4);
+      expect(result[0]?.gamesPlayed).toBe(4);
       expect(MockStatisticsModel.aggregateTeamByRival).toHaveBeenCalledWith(
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        "playground-1",
+        { playgroundId: "playground-1" },
       );
     });
   });

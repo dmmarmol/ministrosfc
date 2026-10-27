@@ -66,7 +66,7 @@ describe("Participation flow (integration)", () => {
 
     // Create opponent team
     const teamRes = await request(app)
-      .post("/api/v1/teams")
+      .post("/api/v1/opponent-teams")
       .set("Authorization", `Bearer ${adminToken}`)
       .send({ name: "Participation Opponent" });
     opponentTeamId = teamRes.body.data.id;

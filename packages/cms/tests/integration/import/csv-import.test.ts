@@ -408,7 +408,7 @@ Luis Suárez,El Pistolero,,,,,,,,, +54911234567,,ACTIVE
       include: { contactInfo: true },
     });
     expect(player).not.toBeNull();
-    expect(player?.contactInfo).not.toBeNull();
+    expect(player?.contactInfo).toBeTruthy();
     expect(player?.contactInfo?.phone).toBeTruthy();
   });
 
@@ -436,8 +436,8 @@ Luis Suárez,El Pistolero,,,,,,,,, +54911234567,,ACTIVE
       where: { lastName: "Suárez" },
       include: { contactInfo: true },
     });
-    // Must still be exactly one Contact record (upsert, not duplicate create)
-    expect(player?.contactInfo).not.toBeNull();
+    expect(player?.contactInfo).toBeTruthy();
+    expect(player?.contactInfo?.phone).toBeTruthy();
   });
 
   it("(e) apariciones referencing player nickname → no ghost player created", async () => {
