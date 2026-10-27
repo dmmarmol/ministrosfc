@@ -6,11 +6,6 @@ const authStore = useAuthStore();
 const open = ref(false);
 const menuEl = ref<HTMLElement | null>(null);
 
-function handleLogout() {
-  open.value = false;
-  authStore.logout();
-}
-
 function openMenu() {
   open.value = true;
 }
@@ -88,13 +83,7 @@ onUnmounted(() => {
         >
       </UButton>
       <hr class="my-1 border-gray-100" />
-      <UButton
-        to="/logout"
-        variant="ghost"
-        color="neutral"
-        class="w-full"
-        @click="handleLogout"
-      >
+      <UButton to="/logout" variant="ghost" color="neutral" class="w-full">
         Cerrar sesión
       </UButton>
     </div>
