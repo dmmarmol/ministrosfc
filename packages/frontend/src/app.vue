@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { es } from "@nuxt/ui/locale";
 import { useAuthStore } from "~/stores/auth";
 
 const authStore = useAuthStore();
@@ -17,7 +18,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <UApp>
+  <!-- Spanish locale: Nuxt UI's built-in texts (empty tables, close buttons, ...) -->
+  <UApp :locale="es">
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>

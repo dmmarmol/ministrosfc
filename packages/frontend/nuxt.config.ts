@@ -31,7 +31,10 @@ export default defineNuxtConfig({
   ssr: true,
 
   // Cache public pages briefly (see route-rules.ts); private routes are never cached.
-  routeRules,
+  // Production builds only: in development Nitro keeps this cache on disk under path-like keys,
+  // where the cached root page (a file) collides with sub-routes (directories) and every page
+  // after the first fails with ENOTDIR. Production keeps the cache in memory.
+  routeRules: process.env.NODE_ENV === "production" ? routeRules : {},
 
   // Bind the Vite dev server to the configured host.
   // Default is localhost; set NUXT_HOST=0.0.0.0 in .env.local to also accept

@@ -17,7 +17,9 @@ Run these in order. Steps marked **owner** need the owner's accounts; everything
 2. **Workflow lint**: `actionlint` over `.github/workflows` reports no errors.
 3. **Image hygiene**: building the CMS image locally and listing its files shows no `.env*` (only `.env.example` may be absent or present by design).
 4. **Startup rules**: starting the CMS with `APP_ENV=production` and a `localhost` CORS origin, or with one Cloudinary variable set, fails with a message naming the problem; starting it with `APP_ENV=development REDIS_DISABLED=true` and no Redis succeeds.
-5. **Idle behavior**: run the CMS locally, leave it with no traffic for 10 minutes while watching database query logs; expect no queries after startup.
+5. **Empty database**: run the CMS and frontend (alternate ports, throwaway database) against a freshly migrated empty database and open the public pages. Expect 200s everywhere, Spanish empty states ("No hay partidos próximos.", "No se encontraron torneos.", "Sin datos" in empty tables) and no errors. The public pages must keep working in `nuxt dev` (caching rules apply to production builds only).
+6. **Production build**: build the frontend and run `.output` locally (`NODE_ENV=production`, `APP_ENV=production`) against the empty database; request `/`, `/roster`, `/schedule` twice each. Expect 200s, the second request served from cache (no CMS call), no `X-Robots-Tag`, and `robots.txt` without a blanket `Disallow: /`.
+7. **Idle behavior**: run the CMS locally, leave it with no traffic for 10 minutes while watching database query logs; expect no queries after startup.
 
 ## B. DEV pipeline (develop branch)
 
