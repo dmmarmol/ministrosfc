@@ -49,25 +49,25 @@ const handleLogout = () => {
           <p class="text-xs text-gray-400 mt-1">Panel de administración</p>
         </div>
         <nav class="flex-1 flex flex-col p-4 space-y-2">
-          <UButton to="/admin/dashboard" variant="solid" color="secondary"
+          <UButton to="/admin/dashboard" variant="solid" color="secondary" class="bg-white/10 text-white hover:bg-white/20"
             >Inicio</UButton
           >
-          <UButton to="/admin/players" variant="solid" color="secondary"
+          <UButton to="/admin/players" variant="solid" color="secondary" class="bg-white/10 text-white hover:bg-white/20"
             >Jugadores</UButton
           >
-          <UButton to="/admin/games" variant="solid" color="secondary"
+          <UButton to="/admin/games" variant="solid" color="secondary" class="bg-white/10 text-white hover:bg-white/20"
             >Partidos</UButton
           >
-          <UButton to="/admin/playgrounds" variant="solid" color="secondary"
+          <UButton to="/admin/playgrounds" variant="solid" color="secondary" class="bg-white/10 text-white hover:bg-white/20"
             >Canchas</UButton
           >
-          <UButton to="/admin/teams" variant="solid" color="secondary"
+          <UButton to="/admin/teams" variant="solid" color="secondary" class="bg-white/10 text-white hover:bg-white/20"
             >Equipos</UButton
           >
-          <UButton to="/admin/tournaments" variant="solid" color="secondary"
+          <UButton to="/admin/tournaments" variant="solid" color="secondary" class="bg-white/10 text-white hover:bg-white/20"
             >Torneos</UButton
           >
-          <UButton to="/admin/users" variant="solid" color="secondary"
+          <UButton to="/admin/users" variant="solid" color="secondary" class="bg-white/10 text-white hover:bg-white/20"
             >Usuarios</UButton
           >
         </nav>

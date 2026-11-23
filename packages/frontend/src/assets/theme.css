@@ -37,11 +37,11 @@
   );
 
   /* Brand scale (Tailwind classes: bg-brand-500, text-brand-700, etc.) */
-  --color-brand-50: color-mix(in srgb, var(--brand) 8%, white);
-  --color-brand-100: color-mix(in srgb, var(--brand) 16%, white);
-  --color-brand-200: color-mix(in srgb, var(--brand) 28%, white);
-  --color-brand-300: color-mix(in srgb, var(--brand) 42%, white);
-  --color-brand-400: color-mix(in srgb, var(--brand) 64%, white);
+  --color-brand-50: color-mix(in srgb, var(--brand) 8%, var(--surface));
+  --color-brand-100: color-mix(in srgb, var(--brand) 16%, var(--surface));
+  --color-brand-200: color-mix(in srgb, var(--brand) 28%, var(--surface));
+  --color-brand-300: color-mix(in srgb, var(--brand) 42%, var(--surface));
+  --color-brand-400: color-mix(in srgb, var(--brand) 64%, var(--surface));
   --color-brand-500: var(--brand);
   --color-brand-600: color-mix(in srgb, var(--brand) 86%, black);
   --color-brand-700: color-mix(in srgb, var(--brand) 72%, black);
@@ -49,21 +49,22 @@
   --color-brand-900: color-mix(in srgb, var(--brand) 44%, black);
 
   /* Primary scale */
-  --color-primary-100: color-mix(in srgb, var(--primary) 24%, white);
-  --color-primary-300: color-mix(in srgb, var(--primary) 54%, white);
+  --color-primary-50: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  --color-primary-100: color-mix(in srgb, var(--primary) 24%, var(--surface));
+  --color-primary-300: color-mix(in srgb, var(--primary) 54%, var(--surface));
   --color-primary-500: var(--primary);
   --color-primary-700: color-mix(in srgb, var(--primary) 70%, black);
   --color-primary-900: color-mix(in srgb, var(--primary) 45%, black);
 
   /* Secondary scale */
-  --color-secondary-100: color-mix(in srgb, var(--secondary) 14%, white);
-  --color-secondary-300: color-mix(in srgb, var(--secondary) 36%, white);
+  --color-secondary-100: color-mix(in srgb, var(--secondary) 14%, var(--surface));
+  --color-secondary-300: color-mix(in srgb, var(--secondary) 36%, var(--surface));
   --color-secondary-500: var(--secondary);
   --color-secondary-700: color-mix(in srgb, var(--secondary) 75%, black);
   --color-secondary-900: color-mix(in srgb, var(--secondary) 48%, black);
 
   /* Tertiary scale */
-  --color-tertiary-100: color-mix(in srgb, var(--tertiary) 88%, white);
+  --color-tertiary-100: color-mix(in srgb, var(--tertiary) 88%, var(--surface));
   --color-tertiary-300: color-mix(in srgb, var(--tertiary) 96%, black);
   --color-tertiary-500: var(--tertiary);
   --color-tertiary-700: color-mix(in srgb, var(--tertiary) 66%, black);
