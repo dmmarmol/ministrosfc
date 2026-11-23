@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain — 2 open: FR-020 (launch data scope), FR-021 (photo upload at launch)
+- [x] No [NEEDS CLARIFICATION] markers remain — resolved 2026-11-23: launch data = empty DB + admin (import later via CSV endpoint); photo upload deferred
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,5 +31,5 @@
 
 ## Notes
 
-- FR-020 and FR-021 need the owner's decision before `/speckit.plan`.
-- Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`.
+- Clarifications answered by the owner on 2026-11-23 (Q1: empty database plus admin; Q2: photo upload deferred).
+- All items pass; the spec is ready for `/speckit.clarify` or `/speckit.plan`.

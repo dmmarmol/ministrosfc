@@ -20,9 +20,10 @@ Facts verified in the repository on 2026-11-23. They describe the starting point
 - **Risky workflows**: a "Reset CMS Database" workflow can target the production environment (protected only by typing a confirmation word) and a "Seed CMS Admin" workflow can seed production on manual dispatch.
 - **Image contents**: the API container image build copies any `.env*` files found in the build context.
 - **Startup validation** (`packages/cms/src/config/env-validation.ts`): the API refuses to start without a database URL, a JWT secret, allowed CORS origins and a Redis connection; in production it additionally requires the three Cloudinary credentials. The frontend needs its public API base URL and public app URL.
+- **Launch data decision (2026-11-23)**: production starts empty with only an admin account; the owner will import his data later through the CSV import endpoint.
 - **Database**: Postgres on Neon with two branches (`production`, `dev`). Both are currently archived/suspended and the account's monthly compute allowance is exhausted until it resets in about 7 days. Prisma uses a single connection string (no separate direct/pooled URL).
 - **Redis**: an Upstash database `ministrosfc-prod` exists for production. There is no DEV Redis, yet the DEV API passes startup validation today, so how DEV obtains Redis is unknown.
-- **Photo storage**: a Cloudinary account exists; its original purpose is not remembered. It is the storage behind player photo uploads.
+- **Photo storage**: a Cloudinary account exists; its original purpose is not remembered. It is the storage behind player photo uploads, which are deferred past launch (decision of 2026-11-23).
 - **Suspected sources of database compute usage** (to be confirmed with data, not assumed):
   1. The API runs a game-status job on startup and every 5 minutes, and the API machine never sleeps, so the database is touched around the clock and cannot suspend; DEV and PRO multiply this.
   2. The public health endpoint queries the database and Redis on every call.
@@ -55,7 +56,7 @@ Club members open the production website and see the roster, schedule, results a
 
 **Why this priority**: Without a working first production environment there is nothing for the pipeline to deploy to.
 
-**Independent Test**: Visit the production site anonymously and as an admin: public pages load with data, sign-in works, creating and editing a record persists, and (if photos are in scope) a player photo uploads and displays.
+**Independent Test**: Visit the production site anonymously and as an admin: public pages load with data, sign-in works, creating and editing a record persists, and photo upload is not offered (or clearly unavailable) without causing errors.
 
 **Acceptance Scenarios**:
 
@@ -121,7 +122,7 @@ Destructive or sensitive operations (resetting the database, seeding an admin, d
 
 ### User Story 6 - Open service questions are settled (Priority: P3)
 
-The owner knows, and the repository records, whether DEV uses its own cache or runs without one, and whether photo storage is part of the launch. Unused accounts are either kept for a documented reason or retired.
+The owner knows, and the repository records, whether DEV uses its own cache or runs without one, and that photo storage is deferred past launch. Unused accounts are either kept for a documented reason or retired.
 
 **Why this priority**: These are loose ends that affect configuration and cost, but they do not block the pipeline itself.
 
@@ -130,7 +131,7 @@ The owner knows, and the repository records, whether DEV uses its own cache or r
 **Acceptance Scenarios**:
 
 1. **Given** DEV has no dedicated cache, **When** the DEV API starts, **Then** its behavior is deliberate and documented (for example, a documented fallback or a shared/disabled cache), not accidental.
-2. **Given** the photo storage account, **When** the owner reviews the launch scope, **Then** its role is documented as required or out of scope, and production configuration matches that decision.
+2. **Given** the photo storage account, **When** the owner reviews the launch scope, **Then** the documentation states that photo upload is deferred past launch, why the account exists, and what must be configured to enable it later.
 
 ---
 
@@ -145,6 +146,8 @@ The owner knows, and the repository records, whether DEV uses its own cache or r
 - The production health check passes but a critical user flow (sign-in, public roster) is broken.
 - Search engines and crawlers index DEV: DEV should not be discoverable, while production should be.
 - The hosting account's token is revoked or rotated.
+- The owner uploads a large CSV right after launch: the import must not time out the request, lose rows silently, or burn through the database allowance.
+- Photo upload is requested while photo storage is not configured: the user sees a clear message, not an error.
 
 ## Requirements *(mandatory)*
 
@@ -169,10 +172,11 @@ The owner knows, and the repository records, whether DEV uses its own cache or r
 - **FR-017**: The database reset workflow MUST NOT be able to target production without an additional deliberate safeguard defined by the owner, and the admin-seeding workflow MUST require explicit approval for production and MUST NOT expose credentials.
 - **FR-018**: Production secrets MUST be reachable only by workflows running on the protected production path (merges to `main`), not by pull requests from forks or other branches.
 - **FR-019**: Every production deployment MUST be traceable to the commit and merge that produced it.
-- **FR-020**: The production environment MUST be seeded with a working administrator account and any required initial data without storing credentials in the repository; the launch data scope is defined in Assumptions. [NEEDS CLARIFICATION: What data must exist in production at launch: an empty database with only an admin account, a one-time import of the existing historical data (players, games, tournaments), or a copy of the current DEV data?]
-- **FR-021**: Whether player photo upload is available at launch MUST be explicitly decided and the production configuration MUST match that decision (including the API's startup validation). [NEEDS CLARIFICATION: Is player photo upload required at launch? If yes, the photo storage account must be configured for production; if no, the production startup validation must stop requiring it until the feature is enabled.]
-- **FR-022**: How DEV obtains its cache (own instance, shared instance, or none) MUST be decided and documented, and DEV and PRO MUST NOT share cache data accidentally.
-- **FR-023**: A deployment runbook MUST describe how to deploy manually in an emergency, how to read pipeline results, who holds which accounts, and how to rotate each secret.
+- **FR-020**: Production MUST launch with an empty business database containing only a working administrator account, created without storing credentials in the repository. All club data is loaded after launch by the owner through the existing administrator CSV import (from CSV files exported from the club's spreadsheet).
+- **FR-021**: The administrator CSV import MUST work reliably on production: it MUST accept the owner's real file sizes, complete or fail with a clear report instead of timing out silently, be safe to re-run, and MUST NOT exhaust the database allowance for a typical import.
+- **FR-022**: Player photo upload is NOT part of the launch. Production startup validation MUST NOT require photo storage credentials, and while photo storage is not configured the product MUST behave gracefully (no photo upload offered, or a clear "not available" message) with players shown without photos and no errors.
+- **FR-023**: How DEV obtains its cache (own instance, shared instance, or none) MUST be decided and documented, and DEV and PRO MUST NOT share cache data accidentally.
+- **FR-024**: A deployment runbook MUST describe how to deploy manually in an emergency, how to read pipeline results, who holds which accounts, and how to rotate each secret.
 
 ### Key Entities
 
@@ -195,6 +199,7 @@ The owner knows, and the repository records, whether DEV uses its own cache or r
 - **SC-007**: Attempting the database reset on production through the normal workflow form is blocked in 100% of tries; DEV remains resettable.
 - **SC-008**: The owner receives an alert before the free allowance is exhausted, at least 3 days ahead of projected exhaustion at the current usage rate.
 - **SC-009**: After launch, an anonymous visitor can load the public roster and schedule, and the admin can sign in and edit a record, on the first attempt on production.
+- **SC-010**: The owner can import the club's full data set through the administrator CSV import on production in a single session, with a clear success or error report, and without exceeding the free database allowance.
 
 ## Assumptions
 
@@ -205,4 +210,6 @@ The owner knows, and the repository records, whether DEV uses its own cache or r
 - The owner accepts that cold starts after idle periods may make the first request slower.
 - Required approvals for production changes are the pull request review and merge; no extra manual approval gate is added to the normal deployment (the owner may add one later through the repository's environment settings).
 - The version bump and git tag for this release follow the constitution's package version management rules.
+- Production launches empty; the owner loads data afterwards with the administrator CSV import, using files exported from a spreadsheet he maintains. Importing historical data during the deploy itself is out of scope.
+- Player photo upload is deferred; the existing photo storage account is kept but not required for launch, and enabling it later is a separate, small change.
 - Out of scope: new product features, redesigning the database schema, multi-region deployment, and a staging environment beyond DEV and PRO.
