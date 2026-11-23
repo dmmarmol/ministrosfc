@@ -1,13 +1,6 @@
 ---
-description: Execute the implementation planning workflow using the plan template to generate design artifacts.
-handoffs:
-  - label: Create Tasks
-    agent: speckit.tasks
-    prompt: Break the plan into tasks
-    send: true
-  - label: Create Checklist
-    agent: speckit.checklist
-    prompt: Create a checklist for the following domain...
+description: "Execute the implementation planning workflow using the plan template to generate design artifacts."
+argument-hint: "[arguments]"
 ---
 
 ## User Input
@@ -164,3 +157,8 @@ Command ends after Phase 1 design. Report branch, IMPL_PLAN path, and generated 
 - [ ] Plan workflow executed and design artifacts generated
 - [ ] Extension hooks dispatched or skipped according to the rules in Mandatory Post-Execution Hooks above
 - [ ] Completion reported to user with branch, plan path, and generated artifacts
+
+## Suggested Next Commands
+
+- `/speckit.tasks`: Create Tasks
+- `/speckit.checklist`: Create Checklist

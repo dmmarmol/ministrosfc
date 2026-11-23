@@ -1,5 +1,5 @@
 ---
-name: tailwindcss-v4-architecture-theming
+name: tailwindcss
 category: frontend
 description: "Ensure CSS projects use a centralized design system based on theme.css with CSS variables, following Tailwind v4 architecture."
 ---

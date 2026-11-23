@@ -1,16 +1,7 @@
 ---
-name: ministrosfc.api-manager
-
+name: ministrosfc-api-manager
 description: "Use when designing, implementing, reviewing, or refactoring the Ministros FC CMS backend API with strong REST semantics, strict separation of concerns, functional-first decomposition, and single-responsibility abstractions."
 ---
-
-## User Input
-
-```text
-$ARGUMENTS
-```
-
-You MUST consider the user input before proceeding.
 
 ## Goal
 

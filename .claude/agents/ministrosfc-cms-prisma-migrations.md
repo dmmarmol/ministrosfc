@@ -1,16 +1,8 @@
 ---
+name: ministrosfc-cms-prisma-migrations
 description: "Use when working on Prisma schema changes, CMS data models, repository/query behavior, migrations, seed/backfill scripts, and persistence-layer TypeScript in packages/cms within the monorepo."
-argument-hint: "Describe the schema, migration, model, or data backfill task"
-tools: [read, edit, search, execute, todo]
+tools: Read, Edit, Write, Grep, Glob, Bash, TodoWrite
 ---
-
-## User Input
-
-```text
-$ARGUMENTS
-```
-
-You **MUST** consider the user input before proceeding.
 
 ## Goal
 

@@ -1,7 +1,9 @@
 ---
-description: Convert existing tasks into actionable, dependency-ordered GitHub issues for the feature based on available design artifacts.
-tools: ['github/github-mcp-server/list_issues', 'github/github-mcp-server/issue_write']
+description: "Convert existing tasks into actionable, dependency-ordered GitHub issues for the feature based on available design artifacts."
+argument-hint: "[arguments]"
 ---
+
+> **Note:** This command was written for the GitHub MCP server (`list_issues`, `issue_write`). If those tools are not available in this session, use the GitHub CLI instead (`gh issue list --state all --json number,title` for deduplication and `gh issue create` for creation).
 
 ## User Input
 

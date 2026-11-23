@@ -1,6 +1,6 @@
 ---
-description: "Use when editing the TypeScript backend in packages/cms. Applies backend conventions for Express routes/controllers, Prisma models, services, middleware, shared API contracts, and CMS integration tests in the monorepo."
-applyTo: "packages/cms/**/*.ts"
+paths:
+  - "packages/cms/**/*.ts"
 ---
 
 # CMS Backend Instructions

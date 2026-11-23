@@ -1,6 +1,5 @@
 ---
-description: "Use when editing the frontend in packages/frontend and consuming backend API contracts from the monorepo. Covers using @ministrosfc/shared types, avoiding duplicated API DTOs, and keeping composables/pages aligned with CMS contracts."
-applyTo:
+paths:
   - "packages/frontend/src/**/*.ts"
   - "packages/frontend/src/**/*.vue"
 ---

@@ -1,9 +1,6 @@
 ---
-description: Identify underspecified areas in the current feature spec by asking up to 5 highly targeted clarification questions and encoding answers back into the spec.
-handoffs:
-  - label: Build Technical Plan
-    agent: speckit.plan
-    prompt: Create a plan for the spec. I am building with...
+description: "Identify underspecified areas in the current feature spec by asking up to 5 highly targeted clarification questions and encoding answers back into the spec."
+argument-hint: "[arguments]"
 ---
 
 ## User Input
@@ -285,3 +282,7 @@ Report completion (after questioning loop ends or early termination):
 - [ ] Spec quality checklist re-validated against updated spec (if `FEATURE_DIR/checklists/requirements.md` exists)
 - [ ] Extension hooks dispatched or skipped according to the rules in Mandatory Post-Execution Hooks above
 - [ ] Completion reported to user with questions answered, sections touched, checklist status, and coverage summary
+
+## Suggested Next Commands
+
+- `/speckit.plan`: Build Technical Plan

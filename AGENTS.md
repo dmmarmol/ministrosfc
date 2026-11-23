@@ -8,7 +8,9 @@ npm-workspaces monorepo for an amateur football club website with statistics.
 
 ## Skill Routing
 
-Specialized skills live in `.github/skills/<name>/SKILL.md`. Before writing code, match the request to a skill, tell the user which one you are applying, and follow its `SKILL.md` strictly.
+Claude Code assets live in `.claude/`: `skills/` (below), `commands/` (spec-kit slash commands such as `/speckit.plan`), `agents/` (subagents for the CMS API and Prisma work) and `rules/` (conventions scoped to `packages/cms` and `packages/frontend` paths).
+
+Specialized skills live in `.claude/skills/<name>/SKILL.md`. Before writing code, match the request to a skill, tell the user which one you are applying, and follow its `SKILL.md` strictly.
 
 | Skill                        | Use when                                                         |
 | ---------------------------- | ---------------------------------------------------------------- |
@@ -74,18 +76,18 @@ npx prisma studio      # Prisma Studio GUI
 
 ### Frontend
 
-Follow `.github/skills/web-coder/SKILL.md`, plus:
+Follow `.claude/skills/web-coder/SKILL.md`, plus:
 
 - Before creating a helper or formatter in a component, look for an existing one in `packages/frontend/src/utils` or a nearby shared file and reuse it. Do not duplicate date/format/transform logic; share helpers used in more than one place.
 - Every user-visible string (public and admin) MUST go through `t()` from `useI18n()`. Do not hardcode labels, validation messages, notifications, button copy, headings, empty states, or helper text. Only machine identifiers, technical constants, and enum values not shown to users may stay raw.
 
 ### Tests (Vue & Pinia)
 
-Follow `.github/skills/unit-test-vue-pinia/SKILL.md`.
+Follow `.claude/skills/unit-test-vue-pinia/SKILL.md`.
 
 ### CSS
 
-Prioritize CSS variables defined in `theme.css`. For architecture questions, consult `.github/skills/tailwindcss/theme-architect/SKILL.md`.
+Prioritize CSS variables defined in `theme.css`. For architecture questions, consult `.claude/skills/tailwindcss/SKILL.md`.
 
 ## Key Architectural Decisions
 
@@ -104,7 +106,7 @@ Read `packages/cms/docs/API_ARCHITECTURE_OVERVIEW.md` before changing the API ar
 
 ## Specs
 
-Features are specified under `specs/NNN-name/` using spec-kit (`.github/agents/speckit.*`). Check the active branch's `tasks.md` for current work, and keep `CHANGELOG.md` (root and per-package) updated.
+Features are specified under `specs/NNN-name/` using spec-kit (slash commands `/speckit.specify`, `/speckit.plan`, `/speckit.tasks`, ... in `.claude/commands/`). Check the active branch's `tasks.md` for current work, and keep `CHANGELOG.md` (root and per-package) updated.
 
 ## Manual QA
 
