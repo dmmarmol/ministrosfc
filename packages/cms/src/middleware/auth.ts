@@ -29,7 +29,7 @@ export function authenticate(
   if (!authHeader?.startsWith("Bearer ")) {
     res.status(401).json({
       code: ErrorCode.UNAUTHORIZED,
-      message: "Authorization token required",
+      message: "Se requiere un token de autorización.",
       statusCode: 401,
     });
     return;
@@ -45,7 +45,7 @@ export function authenticate(
     const isExpired = err instanceof jwt.TokenExpiredError;
     res.status(401).json({
       code: isExpired ? ErrorCode.TOKEN_EXPIRED : ErrorCode.UNAUTHORIZED,
-      message: isExpired ? "Token expired" : "Invalid token",
+      message: isExpired ? "El token venció." : "El token no es válido.",
       statusCode: 401,
     });
   }

@@ -124,7 +124,7 @@ describe("CSV Import (integration)", () => {
       .attach("historial", HISTORIAL_CSV, "historial.csv");
 
     expect(res.status).toBe(422);
-    expect(res.body.error).toMatch(/Missing required files/);
+    expect(res.body.error).toMatch(/Faltan archivos obligatorios/);
   });
 
   it("POST /api/v1/import/csv → 202 with final counts (happy path)", async () => {

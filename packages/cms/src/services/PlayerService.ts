@@ -45,7 +45,7 @@ export const PlayerService = {
       const taken = await PlayerModel.isJerseyNumberTaken(dto.jerseyNumber);
       if (taken) {
         throw createError(
-          `Jersey number ${dto.jerseyNumber} is already taken by an active registered player`,
+          `El número de camiseta ${dto.jerseyNumber} ya está asignado a un jugador registrado y activo.`,
           409,
           ErrorCode.DUPLICATE_JERSEY_NUMBER,
         );
@@ -108,7 +108,7 @@ export const PlayerService = {
   ) {
     const existing = await PlayerModel.findById(id);
     if (!existing) {
-      throw createError("Player not found", 404, ErrorCode.PLAYER_NOT_FOUND);
+      throw createError("No se encontró el jugador.", 404, ErrorCode.PLAYER_NOT_FOUND);
     }
 
     // Validate jersey uniqueness if changing jersey number
@@ -126,7 +126,7 @@ export const PlayerService = {
         );
         if (taken) {
           throw createError(
-            `Jersey number ${dto.jerseyNumber} is already taken by an active registered player`,
+            `El número de camiseta ${dto.jerseyNumber} ya está asignado a un jugador registrado y activo.`,
             409,
             ErrorCode.DUPLICATE_JERSEY_NUMBER,
           );
@@ -178,7 +178,7 @@ export const PlayerService = {
   async deactivatePlayer(id: string) {
     const existing = await PlayerModel.findById(id);
     if (!existing) {
-      throw createError("Player not found", 404, ErrorCode.PLAYER_NOT_FOUND);
+      throw createError("No se encontró el jugador.", 404, ErrorCode.PLAYER_NOT_FOUND);
     }
     const updated = await PlayerModel.deactivate(id);
     await PlayerService.invalidateCache();
@@ -188,7 +188,7 @@ export const PlayerService = {
   async reactivatePlayer(id: string) {
     const existing = await PlayerModel.findById(id);
     if (!existing) {
-      throw createError("Player not found", 404, ErrorCode.PLAYER_NOT_FOUND);
+      throw createError("No se encontró el jugador.", 404, ErrorCode.PLAYER_NOT_FOUND);
     }
     const updated = await PlayerModel.reactivate(id);
     await PlayerService.invalidateCache();
@@ -222,7 +222,7 @@ export const PlayerService = {
   async getPlayerById(id: string) {
     const player = await PlayerModel.findById(id);
     if (!player) {
-      throw createError("Player not found", 404, ErrorCode.PLAYER_NOT_FOUND);
+      throw createError("No se encontró el jugador.", 404, ErrorCode.PLAYER_NOT_FOUND);
     }
     return player;
   },
@@ -230,7 +230,7 @@ export const PlayerService = {
   async deletePlayer(id: string): Promise<void> {
     const player = await PlayerModel.findById(id);
     if (!player) {
-      throw createError("Player not found", 404, ErrorCode.PLAYER_NOT_FOUND);
+      throw createError("No se encontró el jugador.", 404, ErrorCode.PLAYER_NOT_FOUND);
     }
     await PlayerModel.deleteById(id);
     if (player.photoUrl) {

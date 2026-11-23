@@ -61,7 +61,7 @@ export async function importApariciones(
     const fechaRaw = row[AparicionesCols.fecha]?.trim();
     const date = parseDate(fechaRaw ?? "");
     if (!date) {
-      warnings.push(`apariciones: invalid date "${fechaRaw}" — row skipped`);
+      warnings.push(`apariciones: la fecha "${fechaRaw}" no es válida; se omitió la fila.`);
       result.appearances.skipped++;
       continue;
     }
@@ -137,7 +137,7 @@ export async function importApariciones(
 
     if (!game) {
       warnings.push(
-        `apariciones: no matching game for ${fechaRaw} vs "${rivalName}" (${tournamentName ?? "no torneo"}) — row skipped`,
+        `apariciones: no se encontró un partido para la fecha ${fechaRaw} contra "${rivalName}" (${tournamentName ?? "sin torneo"}); se omitió la fila.`,
       );
       result.appearances.skipped++;
       continue;
@@ -187,7 +187,7 @@ export async function importApariciones(
           select: { id: true },
         });
         warnings.push(
-          `apariciones: auto-created player "${playerName}" (not in jugadores.csv)`,
+          `apariciones: se creó automáticamente el jugador "${playerName}" (no estaba en jugadores.csv).`,
         );
       }
 
@@ -197,7 +197,7 @@ export async function importApariciones(
 
     if (!resolvedPlayerId) {
       warnings.push(
-        `apariciones: could not resolve player (externalId="${jugadorExternalId ?? ""}", name="${playerName ?? ""}") — row skipped`,
+        `apariciones: no se pudo identificar al jugador (externalId="${jugadorExternalId ?? ""}", name="${playerName ?? ""}"); se omitió la fila.`,
       );
       result.appearances.skipped++;
       continue;

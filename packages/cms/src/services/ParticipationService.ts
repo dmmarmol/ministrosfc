@@ -52,7 +52,7 @@ const ParticipationService = {
       select: { id: true },
     });
     if (!game)
-      throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
+      throw createError("No se encontró el partido.", 404, ErrorCode.GAME_NOT_FOUND);
     return GameParticipantModel.getParticipants(gameId);
   },
 
@@ -62,7 +62,7 @@ const ParticipationService = {
       select: { id: true, status: true, date: true },
     });
     if (!game)
-      throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
+      throw createError("No se encontró el partido.", 404, ErrorCode.GAME_NOT_FOUND);
 
     // Cannot confirm for past or completed games
     if (
@@ -70,14 +70,14 @@ const ParticipationService = {
       game.status === GameStatus.CANCELLED
     ) {
       throw createError(
-        "Cannot add participants to completed or cancelled games",
+        "No se pueden agregar participantes a partidos finalizados o cancelados.",
         400,
         ErrorCode.VALIDATION_ERROR,
       );
     }
     if (new Date(game.date) < new Date()) {
       throw createError(
-        "Cannot add participants to past games",
+        "No se pueden agregar participantes a partidos que ya se jugaron.",
         400,
         ErrorCode.VALIDATION_ERROR,
       );
@@ -90,11 +90,11 @@ const ParticipationService = {
     });
     const playerId = user?.playerId;
     if (!playerId)
-      throw createError("Player not found", 404, ErrorCode.PLAYER_NOT_FOUND);
+      throw createError("No se encontró el jugador.", 404, ErrorCode.PLAYER_NOT_FOUND);
 
     const player = await PlayerModel.findById(playerId);
     if (!player)
-      throw createError("Player not found", 404, ErrorCode.PLAYER_NOT_FOUND);
+      throw createError("No se encontró el jugador.", 404, ErrorCode.PLAYER_NOT_FOUND);
 
     // Upsert player's own participation
     const existing = await GameParticipantModel.findParticipant(
@@ -155,10 +155,10 @@ const ParticipationService = {
       select: { status: true },
     });
     if (!game)
-      throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
+      throw createError("No se encontró el partido.", 404, ErrorCode.GAME_NOT_FOUND);
     if (game.status === GameStatus.COMPLETED) {
       throw createError(
-        "Cannot modify participants for completed games",
+        "No se pueden modificar los participantes de partidos finalizados.",
         400,
         ErrorCode.VALIDATION_ERROR,
       );
@@ -169,7 +169,7 @@ const ParticipationService = {
       playerId,
     );
     if (!existing)
-      throw createError("Participant not found", 404, ErrorCode.NOT_FOUND);
+      throw createError("No se encontró el participante.", 404, ErrorCode.NOT_FOUND);
 
     return GameParticipantModel.updateStatus(gameId, playerId, status);
   },
@@ -184,7 +184,7 @@ const ParticipationService = {
       playerId,
     );
     if (!existing)
-      throw createError("Participant not found", 404, ErrorCode.NOT_FOUND);
+      throw createError("No se encontró el participante.", 404, ErrorCode.NOT_FOUND);
     return GameParticipantModel.updateStatus(gameId, playerId, status);
   },
 
@@ -219,7 +219,7 @@ const ParticipationService = {
     });
 
     if (!game)
-      throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
+      throw createError("No se encontró el partido.", 404, ErrorCode.GAME_NOT_FOUND);
 
     const confirmedCount = game.participants.length;
     const isFull = game.maxPlayers != null && confirmedCount >= game.maxPlayers;
@@ -281,7 +281,7 @@ const ParticipationService = {
     const requestingPlayerId = user?.playerId;
     if (!requestingPlayerId)
       throw createError(
-        "No player linked to this account",
+        "Esta cuenta no tiene un jugador asociado.",
         404,
         ErrorCode.PLAYER_NOT_FOUND,
       );
@@ -293,10 +293,10 @@ const ParticipationService = {
         select: { id: true, status: true, maxPlayers: true },
       });
       if (!game)
-        throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
+        throw createError(        "No se encontró el partido.", 404, ErrorCode.GAME_NOT_FOUND);
       if (game.status !== GameStatus.SCHEDULED)
         throw createError(
-          "Game is not open for signup",
+          "El partido no está abierto para inscripciones.",
           422,
           ErrorCode.GAME_NOT_SCHEDULED,
         );
@@ -308,7 +308,7 @@ const ParticipationService = {
         });
         if (confirmedCount >= game.maxPlayers)
           throw createError(
-            "Game is at full capacity",
+            "El partido alcanzó su capacidad máxima.",
             422,
             ErrorCode.GAME_CAPACITY_EXCEEDED,
           );
@@ -375,7 +375,7 @@ const ParticipationService = {
           targetPlayer.status !== PlayerStatus.ACTIVE
         )
           throw createError(
-            "Target player not found or not eligible",
+            "No se encontró al jugador indicado o no cumple los requisitos.",
             404,
             ErrorCode.PLAYER_NOT_FOUND,
           );
@@ -434,14 +434,14 @@ const ParticipationService = {
       where: { id: participantId, gameId },
     });
     if (!participant)
-      throw createError("Participant not found", 404, ErrorCode.NOT_FOUND);
+      throw createError("No se encontró el participante.", 404, ErrorCode.NOT_FOUND);
 
     const game = await prisma.game.findUnique({
       where: { id: gameId },
       select: { status: true },
     });
     if (!game)
-      throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
+      throw createError("No se encontró el partido.", 404, ErrorCode.GAME_NOT_FOUND);
 
     // T066: DT has same permission as EDITOR — SCHEDULED games only
     if (
@@ -449,7 +449,7 @@ const ParticipationService = {
       game.status !== GameStatus.SCHEDULED
     ) {
       throw createError(
-        "Editors and DT can only remove participants from scheduled games",
+        "Los editores y DT solo pueden quitar participantes de partidos programados.",
         403,
         ErrorCode.FORBIDDEN,
       );
@@ -468,10 +468,10 @@ const ParticipationService = {
       select: { status: true },
     });
     if (!game)
-      throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
+      throw createError("No se encontró el partido.", 404, ErrorCode.GAME_NOT_FOUND);
     if (game.status !== GameStatus.SCHEDULED)
       throw createError(
-        "Game is not open for unregistration",
+        "El partido no está abierto para cancelar la inscripción.",
         422,
         ErrorCode.GAME_NOT_SCHEDULED,
       );
@@ -482,7 +482,7 @@ const ParticipationService = {
     });
     if (!user?.playerId)
       throw createError(
-        "No player linked to this account",
+        "Esta cuenta no tiene un jugador asociado.",
         422,
         ErrorCode.PLAYER_NOT_FOUND,
       );
