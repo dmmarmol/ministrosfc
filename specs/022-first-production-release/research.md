@@ -47,6 +47,7 @@ Evidence found in the code:
 
 The suspension and 7-day reset cannot be influenced from the repository; the owner waits for the reset or upgrades temporarily.
 
+- **SSR caching check (T036)**: the auth state lives only in browser storage and is restored by a client-only plugin (`src/plugins/auth-init.client.ts`; `src/middleware/auth.ts` skips SSR); no cookie or request header is read during server rendering, and `$api` adds `Authorization` only when a client token exists. Server-rendered public pages are therefore identical for every visitor and safe to cache; no page needed exclusion beyond the private routes in `route-rules.ts`.
 - **Hypothesis ranking**: the interval job plus always-on machine is the most likely dominant cause (a wake-up every 5 minutes on two branches means the database never sleeps). Bots and the health endpoint are secondary. Confirm in the Neon console (usage over time, connection sources) before and after the change; this is a validation step in `quickstart.md`.
 
 ### 5. Per-environment Fly configuration

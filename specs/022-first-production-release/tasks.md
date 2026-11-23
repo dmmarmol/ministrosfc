@@ -93,18 +93,18 @@ description: "Task list for spec 022: first production release and automated pro
 
 ### Tests for User Story 3
 
-- [ ] T029 [P] [US3] Write failing tests in `packages/cms/tests/unit/GameStatusSync.test.ts`: the synchronization runs at most once per 5-minute window per process, runs again after the window, never throws into the request, and no timer is registered at startup. Adjust `packages/cms/tests/unit/GameStatusTransitionJob.test.ts` if signatures change.
-- [ ] T030 [P] [US3] Write failing tests in `packages/frontend/tests/unit/robots-route.test.ts`: production returns the allow rules with `/admin`, `/profile`, `/login`, `/register`, `/auth`, `/games/*/signup` disallowed; any other `APP_ENV` returns `Disallow: /`.
-- [ ] T031 [P] [US3] Write failing tests in `packages/frontend/tests/unit/server-middleware.test.ts`: non-production responses carry `X-Robots-Tag: noindex, nofollow`; a denied crawler user agent gets `403`; requests above the per-IP threshold get `429`; assets and health probes are exempt.
-- [ ] T032 [P] [US3] Write a failing test in `packages/frontend/tests/unit/route-rules.test.ts` asserting the Nitro route rules: public routes use stale-while-revalidate for 5 minutes; `/admin/**`, `/profile/**`, `/login`, `/register`, `/auth/**` are not cached.
+- [X] T029 [P] [US3] Write failing tests in `packages/cms/tests/unit/GameStatusSync.test.ts`: the synchronization runs at most once per 5-minute window per process, runs again after the window, never throws into the request, and no timer is registered at startup. Adjust `packages/cms/tests/unit/GameStatusTransitionJob.test.ts` if signatures change.
+- [X] T030 [P] [US3] Write failing tests in `packages/frontend/tests/unit/robots-route.test.ts`: production returns the allow rules with `/admin`, `/profile`, `/login`, `/register`, `/auth`, `/games/*/signup` disallowed; any other `APP_ENV` returns `Disallow: /`.
+- [X] T031 [P] [US3] Write failing tests in `packages/frontend/tests/unit/server-middleware.test.ts`: non-production responses carry `X-Robots-Tag: noindex, nofollow`; a denied crawler user agent gets `403`; requests above the per-IP threshold get `429`; assets and health probes are exempt.
+- [X] T032 [P] [US3] Write a failing test in `packages/frontend/tests/unit/route-rules.test.ts` asserting the Nitro route rules: public routes use stale-while-revalidate for 5 minutes; `/admin/**`, `/profile/**`, `/login`, `/register`, `/auth/**` are not cached.
 
 ### Implementation for User Story 3
 
-- [ ] T033 [US3] Add `packages/cms/src/jobs/GameStatusSync.ts` (throttled wrapper around `runGameStatusTransitions`), mount it as middleware ahead of the game read routes in `packages/cms/src/config/server.ts`, and remove the `setInterval` and `clearInterval` from `packages/cms/src/main.ts` while keeping the single startup run, until T029 passes.
-- [ ] T034 [US3] Make `packages/frontend/server/routes/robots.txt.ts` environment-aware until T030 passes.
-- [ ] T035 [US3] Add `packages/frontend/server/middleware/bot-protection.ts` (noindex header, crawler deny-list, per-IP rate limit using the client IP forwarded by the platform) and a small helper under `packages/frontend/server/utils/` until T031 passes; keep thresholds configurable with safe defaults.
-- [ ] T036 [US3] Add `routeRules` (caching for public routes, none for private routes) and the public `appEnv` runtime value in `packages/frontend/nuxt.config.ts` until T032 passes; first confirm each cached page renders the same SSR output for every visitor (authentication state is client-side) and record the check in `research.md` notes if any page needs exclusion.
-- [ ] T037 [P] [US3] Confirm both Fly files from T010–T011 use scale to zero and that the liveness check does not touch the database; adjust if not.
+- [X] T033 [US3] Add `packages/cms/src/jobs/GameStatusSync.ts` (throttled wrapper around `runGameStatusTransitions`), mount it as middleware ahead of the game read routes in `packages/cms/src/config/server.ts`, and remove the `setInterval` and `clearInterval` from `packages/cms/src/main.ts` while keeping the single startup run, until T029 passes.
+- [X] T034 [US3] Make `packages/frontend/server/routes/robots.txt.ts` environment-aware until T030 passes.
+- [X] T035 [US3] Add `packages/frontend/server/middleware/bot-protection.ts` (noindex header, crawler deny-list, per-IP rate limit using the client IP forwarded by the platform) and a small helper under `packages/frontend/server/utils/` until T031 passes; keep thresholds configurable with safe defaults.
+- [X] T036 [US3] Add `routeRules` (caching for public routes, none for private routes) and the public `appEnv` runtime value in `packages/frontend/nuxt.config.ts` until T032 passes; first confirm each cached page renders the same SSR output for every visitor (authentication state is client-side) and record the check in `research.md` notes if any page needs exclusion.
+- [X] T037 [P] [US3] Confirm both Fly files from T010–T011 use scale to zero and that the liveness check does not touch the database; adjust if not.
 - [ ] T038 [OWNER] [US3] Neon: record the usage baseline, configure the usage alert from the runbook, and run quickstart C2–C4 (6-hour idle window, bot burst, confirm suspension). Record results in the runbook's usage section.
 
 **Checkpoint**: idle environments make no database calls; public pages and bots are bounded; owner has alert and evidence.

@@ -1,4 +1,5 @@
 import { defineNuxtConfig } from "nuxt/config";
+import { routeRules } from "./route-rules";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -28,6 +29,9 @@ export default defineNuxtConfig({
 
   // Server-side rendering enabled for public SEO
   ssr: true,
+
+  // Cache public pages briefly (see route-rules.ts); private routes are never cached.
+  routeRules,
 
   // Bind the Vite dev server to the configured host.
   // Default is localhost; set NUXT_HOST=0.0.0.0 in .env.local to also accept
