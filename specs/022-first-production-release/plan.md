@@ -105,7 +105,7 @@ packages/frontend/
 ├── nuxt.config.ts             # routeRules cache for public routes, APP_ENV public config
 ├── server/routes/robots.txt.ts          # per-environment rules
 ├── server/middleware/                   # noindex header (DEV), crawler deny-list, rate limit
-└── src/composables/useAppConfig.ts + PlayerForm.vue   # hide photo input when disabled
+└── src/composables/useCmsCapabilities.ts + PlayerForm.vue   # hide photo input when disabled
 
 scripts/seed-admin/reset-cms-db.sh       # refuses non "-dev" apps
 docs/guides/DEPLOYMENT.md                # NEW runbook (owner-run steps, secrets matrix, rollback)

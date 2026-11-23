@@ -8,10 +8,12 @@ interface AppConfigResponse {
 /**
  * Public capability flags from the CMS (`GET /api/v1/config`).
  *
+ * (Named to avoid Nuxt's built-in auto-imported `useAppConfig`, which Nuxt UI depends on.)
+ *
  * Everything defaults to "off" until the API says otherwise, so a failing or
  * unreachable endpoint never exposes a feature the backend cannot honor.
  */
-export function useAppConfig() {
+export function useCmsCapabilities() {
   const config = useRuntimeConfig();
   const photoUploadsEnabled = ref(false);
   const loaded = ref(false);

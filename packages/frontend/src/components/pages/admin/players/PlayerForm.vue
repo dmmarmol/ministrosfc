@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from "vue";
 import { useJerseyAvailability } from "~/composables/useJerseyAvailability";
-import { useAppConfig } from "~/composables/useAppConfig";
+import { useCmsCapabilities } from "~/composables/useCmsCapabilities";
 import UiPositionSelect from "~/components/ui/Position/Select.vue";
 import UiJerseyNumberInput from "~/components/ui/JerseyNumberInput.vue";
 import { type Position, type Player, PlayerStatus } from "@ministrosfc/shared";
@@ -35,7 +35,7 @@ const emit = defineEmits<{
 }>();
 
 const { $api } = useNuxtApp();
-const { photoUploadsEnabled, load: loadAppConfig } = useAppConfig();
+const { photoUploadsEnabled, load: loadAppConfig } = useCmsCapabilities();
 const photoInput = ref<HTMLInputElement | null>(null);
 const photoFile = ref<File | null>(null);
 const photoPreview = ref<string | null>(null);

@@ -73,13 +73,13 @@ description: "Task list for spec 022: first production release and automated pro
 
 - [X] T021 [P] [US2] Write failing integration tests in `packages/cms/tests/integration/config.test.ts`: `GET /api/v1/config` returns `{ photoUploadsEnabled: false }` without credentials and `true` with all three; it makes no database call.
 - [X] T022 [P] [US2] Write failing tests in `packages/cms/tests/integration/object-storage.test.ts` (extend) and `packages/cms/tests/unit/PlayerService.test.ts`: `isPhotoStorageConfigured()` reflects the credentials; uploading when not configured throws a 503 application error with code `PHOTO_STORAGE_UNAVAILABLE` and a Spanish message; creating or updating a player without a photo still works.
-- [X] T023 [P] [US2] Write failing tests: `packages/frontend/src/composables/__tests__/useAppConfig.test.ts` (fetches `/api/v1/config`, defaults to disabled on failure) and `packages/frontend/src/components/pages/admin/players/__tests__/PlayerForm.photo.test.ts` (photo input hidden when disabled, shown when enabled).
+- [X] T023 [P] [US2] Write failing tests: `packages/frontend/src/composables/__tests__/useCmsCapabilities.test.ts` (fetches `/api/v1/config`, defaults to disabled on failure) and `packages/frontend/src/components/pages/admin/players/__tests__/PlayerForm.photo.test.ts` (photo input hidden when disabled, shown when enabled).
 
 ### Implementation for User Story 2
 
 - [X] T024 [US2] Add `packages/cms/src/routes/config.ts` returning the capability flags (no database access) and mount it at `/api/v1/config` in `packages/cms/src/config/server.ts` until T021 passes.
 - [X] T025 [US2] Add `isPhotoStorageConfigured()` and the graceful 503 error (new error code `PHOTO_STORAGE_UNAVAILABLE`, defined where the other application error codes live) in `packages/cms/src/utils/object-storage.ts`; have `packages/cms/src/services/PlayerService.ts` and `packages/cms/src/services/ProfileService.ts` rely on it, until T022 passes.
-- [X] T026 [US2] Add `packages/frontend/src/composables/useAppConfig.ts` and hide the photo input in `packages/frontend/src/components/pages/admin/players/PlayerForm.vue` (and any other photo input found by searching `packages/frontend/src` for `type="file"`) until T023 passes.
+- [X] T026 [US2] Add `packages/frontend/src/composables/useCmsCapabilities.ts` and hide the photo input in `packages/frontend/src/components/pages/admin/players/PlayerForm.vue` (and any other photo input found by searching `packages/frontend/src` for `type="file"`) until T023 passes.
 - [ ] T027 [US2] With owner approval to start the local database containers, run the app against a freshly migrated empty database and review `/`, `/roster`, `/schedule`, `/tournaments`, `/statistics/**` and the admin dashboard for empty states and errors; fix gaps in the corresponding `packages/frontend/src/pages` and `components/pages` files, with a test per fix.
 - [ ] T028 [OWNER] [US2] Production bootstrap from the runbook: Fly secrets for `ministrosfc-cms`, GitHub `production` environment secrets, run the seed workflow for `production` once to create the admin account (see US5 guard), then quickstart D4–D6.
 

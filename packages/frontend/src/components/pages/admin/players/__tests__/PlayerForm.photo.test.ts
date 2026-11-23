@@ -4,11 +4,11 @@ import { mount } from "@vue/test-utils";
 
 const mocks = vi.hoisted(() => ({ enabled: null as null | { value: boolean } }));
 
-vi.mock("~/composables/useAppConfig", async () => {
+vi.mock("~/composables/useCmsCapabilities", async () => {
   const { ref } = await import("vue");
   mocks.enabled = ref(false);
   return {
-    useAppConfig: () => ({
+    useCmsCapabilities: () => ({
       photoUploadsEnabled: mocks.enabled,
       loaded: ref(true),
       load: vi.fn().mockResolvedValue(undefined),

@@ -7,13 +7,13 @@ vi.mock("nuxt/app", () => ({
   useRuntimeConfig: () => ({ public: { apiBaseUrl: "http://localhost:5102" } }),
 }));
 
-const { useAppConfig } = await import("../useAppConfig");
+const { useCmsCapabilities } = await import("../useCmsCapabilities");
 
-describe("useAppConfig", () => {
+describe("useCmsCapabilities", () => {
   beforeEach(() => mockFetch.mockReset());
 
   it("starts with photo uploads disabled until the config is loaded", () => {
-    const { photoUploadsEnabled, loaded } = useAppConfig();
+    const { photoUploadsEnabled, loaded } = useCmsCapabilities();
 
     expect(photoUploadsEnabled.value).toBe(false);
     expect(loaded.value).toBe(false);
@@ -21,7 +21,7 @@ describe("useAppConfig", () => {
 
   it("enables photo uploads when the API reports them enabled", async () => {
     mockFetch.mockResolvedValueOnce({ photoUploadsEnabled: true });
-    const { photoUploadsEnabled, loaded, load } = useAppConfig();
+    const { photoUploadsEnabled, loaded, load } = useCmsCapabilities();
 
     await load();
 
@@ -32,7 +32,7 @@ describe("useAppConfig", () => {
 
   it("keeps photo uploads disabled when the API reports them disabled", async () => {
     mockFetch.mockResolvedValueOnce({ photoUploadsEnabled: false });
-    const { photoUploadsEnabled, load } = useAppConfig();
+    const { photoUploadsEnabled, load } = useCmsCapabilities();
 
     await load();
 
@@ -41,7 +41,7 @@ describe("useAppConfig", () => {
 
   it("falls back to disabled when the request fails", async () => {
     mockFetch.mockRejectedValueOnce(new Error("network"));
-    const { photoUploadsEnabled, loaded, load } = useAppConfig();
+    const { photoUploadsEnabled, loaded, load } = useCmsCapabilities();
 
     await load();
 
@@ -51,7 +51,7 @@ describe("useAppConfig", () => {
 
   it("treats anything other than true as disabled", async () => {
     mockFetch.mockResolvedValueOnce({ photoUploadsEnabled: "yes" });
-    const { photoUploadsEnabled, load } = useAppConfig();
+    const { photoUploadsEnabled, load } = useCmsCapabilities();
 
     await load();
 
