@@ -1,40 +1,54 @@
 name: Reset CMS Database
 
+# DEVELOPMENT ONLY. Production cannot be reset through this workflow: the option does not exist,
+# the job refuses anything but development, and scripts/seed-admin/reset-cms-db.sh additionally
+# refuses any Fly app whose name does not end in "-dev".
+
 on:
   workflow_dispatch:
     inputs:
       environment:
-        description: "Target environment"
+        description: "Target environment (development only)"
         required: true
         default: development
         type: choice
         options:
           - development
-          - production
       confirmation:
         description: "Type RESET_DB to confirm destructive reset"
         required: true
         type: string
 
+permissions:
+  contents: read
+
+# Never reset the database while a deployment of the same environment is running.
+concurrency:
+  group: deploy-development
+  cancel-in-progress: false
+
 jobs:
   reset-db:
     name: Reset database
+    if: inputs.environment == 'development'
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: development
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Validate reset confirmation
         shell: bash
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
         run: |
           set -euo pipefail
-          if [[ "${{ inputs.confirmation }}" != "RESET_DB" ]]; then
+          if [[ "$CONFIRMATION" != "RESET_DB" ]]; then
             echo "Invalid confirmation. Refusing to reset database."
             exit 1
           fi
 
-      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - uses: superfly/flyctl-actions/setup-flyctl@1.5
 
       - name: Reset DB on Fly app
         env:

@@ -14,6 +14,17 @@ if [[ "$RESET_CONFIRMATION" != "RESET_DB" ]]; then
   exit 1
 fi
 
+# Safety: only development apps (names ending in "-dev") may be reset. Production is never
+# resettable through this script, whatever the confirmation or workflow inputs say.
+if [[ -z "${CMS_APP_NAME:-}" ]]; then
+  echo "Missing CMS_APP_NAME. Refusing to reset database."
+  exit 1
+fi
+if [[ "$CMS_APP_NAME" != *-dev ]]; then
+  echo "Refusing to reset '$CMS_APP_NAME': only development apps (names ending in -dev) can be reset."
+  exit 1
+fi
+
 echo "Resetting CMS database on Fly app: $CMS_APP_NAME"
 
 machine_json="$(flyctl machine list --app "$CMS_APP_NAME" --json)"

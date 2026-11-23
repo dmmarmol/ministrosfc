@@ -128,10 +128,10 @@ description: "Task list for spec 022: first production release and automated pro
 
 **Independent Test**: Quickstart section E.
 
-- [ ] T043 [P] [US5] Write a failing test in `packages/cms/tests/unit/reset-script-guard.test.ts` running `scripts/seed-admin/reset-cms-db.sh` with `DRY_RUN=1`: it refuses when `CMS_APP_NAME` does not end in `-dev`, and proceeds only for development app names.
-- [ ] T044 [US5] Add the `-dev` suffix guard to `scripts/seed-admin/reset-cms-db.sh` until T043 passes.
-- [ ] T045 [US5] Update `.github/workflows/reset-cms-db.yml`: remove the `production` choice, add the job condition `inputs.environment == 'development'`, set least-privilege `permissions`, pin `setup-flyctl`.
-- [ ] T046 [US5] Update `.github/workflows/seed-cms-admin.yml`: for `production` require a typed confirmation input before the job runs, keep `workflow_run` seeding development-only, set least-privilege `permissions`, pin `setup-flyctl`, and make sure credentials are only passed as environment variables and never echoed.
+- [X] T043 [P] [US5] Write a failing test in `packages/cms/tests/unit/reset-script-guard.test.ts` running `scripts/seed-admin/reset-cms-db.sh` with `DRY_RUN=1`: it refuses when `CMS_APP_NAME` does not end in `-dev`, and proceeds only for development app names.
+- [X] T044 [US5] Add the `-dev` suffix guard to `scripts/seed-admin/reset-cms-db.sh` until T043 passes.
+- [X] T045 [US5] Update `.github/workflows/reset-cms-db.yml`: remove the `production` choice, add the job condition `inputs.environment == 'development'`, set least-privilege `permissions`, pin `setup-flyctl`.
+- [X] T046 [US5] Update `.github/workflows/seed-cms-admin.yml`: for `production` require a typed confirmation input before the job runs, keep `workflow_run` seeding development-only, set least-privilege `permissions`, pin `setup-flyctl`, and make sure credentials are only passed as environment variables and never echoed.
 - [ ] T047 [OWNER] [US5] In GitHub: restrict the `production` environment to the `main` branch and optionally add required reviewers; confirm fork pull requests receive no secrets (quickstart E2).
 
 **Checkpoint**: production cannot be reset; seeding is deliberate.
