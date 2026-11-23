@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-30
 
-**Status**: Draft
+**Status**: Implemented (PR https://github.com/dmmarmol/ministrosfc/pull/5, released as 0.13.0). See [`implementation-notes.md`](implementation-notes.md) for what shipped and where the implementation deviates from this spec.
 
 **Input**: User description: "Fix a list of bugs spotted during manual QA in dev environment that needs to be fixed before the first production release."
 
@@ -190,3 +190,13 @@ Administrators can review recent games on the dashboard and open the correct gam
 - The source CSV owner will remove or update the "Temporada" value so it cannot reintroduce a competition type that has been changed to "Liga".
 - The dark appearance follows the user's existing device or application preference and does not introduce a separate theme choice beyond the scope of this feature.
 - The bugfix scope is focused on correctness, user clarity, and delivery readiness before the first production release, not on unrelated refactors outside the listed issues.
+
+## Post-implementation amendments
+
+The original text above is kept as written. These points supersede it; details and rationale are in [`implementation-notes.md`](implementation-notes.md).
+
+- **Fallback label**: missing or unrecognized game statuses and competition types display **"Sin estado"** and **"Sin tipo"** respectively, not "Sin especificar" (FR-009, SC-007, US4.4).
+- **Dark mode choice**: a user-facing dark mode **toggle** (icon-only button in the public nav and the admin header) was added, and the dark theme keeps the brand blue. This extends the assumption that no separate theme choice would be introduced.
+- **Spanish API messages**: CMS error and validation messages are returned in Spanish. This was not in the original scope.
+- **Known gap against FR-008**: some small blue text on dark surfaces is about 4.3:1, slightly under 4.5:1.
+- **Regressions found during validation** (game date shifting on edit, forms reloading before redirect, opponent teams paginated to 20) were fixed in the same PR; see `implementation-notes.md` §4.

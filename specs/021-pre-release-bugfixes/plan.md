@@ -127,3 +127,7 @@ packages/
 ## Complexity Tracking
 
 No constitution violations were identified; no exception is requested.
+
+## Implementation status
+
+Implemented in PR #5 (0.13.0). Deviations from this plan (fallback labels, dark mode toggle and brand blue, Spanish API messages) and the regressions found during validation are documented in [`implementation-notes.md`](implementation-notes.md).

@@ -211,3 +211,17 @@ Complete the shared return-path foundation first. After T002, assign navigation 
 - No `useI18n()`/`useLocale()` API, translation framework, new dependency, new API endpoint, or persistent entity is in scope.
 - The source CSV is outside this repository; its owner must align it separately. The in-repository import transformers are covered by T024 and must not emit `SEASON`.
 - The setup script was not run; task inputs were loaded directly from the feature artifacts and `.specify/templates/tasks-template.md`.
+
+## Post-implementation work (not part of T001–T032)
+
+Done after the planned tasks while validating in a browser; see [`implementation-notes.md`](implementation-notes.md) for root causes and files.
+
+- [x] Fix game date/time shifting on every edit save (`packages/shared/src/utils/datetime.ts`)
+- [x] Prevent native submit in `OpponentTeamForm`, `PlaygroundForm` and `TournamentForm` so `returnUrl` redirects run
+- [x] Load every page of opponent teams in `useOpponentTeams`
+- [x] Fix dashboard recent-games crash on missing `participants`
+- [x] Correct column defaults in the SEASON removal migration
+- [x] Dark mode legibility pass, brand blue preserved, `ColorModeToggle` in public nav and admin header
+- [x] Localize CMS error and validation messages to Spanish
+- [x] Release 0.13.0 with changelog entries; move Copilot assets to `.claude/`; add `create-pr` skill
+- [ ] Follow-ups (not done): switch spec-kit integration to `claude`; update `apm.yml`/`apm.lock.yaml` paths; add `CLAUDE.md` importing `AGENTS.md`; remove `.github/copilot-instructions.md`; align the source CSV's "Temporada" value
