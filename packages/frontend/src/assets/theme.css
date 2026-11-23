@@ -99,8 +99,8 @@
 
 [data-theme="dark"],
 .dark {
-  --brand: #e2bf4f;
-  --primary: #b8adb7;
+  --brand: #4f72e2;
+  --primary: var(--brand);
   --secondary: #e4e7f0;
   --tertiary: #28323a;
 
@@ -114,7 +114,7 @@
   --ui-fg: #e5e7eb;
   --surface: #171a21;
   --ink: #0a0c10;
-  --on-brand: #111827;
+  --on-brand: #ffffff;
 
   /* Remap Tailwind's gray scale so existing gray utilities stay readable. */
   --color-gray-50: #12151a;
