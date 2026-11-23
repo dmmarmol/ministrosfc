@@ -31,5 +31,8 @@
 
 ## Notes
 
-- All release-blocking QA issues listed by the user have been captured as actionable functional requirements and acceptance scenarios.
-- This spec is ready for the next planning phase.
+- The specification was reviewed against each criterion. Functional requirements map to acceptance scenarios, and the Success Criteria describe verifiable user outcomes rather than implementation choices.
+- Scope and previous clarifications are preserved, including safe return destinations, restoration of the unfinished game draft, roster behavior, Spanish labels, the "Temporada" to "Liga" migration, dashboard behavior, dark appearance, and common game/player data behavior.
+- No translation-composable work is included.
+- Checklist status reflects specification quality and readiness, not implementation completion.
+- No unresolved product decision is required before planning.
