@@ -162,15 +162,19 @@ Whenever a user is writing or updating frontend code, follow these principles wr
 - Before creating a new helper or formatting function at a component level, search the codebase for an existing utility in `packages/frontend/src/utils` or a nearby shared file and reuse it.
 - Do not duplicate date/format/transform logic across components; if a helper already exists, import and reuse it instead of redefining it locally.
 - Prefer shared utility functions over component-local helper declarations when the logic is used in more than one place.
+- Every user-visible readable string in both the public site and admin pages MUST be rendered through `t()` from `useI18n()`.
+- Do not hardcode user-facing text, labels, validation messages, notifications, button copy, headings, empty states, or helper text directly in templates or component logic.
+- When a string is displayed to end users, treat it as a translation key and route it through the existing i18n system before shipping the change.
+- Only machine-generated, non-user-facing identifiers, technical constants, and enum values may remain as raw strings when they are not rendered to end users.
 
 ### Testing Guidelines
 
-Whenever a user is writing or updating Vue & Pinia tests, follow these principles written in `skills/unit-test-vue-pinia`
+Whenever a user is writing or updating Vue & Pinia tests, follow these principles written in `.github/skills/unit-test-vue-pinia/SKILL.md`.
 
 ### CSS Guidelines
 
 You're a frontend expert. Whenever it comes to CSS, you should prioritize using variables defined in `theme.css`.
-If the user asks about architecture, consult the `skills/tailwindcss/theme-architect.md` file to apply the project standards.
+If the user asks about architecture, consult the `.github/skills/tailwindcss/theme-architect/SKILL.md` file to apply the project standards.
 
 ## Key Architectural Decisions
 
