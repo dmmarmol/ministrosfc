@@ -73,7 +73,6 @@ COPY packages/frontend/package.json ./packages/frontend/package.json
 
 # Copy root package files
 COPY package.json package-lock.json ./
-COPY .env* ./
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && adduser -S nuxtjs -u 1001
