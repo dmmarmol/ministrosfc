@@ -39,7 +39,8 @@ Any player or profile photo upload that reaches the CMS while photo storage is n
 
 ### Startup validation (`validateEnv`)
 
-- Always required: `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGINS`, `APP_ENV` (`development` or `production`).
+- Always required: `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGINS`.
+- `APP_ENV` (`development` or `production`) is required when `NODE_ENV=production` (every deployed app); otherwise it defaults to `development` so local setups keep working. Any other value is rejected.
 - Redis: `REDIS_URL` or `REDIS_HOST`+`REDIS_PORT`, or `REDIS_DISABLED=true` when `APP_ENV` is not `production`. `REDIS_URL` is required when `APP_ENV=production`.
 - Photo storage: none required. If any of `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` is set, all three must be set.
 - Production origins: when `APP_ENV=production`, `CORS_ORIGINS` must not contain `localhost` or a non-HTTPS origin.

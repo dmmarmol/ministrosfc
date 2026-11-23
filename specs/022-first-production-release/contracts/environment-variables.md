@@ -6,7 +6,7 @@ Values are never stored in the repository. "Fly file" means non-secret public co
 
 | Name | Kind | Where | Required | Notes |
 |---|---|---|---|---|
-| `APP_ENV` | public config | Fly file | always | `development` or `production` |
+| `APP_ENV` | public config | Fly file | when `NODE_ENV=production` | `development` or `production`; defaults to `development` locally |
 | `NODE_ENV` | public config | Fly file | always | `production` on both (production build) |
 | `API_PORT` | public config | Fly file | always | `5102` |
 | `CORS_ORIGINS` | public config | Fly file | always | Frontend origin(s); production must be HTTPS, no localhost |
