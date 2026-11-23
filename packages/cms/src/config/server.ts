@@ -25,6 +25,7 @@ import { playgroundRouter } from "../routes/playgrounds";
 import { addressRouter } from "../routes/address";
 import { importRouter } from "../routes/import";
 import { ImportJobService } from "../services/import-jobs/ImportJobService";
+import { gameStatusSyncMiddleware } from "../jobs/GameStatusSync";
 
 export function createApp(): Application {
   const app = express();
@@ -72,6 +73,8 @@ export function createApp(): Application {
   app.use("/api/v1/auth", authRouter);
   app.use("/api/v1/players", playerRouter);
   app.use("/api/v1/opponent-teams", opponentTeamRouter);
+  // Keep game statuses fresh when games are read (throttled; replaces the old timer).
+  app.use("/api/v1/games", gameStatusSyncMiddleware);
   app.use("/api/v1/games", gameRouter);
   app.use("/api/v1/games/:gameId/participants", participantRouter);
   app.use("/api/v1/tournaments", tournamentRouter);
