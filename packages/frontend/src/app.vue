@@ -5,6 +5,7 @@ const authStore = useAuthStore();
 
 // Set default page title
 useHead({
+  htmlAttrs: { lang: "es-AR" },
   title: "Ministros FC",
   titleTemplate: "%s | Ministros FC",
 });

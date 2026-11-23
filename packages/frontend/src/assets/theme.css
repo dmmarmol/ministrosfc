@@ -90,7 +90,8 @@
   --admin-ui-sidebar-bg: var(--secondary);
 }
 
-[data-theme="dark"] {
+[data-theme="dark"],
+.dark {
   --brand: #e2bf4f;
   --primary: #b8adb7;
   --secondary: #e4e7f0;
