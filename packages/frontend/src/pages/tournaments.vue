@@ -1,16 +1,17 @@
 <script setup lang="ts">
+import {
+  competitionTypeItems,
+  type CompetitionType,
+} from "@ministrosfc/shared";
+
 definePageMeta({ public: true });
-useHead({ title: "Tournaments – Ministros FC" });
+useHead({ title: "Torneos" });
 
 const { $api } = useNuxtApp();
 
-const formats = [
-  { value: "", label: "Todos" },
-  { value: "LEAGUE", label: "Liga" },
-  { value: "CUP", label: "Copa" },
-  { value: "PLAYOFF", label: "Playoff" },
-  { value: "SEASON", label: "Temporada" },
-  { value: "FRIENDLY", label: "Amistoso" },
+const formats: { value: CompetitionType; label: string }[] = [
+  { value: "" as CompetitionType, label: "Todos" },
+  ...competitionTypeItems,
 ];
 const formatFilter = ref("");
 

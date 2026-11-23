@@ -18,9 +18,7 @@ const topScorers = computed(() => statsData.value?.data?.topScorers ?? []);
 const games = computed(() => tournament.value?.games ?? []);
 
 useHead(() => ({
-  title: tournament.value
-    ? `${tournament.value.name} – Ministros FC`
-    : "Tournament",
+  title: tournament.value ? `${tournament.value.name}` : "Torneo",
 }));
 </script>
 
@@ -53,46 +51,46 @@ useHead(() => ({
             <p class="text-2xl font-bold text-green-400">
               {{ tournament.ministrosRecord.wins }}
             </p>
-            <p class="text-xs text-gray-400">Wins</p>
+            <p class="text-xs text-gray-400">Ganados</p>
           </div>
           <div class="text-center">
             <p class="text-2xl font-bold text-yellow-400">
               {{ tournament.ministrosRecord.draws }}
             </p>
-            <p class="text-xs text-gray-400">Draws</p>
+            <p class="text-xs text-gray-400">Empatados</p>
           </div>
           <div class="text-center">
             <p class="text-2xl font-bold text-red-400">
               {{ tournament.ministrosRecord.losses }}
             </p>
-            <p class="text-xs text-gray-400">Losses</p>
+            <p class="text-xs text-gray-400">Perdidos</p>
           </div>
           <div class="text-center">
             <p class="text-2xl font-bold">
               {{ tournament.ministrosRecord.goalsFor }}
             </p>
-            <p class="text-xs text-gray-400">Scored</p>
+            <p class="text-xs text-gray-400">Goles a favor</p>
           </div>
           <div class="text-center">
             <p class="text-2xl font-bold">
               {{ tournament.ministrosRecord.goalsAgainst }}
             </p>
-            <p class="text-xs text-gray-400">Conceded</p>
+            <p class="text-xs text-gray-400">Goles en contra</p>
           </div>
         </div>
       </div>
 
       <!-- Games list -->
-      <h2 class="text-lg font-bold text-gray-800 mb-4">Games</h2>
+      <h2 class="text-lg font-bold text-gray-800 mb-4">Partidos</h2>
       <div v-if="games.length" class="space-y-3">
         <GameCard v-for="game in games" :key="game.id" :game="game" />
       </div>
       <p v-else class="text-gray-500 text-sm">
-        No games associated with this tournament yet.
+        Todavía no hay partidos asociados a este torneo.
       </p>
 
       <!-- Top scorers -->
-      <h2 class="text-lg font-bold text-gray-800 mt-8 mb-4">Top Scorers</h2>
+      <h2 class="text-lg font-bold text-gray-800 mt-8 mb-4">Goleadores</h2>
       <div
         v-if="topScorers.length"
         class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
@@ -112,10 +110,12 @@ useHead(() => ({
           <span class="text-xs text-gray-500">{{ entry.assists }} 🅰️</span>
         </div>
       </div>
-      <p v-else class="text-gray-500 text-sm">No scorer data yet.</p>
+      <p v-else class="text-gray-500 text-sm">
+        Todavía no hay datos de goleadores.
+      </p>
     </template>
     <div v-else class="text-center py-16 text-gray-500">
-      Tournament not found.
+      No se encontró el torneo.
     </div>
   </div>
 </template>
