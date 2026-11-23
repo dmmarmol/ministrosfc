@@ -218,7 +218,7 @@ Carlos Minimal,,,,,,,,,,,, ACTIVE
     const data = job.result;
     expect(data.appearances.skipped).toBeGreaterThanOrEqual(1);
     expect(
-      data.warnings.some((w: string) => w.includes("no matching game")),
+      data.warnings.some((w: string) => w.includes("no se encontró un partido")),
     ).toBe(true);
   });
 });
