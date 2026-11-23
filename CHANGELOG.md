@@ -17,6 +17,16 @@ Per-package history is maintained in each package's own changelog:
 
 ---
 
+## [0.14.0] — 2026-11-23
+
+### Added
+
+- **spec 022 — First production release and automated production deployment**: specification for the first production launch (empty database plus admin, data loaded later through the administrator CSV import; photo upload deferred), merge-to-`main` production deployment with health checks and rollback, reproducible environments and secrets documentation, protection of production from destructive workflows, and bounding database compute usage (idle wake-ups and non-human traffic). Specification only; implementation follows in later releases.
+
+### Changed
+
+- Renumbered the spec folders `022`–`029` to `023`–`030` to make room for spec 022.
+
 ## [0.13.0] - 2026-11-23
 
 ### Summary
