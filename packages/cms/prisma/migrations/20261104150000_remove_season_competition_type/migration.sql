@@ -25,9 +25,9 @@ ALTER TABLE "Tournament"
 DROP TYPE "CompetitionType_old";
 
 ALTER TABLE "Game"
-  ALTER COLUMN "competitionType" SET DEFAULT 'LEAGUE'::"CompetitionType";
+  ALTER COLUMN "competitionType" SET DEFAULT 'FRIENDLY'::"CompetitionType";
 
 ALTER TABLE "Tournament"
-  ALTER COLUMN "competitionType" SET DEFAULT 'FRIENDLY'::"CompetitionType";
+  ALTER COLUMN "competitionType" SET DEFAULT 'LEAGUE'::"CompetitionType";
 
 COMMIT;
