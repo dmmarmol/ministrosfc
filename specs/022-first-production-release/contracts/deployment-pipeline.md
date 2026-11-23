@@ -15,16 +15,16 @@
 
 ## `deploy.yml` jobs
 
-1. **changes**: outputs `cms` and `frontend` booleans from the changed files between `github.event.before` and `github.sha`. A change to `packages/shared/**`, root `package.json` / `package-lock.json` sets both. A change to an app's directory or its Fly files sets that app. Documentation-only changes set neither. If `before` is all zeros, both are true.
-2. **test-cms** / **test-frontend**: call the CI workflows with `workflow_call`; run only if their app changed.
-3. **deploy-cms** (needs test-cms, changes): environment = `production` on `main`, `development` on `develop`; runs `flyctl deploy --config packages/cms/fly.<environment>.toml --remote-only`; records the previous image first. The release command applies migrations before traffic switches.
+1. **decide**: resolves the environment (`production` only for a push to `main`; everything else, including manual dispatch, is `development`) and outputs `deploy` from the changed files between `github.event.before` and `github.sha` (`scripts/deploy/detect-changes.js`). A change to an app, `packages/shared/**`, root package files or the deploy scripts/workflow sets `deploy=true`; documentation-only and unrelated changes set it to `false`; an all-zero `before` deploys. **Both apps are always deployed together** when `deploy` is true: GitHub replaces older pending runs with newer ones, so deciding per app from one push's diff could silently skip an app changed in a replaced run, and deploying both is idempotent.
+2. **test-cms** / **test-frontend**: call the CI workflows with `workflow_call`; both must pass before either app is deployed.
+3. **deploy-cms** (needs both test jobs): environment = `production` on `main`, `development` on `develop`; runs `flyctl deploy --config packages/cms/fly.<environment>.toml --remote-only`; records the previous image first. The release command applies migrations before traffic switches.
 4. **verify-cms**: calls the readiness endpoint with retries (up to 10 attempts, 15 s apart); on failure runs the rollback step and fails the job.
 5. **deploy-frontend** (needs deploy-cms or skipped CMS, test-frontend): same pattern with `fly.<environment>.toml`.
 6. **verify-frontend**: requests `/`, `/roster`, `/robots.txt` and expects HTTP 200; checks that `robots.txt` matches the environment (production allows, development disallows); rollback on failure.
 
 ## Guarantees
 
-- **Concurrency**: `group: deploy-${environment}`, `cancel-in-progress: false`; at most one deployment per environment at a time.
+- **Concurrency**: workflow-level `group: deploy-<environment>`, `cancel-in-progress: false`; at most one deployment per environment at a time, shared with `rollback.yml`. GitHub keeps one pending run per group and replaces older pending ones, so the newest merge is deployed last.
 - **Branch guard**: the production job has `if: github.ref == 'refs/heads/main'`.
 - **Permissions**: workflow default `permissions: contents: read`; jobs request more only if needed.
 - **Pinned actions**: `superfly/flyctl-actions/setup-flyctl` pinned to a released version; first-party actions pinned to major versions.
@@ -49,4 +49,4 @@ Behavior: resolves the image of the chosen release with `flyctl releases --json`
 | `CMS_APP_NAME` | development, production | Used only by seed/reset scripts |
 | `CMS_ADMIN_EMAIL`, `CMS_ADMIN_PASSWORD` | development, production | Used only by the seed workflow, injected at run time |
 
-`FRONTEND_APP_NAME` is no longer used by deploys (the app name lives in the Fly file).
+`FRONTEND_APP_NAME` is no longer used by deploys (the app name lives in the Fly file). The CI workflows are named `CMS CI` and `Frontend CI` and no longer deploy; the deploy workflow is named `Deploy` (the seed workflow's `workflow_run` trigger follows it).

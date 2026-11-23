@@ -2,16 +2,16 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Pipeline: CMS CI/CD (manual dispatch)",
+      "name": "Pipeline: Deploy to development (manual dispatch)",
       "type": "node-terminal",
       "request": "launch",
-      "command": "gh workflow run ci-cms.yml --ref ${input:gitRef} -f environment=development && gh run list --workflow=ci-cms.yml --limit=1"
+      "command": "gh workflow run deploy.yml --ref ${input:gitRef} -f environment=development && gh run list --workflow=deploy.yml --limit=1"
     },
     {
-      "name": "Pipeline: Frontend CI/CD (manual dispatch)",
+      "name": "Pipeline: Rollback (manual dispatch)",
       "type": "node-terminal",
       "request": "launch",
-      "command": "gh workflow run ci-frontend.yml --ref ${input:gitRef} -f environment=development && gh run list --workflow=ci-frontend.yml --limit=1"
+      "command": "gh workflow run rollback.yml --ref ${input:gitRef} -f environment=${input:rollbackEnvironment} -f app=${input:rollbackApp} && gh run list --workflow=rollback.yml --limit=1"
     },
     {
       "name": "Pipeline: Seed CMS Admin (development)",
@@ -32,16 +32,10 @@
       "command": "gh workflow run reset-cms-db.yml --ref ${input:gitRef} -f environment=development -f confirmation=${input:resetConfirmation} && gh run list --workflow=reset-cms-db.yml --limit=1"
     },
     {
-      "name": "Pipeline: Reset CMS DB (production)",
+      "name": "Pipeline: Watch latest deploy run",
       "type": "node-terminal",
       "request": "launch",
-      "command": "gh workflow run reset-cms-db.yml --ref ${input:gitRef} -f environment=production -f confirmation=${input:resetConfirmation} && gh run list --workflow=reset-cms-db.yml --limit=1"
-    },
-    {
-      "name": "Pipeline: Watch latest CMS run",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": "gh run watch $(gh run list --workflow=ci-cms.yml --limit=1 --json databaseId -q '.[0].databaseId')"
+      "command": "gh run watch $(gh run list --workflow=deploy.yml --limit=1 --json databaseId -q '.[0].databaseId')"
     },
     {
       "name": "Pipeline: Watch latest Seed Admin run",
@@ -56,6 +50,20 @@
       "type": "promptString",
       "description": "Git ref to run workflow from (branch, tag, or SHA)",
       "default": "develop"
+    },
+    {
+      "id": "rollbackEnvironment",
+      "type": "pickString",
+      "description": "Environment to roll back",
+      "options": ["development", "production"],
+      "default": "development"
+    },
+    {
+      "id": "rollbackApp",
+      "type": "pickString",
+      "description": "App to roll back",
+      "options": ["cms", "frontend"],
+      "default": "cms"
     },
     {
       "id": "resetConfirmation",

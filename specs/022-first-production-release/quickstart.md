@@ -21,7 +21,7 @@ Run these in order. Steps marked **owner** need the owner's accounts; everything
 
 ## B. DEV pipeline (develop branch)
 
-1. Merge a small change touching only the CMS to `develop`. Expect: tests run, the CMS deploys to `ministrosfc-cms-dev`, readiness verification passes, the frontend job is skipped.
+1. Merge a small change touching only the CMS to `develop`. Expect: both test suites run, the CMS deploys to `ministrosfc-cms-dev`, readiness verification passes, then the frontend deploys and its checks pass (both apps ship together).
 2. Merge a docs-only change. Expect: no deployment starts.
 3. Merge two CMS changes within one minute. Expect: the runs queue, never overlap, and the newest change is live at the end.
 4. **Failure test**: merge a change with a deliberately failing migration on a throwaway branch pushed to `develop` (or run `workflow_dispatch` on a test branch). Expect: the release command fails, the previous version keeps serving, the run is red.

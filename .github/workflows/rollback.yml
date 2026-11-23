@@ -1,0 +1,81 @@
+name: Rollback
+
+# Manually restore a previous release image of one app.
+#
+# The "production" environment's protection rules (for example required reviewers) apply.
+# A rollback never reverts database migrations: the previous image must be compatible with the
+# current schema (see "Rollback" in docs/guides/DEPLOYMENT.md).
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to roll back"
+        required: true
+        type: choice
+        options:
+          - development
+          - production
+      app:
+        description: "App to roll back"
+        required: true
+        type: choice
+        options:
+          - cms
+          - frontend
+      version:
+        description: "Release version to restore (leave empty for the previous release)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+# Never run two rollbacks (or a rollback and a deployment) for the same environment at once.
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    name: Roll back ${{ inputs.app }} (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      TARGET_ENV: ${{ inputs.environment }}
+      TARGET_APP: ${{ inputs.app }}
+      TARGET_VERSION: ${{ inputs.version }}
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@1.5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Resolve app
+        id: app
+        run: |
+          config="packages/$TARGET_APP/fly.$TARGET_ENV.toml"
+          app="$(grep -m1 '^app = ' "$config" | cut -d'"' -f2)"
+          echo "name=$app" >> "$GITHUB_OUTPUT"
+          echo "url=https://$app.fly.dev" >> "$GITHUB_OUTPUT"
+
+      - name: Restore the release
+        run: scripts/deploy/rollback-image.sh previous "${{ steps.app.outputs.name }}" "$TARGET_VERSION"
+
+      - name: Smoke test
+        run: scripts/deploy/smoke-test.sh "$TARGET_APP" "${{ steps.app.outputs.url }}" "$TARGET_ENV"
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Rollback"
+            echo "- Environment: \`$TARGET_ENV\`"
+            echo "- App: \`${{ steps.app.outputs.name }}\`"
+            echo "- Requested version: ${TARGET_VERSION:-previous}"
+            echo "- Commit of this workflow definition: \`${{ github.sha }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

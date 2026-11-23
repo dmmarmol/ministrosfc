@@ -1,0 +1,217 @@
+name: Deploy
+
+# Orchestrated deployment (spec 022):
+#   push to main        -> environment "production"  -> ministrosfc-cms, ministrosfc-frontend
+#   push to develop     -> environment "development" -> ministrosfc-cms-dev, ministrosfc-frontend-dev
+#   workflow_dispatch   -> environment "development" (manual deploys never reach production)
+#
+# Flow: decide -> tests -> deploy CMS (migrations run as the Fly release command) -> smoke test
+#       -> deploy frontend -> smoke test. If a smoke test fails after a deploy, the previous
+#       image is restored automatically and the run is marked failed.
+#
+# Secrets (FLY_API_TOKEN) come from the GitHub environment of the target; pull requests,
+# including those from forks, never run this workflow. Database migrations are never reverted
+# automatically (see docs/guides/DEPLOYMENT.md).
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment (manual deploys are development only)"
+        required: true
+        default: development
+        type: choice
+        options:
+          - development
+
+# Deployments for the same environment queue instead of overlapping. GitHub keeps one pending
+# run per group and replaces older pending runs, which is why every run deploys both apps.
+concurrency:
+  group: deploy-${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'production' || 'development' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  decide:
+    name: Decide what to deploy
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.target.outputs.environment }}
+      deploy: ${{ steps.changes.outputs.deploy }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Resolve target environment
+        id: target
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+        run: |
+          if [[ "$EVENT_NAME" == "push" && "$REF" == "refs/heads/main" ]]; then
+            echo "environment=production" >> "$GITHUB_OUTPUT"
+          else
+            echo "environment=development" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Detect deployable changes
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        run: |
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            node scripts/deploy/detect-changes.js "$BEFORE_SHA" "$AFTER_SHA"
+          fi
+
+  test-cms:
+    name: Test CMS
+    needs: decide
+    if: needs.decide.outputs.deploy == 'true'
+    uses: ./.github/workflows/ci-cms.yml
+
+  test-frontend:
+    name: Test frontend
+    needs: decide
+    if: needs.decide.outputs.deploy == 'true'
+    uses: ./.github/workflows/ci-frontend.yml
+
+  deploy-cms:
+    name: Deploy CMS (${{ needs.decide.outputs.environment }})
+    needs: [decide, test-cms, test-frontend]
+    if: needs.decide.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    environment: ${{ needs.decide.outputs.environment }}
+    env:
+      TARGET_ENV: ${{ needs.decide.outputs.environment }}
+      CONFIG: packages/cms/fly.${{ needs.decide.outputs.environment }}.toml
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      # Production deploys come only from main, whatever the trigger says.
+      - name: Guard production branch
+        if: needs.decide.outputs.environment == 'production' && github.ref != 'refs/heads/main'
+        run: |
+          echo "Production deployments are only allowed from main." >&2
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@1.5
+
+      - name: Resolve app
+        id: app
+        run: |
+          app="$(grep -m1 '^app = ' "$CONFIG" | cut -d'"' -f2)"
+          echo "name=$app" >> "$GITHUB_OUTPUT"
+          echo "url=https://$app.fly.dev" >> "$GITHUB_OUTPUT"
+
+      - name: Record the live release (for rollback)
+        id: previous
+        run: |
+          if line="$(scripts/deploy/rollback-image.sh current "${{ steps.app.outputs.name }}" 2>/dev/null)"; then
+            echo "version=${line%% *}" >> "$GITHUB_OUTPUT"
+            echo "image=${line#* }" >> "$GITHUB_OUTPUT"
+          else
+            echo "No previous release found (first deployment)."
+          fi
+
+      - name: Deploy CMS to Fly.io
+        id: deploy
+        run: flyctl deploy --config "$CONFIG" --app "${{ steps.app.outputs.name }}" --remote-only
+
+      - name: Smoke test CMS
+        id: smoke
+        run: scripts/deploy/smoke-test.sh cms "${{ steps.app.outputs.url }}" "$TARGET_ENV"
+
+      - name: Roll back CMS after a failed smoke test
+        if: failure() && steps.deploy.outcome == 'success' && steps.previous.outputs.image != ''
+        run: scripts/deploy/rollback-image.sh restore "${{ steps.app.outputs.name }}" "${{ steps.previous.outputs.image }}"
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### CMS deployment"
+            echo "- Environment: \`$TARGET_ENV\`"
+            echo "- App: \`${{ steps.app.outputs.name }}\`"
+            echo "- Commit: \`${{ github.sha }}\`"
+            echo "- Deploy: ${{ steps.deploy.outcome }} / Smoke test: ${{ steps.smoke.outcome }}"
+            echo "- Previous release: v${{ steps.previous.outputs.version || 'none' }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-frontend:
+    name: Deploy frontend (${{ needs.decide.outputs.environment }})
+    # Only after the CMS it talks to is deployed and healthy.
+    needs: [decide, deploy-cms]
+    if: needs.decide.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    environment: ${{ needs.decide.outputs.environment }}
+    env:
+      TARGET_ENV: ${{ needs.decide.outputs.environment }}
+      CONFIG: packages/frontend/fly.${{ needs.decide.outputs.environment }}.toml
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - name: Guard production branch
+        if: needs.decide.outputs.environment == 'production' && github.ref != 'refs/heads/main'
+        run: |
+          echo "Production deployments are only allowed from main." >&2
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@1.5
+
+      - name: Resolve app
+        id: app
+        run: |
+          app="$(grep -m1 '^app = ' "$CONFIG" | cut -d'"' -f2)"
+          echo "name=$app" >> "$GITHUB_OUTPUT"
+          echo "url=https://$app.fly.dev" >> "$GITHUB_OUTPUT"
+
+      - name: Record the live release (for rollback)
+        id: previous
+        run: |
+          if line="$(scripts/deploy/rollback-image.sh current "${{ steps.app.outputs.name }}" 2>/dev/null)"; then
+            echo "version=${line%% *}" >> "$GITHUB_OUTPUT"
+            echo "image=${line#* }" >> "$GITHUB_OUTPUT"
+          else
+            echo "No previous release found (first deployment)."
+          fi
+
+      - name: Deploy frontend to Fly.io
+        id: deploy
+        run: flyctl deploy --config "$CONFIG" --app "${{ steps.app.outputs.name }}" --remote-only
+
+      - name: Smoke test frontend
+        id: smoke
+        run: scripts/deploy/smoke-test.sh frontend "${{ steps.app.outputs.url }}" "$TARGET_ENV"
+
+      - name: Roll back frontend after a failed smoke test
+        if: failure() && steps.deploy.outcome == 'success' && steps.previous.outputs.image != ''
+        run: scripts/deploy/rollback-image.sh restore "${{ steps.app.outputs.name }}" "${{ steps.previous.outputs.image }}"
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Frontend deployment"
+            echo "- Environment: \`$TARGET_ENV\`"
+            echo "- App: \`${{ steps.app.outputs.name }}\`"
+            echo "- Commit: \`${{ github.sha }}\`"
+            echo "- Deploy: ${{ steps.deploy.outcome }} / Smoke test: ${{ steps.smoke.outcome }}"
+            echo "- Previous release: v${{ steps.previous.outputs.version || 'none' }}"
+          } >> "$GITHUB_STEP_SUMMARY"
