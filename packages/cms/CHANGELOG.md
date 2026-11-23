@@ -11,6 +11,24 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.13.0] - 2026-11-23
+
+### Summary
+
+Minor release: removes the `SEASON` competition type with a data migration and localizes API errors to Spanish.
+
+### Changed
+
+- API error and validation messages (including Multer upload errors and the CSV import warnings) are returned in Spanish; unexpected 500 errors always return a generic Spanish message.
+
+### Added
+
+- Migration `remove_season_competition_type` and shared seed-import competition type mapping.
+
+### Removed
+
+- `SEASON` from the Prisma `CompetitionType` enum; existing games and tournaments are converted to `LEAGUE`.
+
 ## [0.12.0] — 2026-05-03
 
 ### Added
