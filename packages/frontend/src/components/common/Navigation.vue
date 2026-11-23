@@ -7,7 +7,7 @@ const mobileOpen = ref(false);
 </script>
 
 <template>
-  <nav class="bg-gray-900 text-white">
+  <nav class="bg-ink text-white">
     <div
       class="container mx-auto px-4 max-w-7xl flex items-center justify-between h-12"
     >
@@ -17,32 +17,32 @@ const mobileOpen = ref(false);
           <NuxtLink
             to="/"
             exact
-            class="hover:text-brand transition-colors"
-            active-class="text-brand"
+            class="rounded px-2 py-0.5 hover:text-brand transition-colors"
+            active-class="bg-brand text-on-brand hover:text-on-brand"
             >Inicio</NuxtLink
           >
         </li>
         <li>
           <NuxtLink
             to="/roster"
-            class="hover:text-brand transition-colors"
-            active-class="text-brand"
+            class="rounded px-2 py-0.5 hover:text-brand transition-colors"
+            active-class="bg-brand text-on-brand hover:text-on-brand"
             >Plantilla</NuxtLink
           >
         </li>
         <li>
           <NuxtLink
             to="/schedule"
-            class="hover:text-brand transition-colors"
-            active-class="text-brand"
+            class="rounded px-2 py-0.5 hover:text-brand transition-colors"
+            active-class="bg-brand text-on-brand hover:text-on-brand"
             >Calendario</NuxtLink
           >
         </li>
         <li class="hidden">
           <NuxtLink
             to="/tournaments"
-            class="hover:text-brand transition-colors"
-            active-class="text-brand"
+            class="rounded px-2 py-0.5 hover:text-brand transition-colors"
+            active-class="bg-brand text-on-brand hover:text-on-brand"
             >Torneos</NuxtLink
           >
         </li>
@@ -53,14 +53,15 @@ const mobileOpen = ref(false);
                 ? '/statistics'
                 : '/statistics/top-scorers'
             "
-            class="hover:text-brand transition-colors"
-            active-class="text-brand"
+            class="rounded px-2 py-0.5 hover:text-brand transition-colors"
+            active-class="bg-brand text-on-brand hover:text-on-brand"
             >Estadísticas</NuxtLink
           >
         </li>
       </ul>
       <!-- Auth button (client-only to avoid hydration mismatch from storage-based auth state) -->
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <UiColorModeToggle class="text-gray-400 hover:text-white" />
         <ClientOnly>
           <template v-if="authStore.isAuthenticated">
             <AdminProfileMenu v-if="authStore.isEditor" />
@@ -127,34 +128,34 @@ const mobileOpen = ref(false);
     <!-- Mobile menu -->
     <div
       v-if="mobileOpen"
-      class="md:hidden bg-gray-800 px-4 pb-4 space-y-2 text-sm"
+      class="md:hidden bg-ink px-4 pb-4 space-y-2 text-sm"
     >
       <NuxtLink
         to="/"
         exact
-        class="block py-1.5 hover:text-brand"
-        active-class="text-brand"
+        class="block rounded px-2 py-1.5 hover:text-brand"
+        active-class="bg-brand text-on-brand hover:text-on-brand"
         @click="mobileOpen = false"
         >Inicio</NuxtLink
       >
       <NuxtLink
         to="/roster"
-        class="block py-1.5 hover:text-brand"
-        active-class="text-brand"
+        class="block rounded px-2 py-1.5 hover:text-brand"
+        active-class="bg-brand text-on-brand hover:text-on-brand"
         @click="mobileOpen = false"
         >Plantilla</NuxtLink
       >
       <NuxtLink
         to="/schedule"
-        class="block py-1.5 hover:text-brand"
-        active-class="text-brand"
+        class="block rounded px-2 py-1.5 hover:text-brand"
+        active-class="bg-brand text-on-brand hover:text-on-brand"
         @click="mobileOpen = false"
         >Calendario</NuxtLink
       >
       <NuxtLink
         to="/tournaments"
-        class="block py-1.5 hover:text-brand"
-        active-class="text-brand"
+        class="block rounded px-2 py-1.5 hover:text-brand"
+        active-class="bg-brand text-on-brand hover:text-on-brand"
         @click="mobileOpen = false"
         >Torneos</NuxtLink
       >
@@ -162,23 +163,23 @@ const mobileOpen = ref(false);
         :to="
           authStore.isAuthenticated ? '/statistics' : '/statistics/top-scorers'
         "
-        class="block py-1.5 hover:text-brand"
-        active-class="text-brand"
+        class="block rounded px-2 py-1.5 hover:text-brand"
+        active-class="bg-brand text-on-brand hover:text-on-brand"
         @click="mobileOpen = false"
         >Estadísticas</NuxtLink
       >
       <NuxtLink
         v-if="authStore.isAuthenticated && !authStore.isEditor"
         to="/profile/player"
-        class="block py-1.5 hover:text-brand"
-        active-class="text-brand"
+        class="block rounded px-2 py-1.5 hover:text-brand"
+        active-class="bg-brand text-on-brand hover:text-on-brand"
         @click="mobileOpen = false"
         >Mi Perfil</NuxtLink
       >
       <NuxtLink
         v-if="!authStore.isAuthenticated"
         to="/login"
-        class="block py-1.5 text-brand"
+        class="block rounded px-2 py-1.5 bg-brand text-on-brand"
         @click="mobileOpen = false"
         >Iniciar sesión</NuxtLink
       >

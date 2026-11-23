@@ -13,7 +13,7 @@ const props = defineProps<{
 
 <template>
   <div
-    class="flex flex-col justify-between gap-y-1 flex-1 bg-gray-900 text-white rounded-2xl p-6"
+    class="flex flex-col justify-between gap-y-1 flex-1 bg-ink text-white rounded-2xl p-6"
   >
     <p
       v-if="game.playground?.name || game.location"
@@ -29,7 +29,7 @@ const props = defineProps<{
       }}</span>
     </div>
     <div class="flex items-baseline justify-between">
-      <p class="text-sm text-gray-300">
+      <p class="text-sm text-white/70">
         {{
           formatDate(game.date, {
             weekday: "long",

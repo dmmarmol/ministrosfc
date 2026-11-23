@@ -26,6 +26,9 @@
   --color-neutral: var(--neutral);
   --color-ui-bg: var(--ui-bg);
   --color-ui-fg: var(--ui-fg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-on-brand: var(--on-brand);
   --color-admin-ui-sidebar-bg: var(--admin-ui-sidebar-bg);
   --color-admin-ui-sidebar-bg-hover: color-mix(
     in srgb,
@@ -34,11 +37,11 @@
   );
 
   /* Brand scale (Tailwind classes: bg-brand-500, text-brand-700, etc.) */
-  --color-brand-50: color-mix(in srgb, var(--brand) 8%, white);
-  --color-brand-100: color-mix(in srgb, var(--brand) 16%, white);
-  --color-brand-200: color-mix(in srgb, var(--brand) 28%, white);
-  --color-brand-300: color-mix(in srgb, var(--brand) 42%, white);
-  --color-brand-400: color-mix(in srgb, var(--brand) 64%, white);
+  --color-brand-50: color-mix(in srgb, var(--brand) 8%, var(--surface));
+  --color-brand-100: color-mix(in srgb, var(--brand) 16%, var(--surface));
+  --color-brand-200: color-mix(in srgb, var(--brand) 28%, var(--surface));
+  --color-brand-300: color-mix(in srgb, var(--brand) 42%, var(--surface));
+  --color-brand-400: color-mix(in srgb, var(--brand) 64%, var(--surface));
   --color-brand-500: var(--brand);
   --color-brand-600: color-mix(in srgb, var(--brand) 86%, black);
   --color-brand-700: color-mix(in srgb, var(--brand) 72%, black);
@@ -46,21 +49,22 @@
   --color-brand-900: color-mix(in srgb, var(--brand) 44%, black);
 
   /* Primary scale */
-  --color-primary-100: color-mix(in srgb, var(--primary) 24%, white);
-  --color-primary-300: color-mix(in srgb, var(--primary) 54%, white);
+  --color-primary-50: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  --color-primary-100: color-mix(in srgb, var(--primary) 24%, var(--surface));
+  --color-primary-300: color-mix(in srgb, var(--primary) 54%, var(--surface));
   --color-primary-500: var(--primary);
   --color-primary-700: color-mix(in srgb, var(--primary) 70%, black);
   --color-primary-900: color-mix(in srgb, var(--primary) 45%, black);
 
   /* Secondary scale */
-  --color-secondary-100: color-mix(in srgb, var(--secondary) 14%, white);
-  --color-secondary-300: color-mix(in srgb, var(--secondary) 36%, white);
+  --color-secondary-100: color-mix(in srgb, var(--secondary) 14%, var(--surface));
+  --color-secondary-300: color-mix(in srgb, var(--secondary) 36%, var(--surface));
   --color-secondary-500: var(--secondary);
   --color-secondary-700: color-mix(in srgb, var(--secondary) 75%, black);
   --color-secondary-900: color-mix(in srgb, var(--secondary) 48%, black);
 
   /* Tertiary scale */
-  --color-tertiary-100: color-mix(in srgb, var(--tertiary) 88%, white);
+  --color-tertiary-100: color-mix(in srgb, var(--tertiary) 88%, var(--surface));
   --color-tertiary-300: color-mix(in srgb, var(--tertiary) 96%, black);
   --color-tertiary-500: var(--tertiary);
   --color-tertiary-700: color-mix(in srgb, var(--tertiary) 66%, black);
@@ -83,6 +87,9 @@
 
   --ui-bg: #f7f8fa;
   --ui-fg: #111827;
+  --surface: #ffffff;
+  --ink: #111827;
+  --on-brand: #ffffff;
 
   --font-family: "Inter", "ui-sans-serif", "system-ui", "sans-serif";
   --ui-text-inverted: var(--color-gray-50);
@@ -90,9 +97,10 @@
   --admin-ui-sidebar-bg: var(--secondary);
 }
 
-[data-theme="dark"] {
-  --brand: #e2bf4f;
-  --primary: #b8adb7;
+[data-theme="dark"],
+.dark {
+  --brand: #4f72e2;
+  --primary: var(--brand);
   --secondary: #e4e7f0;
   --tertiary: #28323a;
 
@@ -104,9 +112,24 @@
 
   --ui-bg: #0f1115;
   --ui-fg: #e5e7eb;
+  --surface: #171a21;
+  --ink: #0a0c10;
+  --on-brand: #ffffff;
+
+  /* Remap Tailwind's gray scale so existing gray utilities stay readable. */
+  --color-gray-50: #12151a;
+  --color-gray-100: #1a1e26;
+  --color-gray-200: #252a34;
+  --color-gray-300: #353b47;
+  --color-gray-400: #8b93a3;
+  --color-gray-500: #9aa2b2;
+  --color-gray-600: #aeb5c2;
+  --color-gray-700: #c5cbd6;
+  --color-gray-800: #dde1e8;
+  --color-gray-900: #f1f3f6;
 
   --font-family: "Inter", "ui-sans-serif", "system-ui", "sans-serif";
   --ui-text-inverted: var(--color-gray-50);
 
-  --admin-ui-sidebar-bg: var(--secondary);
+  --admin-ui-sidebar-bg: #12151a;
 }

@@ -54,7 +54,7 @@ async function confirmDeny() {
 </script>
 
 <template>
-  <div class="rounded-xl border border-gray-200 bg-white">
+  <div class="rounded-xl border border-gray-200 bg-surface">
     <div class="px-4 py-3 border-b border-gray-100">
       <h3 class="text-sm font-semibold text-gray-800">Panel de revisión</h3>
     </div>
@@ -91,7 +91,7 @@ async function confirmDeny() {
             <div class="flex items-center justify-between gap-2">
               <span>{{ s.firstName }} {{ s.lastName }}</span>
               <span class="text-xs text-gray-500"
-                >score {{ s.matchScore }}</span
+                >Coincidencia: {{ s.matchScore }}</span
               >
             </div>
           </UButton>
@@ -121,7 +121,7 @@ async function confirmDeny() {
               @input="handleOrphanSearchInput"
             />
             <UButton variant="outline" color="neutral" size="sm" type="submit">
-              Buscar
+              Buscá
             </UButton>
           </form>
         </div>
@@ -150,9 +150,9 @@ async function confirmDeny() {
           size="md"
           :disabled="!canApproveMerge || actionLoading"
           @click="showApproveMergeConfirm = true"
-          title="Aprobar con merge vincula la cuenta al jugador seleccionado combinando datos de jugadores."
+          title="Si aprobás y unificás, la cuenta se vincula al jugador seleccionado y se combinan sus datos."
         >
-          Aprobar con merge
+          Aprobá y unificá
         </UButton>
 
         <UButton
@@ -161,9 +161,9 @@ async function confirmDeny() {
           size="md"
           :disabled="actionLoading"
           @click="emit('approve')"
-          title="Aprobar sin merge vincula la cuenta al jugador automáticamente sin combinar datos de jugadores."
+          title="Si aprobás sin unificar, la cuenta se vincula automáticamente al jugador, sin combinar sus datos."
         >
-          Aprobar sin merge
+          Aprobá sin unificar
         </UButton>
 
         <UButton
@@ -196,9 +196,9 @@ async function confirmDeny() {
 
     <ConfirmationModal
       v-model:open="showApproveMergeConfirm"
-      title="Confirmar merge"
+      title="Confirmar unificación"
       description="Se aprobará la cuenta y se vinculará al jugador seleccionado."
-      confirm-text="Aprobar y mergear"
+      confirm-text="Aprobá y unificá"
       :on-confirm="confirmApproveMerge"
     />
 

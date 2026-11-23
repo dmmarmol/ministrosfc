@@ -15,7 +15,7 @@ interface TokenPayload {
 
 const REFRESH_TOKEN_PREFIX = "session:refresh:";
 const AUTH_SERVICE_UNAVAILABLE_MESSAGE =
-  "Authentication service temporarily unavailable. Please try again.";
+  "El servicio de autenticación no está disponible temporalmente. Intentá de nuevo más tarde.";
 
 function isRedisConnectionError(error: unknown): boolean {
   if (!(error instanceof Error)) {
@@ -79,7 +79,7 @@ const AuthService = {
     const user = await UserModel.findByEmail(email);
     if (!user)
       throw createError(
-        "Invalid email or password",
+        "El correo electrónico o la contraseña no son válidos.",
         401,
         ErrorCode.INVALID_CREDENTIALS,
       );
@@ -87,7 +87,7 @@ const AuthService = {
     const valid = await UserModel.verifyPassword(password, user.passwordHash);
     if (!valid)
       throw createError(
-        "Invalid email or password",
+        "El correo electrónico o la contraseña no son válidos.",
         401,
         ErrorCode.INVALID_CREDENTIALS,
       );
@@ -168,13 +168,13 @@ const AuthService = {
     );
     if (!userId)
       throw createError(
-        "Invalid or expired refresh token",
+        "El token de actualización no es válido o venció.",
         401,
         ErrorCode.TOKEN_EXPIRED,
       );
 
     const user = await UserModel.findById(userId);
-    if (!user) throw createError("User not found", 401, ErrorCode.UNAUTHORIZED);
+    if (!user) throw createError("No se encontró el usuario.", 401, ErrorCode.UNAUTHORIZED);
 
     const { accessToken, refreshToken: newRefreshToken } =
       AuthService.generateTokens({ userId: user.id, role: user.role });

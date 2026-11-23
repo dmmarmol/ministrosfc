@@ -17,7 +17,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="bg-gray-900 text-white rounded-2xl p-6 mb-8">
+  <div class="bg-ink text-white rounded-2xl p-6 mb-8">
     <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
       {{
         formatDate(

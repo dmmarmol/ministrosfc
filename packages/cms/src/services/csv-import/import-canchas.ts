@@ -24,8 +24,7 @@ export async function importCanchas(
   });
   if (!adminExists) {
     throw new Error(
-      `importCanchas: user "${adminUserId}" not found. ` +
-        "Your session token may be stale — log in again after db:reset.",
+      "No se pudo validar la sesión para importar las canchas. Volvé a iniciar sesión.",
     );
   }
 

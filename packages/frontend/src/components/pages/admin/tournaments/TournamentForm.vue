@@ -24,7 +24,7 @@ const props = withDefaults(
   }>(),
   {
     tournament: null,
-    submitLabel: "Guardar torneo",
+    submitLabel: "Guardá el torneo",
     cancelTo: "/admin/tournaments",
     loading: false,
     error: "",
@@ -37,7 +37,7 @@ const emit = defineEmits<{
 
 const form = reactive<TournamentFormData>({
   name: "",
-  competitionType: CompetitionType.SEASON as CompetitionType,
+  competitionType: CompetitionType.LEAGUE as CompetitionType,
   startDate: "",
   endDate: "",
   description: "",
@@ -49,7 +49,7 @@ watch(
   (tournament) => {
     if (!tournament) {
       form.name = "";
-      form.competitionType = CompetitionType.SEASON;
+      form.competitionType = CompetitionType.LEAGUE;
       form.startDate = "";
       form.endDate = "";
       form.description = "";
@@ -97,8 +97,8 @@ function handleSubmit() {
     {{ error }}
   </p>
   <form
-    class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4"
-    @submit="handleSubmit"
+    class="rounded-2xl border border-gray-200 bg-surface p-6 shadow-sm space-y-4"
+    @submit.prevent="handleSubmit"
   >
     <div class="mb-6 flex items-center justify-between gap-3">
       <div>

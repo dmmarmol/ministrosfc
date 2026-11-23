@@ -63,7 +63,7 @@ const noResultsLabel = computed(
   () => props.labels?.noResults ?? "Sin resultados",
 );
 const placeholderLabel = computed(
-  () => props.labels?.placeholder ?? "Seleccionar...",
+  () => props.labels?.placeholder ?? "Elegí...",
 );
 
 // State for inline-create panel

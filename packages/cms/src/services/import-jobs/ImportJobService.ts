@@ -294,7 +294,7 @@ export class ImportJobService {
           errorJson: {
             code: "JOB_INTERRUPTED",
             message:
-              "The import job was interrupted and left in its last durable state.",
+              "El trabajo de importación se interrumpió y quedó en su último estado guardado.",
             stage: job.currentStage,
           },
           finishedAt: new Date(),
@@ -346,8 +346,10 @@ export class ImportJobService {
       await ImportJobService.markJobCompleted(jobId, result);
       return result;
     } catch (error: any) {
-      const message = error?.message ?? "CSV import failed";
       const code = error?.code ?? "CSV_IMPORT_FAILED";
+      const message = error?.code?.startsWith("CSV_")
+        ? "El archivo CSV no tiene un formato válido."
+        : "No se pudo completar la importación. Intentá nuevamente.";
       const stage = error?.stage ?? "start";
 
       await ImportJobService.markJobFailed(jobId, {

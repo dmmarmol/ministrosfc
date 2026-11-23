@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
+import type {
+  ApiResponse,
+  OpponentTeam,
+  TeamStatPeriodDTO,
+} from "@ministrosfc/shared";
 import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
 import PlaygroundSelect from "~/components/pages/admin/playground/PlaygroundSelect.vue";
@@ -12,7 +16,15 @@ definePageMeta({
 
 const route = useRoute();
 const rivalId = route.params.id as string;
-useHead({ title: "Estadísticas – Ministros FC" });
+useHead({
+  title: "Estadísticas",
+  meta: [
+    {
+      name: "description",
+      content: `Estadísticas del equipo rival ${teamData ? teamData.value?.data?.name : ""}`,
+    },
+  ],
+});
 
 const { $api } = useNuxtApp();
 const {
@@ -23,12 +35,12 @@ const {
 
 const [{ data: teamData }, { data, pending, refresh }] = await Promise.all([
   useAsyncData(`rival-team-${rivalId}`, () =>
-    $api<{ data: { name: string } }>(`/api/v1/teams/${rivalId}`),
+    $api<ApiResponse<OpponentTeam[]>>(`/api/v1/opponent-teams/${rivalId}`),
   ),
   useAsyncData(
     `rival-stats-${rivalId}`,
     () =>
-      $api<{ data: TeamStatPeriodDTO[] }>(
+      $api<ApiResponse<TeamStatPeriodDTO[]>>(
         `/api/v1/statistics/team/rivals/${rivalId}`,
         {
           query: {
@@ -98,7 +110,7 @@ watch(
           d="M15 19l-7-7 7-7"
         />
       </svg>
-      Volver
+      Volvé
     </NuxtLink>
     <StatsTitle>Estadísticas vs "{{ rivalName }}"</StatsTitle>
     <div class="flex flex-wrap gap-3">

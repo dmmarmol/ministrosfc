@@ -1,7 +1,12 @@
 <script setup lang="ts">
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useNuxtApp, useHead } from "nuxt/app";
 import PlayerForm, {
   type PlayerFormData,
 } from "~/components/pages/admin/players/PlayerForm.vue";
+import { useQueryParams } from "~/composables/useQueryParams";
+import { resolveReturnUrl } from "~/utils/returnUrl";
 
 definePageMeta({
   layout: "admin",
@@ -10,10 +15,11 @@ definePageMeta({
   requiresRole: "editor",
   pageTitle: "Crear Jugador",
 });
-useHead({ title: "Add Player – Admin" });
+useHead({ title: "Agregar jugador – Administración" });
 
 const { $api } = useNuxtApp();
 const router = useRouter();
+const queryParams = useQueryParams();
 const loading = ref(false);
 const error = ref("");
 
@@ -22,7 +28,9 @@ async function onSubmit(data: PlayerFormData) {
   loading.value = true;
   try {
     await $api("/api/v1/players", { method: "POST", body: data });
-    await router.push("/admin/players");
+    await router.push(
+      resolveReturnUrl(queryParams.get("returnUrl"), "/admin/players"),
+    );
   } catch (e: any) {
     error.value = e?.message ?? "No se pudo crear el jugador.";
   } finally {
@@ -34,7 +42,7 @@ async function onSubmit(data: PlayerFormData) {
 <template>
   <div class="max-w-xl">
     <div class="mb-4">
-      <UiBackButton to="/admin/players" label="Volver a Jugadores" />
+      <UiBackButton to="/admin/players" label="Volvé a jugadores" />
     </div>
     <h2 class="text-lg font-bold text-gray-900 mb-6">Agregar Jugador</h2>
     <div class="form-wrapper relative">

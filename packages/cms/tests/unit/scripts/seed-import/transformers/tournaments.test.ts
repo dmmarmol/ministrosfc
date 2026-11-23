@@ -92,8 +92,8 @@ describe("buildTournaments", () => {
     const cases: Array<[string, string]> = [
       ["Liga", "LEAGUE"],
       ["Amistoso", "FRIENDLY"],
-      ["Torneo Apertura", "SEASON"],
-      ["Torneo Clausura", "SEASON"],
+      ["Torneo Apertura", "LEAGUE"],
+      ["Torneo Clausura", "LEAGUE"],
       ["Torneo Mundialito", "CUP"],
       ["Copa de Oro", "CUP"],
     ];

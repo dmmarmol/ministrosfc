@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { GameStatus } from "@ministrosfc/shared";
 definePageMeta({ public: true });
-useHead({ title: "Schedule – Ministros FC" });
+useHead({ title: "Calendario" });
 
 const { $api } = useNuxtApp();
 
@@ -13,7 +13,7 @@ const activeTab = ref("upcoming");
 const opponentFilter = ref("");
 
 const { data: teamsData } = await useAsyncData("schedule-teams", () =>
-  $api<{ data: any[] }>("/api/v1/teams"),
+  $api<{ data: any[] }>("/api/v1/opponent-teams"),
 );
 const teams = computed(() => teamsData.value?.data ?? []);
 
@@ -44,7 +44,7 @@ const games = computed(() => data.value?.data ?? []);
         :key="tab.key"
         :class="
           activeTab === tab.key
-            ? 'bg-white shadow-sm text-gray-900 font-semibold'
+            ? 'bg-surface shadow-sm text-gray-900 font-semibold'
             : 'text-gray-500 hover:text-gray-700'
         "
         class="px-4 py-2 rounded-md text-sm transition-all"

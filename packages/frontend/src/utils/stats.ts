@@ -1,3 +1,9 @@
+import {
+  CompetitionType,
+  competitionTypeLabels,
+  DEFAULT_DATE_LOCALE,
+} from "@ministrosfc/shared";
+
 /**
  * Formats a date string as MM/YY for use in stats tables.
  * Mirrors the UTC-safe normalization from @ministrosfc/shared's formatDateTime.
@@ -20,14 +26,14 @@ export function formatDateRange(
 ): string {
   if (!start) return "";
 
-  const s = new Date(start).toLocaleDateString("en-US", {
+  const s = new Date(start).toLocaleDateString(DEFAULT_DATE_LOCALE, {
     month: "short",
     year: "numeric",
   });
 
-  if (!end) return `Since ${s}`;
+  if (!end) return `Desde ${s}`;
 
-  const e = new Date(end).toLocaleDateString("en-US", {
+  const e = new Date(end).toLocaleDateString(DEFAULT_DATE_LOCALE, {
     month: "short",
     year: "numeric",
   });
@@ -39,5 +45,9 @@ export function formatDateRange(
 export function formatCompetitionType(
   value: string | null | undefined,
 ): string {
-  return value?.replace(/_/g, " ").toWellFormed() ?? "";
+  if (!value) return "";
+  return (
+    competitionTypeLabels[value as CompetitionType] ??
+    value.replace(/_/g, " ").toWellFormed()
+  );
 }

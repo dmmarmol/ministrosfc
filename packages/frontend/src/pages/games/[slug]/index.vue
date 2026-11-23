@@ -12,9 +12,7 @@ const router = useRouter();
 const { game, participants, pending } = useGameBySlug(slug);
 
 useHead(() => ({
-  title: game.value
-    ? `vs ${game.value.opponentTeam?.name} – Ministros FC`
-    : "Game",
+  title: game.value ? `vs. ${game.value.opponentTeam?.name}` : "Partido",
 }));
 
 function handleSignUp(gameId: string) {
@@ -48,6 +46,8 @@ function handleSignUp(gameId: string) {
         Aun no hay jugadores confirmados.
       </p>
     </template>
-    <div v-else class="text-center py-16 text-gray-500">Game not found.</div>
+    <div v-else class="text-center py-16 text-gray-500">
+      No se encontró el partido.
+    </div>
   </div>
 </template>

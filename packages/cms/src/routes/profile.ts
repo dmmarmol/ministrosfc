@@ -93,7 +93,7 @@ router.patch(
       if (Object.keys(parsed).length === 0) {
         res.status(400).json({
           code: "VALIDATION_ERROR",
-          message: "No fields to update",
+          message: "No hay campos para actualizar.",
           statusCode: 400,
         });
         return;
@@ -136,7 +136,7 @@ router.put(
       const file = req.file;
       if (!file) {
         res.status(400).json({
-          error: { code: "VALIDATION_ERROR", message: "No file provided" },
+          error: { code: "VALIDATION_ERROR", message: "No se proporcionó ningún archivo." },
         });
         return;
       }

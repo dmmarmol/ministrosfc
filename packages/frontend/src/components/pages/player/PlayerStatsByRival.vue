@@ -59,7 +59,7 @@ function toggleRival(rivalId: string) {
           id="rival-team-select"
           v-model="selectedRivalId"
           :items="teamOptions"
-          placeholder="Selecciona un equipo"
+          placeholder="Elegí un equipo"
           value-key="value"
           label-key="label"
           :clear="true"

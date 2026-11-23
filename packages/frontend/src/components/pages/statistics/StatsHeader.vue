@@ -11,25 +11,25 @@ const props = defineProps<{
     <!-- All-time totals -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <div
-        class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100"
+        class="bg-surface rounded-lg p-3 text-center shadow-sm border border-gray-100"
       >
         <p class="text-2xl font-bold text-gray-900">{{ summary.totalGames }}</p>
         <p class="text-xs text-gray-500 mt-1">Partidos</p>
       </div>
       <div
-        class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100"
+        class="bg-surface rounded-lg p-3 text-center shadow-sm border border-gray-100"
       >
         <p class="text-2xl font-bold text-green-600">{{ summary.totalWins }}</p>
         <p class="text-xs text-gray-500 mt-1">Victorias</p>
       </div>
       <div
-        class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100"
+        class="bg-surface rounded-lg p-3 text-center shadow-sm border border-gray-100"
       >
         <p class="text-2xl font-bold text-red-500">{{ summary.totalLosses }}</p>
         <p class="text-xs text-gray-500 mt-1">Derrotas</p>
       </div>
       <div
-        class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100"
+        class="bg-surface rounded-lg p-3 text-center shadow-sm border border-gray-100"
       >
         <p class="text-2xl font-bold text-yellow-500">
           {{ summary.totalDraws }}
@@ -41,7 +41,7 @@ const props = defineProps<{
     <!-- Goals and win rate -->
     <div class="grid grid-cols-3 gap-3">
       <div
-        class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100"
+        class="bg-surface rounded-lg p-3 text-center shadow-sm border border-gray-100"
       >
         <p class="text-2xl font-bold text-gray-900">
           {{ summary.totalGoalsFor }}
@@ -49,7 +49,7 @@ const props = defineProps<{
         <p class="text-xs text-gray-500 mt-1">Goles a Favor</p>
       </div>
       <div
-        class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100"
+        class="bg-surface rounded-lg p-3 text-center shadow-sm border border-gray-100"
       >
         <p class="text-2xl font-bold text-gray-900">
           {{ summary.totalGoalsAgainst }}
@@ -57,7 +57,7 @@ const props = defineProps<{
         <p class="text-xs text-gray-500 mt-1">Goles en Contra</p>
       </div>
       <div
-        class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100"
+        class="bg-surface rounded-lg p-3 text-center shadow-sm border border-gray-100"
       >
         <p class="text-2xl font-bold text-brand">
           {{ Number(summary.winRate).toFixed(1) }}%
@@ -68,7 +68,7 @@ const props = defineProps<{
 
     <!-- Records -->
     <div
-      class="bg-white rounded-lg shadow-sm border border-gray-100 divide-y divide-gray-100"
+      class="bg-surface rounded-lg shadow-sm border border-gray-100 divide-y divide-gray-100"
     >
       <div class="flex justify-between px-4 py-2 text-sm">
         <span class="text-gray-500">Rival más jugado</span>
@@ -153,7 +153,7 @@ const props = defineProps<{
   </div>
   <div
     v-else
-    class="bg-white rounded-lg p-6 text-center text-gray-400 border border-gray-100"
+    class="bg-surface rounded-lg p-6 text-center text-gray-400 border border-gray-100"
   >
     Sin datos de resumen disponibles
   </div>

@@ -51,7 +51,7 @@ export async function checkOptimisticConcurrency(
     entity.updatedAt.toISOString() !== expectedUpdatedAt
   ) {
     throw createError(
-      "Stale update: entity was modified by another process",
+      "El registro fue modificado por otro proceso. Actualizá la página e intentá de nuevo.",
       409,
       ErrorCode.CONFLICT,
     );
@@ -78,7 +78,7 @@ const UserService = {
   async createUser(dto: CreateUserDTO) {
     const existing = await UserModel.findByEmail(dto.email);
     if (existing)
-      throw createError("Email already in use", 409, ErrorCode.CONFLICT);
+      throw createError("El correo electrónico ya está en uso.", 409, ErrorCode.CONFLICT);
     const user = await UserModel.create(dto);
     const { passwordHash: _, ...safeUser } = user as any;
     return safeUser;
@@ -100,7 +100,7 @@ const UserService = {
         },
       },
     });
-    if (!user) throw createError("User not found", 404, ErrorCode.NOT_FOUND);
+    if (!user) throw createError("No se encontró el usuario.", 404, ErrorCode.NOT_FOUND);
     const displayFirstName = user.player?.firstName ?? user.firstName;
     const displayLastName = user.player?.lastName ?? user.lastName;
     const { passwordHash: _, ...safeUser } = user as any;
@@ -138,7 +138,7 @@ const UserService = {
   ) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      throw createError("User not found", 404, ErrorCode.NOT_FOUND);
+      throw createError("No se encontró el usuario.", 404, ErrorCode.NOT_FOUND);
     }
 
     // Optimistic concurrency check
@@ -147,7 +147,7 @@ const UserService = {
       user.updatedAt.toISOString() !== expectedUpdatedAt
     ) {
       throw createError(
-        "Stale update: user was modified by another process",
+        "El usuario fue modificado por otro proceso. Actualizá la página e intentá de nuevo.",
         409,
         ErrorCode.CONFLICT,
       );
@@ -162,7 +162,7 @@ const UserService = {
         where: { email: trimmedEmail },
       });
       if (existing && existing.id !== userId) {
-        throw createError("Email already in use", 409, ErrorCode.CONFLICT);
+        throw createError("El correo electrónico ya está en uso.", 409, ErrorCode.CONFLICT);
       }
       data.email = trimmedEmail;
     }
@@ -252,11 +252,11 @@ const UserService = {
   async changeRole(adminId: string, targetId: string, newRole: Role) {
     const caller = await prisma.user.findUnique({ where: { id: adminId } });
     if (!caller || caller.role !== "ADMIN") {
-      throw createError("Unauthorized", 403, ErrorCode.FORBIDDEN);
+      throw createError("No tenés autorización para realizar esta acción.", 403, ErrorCode.FORBIDDEN);
     }
     const target = await prisma.user.findUnique({ where: { id: targetId } });
     if (!target) {
-      throw createError("User not found", 404, ErrorCode.NOT_FOUND);
+      throw createError("No se encontró el usuario.", 404, ErrorCode.NOT_FOUND);
     }
     // Idempotent check: if role is already the target role, return early
     if (target.role === newRole) {
@@ -265,7 +265,7 @@ const UserService = {
     }
     // Self-demotion check: Admin cannot demote themselves
     if (adminId === targetId && newRole !== "ADMIN") {
-      throw createError("Cannot demote yourself", 403, ErrorCode.FORBIDDEN);
+      throw createError("No podés quitarte el rol de administrador.", 403, ErrorCode.FORBIDDEN);
     }
     const updated = await prisma.user.update({
       where: { id: targetId },
@@ -285,7 +285,7 @@ const UserService = {
     });
     if (!user || !user.player) {
       throw createError(
-        "User not found or no linked player",
+        "No se encontró el usuario o no tiene un jugador asociado.",
         404,
         ErrorCode.NOT_FOUND,
       );
@@ -305,7 +305,7 @@ const UserService = {
     });
     if (!user || !user.player) {
       throw createError(
-        "User not found or no linked player",
+        "No se encontró el usuario o no tiene un jugador asociado.",
         404,
         ErrorCode.NOT_FOUND,
       );

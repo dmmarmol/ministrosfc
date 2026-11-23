@@ -131,7 +131,7 @@ describe("BackButton component runtime (T039)", () => {
     expect(wrapper.text()).toContain("Volver al sitio");
   });
 
-  it("defaults to to='/' and label='Volver'", () => {
+  it("defaults to to='/' and label='Volvé'", () => {
     const wrapper = mount(BackButton, {
       global: {
         stubs: {
@@ -140,7 +140,7 @@ describe("BackButton component runtime (T039)", () => {
       },
     });
     expect(wrapper.find("a").attributes("href")).toBe("/");
-    expect(wrapper.text()).toContain("Volver");
+    expect(wrapper.text()).toContain("Volvé");
   });
 });
 

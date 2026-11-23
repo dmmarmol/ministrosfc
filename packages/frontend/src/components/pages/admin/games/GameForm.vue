@@ -12,13 +12,14 @@ import {
 import GameFormFields from "./GameFormFields.vue";
 import GameParticipantsFields from "./GameParticipantsFields.vue";
 import GameAddParticipant from "./GameAddParticipant.vue";
-import { useGames } from "~/composables/useGames";
 import { useOpponentTeams } from "~/composables/useOpponentTeams";
 import { useTournaments } from "~/composables/useTournaments";
+import type { GameCreationDraft } from "~/utils/gameCreationDraft";
 
 export type GameFormData = GameCreatePayload &
   GameUpdatePayload & {
     expectedUpdatedAt: string;
+    draftParticipantIds: string[];
   };
 
 const props = withDefaults(
@@ -28,17 +29,20 @@ const props = withDefaults(
     cancelTo?: string;
     loading?: boolean;
     error?: string;
+    initialDraft?: GameCreationDraft | null;
   }>(),
   {
     game: null,
-    submitLabel: "Guardar partido",
+    submitLabel: "Guardá el partido",
     cancelTo: "/admin/games",
     loading: false,
     error: "",
+    initialDraft: null,
   },
 );
 const emit = defineEmits<{
   (e: "submit", payload: GameFormData): void;
+  (e: "create-team", payload: GameFormData): void;
 }>();
 
 const form = reactive<GameFormData>({
@@ -51,6 +55,7 @@ const form = reactive<GameFormData>({
   tournamentId: "",
   expectedUpdatedAt: "",
   participants: [],
+  draftParticipantIds: [],
 });
 
 watch(
@@ -65,6 +70,7 @@ watch(
       form.competitionType = CompetitionType.FRIENDLY;
       form.tournamentId = "";
       form.participants = [];
+      form.draftParticipantIds = [];
       return;
     }
 
@@ -76,15 +82,32 @@ watch(
     form.competitionType = game.competitionType;
     form.tournamentId = game.tournamentId ?? "";
     form.participants = game.participants;
+    form.draftParticipantIds = game.participants.map(
+      (participant) => participant.playerId,
+    );
     form.expectedUpdatedAt = game.updatedAt ?? "";
   },
   { immediate: true },
 );
 
-const router = useRouter();
+watch(
+  () => props.initialDraft,
+  (draft) => {
+    if (!draft) return;
+    form.opponentTeamId = draft.newOpponentTeamId ?? draft.opponentTeamId;
+    form.date = draft.date;
+    form.time = draft.time;
+    form.playgroundId = draft.playgroundId;
+    form.maxPlayers = draft.maxPlayers;
+    form.competitionType = draft.competitionType;
+    form.tournamentId = draft.tournamentId;
+    form.draftParticipantIds = [...draft.participantIds];
+  },
+  { immediate: true },
+);
+
 const { fetchTournaments } = useTournaments();
 const { fetchOpponentTeams } = useOpponentTeams();
-const { createGame } = useGames();
 
 const [teamsData, tournamentData] = await Promise.all([
   fetchOpponentTeams(),
@@ -95,7 +118,6 @@ const participantCount = computed(() => form.participants?.length);
 
 function handleSubmit() {
   emit("submit", form);
-  router.push("/admin/games");
 }
 </script>
 <template>
@@ -103,7 +125,7 @@ function handleSubmit() {
     <div class="grid grid-cols-1 max-w-full xl:grid-cols-6 gap-4">
       <div class="xl:col-span-2">
         <div
-          class="bg-white justify-start rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
+          class="bg-surface justify-start rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
         >
           <p
             v-if="error"
@@ -116,6 +138,7 @@ function handleSubmit() {
               :form="form"
               :teamsData="teamsData"
               :tournament-data="tournamentData"
+              @create-team="emit('create-team', form)"
             />
             <div class="flex gap-3 pt-2 justify-end">
               <div class="flex gap-3 pt-2 justify-end">
@@ -127,7 +150,7 @@ function handleSubmit() {
                   :disabled="loading"
                   class="font-semibold"
                 >
-                  {{ loading ? "Guardando…" : "Guardar Partido" }}
+                  {{ loading ? "Guardando…" : "Guardá el partido" }}
                 </UButton>
                 <UButton to="/admin/games" variant="outline">Cancelar</UButton>
               </div>
@@ -141,7 +164,7 @@ function handleSubmit() {
       </div>
       <div class="xl:col-span-4">
         <div
-          class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
+          class="bg-surface rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
         >
           <div class="mb-4">
             <h3 class="text-md font-semibold text-gray-800">

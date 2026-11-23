@@ -272,7 +272,7 @@ const isActive = computed({
       variant="ghost"
       color="primary"
     >
-      {{ loading ? "Guardando…" : "Guardar cambios" }}
+      {{ loading ? "Guardando…" : "Guardá los cambios" }}
     </UButton>
   </form>
 </template>

@@ -56,7 +56,7 @@ const topScorers = computed(() => scorersData.value?.data ?? []);
       class="bg-gradient-to-br from-primary-100 to-primary-50 text-white py-8 px-8 h-96 rounded-2xl mb-10 flex items-end"
     >
       <div class="max-w-3xl">
-        <h2 class="text-gray-700 dark:text-white text-6xl font-bold mb-3">
+        <h2 class="text-gray-700 dark:text-white text-4xl sm:text-6xl font-bold mb-3 break-words">
           Bienvenido a <span class="text-brand">Ministros FC</span>
         </h2>
         <p class="text-gray-700 dark:text-white text-lg mb-6">
@@ -114,7 +114,7 @@ const topScorers = computed(() => scorersData.value?.data ?? []);
         </div>
         <div
           v-else-if="topScorers.length"
-          class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+          class="bg-surface rounded-xl shadow-sm border border-gray-100 overflow-hidden"
         >
           <div
             v-for="(entry, idx) in topScorers.slice(0, 5)"

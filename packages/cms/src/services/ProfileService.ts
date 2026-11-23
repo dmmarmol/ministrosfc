@@ -25,7 +25,7 @@ export const ProfileService = {
     });
 
     if (!user) {
-      throw createError("User not found", 404, ErrorCode.NOT_FOUND);
+      throw createError("No se encontró el usuario.", 404, ErrorCode.NOT_FOUND);
     }
 
     return {
@@ -55,7 +55,7 @@ export const ProfileService = {
     });
 
     if (!user || !user.player) {
-      throw createError("Player profile not found", 404, ErrorCode.NOT_FOUND);
+      throw createError("No se encontró el perfil del jugador.", 404, ErrorCode.NOT_FOUND);
     }
 
     const profileFirstName = user.firstName ?? user.player.firstName;
@@ -132,7 +132,7 @@ export const ProfileService = {
       });
 
       if (!user || !user.player) {
-        throw createError("Profile not found", 404, ErrorCode.NOT_FOUND);
+        throw createError("No se encontró el perfil.", 404, ErrorCode.NOT_FOUND);
       }
 
       // Jersey uniqueness check
@@ -222,7 +222,7 @@ export const ProfileService = {
     });
 
     if (!user || !user.player) {
-      throw createError("Profile not found", 404, ErrorCode.NOT_FOUND);
+      throw createError("No se encontró el perfil.", 404, ErrorCode.NOT_FOUND);
     }
 
     // Delete old photo (best effort)

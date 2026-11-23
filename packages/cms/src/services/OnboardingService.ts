@@ -14,7 +14,7 @@ interface OnboardingDTO {
 const OnboardingService = {
   async getStatus(userId: string) {
     const user = await UserModel.findById(userId);
-    if (!user) throw createError("User not found", 404, ErrorCode.NOT_FOUND);
+    if (!user) throw createError("No se encontró el usuario.", 404, ErrorCode.NOT_FOUND);
 
     return {
       needsOnboarding: user.onboardingCompletedAt === null,
@@ -28,7 +28,7 @@ const OnboardingService = {
 
   async complete(userId: string, dto: OnboardingDTO) {
     const user = await UserModel.findById(userId);
-    if (!user) throw createError("User not found", 404, ErrorCode.NOT_FOUND);
+    if (!user) throw createError("No se encontró el usuario.", 404, ErrorCode.NOT_FOUND);
 
     // Idempotent: if already completed, return current state
     if (user.onboardingCompletedAt) {

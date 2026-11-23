@@ -12,7 +12,7 @@ export const authLimiter = rateLimit({
   message: {
     code: ErrorCode.RATE_LIMITED,
     message:
-      "Too many login attempts. Please wait 15 minutes before trying again.",
+      "Hubo demasiados intentos de inicio de sesión. Esperá 15 minutos antes de volver a intentarlo.",
     statusCode: 429,
   },
   skipSuccessfulRequests: false,
@@ -26,7 +26,7 @@ export const registerLimiter = rateLimit({
   message: {
     code: ErrorCode.RATE_LIMITED,
     message:
-      "Too many registration attempts. Please wait 15 minutes before trying again.",
+      "Hubo demasiados intentos de registro. Esperá 15 minutos antes de volver a intentarlo.",
     statusCode: 429,
   },
   skipSuccessfulRequests: false,
@@ -39,7 +39,7 @@ export const apiLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     code: ErrorCode.RATE_LIMITED,
-    message: "Too many requests. Please try again later.",
+    message: "Hiciste demasiadas solicitudes. Volvé a intentarlo más tarde.",
     statusCode: 429,
   },
 });

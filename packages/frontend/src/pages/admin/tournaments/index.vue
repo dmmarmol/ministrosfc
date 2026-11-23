@@ -21,7 +21,7 @@ definePageMeta({
   requiresRole: "editor",
   pageTitle: "Torneos",
 });
-useHead({ title: "Tournaments – Admin" });
+useHead({ title: "Torneos – Administración" });
 
 type TournamentRow = Pick<
   Tournament,
@@ -80,13 +80,16 @@ const columns: ColumnDef<TournamentRow>[] = [
     cell: ({ row }) => {
       const tournamentId: string = row.getValue("id");
       const value: string = `${row.getValue("name")}`;
-      return cellLink(value, `/admin/tournaments/${tournamentId}`);
+      return cellLink(
+        value,
+        `/admin/tournaments/${tournamentId}?returnUrl=${encodeURIComponent("/admin/tournaments")}`,
+      );
     },
   },
   {
     accessorKey: "startDate",
     header: sortableHeader("Fecha"),
-    title: "Duracion del torneo",
+    title: "Duración del torneo",
     sortable: true,
     cell: ({ row }) => {
       const startDate: string = row.getValue("startDate");
@@ -128,7 +131,9 @@ const columns: ColumnDef<TournamentRow>[] = [
           {
             label: "Editar torneo",
             onClick: (_event: Event) =>
-              navigateTo(`/admin/tournaments/${tournamentId}`),
+              navigateTo(
+                `/admin/tournaments/${tournamentId}?returnUrl=${encodeURIComponent("/admin/tournaments")}`,
+              ),
           },
           {
             label: "Borrar torneo",
@@ -186,7 +191,7 @@ const tableRows = computed((): TournamentRow[] => {
         size="md"
         class="font-semibold"
         icon="mdi:trophy"
-        to="/admin/tournaments/create"
+        :to="`/admin/tournaments/create?returnUrl=${encodeURIComponent('/admin/tournaments')}`"
       >
         Nuevo torneo
       </UButton>

@@ -127,7 +127,7 @@ describe("UserRoleManager – full-name edit entry (T008)", () => {
 
   it("email changes are confirmation-gated before patching", () => {
     expect(source).toContain("actionType: \"edit-email\"");
-    expect(source).toContain("title: \"Cambiar email\"");
+    expect(source).toContain("title: \"Cambiar correo electrónico\"");
     expect(source).toContain("requestConfirmation(");
     expect(source).toContain("await $api(`/api/v1/admin/users/${userId}`");
   });

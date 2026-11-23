@@ -43,12 +43,12 @@ onUnmounted(() => {
       @click="openMenu"
       icon="mdi:chevron-down"
     >
-      {{ authStore.fullName || "Admin" }}
+      {{ authStore.fullName || "Administrador" }}
     </UButton>
 
     <div
       v-if="open"
-      class="absolute right-0 mt-1 bg-white rounded shadow-lg py-1 z-50 border border-gray-100"
+      class="absolute right-0 mt-1 bg-surface rounded shadow-lg py-1 z-50 border border-gray-100"
     >
       <UButton
         v-if="authStore.isEditor"

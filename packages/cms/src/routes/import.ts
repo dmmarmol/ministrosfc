@@ -67,7 +67,7 @@ router.post(
       if (!historialFile || !jugadoresFile || !aparicionesFile) {
         res.status(422).json({
           error:
-            "Missing required files: historial, jugadores, apariciones (all required)",
+            "Faltan archivos obligatorios: historial, jugadores y apariciones.",
         });
         return;
       }
@@ -143,7 +143,9 @@ router.post(
           },
           "CSV import rejected due to parse error",
         );
-        res.status(422).json({ error: `CSV parse error: ${err.message}` });
+        res.status(422).json({
+          error: "No se pudo procesar el archivo CSV. Revisá que el formato sea válido.",
+        });
         return;
       }
 
@@ -167,13 +169,13 @@ router.get(
     try {
       const { jobId } = req.params;
       if (!jobId) {
-        res.status(400).json({ error: "Import job id is required" });
+        res.status(400).json({ error: "Se requiere el ID del trabajo de importación." });
         return;
       }
 
       const job = await ImportJobService.getJobById(jobId);
       if (!job) {
-        res.status(404).json({ error: "Import job not found" });
+        res.status(404).json({ error: "No se encontró el trabajo de importación." });
         return;
       }
 

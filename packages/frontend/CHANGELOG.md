@@ -13,6 +13,36 @@ For project-level release notes covering all packages, see the root [CHANGELOG.m
 
 ---
 
+## [0.13.0] - 2026-11-23
+
+### Summary
+
+Minor release with the user-facing spec 021 fixes: game save and returnUrl navigation, roster and dashboard updates, and a legible dark mode with a toggle.
+
+### Changed
+
+- Saving a game returns to a validated internal `returnUrl` (or `/admin/games`) and the games list refetches fresh data; admin back actions use `BackButton`.
+- Roster search covers all registered players and shows status labels for "Todos".
+- Dashboard recent games use a `UTable` with an edit action to `/admin/games/:id`.
+- Dark mode is legible across public and admin pages and keeps the brand blue.
+
+### Added
+
+- Icon-only `ColorModeToggle` in the public nav and admin header.
+- Game draft restore when creating an opponent team from the game form.
+- `BackButton`, `returnUrl` resolver and `usePlayers` composable.
+
+### Fixed
+
+- Team, playground and tournament forms reloaded the page before the returnUrl redirect ran.
+- The game form listed only the first 20 opponent teams.
+- The dashboard recent-games table crashed when the API returned no participants.
+- Home hero overflowed horizontally at 320px.
+
+### Removed
+
+- "Temporada" from competition type options and labels.
+
 ## [0.12.0] — 2026-05-03
 
 ### Added

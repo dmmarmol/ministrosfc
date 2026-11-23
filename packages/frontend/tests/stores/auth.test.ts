@@ -216,7 +216,7 @@ describe("useAuthStore", () => {
     it("throws when no refresh token is available", async () => {
       const store = useAuthStore();
       await expect(store.refresh()).rejects.toThrow(
-        "No refresh token available",
+        "No hay un token de renovación disponible.",
       );
     });
   });

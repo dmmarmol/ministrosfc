@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { h, resolveComponent } from "vue";
+import { computed, h, resolveComponent } from "vue";
 import { type Player, PlayerStatus } from "@ministrosfc/shared";
 import type { ColumnDef } from "~/types/table";
 import { useAuthStore } from "~/stores/auth";
+import { useQueryParams } from "~/composables/useQueryParams";
+import { resolveReturnUrl } from "~/utils/returnUrl";
 import {
   cellButton,
   cellJerseyNumber,
@@ -17,7 +19,7 @@ export type ExtendAdminPlayerAttr = {
 };
 export type AdminPlayer = Player & ExtendAdminPlayerAttr;
 
-const props = defineProps<{
+defineProps<{
   players: AdminPlayer[];
   loading: boolean;
 }>();
@@ -28,6 +30,10 @@ const emit = defineEmits<{
 }>();
 
 const authStore = useAuthStore();
+const queryParams = useQueryParams();
+const returnUrl = computed(() =>
+  resolveReturnUrl(queryParams.get("returnUrl"), "/admin/players"),
+);
 
 const classesToHideColumnsInSmallScreens = {
   th: "hidden xl:table-cell",
@@ -88,7 +94,7 @@ const columns: ColumnDef<AdminPlayer>[] = [
       const p = row.original;
       return h("div", { class: "min-w-0" }, [
         cellButton(`${p.firstName} ${p.lastName}`, {
-          to: `/admin/players/${p.id}/edit`,
+          to: `/admin/players/${p.id}/edit?returnUrl=${encodeURIComponent(returnUrl.value)}`,
           class: "truncate",
           variant: "link",
           color: "neutral",
@@ -119,7 +125,7 @@ const columns: ColumnDef<AdminPlayer>[] = [
       if (p.invitedByName) {
         return cellLink(
           p.invitedByName,
-          `/admin/players/${p.invitedById}/edit`,
+          `/admin/players/${p.invitedById}/edit?returnUrl=${encodeURIComponent(returnUrl.value)}`,
         );
       }
       return cellName("Invitante eliminado", {
@@ -185,7 +191,7 @@ const columns: ColumnDef<AdminPlayer>[] = [
 
 <template>
   <div
-    class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+    class="bg-surface rounded-xl shadow-sm border border-gray-100 overflow-hidden"
   >
     <div v-if="loading" class="p-6 space-y-3">
       <div

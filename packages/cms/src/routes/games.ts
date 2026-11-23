@@ -23,6 +23,7 @@ import {
   DEFAULT_LINEUP,
   FORMATIONS,
   OPTION_FILTER_ALL,
+  CompetitionType,
   type GameSignupState,
   GameResult,
 } from "@ministrosfc/shared";
@@ -36,34 +37,33 @@ const gameCreateSchema = z
     date: z.string().datetime({
       offset: true,
       message:
-        'date must be a valid ISO 8601 datetime with timezone offset, e.g. "2026-03-28T14:00:00-03:00"',
+        'date debe ser una fecha y hora ISO 8601 válida con diferencia horaria, por ejemplo, "2026-03-28T14:00:00-03:00".',
     }),
     location: z
       .string()
-      .max(500, "Location must be 500 characters or less")
+      .max(500, "location no puede superar los 500 caracteres.")
       .optional(),
     notes: z
       .string()
-      .max(2000, "Notes must be 2000 characters or less")
+      .max(2000, "notes no puede superar los 2000 caracteres.")
       .optional(),
-    opponentTeamId: z.uuid("opponentTeamId must be a valid UUID"),
+    opponentTeamId: z.uuid("Debe tener un formato UUID válido."),
     tournamentId: z.string().min(1).optional(),
     competitionType: z
-      .enum(["FRIENDLY", "LEAGUE", "CUP", "PLAYOFF", "SEASON"], {
-        message:
-          "competitionType must be one of: FRIENDLY, LEAGUE, CUP, PLAYOFF, SEASON",
+      .enum(CompetitionType, {
+        message: `competitionType debe ser uno de: ${Object.values(CompetitionType).join(", ")}`,
       })
       .optional(),
     playgroundId: z
       .string()
-      .uuid("playgroundId must be a valid UUID")
+      .uuid("Debe tener un formato UUID válido.")
       .optional()
       .nullable(),
     maxPlayers: z.coerce.number().int().min(1).optional().nullable(),
     lineup: z
       .string()
       .refine((v) => FORMATIONS_ENUM.includes(v), {
-        message: "Invalid formation code",
+        message: "El código de formación no es válido.",
       })
       .optional()
       .default(DEFAULT_LINEUP),
@@ -83,26 +83,25 @@ const gameUpdateSchema = z
       .datetime({
         offset: true,
         message:
-          'date must be a valid ISO 8601 datetime with timezone offset, e.g. "2026-03-28T14:00:00-03:00"',
+          'date debe ser una fecha y hora ISO 8601 válida con diferencia horaria, por ejemplo, "2026-03-28T14:00:00-03:00".',
       })
       .optional(),
     location: z
       .string()
-      .max(500, "Location must be 500 characters or less")
+      .max(500, "location no puede superar los 500 caracteres.")
       .optional(),
     notes: z
       .string()
-      .max(2000, "Notes must be 2000 characters or less")
+      .max(2000, "notes no puede superar los 2000 caracteres.")
       .optional(),
     opponentTeamId: z
       .string()
-      .uuid("opponentTeamId must be a valid UUID")
+      .uuid("Debe tener un formato UUID válido.")
       .optional(),
     tournamentId: z.string().min(1).optional(),
     competitionType: z
-      .enum(["FRIENDLY", "LEAGUE", "CUP", "PLAYOFF", "SEASON"], {
-        message:
-          "competitionType must be one of: FRIENDLY, LEAGUE, CUP, PLAYOFF, SEASON",
+      .enum(CompetitionType, {
+        message: `competitionType debe ser uno de: ${Object.values(CompetitionType).join(", ")}`,
       })
       .optional(),
     status: z.enum(GameStatus).optional(),
@@ -110,14 +109,14 @@ const gameUpdateSchema = z
     awayTeamScore: z.coerce.number().int().min(0).optional(),
     playgroundId: z
       .string()
-      .uuid("playgroundId must be a valid UUID")
+      .uuid("Debe tener un formato UUID válido.")
       .optional()
       .nullable(),
     maxPlayers: z.coerce.number().int().min(1).optional().nullable(),
     lineup: z
       .string()
       .refine((v) => FORMATIONS_ENUM.includes(v), {
-        message: "Invalid formation code",
+        message: "El código de formación no es válido.",
       })
       .optional(),
     // Strip server-generated fields silently
@@ -156,11 +155,11 @@ async function assertNonAdminMutationAllowed(
   if (role === "ADMIN") return; // ADMIN bypasses all status guards
 
   const game = await GameModel.findById(gameId);
-  if (!game) throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
+  if (!game) throw createError("No se encontró el partido.", 404, ErrorCode.GAME_NOT_FOUND);
 
   if (game.status === GameStatus.IN_PROGRESS) {
     throw createError(
-      "Non-admin users cannot modify games that are in progress",
+      "Los usuarios que no son administradores no pueden modificar partidos en curso.",
       403,
       ErrorCode.FORBIDDEN,
     );
@@ -173,7 +172,7 @@ async function assertNonAdminMutationAllowed(
       mutationType === "any"
     ) {
       throw createError(
-        "Non-admin users cannot modify lineup or participants of completed games",
+        "Los usuarios que no son administradores no pueden modificar la formación ni los participantes de partidos finalizados.",
         403,
         ErrorCode.FORBIDDEN,
       );
@@ -284,7 +283,7 @@ router.get(
     try {
       const game = await GameModel.findBySlug(req.params.slug!);
       if (!game)
-        throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
+        throw createError("No se encontró el partido.", 404, ErrorCode.GAME_NOT_FOUND);
       res.json({ data: { id: game.id, slug: game.slug } });
     } catch (err) {
       next(err);

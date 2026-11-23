@@ -11,6 +11,7 @@ import { requireRole } from "../middleware/rbac";
 import { UserService } from "../services/UserService";
 import { UserApprovalService } from "../services/UserApprovalService";
 import { Role } from "@prisma/client";
+import { formatValidationIssue } from "../middleware/validation";
 
 const router = Router();
 export const orphanPlayersRouter = Router();
@@ -88,7 +89,7 @@ router.patch(
       if (!parsed.success) {
         res.status(400).json({
           code: "VALIDATION_ERROR",
-          message: parsed.error.issues.map((i) => i.message).join(", "),
+          message: parsed.error.issues.map(formatValidationIssue).join(", "),
           statusCode: 400,
         });
         return;
@@ -120,7 +121,7 @@ router.patch(
       if (!parsed.success) {
         res.status(400).json({
           code: "VALIDATION_ERROR",
-          message: parsed.error.issues.map((i) => i.message).join(", "),
+          message: parsed.error.issues.map(formatValidationIssue).join(", "),
           statusCode: 400,
         });
         return;
@@ -168,7 +169,7 @@ router.get(
       if (!parsed.success) {
         res.status(400).json({
           code: "VALIDATION_ERROR",
-          message: parsed.error.issues.map((i) => i.message).join(", "),
+          message: parsed.error.issues.map(formatValidationIssue).join(", "),
           statusCode: 400,
         });
         return;
@@ -196,7 +197,7 @@ async function handleListOrphanPlayersGlobal(
     if (!parsed.success) {
       res.status(400).json({
         code: "VALIDATION_ERROR",
-        message: parsed.error.issues.map((i) => i.message).join(", "),
+        message: parsed.error.issues.map(formatValidationIssue).join(", "),
         statusCode: 400,
       });
       return;
@@ -232,7 +233,7 @@ router.get(
       if (!parsed.success) {
         res.status(400).json({
           code: "VALIDATION_ERROR",
-          message: parsed.error.issues.map((i) => i.message).join(", "),
+          message: parsed.error.issues.map(formatValidationIssue).join(", "),
           statusCode: 400,
         });
         return;
@@ -263,7 +264,7 @@ router.post(
       if (!parsed.success) {
         res.status(400).json({
           code: "VALIDATION_ERROR",
-          message: parsed.error.issues.map((i) => i.message).join(", "),
+          message: parsed.error.issues.map(formatValidationIssue).join(", "),
           statusCode: 400,
         });
         return;
@@ -293,7 +294,7 @@ router.post(
       if (!parsed.success) {
         res.status(400).json({
           code: "VALIDATION_ERROR",
-          message: parsed.error.issues.map((i) => i.message).join(", "),
+          message: parsed.error.issues.map(formatValidationIssue).join(", "),
           statusCode: 400,
         });
         return;
@@ -324,7 +325,7 @@ router.post(
       if (!parsed.success) {
         res.status(400).json({
           code: "VALIDATION_ERROR",
-          message: parsed.error.issues.map((i) => i.message).join(", "),
+          message: parsed.error.issues.map(formatValidationIssue).join(", "),
           statusCode: 400,
         });
         return;
@@ -354,7 +355,7 @@ router.post(
       if (!parsed.success) {
         res.status(400).json({
           code: "VALIDATION_ERROR",
-          message: parsed.error.issues.map((i) => i.message).join(", "),
+          message: parsed.error.issues.map(formatValidationIssue).join(", "),
           statusCode: 400,
         });
         return;
@@ -396,8 +397,7 @@ export const adminUserProfileSchema = z
     password: z.string().min(8).max(128).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
-    /** @TODO translate to spanish */
-    message: "At least one field must be provided",
+    message: "Tenés que proporcionar al menos un campo.",
   });
 
 export const adminUserRoleChangeSchema = z.object({
@@ -418,7 +418,7 @@ router.patch(
       if (!parsed.success) {
         res.status(400).json({
           code: "VALIDATION_ERROR",
-          message: parsed.error.issues.map((i) => i.message).join(", "),
+          message: parsed.error.issues.map(formatValidationIssue).join(", "),
           statusCode: 400,
         });
         return;

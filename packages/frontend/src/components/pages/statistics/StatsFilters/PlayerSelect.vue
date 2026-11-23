@@ -62,7 +62,7 @@ function handleUpdate(value: SelectItem | undefined) {
     :items="items"
     value-key="value"
     label-key="label"
-    placeholder="Seleccionar Jugador"
+    placeholder="Elegí un jugador"
     :search-input="true"
     :clear="true"
     :ui="{ content: 'min-w-fit' }"

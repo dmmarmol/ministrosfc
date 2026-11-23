@@ -24,7 +24,7 @@ type TopScorerRow = Omit<TopScorerDTO, "player"> & {
 };
 
 definePageMeta({ layout: "statistics", public: true });
-useHead({ title: "Goleadores – Ministros FC" });
+useHead({ title: "Goleadores" });
 
 const { $api } = useNuxtApp();
 const authStore = useAuthStore();
@@ -182,7 +182,7 @@ const sorting = ref<{ id: keyof TopScorerDTO; desc: boolean }[]>([
           ).toString()
         "
         type="text"
-        placeholder="Buscar jugador…"
+        placeholder="Buscá un jugador…"
         class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
       />
       <YearSelect v-model="yearFilter" class="w-1/6" />

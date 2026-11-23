@@ -66,7 +66,7 @@ function toSlugBase(date: Date, opponentName: string): string {
 
   if (!normalizedName) {
     throw createError(
-      "Cannot generate slug: opponent name produces empty result after normalization",
+      "No se pudo generar el identificador del partido porque el nombre del equipo rival está vacío.",
       400,
       ErrorCode.VALIDATION_ERROR,
     );

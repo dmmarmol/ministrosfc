@@ -24,7 +24,7 @@ const props = withDefaults(
   }>(),
   {
     playground: null,
-    submitLabel: "Guardar cancha",
+    submitLabel: "Guardá la cancha",
     cancelTo: "/admin/playgrounds",
     loading: false,
     error: "",
@@ -107,8 +107,8 @@ function onAddressSelect(suggestion: AddressSuggestion | null) {
     {{ error }}
   </p>
   <form
-    class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4"
-    @submit="handleSubmit"
+    class="rounded-2xl border border-gray-200 bg-surface p-6 shadow-sm space-y-4"
+    @submit.prevent="handleSubmit"
   >
     <div class="mb-6 flex items-center justify-between gap-3">
       <div>

@@ -35,7 +35,7 @@ const displayName = props.position
       'inline-block w-10 flex-shrink-0 mt-0.5 py-0.5 rounded',
       'text-white text-[14px] text-center font-bold',
       'border-b-4',
-      `${props.position ? 'bg-gray-900' : 'bg-gray-300'}`,
+      `${props.position ? 'bg-ink' : 'bg-gray-300'}`,
       `${props.position ? pesPositionClassMap[props.position] : 'text-gray-500 border-gray-400'}`,
     ]"
     :title="displayName"

@@ -22,17 +22,17 @@ const oauthClient = new OAuth2Client(
 );
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email("El correo electrónico no tiene un formato válido."),
   password: z.string().min(1),
 });
 
 const registerSchema = z
   .object({
-    email: z.string().email("Email inválido").max(255),
+    email: z.string().email("El correo electrónico no tiene un formato válido.").max(255),
     password: passwordSchema,
     passwordConfirmation: z.string(),
-    firstName: z.string().min(1, "Requerido").max(255).trim(),
-    lastName: z.string().min(1, "Requerido").max(255).trim(),
+    firstName: z.string().min(1, "Este campo es obligatorio.").max(255).trim(),
+    lastName: z.string().min(1, "Este campo es obligatorio.").max(255).trim(),
     isPlayer: z.boolean().optional().default(true),
   })
   .refine((d) => d.password === d.passwordConfirmation, {

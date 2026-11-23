@@ -34,7 +34,7 @@ const hoveredParticipantId = ref<string | null>(null);
         Confirmados ({{ confirmedCount
         }}<span v-if="maxPlayers"> / {{ maxPlayers }}</span>)
       </h3>
-      <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div class="bg-surface border border-gray-200 rounded-xl overflow-hidden">
         <div
           v-for="(entry, idx) in roster"
           :key="entry.participantId"

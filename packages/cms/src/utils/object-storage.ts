@@ -35,10 +35,10 @@ export interface UploadedFile {
 
 export function validatePhotoFile(file: UploadedFile): void {
   if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
-    throw new Error("Photo must be a JPG, PNG, or WebP image");
+    throw new Error("La foto debe estar en formato JPG, PNG o WebP.");
   }
   if (file.size > MAX_FILE_SIZE_BYTES) {
-    throw new Error("Photo must be smaller than 5 MB");
+    throw new Error("La foto debe pesar menos de 5 MB.");
   }
 }
 
@@ -66,7 +66,7 @@ export async function uploadPhoto(
           },
           (err, res) => {
             if (err || !res)
-              return reject(err ?? new Error("Cloudinary upload failed"));
+              return reject(err ?? new Error("No se pudo subir la foto."));
             resolve(res as { secure_url: string });
           },
         )

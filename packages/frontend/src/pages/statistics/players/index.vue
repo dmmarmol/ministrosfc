@@ -17,7 +17,7 @@ definePageMeta({
   middleware: "auth",
   requiresAuth: true,
 });
-useHead({ title: "Estadísticas de Jugadores – Ministros FC" });
+useHead({ title: "Estadísticas de Jugadores" });
 
 const { $api } = useNuxtApp();
 const route = useRoute();

@@ -17,7 +17,7 @@ const emit = defineEmits<{
 
 <template>
   <div
-    class="relative rounded-xl border border-gray-200 bg-white overflow-hidden"
+    class="relative rounded-xl border border-gray-200 bg-surface overflow-hidden"
   >
     <div class="px-4 py-3 border-b border-gray-100">
       <h3 class="text-sm font-semibold text-gray-800">
@@ -63,7 +63,7 @@ const emit = defineEmits<{
                 {{ item.suggestions[0]!.lastName }}
               </p>
               <p class="text-xs text-gray-500">
-                score {{ item.suggestions[0]!.matchScore }}
+                Coincidencia: {{ item.suggestions[0]!.matchScore }}
               </p>
             </template>
             <span v-else class="text-xs text-gray-400">Sin sugerencias</span>

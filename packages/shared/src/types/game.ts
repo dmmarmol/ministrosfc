@@ -3,6 +3,7 @@ import type { ConfirmationStatus } from "./game-participant";
 import type { OpponentTeam } from "./opponent-team";
 import type { PlayerType, Position } from "./player";
 import type { PlaygroundOption } from "./playground";
+import { OPTION_FILTER_ALL } from "../constants/players";
 
 export enum GameStatus {
   SCHEDULED = "SCHEDULED",
@@ -20,23 +21,28 @@ export enum GameResult {
 /**
  * The type of competition for a game or tournament.
  * Used on both Game.competitionType and Tournament.competitionType (replacing TournamentFormat).
- * FRIENDLY = amistoso; LEAGUE = liga; CUP = copa; PLAYOFF = playoff; SEASON = temporada completa.
+ * The values are kept aligned with the CMS Prisma enum.
  */
 export enum CompetitionType {
   FRIENDLY = "FRIENDLY",
   LEAGUE = "LEAGUE",
   CUP = "CUP",
   PLAYOFF = "PLAYOFF",
-  SEASON = "SEASON",
 }
 
-export const competitionTypeItems: SelectItem[] = [
-  { value: CompetitionType.LEAGUE, label: "Liga" },
-  { value: CompetitionType.CUP, label: "Copa" },
-  { value: CompetitionType.PLAYOFF, label: "Playoff" },
-  { value: CompetitionType.SEASON, label: "Temporada" },
-  { value: CompetitionType.FRIENDLY, label: "Amistoso" },
-];
+export const competitionTypeLabels: Record<CompetitionType, string> = {
+  [CompetitionType.FRIENDLY]: "Amistoso",
+  [CompetitionType.LEAGUE]: "Liga",
+  [CompetitionType.CUP]: "Copa",
+  [CompetitionType.PLAYOFF]: "Eliminatoria",
+};
+
+export const competitionTypeItems: SelectItem[] = Object.values(
+  CompetitionType,
+).map((value) => ({
+  value,
+  label: competitionTypeLabels[value],
+}));
 
 export const FORMATIONS = [
   "4-4-2",
@@ -132,6 +138,14 @@ export type AdminGame = Omit<Game, "opponentTeam"> & {
   tournament: OptionItem | null;
   confirmedCount: number | null;
 };
+
+export interface GameListQuery {
+  page?: number;
+  limit?: number;
+  status?: GameStatus | typeof OPTION_FILTER_ALL;
+  result?: GameResult | typeof OPTION_FILTER_ALL;
+  opponentTeamId?: string;
+}
 
 export interface GameCreatePayload {
   opponentTeamId: string;

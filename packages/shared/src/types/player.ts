@@ -1,3 +1,5 @@
+import { OPTION_FILTER_ALL } from "../constants/players";
+
 export enum PlayerType {
   REGISTERED = "REGISTERED",
   GUEST = "GUEST",
@@ -47,7 +49,7 @@ export const positionOrderMap: Record<Position, number> = Object.values(
 );
 
 export const PositionDisplayName = {
-  [Position.GK]: "Portero",
+  [Position.GK]: "Arquero",
   [Position.CB]: "Defensa Central",
   [Position.RB]: "Lateral Derecho",
   [Position.LB]: "Lateral Izquierdo",
@@ -181,4 +183,14 @@ export interface PlayerCreateDTO {
 
 export interface PlayerUpdateDTO extends Partial<PlayerCreateDTO> {
   status?: PlayerStatus;
+}
+
+export interface PlayerListQuery {
+  page?: number;
+  limit?: number;
+  status?: PlayerStatus | typeof OPTION_FILTER_ALL;
+  position?: Position;
+  search?: string;
+  playerType?: PlayerType;
+  extend?: string | string[];
 }

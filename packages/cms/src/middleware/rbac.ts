@@ -14,7 +14,7 @@ export function requireRole(minimumRole: UserRole | `${UserRole}`) {
     if (!req.user) {
       res.status(401).json({
         code: ErrorCode.UNAUTHORIZED,
-        message: "Authentication required",
+        message: "Se requiere autenticación.",
         statusCode: 401,
       });
       return;
@@ -26,7 +26,7 @@ export function requireRole(minimumRole: UserRole | `${UserRole}`) {
     if (userLevel < requiredLevel) {
       res.status(403).json({
         code: ErrorCode.FORBIDDEN,
-        message: "Insufficient permissions",
+        message: "No tenés permisos suficientes.",
         statusCode: 403,
       });
       return;

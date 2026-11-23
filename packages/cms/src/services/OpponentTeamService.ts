@@ -79,7 +79,7 @@ const OpponentTeamService = {
     const team = await OpponentTeamModel.findById(id);
     if (!team) {
       throw createError(
-        "Opponent team not found",
+        "No se encontró el equipo rival.",
         404,
         ErrorCode.OPPONENT_NOT_FOUND,
       );
@@ -102,7 +102,7 @@ const OpponentTeamService = {
     const hasGames = await OpponentTeamModel.hasGames(id);
     if (hasGames) {
       throw createError(
-        "Cannot delete a team that has associated games",
+        "No se puede eliminar un equipo que tiene partidos asociados.",
         409,
         ErrorCode.CONFLICT,
       );

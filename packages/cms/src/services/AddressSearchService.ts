@@ -22,7 +22,7 @@ export const AddressSearchService = {
       });
     } catch {
       throw createError(
-        "Address search service temporarily unavailable",
+        "El servicio de búsqueda de direcciones no está disponible temporalmente.",
         503,
         "GEOCODER_UNAVAILABLE",
       );
@@ -30,7 +30,7 @@ export const AddressSearchService = {
 
     if (!res.ok) {
       throw createError(
-        "Address search service temporarily unavailable",
+        "El servicio de búsqueda de direcciones no está disponible temporalmente.",
         503,
         "GEOCODER_UNAVAILABLE",
       );

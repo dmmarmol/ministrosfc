@@ -13,6 +13,9 @@ const props = defineProps<{
   teamsData: OpponentTeam[];
   tournamentData: Tournament[];
 }>();
+const emit = defineEmits<{
+  (event: "create-team"): void;
+}>();
 
 const teams = computed(() => props.teamsData ?? []);
 const teamItems: SelectItem[] = teams.value.map((t) => ({
@@ -39,13 +42,14 @@ const tournamentItems: SelectItem[] = tournaments.value.map((t) => ({
         v-model="form.opponentTeamId"
         :items="teamItems"
         class="w-full"
-        placeholder="Seleccionar Equipo"
+        placeholder="Elegí un equipo"
       />
       <UButton
-        to="/admin/teams/create"
+        type="button"
         variant="solid"
         color="primary"
         icon="mdi:shield-plus-outline"
+        @click="emit('create-team')"
         >Nuevo
       </UButton>
     </div>
@@ -122,7 +126,7 @@ const tournamentItems: SelectItem[] = tournaments.value.map((t) => ({
       v-model="form.tournamentId"
       :items="tournamentItems"
       class="w-full"
-      placeholder="Seleccionar Torneo"
+      placeholder="Elegí un torneo"
       required
     />
   </div>

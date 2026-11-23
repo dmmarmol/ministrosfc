@@ -6,7 +6,7 @@ const googleAuthUrl = `${config.public.apiBaseUrl}/api/v1/auth/google`;
 <template>
   <a
     :href="googleAuthUrl"
-    class="flex items-center justify-center gap-2 w-full border border-gray-300 bg-white text-gray-700 font-medium py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+    class="flex items-center justify-center gap-2 w-full border border-gray-300 bg-surface text-gray-700 font-medium py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
   >
     <svg class="w-5 h-5" viewBox="0 0 24 24">
       <path
