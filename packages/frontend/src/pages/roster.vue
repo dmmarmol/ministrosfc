@@ -1,9 +1,19 @@
 <script setup lang="ts">
+import { computed, ref, watch } from "vue";
 definePageMeta({ public: true });
-useHead({ title: "Roster – Ministros FC" });
+useHead({ title: "Plantel" });
 
-import { OPTION_FILTER_ALL, PlayerStatus } from "@ministrosfc/shared";
+import {
+  OPTION_FILTER_ALL,
+  PlayerStatus,
+  PlayerType,
+  type PlayerPublic,
+} from "@ministrosfc/shared";
 import { useAuthStore } from "~/stores/auth";
+import {
+  filterRegisteredPlayers,
+  resolveRosterStatus,
+} from "~/utils/roster";
 
 const { $api } = useNuxtApp();
 const authStore = useAuthStore();
@@ -17,53 +27,57 @@ const statusFilter = ref<PlayerStatus | typeof OPTION_FILTER_ALL>(
 const { data, pending } = await useAsyncData(
   "roster",
   () =>
-    $api<{ data: any[] }>("/api/v1/players", {
+    $api<{ data: PlayerPublic[] }>("/api/v1/players", {
       query: {
         status: statusFilter.value,
+        playerType: PlayerType.REGISTERED,
+        search: search.value.trim() || undefined,
         limit: 100,
       },
     }),
-  { watch: [statusFilter] },
+  { watch: [statusFilter, search] },
 );
 
-const players = computed(() =>
-  (data.value?.data ?? []).filter((p: any) => p.playerType !== "GUEST"),
-);
+watch(search, (value) => {
+  statusFilter.value = resolveRosterStatus(value, statusFilter.value);
+});
 
 const filteredPlayers = computed(() => {
-  let list = players.value;
-  if (positionFilter.value)
-    list = list.filter((p: any) => p.position === positionFilter.value);
-  if (search.value.trim()) {
-    const q = search.value.trim().toLowerCase();
-    list = list.filter(
-      (p: any) =>
-        p.firstName?.toLowerCase().includes(q) ||
-        p.lastName?.toLowerCase().includes(q) ||
-        p.nickname?.toLowerCase().includes(q),
-    );
-  }
-  return list;
+  return filterRegisteredPlayers(
+    data.value?.data ?? [],
+    search.value,
+    positionFilter.value,
+    statusFilter.value,
+  );
 });
+
+function handleStatusSelected(
+  status: PlayerStatus | typeof OPTION_FILTER_ALL | undefined,
+) {
+  statusFilter.value = status ?? OPTION_FILTER_ALL;
+}
+
+function statusLabel(status: unknown): string {
+  if (status === PlayerStatus.ACTIVE) return "Activo";
+  if (status === PlayerStatus.INACTIVE) return "Inactivo";
+  return "Sin estado";
+}
 </script>
 
 <template>
   <div>
     <!-- Filters -->
     <div class="flex flex-col sm:flex-row gap-3 mb-6">
-      <select
+      <UiPlayerStatusSelect
         v-if="authStore.isAuthenticated"
         v-model="statusFilter"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-      >
-        <option :value="PlayerStatus.ACTIVE">Activos</option>
-        <option :value="PlayerStatus.INACTIVE">Inactivos</option>
-        <option :value="OPTION_FILTER_ALL">Todos</option>
-      </select>
+        :include-all="true"
+        @selected="handleStatusSelected"
+      />
       <input
         v-model="search"
         type="text"
-        placeholder="Buscar jugador…"
+        placeholder="Buscá un jugador…"
         class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
       />
       <select
@@ -71,7 +85,7 @@ const filteredPlayers = computed(() => {
         class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
       >
         <option value="">Todas las posiciones</option>
-        <option value="GK">Portero</option>
+        <option value="GK">Arquero</option>
         <option value="CB">Defensa Central</option>
         <option value="RB">Lateral Derecho</option>
         <option value="LB">Lateral Izquierdo</option>
@@ -104,11 +118,15 @@ const filteredPlayers = computed(() => {
       v-else-if="filteredPlayers.length"
       class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4"
     >
-      <PlayerCard
-        v-for="player in filteredPlayers"
-        :key="player.id"
-        :player="player"
-      />
+      <div v-for="player in filteredPlayers" :key="player.id">
+        <p
+          v-if="statusFilter === OPTION_FILTER_ALL"
+          class="mb-1 text-xs font-medium text-gray-600"
+        >
+          {{ statusLabel(player.status) }}
+        </p>
+        <PlayerCard :player="player" />
+      </div>
     </div>
     <div v-else class="text-center py-16 text-gray-500">
       <p class="text-lg">No se encontraron jugadores.</p>
