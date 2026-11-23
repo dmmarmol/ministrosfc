@@ -16,12 +16,12 @@ const props = defineProps<{
 const router = useRouter();
 
 function getParticipants(game: AdminGame): string {
-  const names = game.participants
-    .map(({ player }) =>
-      `${player.firstName} ${player.lastName}`.trim(),
-    )
+  // The list endpoint returns `confirmedCount`; `participants` is only present on detail payloads.
+  const names = (game.participants ?? [])
+    .map(({ player }) => `${player.firstName} ${player.lastName}`.trim())
     .filter(Boolean);
-  return names.length ? names.join(", ") : "—";
+  if (names.length) return names.join(", ");
+  return game.confirmedCount != null ? String(game.confirmedCount) : "—";
 }
 
 function getStatusLabel(status: GameStatus | string): string {
