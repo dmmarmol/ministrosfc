@@ -104,3 +104,7 @@ Read `packages/cms/docs/API_ARCHITECTURE_OVERVIEW.md` before changing the API ar
 ## Specs
 
 Features are specified under `specs/NNN-name/` using spec-kit (`.github/agents/speckit.*`). Check the active branch's `tasks.md` for current work, and keep `CHANGELOG.md` (root and per-package) updated.
+
+## Manual QA
+
+Browser-driven scenarios (setup, ground rules, per-feature steps and known regressions) live in `docs/guides/MANUAL_QA_CHROME.md`. Use it when asked to test the app in Chrome, always at `https://localhost.ministrosfc.com:5103`. Add new scenarios there when a feature ships or a QA run finds a regression.

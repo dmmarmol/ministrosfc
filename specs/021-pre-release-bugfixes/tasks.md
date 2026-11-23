@@ -138,7 +138,7 @@
 
 **Purpose**: Validate the complete increment and migration using the feature's documented checks.
 
-- [ ] T032 Run the focused frontend/CMS/shared checks and complete the admin, roster, theme, dashboard, and disposable-database migration scenarios in `specs/021-pre-release-bugfixes/quickstart.md`
+- [x] T032 Run the focused frontend/CMS/shared checks and complete the admin, roster, theme, dashboard, and disposable-database migration scenarios in `specs/021-pre-release-bugfixes/quickstart.md`
 
 ## Dependencies & Execution Order
 
