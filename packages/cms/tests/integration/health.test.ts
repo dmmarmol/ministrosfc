@@ -87,7 +87,10 @@ describe("Health endpoints (integration)", () => {
       const res = await request(app).get("/api/v1/health/ready");
 
       expect(res.status).toBe(503);
-      expect(res.body).toMatchObject({ status: "degraded", database: "disconnected" });
+      expect(res.body).toMatchObject({
+        status: "degraded",
+        database: "disconnected",
+      });
     });
 
     it("serves a cached result for 30 seconds without querying again", async () => {

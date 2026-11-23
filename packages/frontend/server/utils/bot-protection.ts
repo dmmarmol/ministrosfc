@@ -26,7 +26,13 @@ export function isBlockedUserAgent(userAgent: string | undefined): boolean {
   return BLOCKED_USER_AGENTS.some((pattern) => pattern.test(userAgent));
 }
 
-const EXEMPT_PREFIXES = ["/_nuxt/", "/__nuxt", "/_ipx/", "/favicon", "/robots.txt"];
+const EXEMPT_PREFIXES = [
+  "/_nuxt/",
+  "/__nuxt",
+  "/_ipx/",
+  "/favicon",
+  "/robots.txt",
+];
 const ASSET_EXTENSION =
   /\.(?:js|mjs|css|map|png|jpe?g|gif|webp|avif|svg|ico|woff2?|ttf|otf|txt|xml|json)$/i;
 
@@ -53,7 +59,11 @@ export interface RateLimiterOptions {
 const MAX_TRACKED_CLIENTS = 5_000;
 
 /** Fixed-window per-key limiter. Memory is bounded: expired windows are pruned when it grows. */
-export function createRateLimiter({ limit, windowMs, now = Date.now }: RateLimiterOptions) {
+export function createRateLimiter({
+  limit,
+  windowMs,
+  now = Date.now,
+}: RateLimiterOptions) {
   const windows = new Map<string, { count: number; resetAt: number }>();
 
   function prune(current: number): void {
@@ -78,7 +88,10 @@ export function createRateLimiter({ limit, windowMs, now = Date.now }: RateLimit
       return {
         allowed,
         remaining: Math.max(0, limit - entry.count),
-        retryAfterSeconds: Math.max(1, Math.ceil((entry.resetAt - current) / 1000)),
+        retryAfterSeconds: Math.max(
+          1,
+          Math.ceil((entry.resetAt - current) / 1000),
+        ),
       };
     },
   };

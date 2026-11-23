@@ -62,7 +62,9 @@ router.get("/", (_req: Request, res: Response) => {
 router.get("/ready", async (_req: Request, res: Response) => {
   const now = Date.now();
   if (cachedReadiness && now - cachedReadiness.at < READINESS_CACHE_MS) {
-    res.status(cachedReadiness.result.statusCode).json(cachedReadiness.result.body);
+    res
+      .status(cachedReadiness.result.statusCode)
+      .json(cachedReadiness.result.body);
     return;
   }
 

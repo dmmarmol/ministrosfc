@@ -33,7 +33,11 @@ export const PRIVATE_ROUTES: string[] = [
 ];
 
 export const routeRules: Record<string, { swr: number | false }> = {
-  ...Object.fromEntries(PUBLIC_ROUTES.map((route) => [route, { swr: PUBLIC_CACHE_SECONDS }])),
+  ...Object.fromEntries(
+    PUBLIC_ROUTES.map((route) => [route, { swr: PUBLIC_CACHE_SECONDS }]),
+  ),
   // More specific private rules override the public wildcards above.
-  ...Object.fromEntries(PRIVATE_ROUTES.map((route) => [route, { swr: false as const }])),
+  ...Object.fromEntries(
+    PRIVATE_ROUTES.map((route) => [route, { swr: false as const }]),
+  ),
 };

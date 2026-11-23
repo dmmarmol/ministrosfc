@@ -8,7 +8,8 @@
  */
 const field = (release, ...names) => {
   for (const name of names) {
-    if (release[name] !== undefined && release[name] !== null) return release[name];
+    if (release[name] !== undefined && release[name] !== null)
+      return release[name];
   }
   return undefined;
 };
@@ -38,12 +39,16 @@ function pickRelease(releases, { mode, version } = {}) {
     if (version !== undefined && version !== "") {
       const wanted = completed.find((r) => r.version === Number(version));
       if (!wanted) {
-        throw new Error(`Release v${version} was not found among completed releases.`);
+        throw new Error(
+          `Release v${version} was not found among completed releases.`,
+        );
       }
       return { version: wanted.version, image: wanted.image };
     }
     if (completed.length < 2) {
-      throw new Error("No previous completed release is available to roll back to.");
+      throw new Error(
+        "No previous completed release is available to roll back to.",
+      );
     }
     return { version: completed[1].version, image: completed[1].image };
   }
@@ -58,7 +63,10 @@ function main(argv) {
   process.stdin.on("data", (chunk) => (input += chunk));
   process.stdin.on("end", () => {
     try {
-      const { version: v, image } = pickRelease(JSON.parse(input), { mode, version });
+      const { version: v, image } = pickRelease(JSON.parse(input), {
+        mode,
+        version,
+      });
       console.log(`${v} ${image}`);
     } catch (error) {
       console.error(`select-release: ${error.message}`);

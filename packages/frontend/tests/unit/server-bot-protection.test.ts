@@ -8,12 +8,14 @@ import {
 } from "../../server/utils/bot-protection";
 
 describe("isBlockedUserAgent", () => {
-  it.each(["Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)", "SemrushBot/7~bl", "MJ12bot/v1.4.8", "Bytespider; spider-feedback@bytedance.com"])(
-    "blocks abusive crawler %s",
-    (ua) => {
-      expect(isBlockedUserAgent(ua)).toBe(true);
-    },
-  );
+  it.each([
+    "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)",
+    "SemrushBot/7~bl",
+    "MJ12bot/v1.4.8",
+    "Bytespider; spider-feedback@bytedance.com",
+  ])("blocks abusive crawler %s", (ua) => {
+    expect(isBlockedUserAgent(ua)).toBe(true);
+  });
 
   it.each([
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36",
@@ -27,22 +29,32 @@ describe("isBlockedUserAgent", () => {
 });
 
 describe("isExemptPath", () => {
-  it.each(["/_nuxt/entry.abc.js", "/robots.txt", "/favicon.ico", "/images/logo.png", "/fonts/inter.woff2"])(
-    "exempts %s",
+  it.each([
+    "/_nuxt/entry.abc.js",
+    "/robots.txt",
+    "/favicon.ico",
+    "/images/logo.png",
+    "/fonts/inter.woff2",
+  ])("exempts %s", (path) => {
+    expect(isExemptPath(path)).toBe(true);
+  });
+
+  it.each(["/", "/roster", "/games/some-game", "/statistics/top-scorers"])(
+    "does not exempt %s",
     (path) => {
-      expect(isExemptPath(path)).toBe(true);
+      expect(isExemptPath(path)).toBe(false);
     },
   );
-
-  it.each(["/", "/roster", "/games/some-game", "/statistics/top-scorers"])("does not exempt %s", (path) => {
-    expect(isExemptPath(path)).toBe(false);
-  });
 });
 
 describe("createRateLimiter", () => {
   it("allows up to the limit inside a window and blocks the rest", () => {
     let now = 0;
-    const limiter = createRateLimiter({ limit: 3, windowMs: 60_000, now: () => now });
+    const limiter = createRateLimiter({
+      limit: 3,
+      windowMs: 60_000,
+      now: () => now,
+    });
 
     expect(limiter.hit("1.1.1.1").allowed).toBe(true);
     expect(limiter.hit("1.1.1.1").allowed).toBe(true);
@@ -54,7 +66,11 @@ describe("createRateLimiter", () => {
   });
 
   it("tracks each client separately", () => {
-    const limiter = createRateLimiter({ limit: 1, windowMs: 60_000, now: () => 0 });
+    const limiter = createRateLimiter({
+      limit: 1,
+      windowMs: 60_000,
+      now: () => 0,
+    });
 
     expect(limiter.hit("a").allowed).toBe(true);
     expect(limiter.hit("b").allowed).toBe(true);
@@ -63,7 +79,11 @@ describe("createRateLimiter", () => {
 
   it("starts a new window after the old one expires", () => {
     let now = 0;
-    const limiter = createRateLimiter({ limit: 1, windowMs: 60_000, now: () => now });
+    const limiter = createRateLimiter({
+      limit: 1,
+      windowMs: 60_000,
+      now: () => now,
+    });
 
     limiter.hit("a");
     expect(limiter.hit("a").allowed).toBe(false);
@@ -73,7 +93,10 @@ describe("createRateLimiter", () => {
 });
 
 describe("bot-protection middleware", () => {
-  const original = { env: process.env.APP_ENV, limit: process.env.RATE_LIMIT_PER_MINUTE };
+  const original = {
+    env: process.env.APP_ENV,
+    limit: process.env.RATE_LIMIT_PER_MINUTE,
+  };
 
   beforeEach(() => {
     vi.resetModules();
@@ -90,9 +113,14 @@ describe("bot-protection middleware", () => {
   });
 
   async function request(path: string, headers: Record<string, string> = {}) {
-    const { default: middleware } = await import("../../server/middleware/bot-protection");
-    const app = createApp().use(middleware).use(eventHandler(() => "ok"));
-    return toWebHandler(app)(new Request(`http://localhost${path}`, { headers }));
+    const { default: middleware } =
+      await import("../../server/middleware/bot-protection");
+    const app = createApp()
+      .use(middleware)
+      .use(eventHandler(() => "ok"));
+    return toWebHandler(app)(
+      new Request(`http://localhost${path}`, { headers }),
+    );
   }
 
   it("adds X-Robots-Tag noindex outside production", async () => {
@@ -120,10 +148,19 @@ describe("bot-protection middleware", () => {
   it("answers 429 with Retry-After above the per-IP limit", async () => {
     process.env.APP_ENV = "production";
     process.env.RATE_LIMIT_PER_MINUTE = "2";
-    const { default: middleware } = await import("../../server/middleware/bot-protection");
-    const handle = toWebHandler(createApp().use(middleware).use(eventHandler(() => "ok")));
+    const { default: middleware } =
+      await import("../../server/middleware/bot-protection");
+    const handle = toWebHandler(
+      createApp()
+        .use(middleware)
+        .use(eventHandler(() => "ok")),
+    );
     const hit = () =>
-      handle(new Request("http://localhost/roster", { headers: { "fly-client-ip": "9.9.9.9" } }));
+      handle(
+        new Request("http://localhost/roster", {
+          headers: { "fly-client-ip": "9.9.9.9" },
+        }),
+      );
 
     expect((await hit()).status).toBe(200);
     expect((await hit()).status).toBe(200);
@@ -136,10 +173,19 @@ describe("bot-protection middleware", () => {
   it("never rate-limits assets or the health probe path", async () => {
     process.env.APP_ENV = "production";
     process.env.RATE_LIMIT_PER_MINUTE = "1";
-    const { default: middleware } = await import("../../server/middleware/bot-protection");
-    const handle = toWebHandler(createApp().use(middleware).use(eventHandler(() => "ok")));
+    const { default: middleware } =
+      await import("../../server/middleware/bot-protection");
+    const handle = toWebHandler(
+      createApp()
+        .use(middleware)
+        .use(eventHandler(() => "ok")),
+    );
     const hit = (path: string) =>
-      handle(new Request(`http://localhost${path}`, { headers: { "fly-client-ip": "8.8.8.8" } }));
+      handle(
+        new Request(`http://localhost${path}`, {
+          headers: { "fly-client-ip": "8.8.8.8" },
+        }),
+      );
 
     for (let i = 0; i < 5; i++) {
       expect((await hit("/robots.txt")).status).toBe(200);

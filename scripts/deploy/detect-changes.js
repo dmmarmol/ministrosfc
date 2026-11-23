@@ -67,7 +67,10 @@ function changedFiles(before, after) {
   const out = execFileSync("git", ["diff", "--name-only", before, after], {
     encoding: "utf8",
   });
-  return out.split("\n").map((line) => line.trim()).filter(Boolean);
+  return out
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
 }
 
 function main(argv) {
@@ -103,4 +106,9 @@ if (require.main === module) {
   main(process.argv.slice(2));
 }
 
-module.exports = { classifyChanges, shouldDeploy, isDocumentationOnly, ZERO_SHA };
+module.exports = {
+  classifyChanges,
+  shouldDeploy,
+  isDocumentationOnly,
+  ZERO_SHA,
+};

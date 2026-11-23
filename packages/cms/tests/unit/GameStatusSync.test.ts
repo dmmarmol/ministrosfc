@@ -51,7 +51,9 @@ describe("syncGameStatusesIfStale", () => {
 
   it("shares a single in-flight run between concurrent callers", async () => {
     let release!: () => void;
-    mockRun.mockReturnValue(new Promise<void>((resolve) => (release = resolve)));
+    mockRun.mockReturnValue(
+      new Promise<void>((resolve) => (release = resolve)),
+    );
 
     const first = syncGameStatusesIfStale(1_000);
     const second = syncGameStatusesIfStale(1_001);
@@ -85,7 +87,11 @@ describe("gameStatusSyncMiddleware", () => {
   it("syncs before handling a GET and then continues", async () => {
     const next = jest.fn();
 
-    await gameStatusSyncMiddleware({ method: "GET" } as never, {} as never, next);
+    await gameStatusSyncMiddleware(
+      { method: "GET" } as never,
+      {} as never,
+      next,
+    );
 
     expect(mockRun).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledTimes(1);
@@ -94,7 +100,11 @@ describe("gameStatusSyncMiddleware", () => {
   it("skips non-read requests without touching the database", async () => {
     const next = jest.fn();
 
-    await gameStatusSyncMiddleware({ method: "POST" } as never, {} as never, next);
+    await gameStatusSyncMiddleware(
+      { method: "POST" } as never,
+      {} as never,
+      next,
+    );
 
     expect(mockRun).not.toHaveBeenCalled();
     expect(next).toHaveBeenCalledTimes(1);
@@ -104,7 +114,11 @@ describe("gameStatusSyncMiddleware", () => {
     mockRun.mockRejectedValue(new Error("boom"));
     const next = jest.fn();
 
-    await gameStatusSyncMiddleware({ method: "GET" } as never, {} as never, next);
+    await gameStatusSyncMiddleware(
+      { method: "GET" } as never,
+      {} as never,
+      next,
+    );
 
     expect(next).toHaveBeenCalledTimes(1);
   });

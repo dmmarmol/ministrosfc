@@ -9,7 +9,11 @@ import {
   uploadPhoto,
 } from "../../src/utils/object-storage";
 
-const VARS = ["CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET"] as const;
+const VARS = [
+  "CLOUDINARY_CLOUD_NAME",
+  "CLOUDINARY_API_KEY",
+  "CLOUDINARY_API_SECRET",
+] as const;
 
 const jpeg = {
   buffer: Buffer.from("fake"),
@@ -41,7 +45,9 @@ describe("photo storage configuration", () => {
     });
 
     it("is false when only some credentials are set or they are blank", () => {
-      expect(isPhotoStorageConfigured({ CLOUDINARY_CLOUD_NAME: "c" })).toBe(false);
+      expect(isPhotoStorageConfigured({ CLOUDINARY_CLOUD_NAME: "c" })).toBe(
+        false,
+      );
       expect(
         isPhotoStorageConfigured({
           CLOUDINARY_CLOUD_NAME: "c",
@@ -79,7 +85,9 @@ describe("photo storage configuration", () => {
 
     it("treats deleting a photo as a no-op instead of failing", async () => {
       await expect(
-        deletePlayerPhoto("https://res.cloudinary.com/x/image/upload/v1/players/p/photo.jpg"),
+        deletePlayerPhoto(
+          "https://res.cloudinary.com/x/image/upload/v1/players/p/photo.jpg",
+        ),
       ).resolves.toBeUndefined();
     });
   });

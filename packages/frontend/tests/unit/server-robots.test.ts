@@ -10,7 +10,14 @@ describe("buildRobotsTxt", () => {
     const lines = txt.split("\n");
 
     expect(lines).toContain("User-agent: *");
-    for (const path of ["/admin", "/profile", "/login", "/register", "/auth", "/games/*/signup"]) {
+    for (const path of [
+      "/admin",
+      "/profile",
+      "/login",
+      "/register",
+      "/auth",
+      "/games/*/signup",
+    ]) {
       expect(lines).toContain(`Disallow: ${path}`);
     }
     expect(lines).not.toContain("Disallow: /");
@@ -35,8 +42,14 @@ describe("/robots.txt route", () => {
 
   async function fetchRobots() {
     const app = createApp().use(robotsHandler);
-    const res = await toWebHandler(app)(new Request("http://localhost/robots.txt"));
-    return { status: res.status, type: res.headers.get("content-type"), body: await res.text() };
+    const res = await toWebHandler(app)(
+      new Request("http://localhost/robots.txt"),
+    );
+    return {
+      status: res.status,
+      type: res.headers.get("content-type"),
+      body: await res.text(),
+    };
   }
 
   it("serves the production rules when APP_ENV=production", async () => {

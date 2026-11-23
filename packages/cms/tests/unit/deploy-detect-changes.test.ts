@@ -2,11 +2,18 @@
  * Unit tests for scripts/deploy/detect-changes.js — decides which apps the
  * deploy workflow must ship for a push (spec 022, US1).
  */
-const { classifyChanges, shouldDeploy, ZERO_SHA } = require("../../../../scripts/deploy/detect-changes");
+const {
+  classifyChanges,
+  shouldDeploy,
+  ZERO_SHA,
+} = require("../../../../scripts/deploy/detect-changes");
 
 describe("classifyChanges", () => {
   it("deploys only the CMS for CMS source changes", () => {
-    expect(classifyChanges(["packages/cms/src/main.ts"])).toEqual({ cms: true, frontend: false });
+    expect(classifyChanges(["packages/cms/src/main.ts"])).toEqual({
+      cms: true,
+      frontend: false,
+    });
   });
 
   it("deploys only the frontend for frontend changes", () => {
@@ -23,18 +30,33 @@ describe("classifyChanges", () => {
     });
   });
 
-  it.each(["package.json", "package-lock.json"])("deploys both apps when %s changes", (file) => {
-    expect(classifyChanges([file])).toEqual({ cms: true, frontend: true });
-  });
+  it.each(["package.json", "package-lock.json"])(
+    "deploys both apps when %s changes",
+    (file) => {
+      expect(classifyChanges([file])).toEqual({ cms: true, frontend: true });
+    },
+  );
 
   it("treats an app's Fly files and Dockerfile as that app's files", () => {
-    expect(classifyChanges(["packages/cms/fly.production.toml"])).toEqual({ cms: true, frontend: false });
-    expect(classifyChanges(["packages/frontend/Dockerfile"])).toEqual({ cms: false, frontend: true });
+    expect(classifyChanges(["packages/cms/fly.production.toml"])).toEqual({
+      cms: true,
+      frontend: false,
+    });
+    expect(classifyChanges(["packages/frontend/Dockerfile"])).toEqual({
+      cms: false,
+      frontend: true,
+    });
   });
 
   it("deploys both apps when the pipeline itself changes", () => {
-    expect(classifyChanges([".github/workflows/deploy.yml"])).toEqual({ cms: true, frontend: true });
-    expect(classifyChanges(["scripts/deploy/smoke-test.sh"])).toEqual({ cms: true, frontend: true });
+    expect(classifyChanges([".github/workflows/deploy.yml"])).toEqual({
+      cms: true,
+      frontend: true,
+    });
+    expect(classifyChanges(["scripts/deploy/smoke-test.sh"])).toEqual({
+      cms: true,
+      frontend: true,
+    });
   });
 
   it("deploys nothing for documentation-only changes", () => {
@@ -51,13 +73,20 @@ describe("classifyChanges", () => {
   });
 
   it("deploys nothing for unrelated workflows and an empty change list", () => {
-    expect(classifyChanges([".github/workflows/ci-cms.yml"])).toEqual({ cms: false, frontend: false });
+    expect(classifyChanges([".github/workflows/ci-cms.yml"])).toEqual({
+      cms: false,
+      frontend: false,
+    });
     expect(classifyChanges([])).toEqual({ cms: false, frontend: false });
   });
 
   it("combines results across many files", () => {
     expect(
-      classifyChanges(["packages/cms/src/a.ts", "packages/frontend/src/b.vue", "docs/x.md"]),
+      classifyChanges([
+        "packages/cms/src/a.ts",
+        "packages/frontend/src/b.vue",
+        "docs/x.md",
+      ]),
     ).toEqual({ cms: true, frontend: true });
   });
 });
@@ -70,7 +99,9 @@ describe("shouldDeploy", () => {
   });
 
   it("is false for documentation-only or unrelated changes", () => {
-    expect(shouldDeploy(["README.md", "docs/guides/DEPLOYMENT.md"])).toBe(false);
+    expect(shouldDeploy(["README.md", "docs/guides/DEPLOYMENT.md"])).toBe(
+      false,
+    );
     expect(shouldDeploy([".github/workflows/ci-cms.yml"])).toBe(false);
     expect(shouldDeploy([])).toBe(false);
   });

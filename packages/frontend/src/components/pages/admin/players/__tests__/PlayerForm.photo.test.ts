@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent } from "vue";
 import { mount } from "@vue/test-utils";
 
-const mocks = vi.hoisted(() => ({ enabled: null as null | { value: boolean } }));
+const mocks = vi.hoisted(() => ({
+  enabled: null as null | { value: boolean },
+}));
 
 vi.mock("~/composables/useCmsCapabilities", async () => {
   const { ref } = await import("vue");

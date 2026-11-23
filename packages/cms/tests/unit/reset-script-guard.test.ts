@@ -8,12 +8,18 @@ import { chmodSync, mkdtempSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 
-const script = join(__dirname, "../../../../scripts/seed-admin/reset-cms-db.sh");
+const script = join(
+  __dirname,
+  "../../../../scripts/seed-admin/reset-cms-db.sh",
+);
 
 function run(env: Record<string, string>) {
   const fakeBin = mkdtempSync(join(tmpdir(), "fake-flyctl-"));
   const fake = join(fakeBin, "flyctl");
-  writeFileSync(fake, "#!/usr/bin/env bash\necho 'fake flyctl called' >&2\nexit 1\n");
+  writeFileSync(
+    fake,
+    "#!/usr/bin/env bash\necho 'fake flyctl called' >&2\nexit 1\n",
+  );
   chmodSync(fake, 0o755);
 
   const result = spawnSync("bash", [script], {
@@ -27,7 +33,10 @@ describe("reset-cms-db.sh guard", () => {
   it.each(["ministrosfc-cms", "ministrosfc-cms-prod", "my-app"])(
     "refuses %s before talking to Fly",
     (app) => {
-      const { status, output } = run({ RESET_CONFIRMATION: "RESET_DB", CMS_APP_NAME: app });
+      const { status, output } = run({
+        RESET_CONFIRMATION: "RESET_DB",
+        CMS_APP_NAME: app,
+      });
 
       expect(status).not.toBe(0);
       expect(output).toMatch(/-dev/);
@@ -51,8 +60,13 @@ describe("reset-cms-db.sh guard", () => {
   });
 
   it("lets a development app through the guard", () => {
-    const { output } = run({ RESET_CONFIRMATION: "RESET_DB", CMS_APP_NAME: "ministrosfc-cms-dev" });
+    const { output } = run({
+      RESET_CONFIRMATION: "RESET_DB",
+      CMS_APP_NAME: "ministrosfc-cms-dev",
+    });
 
-    expect(output).toMatch(/Resetting CMS database on Fly app: ministrosfc-cms-dev/);
+    expect(output).toMatch(
+      /Resetting CMS database on Fly app: ministrosfc-cms-dev/,
+    );
   });
 });

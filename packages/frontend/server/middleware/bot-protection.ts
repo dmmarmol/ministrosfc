@@ -1,11 +1,27 @@
-import { createError, defineEventHandler, getRequestHeader, getRequestURL, setHeader } from "h3";
-import { createRateLimiter, isBlockedUserAgent, isExemptPath } from "../utils/bot-protection";
+import {
+  createError,
+  defineEventHandler,
+  getRequestHeader,
+  getRequestURL,
+  setHeader,
+} from "h3";
+import {
+  createRateLimiter,
+  isBlockedUserAgent,
+  isExemptPath,
+} from "../utils/bot-protection";
 
 const DEFAULT_LIMIT_PER_MINUTE = 120;
-const limitFromEnv = Number.parseInt(process.env.RATE_LIMIT_PER_MINUTE ?? "", 10);
+const limitFromEnv = Number.parseInt(
+  process.env.RATE_LIMIT_PER_MINUTE ?? "",
+  10,
+);
 
 const limiter = createRateLimiter({
-  limit: Number.isFinite(limitFromEnv) && limitFromEnv > 0 ? limitFromEnv : DEFAULT_LIMIT_PER_MINUTE,
+  limit:
+    Number.isFinite(limitFromEnv) && limitFromEnv > 0
+      ? limitFromEnv
+      : DEFAULT_LIMIT_PER_MINUTE,
   windowMs: 60_000,
 });
 

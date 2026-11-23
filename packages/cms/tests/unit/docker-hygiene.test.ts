@@ -9,7 +9,11 @@ const root = join(__dirname, "../../../..");
 const read = (relative: string) => readFileSync(join(root, relative), "utf8");
 
 const dockerfiles = ["packages/cms/Dockerfile", "packages/frontend/Dockerfile"];
-const dockerignores = [".dockerignore", "packages/cms/.dockerignore", "packages/frontend/.dockerignore"];
+const dockerignores = [
+  ".dockerignore",
+  "packages/cms/.dockerignore",
+  "packages/frontend/.dockerignore",
+];
 
 describe("Dockerfiles", () => {
   it.each(dockerfiles)("%s exists", (file) => {
@@ -26,15 +30,20 @@ describe("Dockerfiles", () => {
     }
   });
 
-  it.each(dockerfiles)("%s does not bake secrets in with ENV or ARG", (file) => {
-    const declarations = read(file)
-      .split("\n")
-      .filter((line) => /^\s*(ENV|ARG)\b/i.test(line));
+  it.each(dockerfiles)(
+    "%s does not bake secrets in with ENV or ARG",
+    (file) => {
+      const declarations = read(file)
+        .split("\n")
+        .filter((line) => /^\s*(ENV|ARG)\b/i.test(line));
 
-    for (const line of declarations) {
-      expect(line).not.toMatch(/(SECRET|PASSWORD|TOKEN|PRIVATE_KEY|API_KEY|DATABASE_URL|JWT)/i);
-    }
-  });
+      for (const line of declarations) {
+        expect(line).not.toMatch(
+          /(SECRET|PASSWORD|TOKEN|PRIVATE_KEY|API_KEY|DATABASE_URL|JWT)/i,
+        );
+      }
+    },
+  );
 });
 
 describe(".dockerignore files", () => {

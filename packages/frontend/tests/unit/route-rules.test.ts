@@ -15,20 +15,37 @@ describe("route rules (public page caching)", () => {
   });
 
   it("covers the public sections of the site", () => {
-    for (const route of ["/", "/roster", "/schedule", "/tournaments/**", "/statistics/**", "/players/**", "/games/**"]) {
+    for (const route of [
+      "/",
+      "/roster",
+      "/schedule",
+      "/tournaments/**",
+      "/statistics/**",
+      "/players/**",
+      "/games/**",
+    ]) {
       expect(PUBLIC_ROUTES).toContain(route);
     }
   });
 
   it("never caches private or per-user routes", () => {
-    for (const route of ["/admin/**", "/profile/**", "/login", "/register", "/auth/**", "/games/*/signup"]) {
+    for (const route of [
+      "/admin/**",
+      "/profile/**",
+      "/login",
+      "/register",
+      "/auth/**",
+      "/games/*/signup",
+    ]) {
       expect(PRIVATE_ROUTES).toContain(route);
       expect(routeRules[route]).toEqual({ swr: false });
     }
   });
 
   it("has no route that is both public and private", () => {
-    const overlap = PUBLIC_ROUTES.filter((route) => PRIVATE_ROUTES.includes(route));
+    const overlap = PUBLIC_ROUTES.filter((route) =>
+      PRIVATE_ROUTES.includes(route),
+    );
     expect(overlap).toEqual([]);
   });
 });

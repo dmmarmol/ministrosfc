@@ -25,7 +25,9 @@ describe("useCmsCapabilities", () => {
 
     await load();
 
-    expect(mockFetch).toHaveBeenCalledWith("http://localhost:5102/api/v1/config");
+    expect(mockFetch).toHaveBeenCalledWith(
+      "http://localhost:5102/api/v1/config",
+    );
     expect(photoUploadsEnabled.value).toBe(true);
     expect(loaded.value).toBe(true);
   });

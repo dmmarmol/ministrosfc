@@ -23,8 +23,7 @@ describe("app.vue", () => {
     });
 
     const locale = wrapper.findComponent(UAppStub).props("locale") as
-      | { code: string; messages: { table: { noData: string } } }
-      | undefined;
+      { code: string; messages: { table: { noData: string } } } | undefined;
 
     expect(locale?.code).toBe("es");
     expect(locale?.messages.table.noData).toBe("Sin datos");
