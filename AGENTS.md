@@ -108,6 +108,10 @@ Read `packages/cms/docs/API_ARCHITECTURE_OVERVIEW.md` before changing the API ar
 
 Features are specified under `specs/NNN-name/` using spec-kit (slash commands `/speckit.specify`, `/speckit.plan`, `/speckit.tasks`, ... in `.claude/commands/`). Check the active branch's `tasks.md` for current work, and keep `CHANGELOG.md` (root and per-package) updated.
 
+## Deployment
+
+Production deploys automatically on merge to `main` (DEV on `develop`) through `.github/workflows/deploy.yml`. Architecture, environments, secret names, rollback and the owner-run bootstrap steps are in `docs/guides/DEPLOYMENT.md`; never put secret values in the repository. Fly config is per environment (`fly.development.toml`, `fly.production.toml`).
+
 ## Manual QA
 
 For browser-driven QA, use Claude in Chrome against `https://localhost.ministrosfc.com:5103` (the frontend is served over HTTPS, the CMS runs on `http://localhost:5102`). The user signs in themselves; never type passwords. Prefer read-only checks on the dev database, clean up any `QA Temp ...` records you create, and check responsive layouts with same-origin iframes rather than `resize_window`. Private QA runbooks and design sketches live in the gitignored `private/` directory when present locally; they are intentionally not part of the repository.

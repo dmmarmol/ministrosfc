@@ -115,10 +115,10 @@ description: "Task list for spec 022: first production release and automated pro
 
 **Independent Test**: A reviewer follows `docs/guides/DEPLOYMENT.md` on paper and finds no undocumented dependency; image hygiene test passes.
 
-- [ ] T039 [P] [US4] Write a failing test in `packages/cms/tests/unit/docker-hygiene.test.ts`: no `Dockerfile` under `packages/` copies `.env*` files, and the root and package `.dockerignore` files exclude `.env*`.
-- [ ] T040 [US4] Remove the `COPY packages/cms/.env* ./packages/cms/` and `COPY .env* ./` lines from `packages/cms/Dockerfile` (and any equivalent in `packages/frontend/Dockerfile`) until T039 passes.
-- [ ] T041 [US4] Write `docs/guides/DEPLOYMENT.md` (the runbook): architecture and environment matrix (from `data-model.md`), secrets and settings matrix by name, purpose, owner, location and rotation (from `contracts/environment-variables.md`, no values), owner-run bootstrap steps (Neon pooled and direct strings per branch, Upstash, per-app Fly deploy tokens, GitHub environments with branch restriction and optional reviewers, DEV Redis secret check, Neon usage alert), pipeline behavior and how to read results, rollback procedure with the expand/contract rule and the fact that migrations are not reverted, emergency manual deploy, account inventory with what each external account is for, free-tier cautions, the post-launch CSV import procedure and its caveats.
-- [ ] T042 [P] [US4] Update `README.md`, `AGENTS.md` and `docs/guides/TECH_STACK.md` to link the runbook, and mark `specs/001-ministrosfc-monorepo/deployment.md` as superseded by it.
+- [X] T039 [P] [US4] Write a failing test in `packages/cms/tests/unit/docker-hygiene.test.ts`: no `Dockerfile` under `packages/` copies `.env*` files, and the root and package `.dockerignore` files exclude `.env*`.
+- [X] T040 [US4] Remove the `COPY packages/cms/.env* ./packages/cms/` and `COPY .env* ./` lines from `packages/cms/Dockerfile` (and any equivalent in `packages/frontend/Dockerfile`) until T039 passes.
+- [X] T041 [US4] Write `docs/guides/DEPLOYMENT.md` (the runbook): architecture and environment matrix (from `data-model.md`), secrets and settings matrix by name, purpose, owner, location and rotation (from `contracts/environment-variables.md`, no values), owner-run bootstrap steps (Neon pooled and direct strings per branch, Upstash, per-app Fly deploy tokens, GitHub environments with branch restriction and optional reviewers, DEV Redis secret check, Neon usage alert), pipeline behavior and how to read results, rollback procedure with the expand/contract rule and the fact that migrations are not reverted, emergency manual deploy, account inventory with what each external account is for, free-tier cautions, the post-launch CSV import procedure and its caveats.
+- [X] T042 [P] [US4] Update `README.md`, `AGENTS.md` and `docs/guides/TECH_STACK.md` to link the runbook, and mark `specs/001-ministrosfc-monorepo/deployment.md` as superseded by it.
 
 **Checkpoint**: documentation and image hygiene complete.
 
@@ -142,7 +142,7 @@ description: "Task list for spec 022: first production release and automated pro
 
 **Independent Test**: The runbook states, per service, whether DEV and PRO use it and why.
 
-- [ ] T048 [US6] Record in `docs/guides/DEPLOYMENT.md` the decisions: DEV runs without Redis (`REDIS_DISABLED=true`), production uses Upstash `ministrosfc-prod`; photo upload and the Cloudinary account are deferred past launch with the exact steps to enable them later (set the three secrets; no code change).
+- [X] T048 [US6] Record in `docs/guides/DEPLOYMENT.md` the decisions: DEV runs without Redis (`REDIS_DISABLED=true`), production uses Upstash `ministrosfc-prod`; photo upload and the Cloudinary account are deferred past launch with the exact steps to enable them later (set the three secrets; no code change).
 - [ ] T049 [OWNER] [US6] Inspect the DEV CMS Fly secrets; if `REDIS_URL` points at the production Upstash database, unset it so DEV never shares production cache data.
 
 ## Phase 9: Polish and cross-cutting

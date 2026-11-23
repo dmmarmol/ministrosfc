@@ -90,11 +90,11 @@ The suspension and 7-day reset cannot be influenced from the repository; the own
 
 ### 12. Supply-chain and secret hygiene (constitution)
 
-- **Decision**: No secret values in the repository, workflows or images; deploy tokens are scoped per app (`fly tokens create deploy`) and stored as environment secrets (`development`, `production`); documentation lists names, purpose, owner, location and rotation only. A repository check (existing pre-commit secret scan plus a Jest test for Dockerfile hygiene) enforces this.
+- **Decision**: No secret values in the repository, workflows or images; each GitHub environment (`development`, `production`) holds its own Fly token with the narrowest scope the Fly plan allows (it must be able to deploy both apps of that environment); documentation lists names, purpose, owner, location and rotation only. A repository check (existing pre-commit secret scan plus a Jest test for Dockerfile hygiene) enforces this.
 
 ## Open items for the owner (not blocking planning)
 
 - Confirm the DEV CMS Redis secrets and unset any that point at the production Upstash database.
 - Create the Neon pooled and direct connection strings for each branch and set `DATABASE_URL` / `DIRECT_URL` as Fly secrets.
-- Create per-app Fly deploy tokens, set GitHub environment secrets, restrict `production` to `main`, and add required reviewers if wanted.
+- Create the Fly token for each environment (able to deploy both of its apps), set GitHub environment secrets, restrict `production` to `main`, and add required reviewers if wanted.
 - Configure a Neon usage alert.

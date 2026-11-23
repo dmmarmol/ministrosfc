@@ -45,7 +45,7 @@ Behavior: resolves the image of the chosen release with `flyctl releases --json`
 
 | Secret | Environments | Purpose |
 |---|---|---|
-| `FLY_API_TOKEN` | development, production | Deploy token scoped to that environment's apps |
+| `FLY_API_TOKEN` | development, production | Fly token able to deploy both apps of that environment (narrowest scope the plan allows) |
 | `CMS_APP_NAME` | development, production | Used only by seed/reset scripts |
 | `CMS_ADMIN_EMAIL`, `CMS_ADMIN_PASSWORD` | development, production | Used only by the seed workflow, injected at run time |
 
