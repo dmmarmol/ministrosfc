@@ -93,14 +93,15 @@ Rules for the sections:
 ## 5. Create it
 
 1. Show the user the proposed title and body, the base/head branches, and the result of the changelog and version checks. Skip the confirmation only if the user already told you to just create it.
-2. Push the branch if it has no upstream: `git push -u origin <branch>`. Creating a PR requires the branch on the remote, so a request to open a PR covers this push.
-3. Write the body to a temp file (use the session scratchpad, not the repo) and create the PR:
+2. **Verify identity before pushing or creating anything.** `gh auth status` must show the repository owner's personal account (`dmmarmol`) as the active account, and `git config user.email` must be the personal address configured in this repo's local git config. Never use an enterprise-managed account or a work email, never switch to one, and never mention one in a commit message, PR title or body, or any file. If the check fails, stop and tell the user instead of continuing.
+3. Push the branch if it has no upstream: `git push -u origin <branch>`. Creating a PR requires the branch on the remote, so a request to open a PR covers this push.
+4. Write the body to a temp file (use the session scratchpad, not the repo) and create the PR:
 
    ```bash
    gh pr create --base <base> --head <branch> --title "<title>" --body-file <file>
    ```
 
-4. Report the PR URL, the base it targets, and the number of commits.
+5. Report the PR URL, the base it targets, and the number of commits.
 
 ### If `gh` fails
 
