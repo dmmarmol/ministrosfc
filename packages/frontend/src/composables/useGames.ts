@@ -2,17 +2,20 @@ import { ref } from "vue";
 import { useRuntimeConfig } from "nuxt/app";
 import { useAuthStore } from "~/stores/auth";
 import type {
+  AdminGame,
   Game,
   GameCreatePayload,
+  GameListQuery,
   GameParticipant,
   GameUpdatePayload,
 } from "@ministrosfc/shared";
+import type { PaginatedResponse } from "@ministrosfc/shared";
 
 export function useGames() {
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
 
-  const games = ref<Game[]>([]);
+  const games = ref<AdminGame[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -37,17 +40,22 @@ export function useGames() {
     throw new Error(error.value ?? "Error al cargar el partido.");
   }
 
-  async function fetchGames(): Promise<Game[]> {
+  async function fetchGames(
+    query: GameListQuery = {},
+  ): Promise<PaginatedResponse<AdminGame>> {
     loading.value = true;
     error.value = null;
     try {
-      const res = await $fetch<{ data: Game[] }>(baseUrl);
+      const res = await $fetch<PaginatedResponse<AdminGame>>(baseUrl, {
+        query,
+        headers: authHeaders(),
+      });
       games.value = res.data;
-      return res.data;
+      return res;
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : "Error al cargar partidos";
-      return [];
+      return { data: [], meta: { total: 0, page: 1, limit: 0, totalPages: 0 } };
     } finally {
       loading.value = false;
     }

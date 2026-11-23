@@ -17,7 +17,7 @@ definePageMeta({
   requiresRole: "editor",
   pageTitle: "Equipos",
 });
-useHead({ title: "Teams – Admin" });
+useHead({ title: "Equipos – Administración" });
 
 type OpponentTeamRow = Pick<OpponentTeam, "id" | "name" | "colors">;
 
@@ -110,7 +110,10 @@ const columns: ColumnDef<OpponentTeamRow>[] = [
           },
           {
             label: "Editar equipo",
-            onClick: (_event: Event) => navigateTo(`/admin/teams/${teamId}`),
+            onClick: (_event: Event) =>
+              navigateTo(
+                `/admin/teams/${teamId}?returnUrl=${encodeURIComponent("/admin/teams")}`,
+              ),
           },
           {
             label: "Borrar equipo",
@@ -173,7 +176,7 @@ const tableRows = computed((): OpponentTeamRow[] => {
         size="md"
         class="font-semibold"
         icon="mdi:shield-plus-outline"
-        to="/admin/teams/create"
+        :to="`/admin/teams/create?returnUrl=${encodeURIComponent('/admin/teams')}`"
       >
         Nuevo Equipo
       </UButton>

@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { computed } from "vue";
+import { useQueryParams } from "~/composables/useQueryParams";
+import { resolveReturnUrl } from "~/utils/returnUrl";
+
 const props = withDefaults(
   defineProps<{
     to?: string;
@@ -6,14 +10,19 @@ const props = withDefaults(
   }>(),
   {
     to: "/",
-    label: "Volver",
+    label: "Volvé",
   },
+);
+
+const queryParams = useQueryParams();
+const destination = computed(() =>
+  resolveReturnUrl(queryParams.get("returnUrl"), props.to),
 );
 </script>
 
 <template>
   <NuxtLink
-    :to="props.to"
+    :to="destination"
     class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
     :aria-label="props.label"
   >

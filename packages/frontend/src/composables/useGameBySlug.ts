@@ -20,7 +20,10 @@ export function useGameBySlug(slug: string): GameBySlug {
         `/api/v1/games/slug/${slug}`,
       );
       if (!slugRes.data?.id) {
-        throw createError({ statusCode: 404, statusMessage: "Game not found" });
+        throw createError({
+          statusCode: 404,
+          statusMessage: "No se encontró el partido.",
+        });
       }
       const id = slugRes.data.id;
       const [gameRes, partRes] = await Promise.all([

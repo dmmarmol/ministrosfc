@@ -1,10 +1,20 @@
 <script setup lang="ts">
+import { UserRole } from "@ministrosfc/shared";
 import { useAuthStore } from "~/stores/auth";
 
 const authStore = useAuthStore();
+const roleLabelMap: Record<UserRole, string> = {
+  [UserRole.ADMIN]: "Administrador",
+  [UserRole.DT]: "Director Técnico",
+  [UserRole.EDITOR]: "Editor",
+  [UserRole.PLAYER]: "Jugador",
+};
 const route = useRoute();
 const router = useRouter();
 const openSlideover = ref(true);
+const roleLabel = computed(
+  () => roleLabelMap[authStore.user?.role as UserRole] ?? "Sin rol",
+);
 
 const noPadding = computed(
   () => !!(route.meta as Record<string, unknown>).noPadding,
@@ -36,7 +46,7 @@ const handleLogout = () => {
           <NuxtLink to="/admin/dashboard" class="flex items-center space-x-2">
             <span class="text-brand font-bold text-lg">Ministros FC</span>
           </NuxtLink>
-          <p class="text-xs text-gray-400 mt-1">Admin Panel</p>
+          <p class="text-xs text-gray-400 mt-1">Panel de administración</p>
         </div>
         <nav class="flex-1 flex flex-col p-4 space-y-2">
           <UButton to="/admin/dashboard" variant="solid" color="secondary"
@@ -88,7 +98,7 @@ const handleLogout = () => {
               size="xs"
               class="w-full"
             >
-              Volver al sitio publico
+              Volvé al sitio público
             </UButton>
             <hr class="text-gray-600" />
             <UButton
@@ -121,7 +131,7 @@ const handleLogout = () => {
             >
           </p>
           <p class="text-[12px] text-gray-500 capitalize">
-            <strong>Rol:</strong> {{ authStore.user?.role?.toLowerCase() }}
+            <strong>Rol:</strong> {{ roleLabel }}
           </p>
         </div>
       </header>

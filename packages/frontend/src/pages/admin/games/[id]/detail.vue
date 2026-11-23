@@ -2,6 +2,8 @@
 import { ref, computed } from "vue";
 import { useNuxtApp, useRoute, useAsyncData, useHead } from "nuxt/app";
 import { GameStatus, formatDate } from "@ministrosfc/shared";
+import { useQueryParams } from "~/composables/useQueryParams";
+import { resolveReturnUrl } from "~/utils/returnUrl";
 
 definePageMeta({
   layout: "admin",
@@ -13,6 +15,7 @@ definePageMeta({
 
 const { $api } = useNuxtApp();
 const route = useRoute();
+const queryParams = useQueryParams();
 const id = route.params.id as string;
 
 const { data, pending } = await useAsyncData(`admin-game-detail-${id}`, () =>
@@ -22,8 +25,8 @@ const game = computed(() => data.value?.data ?? null);
 
 useHead(() => ({
   title: game.value
-    ? `vs ${game.value.opponentTeam?.name} – Admin`
-    : "Game Detail",
+    ? `vs. ${game.value.opponentTeam?.name} – Administración`
+    : "Detalle del partido",
 }));
 
 const toastMessage = ref("");
@@ -49,7 +52,7 @@ async function copySignupLink() {
     }
   }
   await navigator.clipboard.writeText(url);
-  showToast("¡Link de convocatoria copiado!");
+  showToast("¡Se copió el enlace de convocatoria!");
 }
 </script>
 
@@ -67,9 +70,7 @@ async function copySignupLink() {
 
     <!-- Back link + actions -->
     <div class="flex items-center justify-between mb-6">
-      <NuxtLink to="/admin/games" class="text-sm text-gray-500 hover:text-brand"
-        >← Volver a Partidos</NuxtLink
-      >
+      <UiBackButton to="/admin/games" label="Volvé a partidos" />
       <div v-if="game" class="flex items-center gap-3">
         <!-- T011: share-signup link — SCHEDULED only + slug present -->
         <UButton
@@ -79,10 +80,10 @@ async function copySignupLink() {
           class="text-sm font-medium"
           @click="copySignupLink"
         >
-          📋 Copiar link de convocatoria
+          📋 Copiar enlace de convocatoria
         </UButton>
         <NuxtLink
-          :to="`/admin/games/${id}/edit`"
+          :to="`/admin/games/${id}/edit?returnUrl=${encodeURIComponent(resolveReturnUrl(queryParams.get('returnUrl'), '/admin/games'))}`"
           class="text-sm text-brand hover:underline font-medium"
           >Editar</NuxtLink
         >

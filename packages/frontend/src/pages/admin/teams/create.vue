@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref } from "vue";
+import { useQueryParams } from "~/composables/useQueryParams";
+import { resolveReturnUrl } from "~/utils/returnUrl";
+import { attachCreatedTeamToGameDraft } from "~/utils/gameCreationDraft";
 import { useOpponentTeams } from "~/composables/useOpponentTeams";
 import TeamsForm, {
   type OpponentTeamFormData,
@@ -12,9 +15,10 @@ definePageMeta({
   requiresRole: "editor",
   pageTitle: "Crear Equipo",
 });
-useHead({ title: "Nuevo Equipo – Admin" });
+useHead({ title: "Nuevo equipo – Administración" });
 
 const router = useRouter();
+const queryParams = useQueryParams();
 const { createOpponentTeam } = useOpponentTeams();
 
 const loading = ref(false);
@@ -24,8 +28,11 @@ async function handleSubmit(form: OpponentTeamFormData) {
   error.value = "";
   loading.value = true;
   try {
-    await createOpponentTeam(form);
-    await router.push("/admin/teams");
+    const team = await createOpponentTeam(form);
+    attachCreatedTeamToGameDraft(team.id);
+    await router.push(
+      resolveReturnUrl(queryParams.get("returnUrl"), "/admin/teams"),
+    );
   } catch (e: unknown) {
     const err = e as { data?: { code?: string }; message?: string };
     error.value =
@@ -39,7 +46,7 @@ async function handleSubmit(form: OpponentTeamFormData) {
 <template>
   <div>
     <header class="mb-4">
-      <UiBackButton to="/admin/teams" label="Volver a Equipos" />
+      <UiBackButton to="/admin/teams" label="Volvé a equipos" />
     </header>
 
     <div class="mb-4">

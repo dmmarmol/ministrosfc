@@ -1,9 +1,14 @@
 <script setup lang="ts">
+import { computed, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useAsyncData, useHead, useNuxtApp } from "nuxt/app";
 import { useAuthStore } from "~/stores/auth";
 import PlayerDeleteModal from "~/components/player/PlayerDeleteModal.vue";
 import PlayerForm, {
   type PlayerFormData,
 } from "~/components/pages/admin/players/PlayerForm.vue";
+import { useQueryParams } from "~/composables/useQueryParams";
+import { resolveReturnUrl } from "~/utils/returnUrl";
 
 definePageMeta({
   layout: "admin",
@@ -15,6 +20,7 @@ definePageMeta({
 
 const { $api } = useNuxtApp();
 const authStore = useAuthStore();
+const queryParams = useQueryParams();
 const showDeleteModal = ref(false);
 const router = useRouter();
 const route = useRoute();
@@ -45,8 +51,8 @@ const initialFormData = computed(() => {
 
 useHead(() => ({
   title: player.value
-    ? `Edit ${player.value.firstName} ${player.value.lastName} – Admin`
-    : "Edit Player",
+    ? `Editar ${player.value.firstName} ${player.value.lastName} – Administración`
+    : "Editar jugador",
 }));
 
 const loading = ref(false);
@@ -57,7 +63,9 @@ async function submit(data: PlayerFormData) {
   loading.value = true;
   try {
     await $api(`/api/v1/players/${id}`, { method: "PATCH", body: data });
-    await router.push("/admin/players");
+    await router.push(
+      resolveReturnUrl(queryParams.get("returnUrl"), "/admin/players"),
+    );
   } catch (e: any) {
     error.value = e?.message ?? "No se pudo guardar el jugador.";
   } finally {
@@ -70,7 +78,9 @@ async function confirmDelete() {
   loading.value = true;
   try {
     await $api(`/api/v1/players/${id}`, { method: "DELETE" });
-    await navigateTo("/admin/players");
+    await router.push(
+      resolveReturnUrl(queryParams.get("returnUrl"), "/admin/players"),
+    );
   } catch (e: any) {
     showDeleteModal.value = false;
     error.value = e?.message ?? "No se pudo eliminar el jugador.";
@@ -83,7 +93,7 @@ async function confirmDelete() {
 <template>
   <div class="max-w-xl">
     <div class="mb-4">
-      <UiBackButton to="/admin/players" label="Volver a Jugadores" />
+      <UiBackButton to="/admin/players" label="Volvé a jugadores" />
     </div>
     <h2 class="text-lg font-bold text-gray-900 mb-6">Editar Jugador</h2>
 
@@ -109,7 +119,7 @@ async function confirmDelete() {
     <div v-else-if="player" class="form-wrapper relative">
       <PlayerForm
         :initial-data="initialFormData"
-        submit-label="Guardar Cambios"
+        submit-label="Guardá los cambios"
         @submit="submit"
         :playerId="player.id"
       >

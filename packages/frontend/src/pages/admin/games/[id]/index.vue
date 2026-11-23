@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
   DEFAULT_LINEUP,
   toISOWithOffset,
@@ -11,6 +13,8 @@ import GameParticipantRemoveModal from "../../../../components/pages/admin/games
 import { useAdminGamesStore } from "../../../../stores/admin-games.js";
 import { useGames } from "~/composables/useGames";
 import { useAuthStore } from "~/stores/auth";
+import { useQueryParams } from "~/composables/useQueryParams";
+import { resolveReturnUrl } from "~/utils/returnUrl";
 
 definePageMeta({
   layout: "admin",
@@ -20,8 +24,9 @@ definePageMeta({
   pageTitle: "Editar Partido",
 });
 
-const router = useRouter();
 const route = useRoute();
+const router = useRouter();
+const queryParams = useQueryParams();
 const store = useAdminGamesStore();
 const authStore = useAuthStore();
 const gameId = route.params.id as string;
@@ -37,8 +42,8 @@ onMounted(async () => {
 
 useHead(() => ({
   title: store.selectedGame
-    ? `Edit vs ${store.selectedGame?.opponentTeam.name} – Admin`
-    : "Edit Game",
+    ? `Editar partido vs. ${store.selectedGame?.opponentTeam.name} – Administración`
+    : "Editar partido",
 }));
 
 /** Form */
@@ -64,7 +69,9 @@ async function handleSubmit(payload: GameFormData) {
 
     await updateGame(gameId, body);
 
-    await router.push("/admin/games");
+    await router.push(
+      resolveReturnUrl(queryParams.get("returnUrl"), "/admin/games"),
+    );
   } catch (e: any) {
     error.value = e?.message ?? "No se pudo actualizar el partido.";
   } finally {
@@ -76,7 +83,7 @@ async function handleSubmit(payload: GameFormData) {
 <template>
   <div class="space-y-4">
     <header class="mb-4">
-      <UiBackButton to="/admin/games" label="Volver a Partidos" />
+      <UiBackButton to="/admin/games" label="Volvé a partidos" />
     </header>
 
     <h2 class="text-lg font-bold text-gray-900 mb-6">Editar Partido</h2>
@@ -96,7 +103,7 @@ async function handleSubmit(payload: GameFormData) {
       />
 
       <GameForm
-        submitLabel="Guardar Cambios"
+        submitLabel="Guardá los cambios"
         :game="store.selectedGame"
         @submit="handleSubmit"
         :error="error"

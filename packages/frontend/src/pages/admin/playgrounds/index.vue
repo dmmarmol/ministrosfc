@@ -19,7 +19,7 @@ definePageMeta({
   requiresRole: "editor",
   noPadding: true,
 });
-useHead({ title: "Canchas – Admin" });
+useHead({ title: "Canchas – Administración" });
 
 type PlaygroundRow = Pick<
   Playground,
@@ -97,7 +97,10 @@ const columns: ColumnDef<PlaygroundRow>[] = [
     cell: ({ row }) => {
       const playgroundId: string = row.getValue("id");
       const value: string = `${row.getValue("name")}`;
-      return cellLink(value, `/admin/playgrounds/${playgroundId}`);
+      return cellLink(
+        value,
+        `/admin/playgrounds/${playgroundId}?returnUrl=${encodeURIComponent("/admin/playgrounds")}`,
+      );
     },
   },
   {
@@ -131,7 +134,9 @@ const columns: ColumnDef<PlaygroundRow>[] = [
           {
             label: "Editar cancha",
             onClick: (_event: Event) =>
-              navigateTo(`/admin/playgrounds/${playgroundId}`),
+              navigateTo(
+                `/admin/playgrounds/${playgroundId}?returnUrl=${encodeURIComponent("/admin/playgrounds")}`,
+              ),
           },
           {
             label: "Borrar cancha",
@@ -191,7 +196,7 @@ const tableRows = computed((): PlaygroundRow[] => {
         variant="solid"
         size="md"
         class="font-semibold"
-        to="/admin/playgrounds/create"
+        :to="`/admin/playgrounds/create?returnUrl=${encodeURIComponent('/admin/playgrounds')}`"
       >
         Nueva cancha
       </UButton>
