@@ -17,6 +17,7 @@ Specialized skills live in `.github/skills/<name>/SKILL.md`. Before writing code
 | `web-coder`                  | Writing or updating frontend code.                               |
 | `tailwindcss/theme-architect`| Writing or updating CSS, or asking about CSS architecture.       |
 | `create-release`             | Creating a release or publishing a new version.                  |
+| `create-pr`                  | Opening or drafting a pull request (conventional title, Summary/Why/Changes/Documentation body). |
 
 If a task needs several skills, split it into steps, run one skill per step, and surface partial output between steps.
 
