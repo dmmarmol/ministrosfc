@@ -10,6 +10,7 @@ import {
 } from "../middleware/rate-limiter";
 import { globalErrorHandler } from "../middleware/error-handler";
 import { healthRouter } from "../routes/health";
+import { configRouter } from "../routes/config";
 import { playerRouter } from "../routes/players";
 import { opponentTeamRouter } from "../routes/opponentTeams";
 import { gameRouter } from "../routes/games";
@@ -67,6 +68,7 @@ export function createApp(): Application {
 
   // Routes
   app.use("/api/v1/health", healthRouter);
+  app.use("/api/v1/config", configRouter);
   app.use("/api/v1/auth", authRouter);
   app.use("/api/v1/players", playerRouter);
   app.use("/api/v1/opponent-teams", opponentTeamRouter);

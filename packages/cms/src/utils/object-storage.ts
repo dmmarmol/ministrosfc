@@ -5,16 +5,36 @@
  *   - Cloudflare R2: use @aws-sdk/client-s3 with endpoint = R2 endpoint URL
  *   - Supabase Storage: use @supabase/supabase-js supabase.storage.from(bucket)
  *
- * Required env vars:
+ * Optional env vars (all three or none; enforced at startup by validateEnv):
  *   CLOUDINARY_CLOUD_NAME
  *   CLOUDINARY_API_KEY
  *   CLOUDINARY_API_SECRET
+ *
+ * Photo upload is deferred past the first production launch. While the variables are unset,
+ * uploads fail with a 503 PHOTO_STORAGE_UNAVAILABLE error and deletions are no-ops.
  */
 import { v2 as cloudinary } from "cloudinary";
 import path from "path";
+import { createError } from "../middleware/error-handler";
+import { ErrorCode } from "./error-codes";
 
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+const PHOTO_STORAGE_ENV_VARS = [
+  "CLOUDINARY_CLOUD_NAME",
+  "CLOUDINARY_API_KEY",
+  "CLOUDINARY_API_SECRET",
+] as const;
+
+/** True only when all three photo storage credentials are present and non-blank. */
+export function isPhotoStorageConfigured(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  return PHOTO_STORAGE_ENV_VARS.every(
+    (key) => typeof env[key] === "string" && env[key]!.trim().length > 0,
+  );
+}
 
 function getCloudinary() {
   cloudinary.config({
@@ -48,6 +68,14 @@ export async function uploadPhoto(
   entityId: string,
 ): Promise<string> {
   validatePhotoFile(file);
+
+  if (!isPhotoStorageConfigured()) {
+    throw createError(
+      "La carga de fotos no está disponible por el momento.",
+      503,
+      ErrorCode.PHOTO_STORAGE_UNAVAILABLE,
+    );
+  }
 
   const ext =
     path.extname(file.originalname).toLowerCase().replace(".", "") || "jpg";
@@ -93,6 +121,7 @@ export async function uploadUserPhoto(
 
 export async function deletePlayerPhoto(photoUrl: string): Promise<void> {
   // Best-effort — do not throw so a missing photo never blocks other operations
+  if (!isPhotoStorageConfigured()) return;
   try {
     // Derive the public_id from the URL: everything between /upload/ and the extension
     const match = photoUrl.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/);
