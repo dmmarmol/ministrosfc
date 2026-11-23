@@ -17,7 +17,7 @@ const emit = defineEmits<{
 
 <template>
   <div
-    class="relative rounded-xl border border-gray-200 bg-white overflow-hidden"
+    class="relative rounded-xl border border-gray-200 bg-surface overflow-hidden"
   >
     <div class="px-4 py-3 border-b border-gray-100">
       <h3 class="text-sm font-semibold text-gray-800">

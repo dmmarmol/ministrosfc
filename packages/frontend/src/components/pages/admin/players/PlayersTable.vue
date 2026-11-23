@@ -191,7 +191,7 @@ const columns: ColumnDef<AdminPlayer>[] = [
 
 <template>
   <div
-    class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+    class="bg-surface rounded-xl shadow-sm border border-gray-100 overflow-hidden"
   >
     <div v-if="loading" class="p-6 space-y-3">
       <div

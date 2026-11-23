@@ -196,7 +196,7 @@ function getResultTone(game: AdminGame): string {
     <transition name="fade">
       <div
         v-if="toastMessage"
-        class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-50"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-ink text-white text-sm px-4 py-2 rounded-lg shadow-lg z-50"
       >
         {{ toastMessage }}
       </div>
@@ -235,7 +235,7 @@ function getResultTone(game: AdminGame): string {
 
     <!-- Table -->
     <div
-      class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+      class="bg-surface rounded-xl shadow-sm border border-gray-100 overflow-hidden"
     >
       <div v-if="pending" class="p-6 space-y-3">
         <div

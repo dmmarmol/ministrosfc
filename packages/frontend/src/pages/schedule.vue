@@ -44,7 +44,7 @@ const games = computed(() => data.value?.data ?? []);
         :key="tab.key"
         :class="
           activeTab === tab.key
-            ? 'bg-white shadow-sm text-gray-900 font-semibold'
+            ? 'bg-surface shadow-sm text-gray-900 font-semibold'
             : 'text-gray-500 hover:text-gray-700'
         "
         class="px-4 py-2 rounded-md text-sm transition-all"

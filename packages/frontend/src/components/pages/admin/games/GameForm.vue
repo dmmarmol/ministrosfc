@@ -125,7 +125,7 @@ function handleSubmit() {
     <div class="grid grid-cols-1 max-w-full xl:grid-cols-6 gap-4">
       <div class="xl:col-span-2">
         <div
-          class="bg-white justify-start rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
+          class="bg-surface justify-start rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
         >
           <p
             v-if="error"
@@ -164,7 +164,7 @@ function handleSubmit() {
       </div>
       <div class="xl:col-span-4">
         <div
-          class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
+          class="bg-surface rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
         >
           <div class="mb-4">
             <h3 class="text-md font-semibold text-gray-800">

@@ -71,7 +71,7 @@ const statusClass = computed(() => {
 
 <template>
   <div
-    class="group bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100"
+    class="group bg-surface rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100"
   >
     <!-- Detail navigation link -->
     <NuxtLink :to="detailUrl" class="flex items-center gap-4 p-4">

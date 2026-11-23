@@ -118,7 +118,7 @@ const columns: ColumnDef<AdminUserListItem>[] = [
         return h("span", {}, "Aun no esta registrado");
       }
       if (!playerStatus) {
-        return h("span", { class: "text-xs text-gray-300" }, "—");
+        return h("span", { class: "text-xs text-white/70" }, "—");
       }
       return h(UiPlayerStatusBadge, { status: playerStatus });
     },

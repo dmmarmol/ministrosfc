@@ -113,7 +113,7 @@ onMounted(() => {
       </div>
 
       <div
-        class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4"
+        class="bg-surface rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4"
       >
         <p
           v-if="googleError"
@@ -145,7 +145,7 @@ onMounted(() => {
             <div class="w-full border-t border-gray-200" />
           </div>
           <div class="relative flex justify-center text-xs">
-            <span class="bg-white px-2 text-gray-400">o</span>
+            <span class="bg-surface px-2 text-gray-400">o</span>
           </div>
         </div>
 

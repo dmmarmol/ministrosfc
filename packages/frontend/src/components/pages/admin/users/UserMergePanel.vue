@@ -54,7 +54,7 @@ async function confirmDeny() {
 </script>
 
 <template>
-  <div class="rounded-xl border border-gray-200 bg-white">
+  <div class="rounded-xl border border-gray-200 bg-surface">
     <div class="px-4 py-3 border-b border-gray-100">
       <h3 class="text-sm font-semibold text-gray-800">Panel de revisión</h3>
     </div>

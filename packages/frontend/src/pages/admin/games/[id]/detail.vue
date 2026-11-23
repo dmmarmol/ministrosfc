@@ -62,7 +62,7 @@ async function copySignupLink() {
     <transition name="fade">
       <div
         v-if="toastMessage"
-        class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-50"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-ink text-white text-sm px-4 py-2 rounded-lg shadow-lg z-50"
       >
         {{ toastMessage }}
       </div>
@@ -97,7 +97,7 @@ async function copySignupLink() {
 
     <template v-else-if="game">
       <!-- Game header card -->
-      <div class="bg-gray-900 text-white rounded-2xl p-6 mb-6">
+      <div class="bg-ink text-white rounded-2xl p-6 mb-6">
         <p class="text-xs text-gray-400 uppercase tracking-wider mb-2">
           {{
             formatDate(game.date, {
@@ -128,7 +128,7 @@ async function copySignupLink() {
                   game.status === GameStatus.SCHEDULED,
                 'bg-green-500/20 text-green-300':
                   game.status === GameStatus.IN_PROGRESS,
-                'bg-gray-500/20 text-gray-300':
+                'bg-gray-500/20 text-white/70':
                   game.status === GameStatus.COMPLETED,
                 'bg-red-500/20 text-red-300':
                   game.status === GameStatus.CANCELLED,
@@ -150,7 +150,7 @@ async function copySignupLink() {
 
       <!-- Details -->
       <div
-        class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6 space-y-3 text-sm"
+        class="bg-surface rounded-xl shadow-sm border border-gray-100 p-5 mb-6 space-y-3 text-sm"
       >
         <div class="flex gap-2">
           <span class="text-gray-500 w-32 flex-shrink-0">Cupo máximo</span>
@@ -185,7 +185,7 @@ async function copySignupLink() {
       </h3>
       <div
         v-if="game.participants?.length"
-        class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+        class="bg-surface rounded-xl shadow-sm border border-gray-100 overflow-hidden"
       >
         <div
           v-for="p in game.participants"

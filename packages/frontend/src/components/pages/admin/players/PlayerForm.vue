@@ -115,7 +115,7 @@ async function handleSubmit() {
 </script>
 <template>
   <form
-    class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
+    class="bg-surface rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
     @submit.prevent="handleSubmit"
   >
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

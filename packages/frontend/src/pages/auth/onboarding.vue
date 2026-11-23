@@ -144,7 +144,7 @@ async function handleSubmit() {
       </div>
 
       <div
-        class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5"
+        class="bg-surface rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5"
       >
         <IsPlayerCheckbox
           v-model="isPlayer"

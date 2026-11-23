@@ -205,7 +205,7 @@ const tableRows = computed((): PlaygroundRow[] => {
     <div class="h-full relative flex items-stretch">
       <div v-if="loading" class="text-sm text-gray-500">Cargando canchas…</div>
       <div v-else class="lg:absolute lg:left-0 lg:top-0 lg:p-4 z-50">
-        <div class="w-3/4 max-w-[50%] bg-white rounded shadow-md">
+        <div class="w-3/4 max-w-[50%] bg-surface rounded shadow-md">
           <!-- UTable -->
           <UTable
             :columns="columns"

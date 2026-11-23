@@ -114,7 +114,7 @@ const topScorers = computed(() => scorersData.value?.data ?? []);
         </div>
         <div
           v-else-if="topScorers.length"
-          class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+          class="bg-surface rounded-xl shadow-sm border border-gray-100 overflow-hidden"
         >
           <div
             v-for="(entry, idx) in topScorers.slice(0, 5)"

@@ -42,7 +42,7 @@ const handleLogout = () => {
       }"
     >
       <template #default>
-        <div class="p-4 pl-6 border-b border-gray-700">
+        <div class="p-4 pl-6 border-b border-white/10">
           <NuxtLink to="/admin/dashboard" class="flex items-center space-x-2">
             <span class="text-brand font-bold text-lg">Ministros FC</span>
           </NuxtLink>
@@ -72,7 +72,7 @@ const handleLogout = () => {
           >
         </nav>
         <!-- User info + logout -->
-        <div class="p-4 border-t border-gray-700">
+        <div class="p-4 border-t border-white/10">
           <p
             v-if="authStore.user"
             class="text-sm text-gray-400 truncate mb-2 pl-2"
@@ -119,7 +119,7 @@ const handleLogout = () => {
     <!-- Main content -->
     <div class="flex-1 flex flex-col overflow-hidden">
       <header
-        class="bg-white shadow-sm px-6 py-4 flex items-center justify-end"
+        class="bg-surface shadow-sm px-6 py-4 flex items-center justify-end"
       >
         <!-- <h1 class="text-lg font-semibold text-gray-800">{{ pageTitle }}</h1> -->
         <div v-if="authStore.user" class="flex flex-col text-right">

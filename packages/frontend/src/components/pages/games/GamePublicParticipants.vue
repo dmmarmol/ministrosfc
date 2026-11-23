@@ -12,7 +12,7 @@ defineProps<{
     </h2>
     <div
       v-if="participants.length"
-      class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+      class="bg-surface rounded-xl shadow-sm border border-gray-100 overflow-hidden"
     >
       <div
         v-for="p in participants"

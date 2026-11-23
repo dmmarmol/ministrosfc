@@ -45,7 +45,7 @@ function onYearChange(e: Event) {
       <div
         v-for="stat in statCards"
         :key="stat.label"
-        class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center"
+        class="bg-surface rounded-xl shadow-sm border border-gray-100 p-4 text-center"
       >
         <p class="text-2xl font-bold text-gray-900">{{ stat.value }}</p>
         <p class="text-xs text-gray-500 mt-1">{{ stat.label }}</p>

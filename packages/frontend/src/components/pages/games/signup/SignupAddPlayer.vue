@@ -120,7 +120,7 @@ function submitGuest() {
       'relative  border-gray-300  p-4 flex-1',
       isInteractionDisabled
         ? 'bg-gray-100 border-t border-r border-l rounded-t-xl'
-        : 'bg-white border rounded-xl',
+        : 'bg-surface border rounded-xl',
     ]"
   >
     <!-- GUEST mode: × dismiss at far top-right of container (FR-039) -->

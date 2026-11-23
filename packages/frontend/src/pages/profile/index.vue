@@ -85,7 +85,7 @@ function roleBadgeClass(role: string): string {
 
     <template v-else-if="profile">
       <!-- User Info Card -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div class="bg-surface rounded-xl shadow-sm border border-gray-100 p-6">
         <div class="flex items-start justify-between mb-6">
           <div>
             <h2 class="text-2xl font-bold text-gray-900">

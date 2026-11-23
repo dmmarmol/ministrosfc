@@ -35,7 +35,7 @@ const tournaments = computed(() => data.value?.data ?? []);
         :class="
           formatFilter === fmt.value
             ? 'bg-brand text-gray-900 font-semibold'
-            : 'bg-white text-gray-600 hover:bg-gray-50'
+            : 'bg-surface text-gray-600 hover:bg-gray-50'
         "
         class="px-4 py-1.5 rounded-full text-sm border border-gray-200 transition-colors"
         @click="formatFilter = fmt.value"

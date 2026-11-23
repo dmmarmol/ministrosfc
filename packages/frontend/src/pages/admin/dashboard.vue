@@ -43,7 +43,7 @@ const recentGames = computed(() => recentData.value?.data ?? []);
   <div class="space-y-6">
     <!-- Quick stats -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+      <div class="bg-surface rounded-xl shadow-sm border border-gray-100 p-5">
         <p class="text-xs text-gray-500 uppercase tracking-wide">
           Jugadores Activos
         </p>
@@ -51,7 +51,7 @@ const recentGames = computed(() => recentData.value?.data ?? []);
           {{ stats.activePlayers }}
         </p>
       </div>
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+      <div class="bg-surface rounded-xl shadow-sm border border-gray-100 p-5">
         <p class="text-xs text-gray-500 uppercase tracking-wide">
           Próximos Partidos
         </p>
@@ -59,7 +59,7 @@ const recentGames = computed(() => recentData.value?.data ?? []);
           {{ stats.upcomingGames }}
         </p>
       </div>
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+      <div class="bg-surface rounded-xl shadow-sm border border-gray-100 p-5">
         <p class="text-xs text-gray-500 uppercase tracking-wide">
           Completados Este Mes
         </p>
@@ -70,7 +70,7 @@ const recentGames = computed(() => recentData.value?.data ?? []);
     </div>
 
     <!-- Shortcuts -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+    <div class="bg-surface rounded-xl shadow-sm border border-gray-100 p-5">
       <h2 class="text-sm font-semibold text-gray-700 mb-4">Acciones Rápidas</h2>
       <div class="flex flex-wrap gap-3">
         <UButton
@@ -98,7 +98,7 @@ const recentGames = computed(() => recentData.value?.data ?? []);
     </div>
 
     <!-- Recent games -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+    <div class="bg-surface rounded-xl shadow-sm border border-gray-100 p-5">
       <h2 class="text-sm font-semibold text-gray-700 mb-4">
         Partidos Recientes
       </h2>

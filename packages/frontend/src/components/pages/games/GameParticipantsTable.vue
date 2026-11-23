@@ -266,7 +266,7 @@ const tableRows = computed((): PublicGameParticipantRow[] => {
 });
 </script>
 <template>
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+  <div class="bg-surface rounded-xl shadow-sm border border-gray-100">
     <UTable
       :columns="columns"
       :data="tableRows"

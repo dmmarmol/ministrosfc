@@ -97,7 +97,7 @@ function handleSubmit() {
     {{ error }}
   </p>
   <form
-    class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4"
+    class="rounded-2xl border border-gray-200 bg-surface p-6 shadow-sm space-y-4"
     @submit="handleSubmit"
   >
     <div class="mb-6 flex items-center justify-between gap-3">

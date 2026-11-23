@@ -7,7 +7,7 @@ defineProps<{ player: PlayerPublic }>();
 <template>
   <NuxtLink
     :to="`/players/${player.id}`"
-    class="relative group bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-100"
+    class="relative group bg-surface rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-100"
   >
     <div class="absolute left-0 top-0 z-20 p-3 flex flex-col gap-y-2">
       <!-- Position Label -->
@@ -30,7 +30,7 @@ defineProps<{ player: PlayerPublic }>();
       />
       <div
         v-else
-        class="w-full h-full flex items-center justify-center text-4xl text-gray-300"
+        class="w-full h-full flex items-center justify-center text-4xl text-white/70"
       >
         <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
           <path

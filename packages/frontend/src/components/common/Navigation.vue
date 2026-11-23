@@ -7,7 +7,7 @@ const mobileOpen = ref(false);
 </script>
 
 <template>
-  <nav class="bg-gray-900 text-white">
+  <nav class="bg-ink text-white">
     <div
       class="container mx-auto px-4 max-w-7xl flex items-center justify-between h-12"
     >
@@ -127,7 +127,7 @@ const mobileOpen = ref(false);
     <!-- Mobile menu -->
     <div
       v-if="mobileOpen"
-      class="md:hidden bg-gray-800 px-4 pb-4 space-y-2 text-sm"
+      class="md:hidden bg-ink px-4 pb-4 space-y-2 text-sm"
     >
       <NuxtLink
         to="/"

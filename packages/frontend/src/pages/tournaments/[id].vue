@@ -34,12 +34,12 @@ useHead(() => ({
     </div>
     <template v-else-if="tournament">
       <!-- Header -->
-      <div class="bg-gray-900 text-white rounded-2xl p-6 mb-8">
+      <div class="bg-ink text-white rounded-2xl p-6 mb-8">
         <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
           {{ formatCompetitionType(tournament.format) }}
         </p>
         <h1 class="text-2xl font-bold mb-1">{{ tournament.name }}</h1>
-        <p v-if="tournament.description" class="text-gray-300 text-sm mb-4">
+        <p v-if="tournament.description" class="text-white/70 text-sm mb-4">
           {{ tournament.description }}
         </p>
         <!-- Record summary -->
@@ -93,7 +93,7 @@ useHead(() => ({
       <h2 class="text-lg font-bold text-gray-800 mt-8 mb-4">Goleadores</h2>
       <div
         v-if="topScorers.length"
-        class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+        class="bg-surface rounded-xl shadow-sm border border-gray-100 overflow-hidden"
       >
         <div
           v-for="(entry, idx) in topScorers"

@@ -93,7 +93,7 @@ function confirmMerge() {
 </script>
 
 <template>
-  <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+  <div class="rounded-xl border border-gray-200 bg-surface shadow-sm">
     <div class="border-b border-gray-100 px-4 py-3">
       <h3 class="text-sm font-semibold text-gray-800">Editor de usuario</h3>
     </div>

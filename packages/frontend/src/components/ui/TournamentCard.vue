@@ -30,7 +30,7 @@ const goalDifferenceClasses = computed(() => {
 <template>
   <NuxtLink
     :to="`/tournaments/${tournament.id}`"
-    class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-5 block"
+    class="bg-surface rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-5 block"
   >
     <div class="flex items-start justify-between gap-3">
       <div class="flex-1 min-w-0">
