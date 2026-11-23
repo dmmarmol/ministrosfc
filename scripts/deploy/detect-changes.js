@@ -5,7 +5,8 @@
  * Usage (CLI, from the deploy workflow):
  *   node scripts/deploy/detect-changes.js <before-sha> <after-sha>
  * Writes `deploy`, `cms` and `frontend` (true|false) to $GITHUB_OUTPUT (when set)
- * and prints them. The workflow uses `deploy` and ships both apps. If the diff cannot be computed (new branch, force push,
+ * and prints them. The workflow deploys only the apps flagged here (CMS and frontend can
+ * ship separately); `deploy` is true when either changed. If the diff cannot be computed (new branch, force push,
  * unknown commit) it deploys both apps: shipping too much is safer than too little.
  *
  * See specs/022-first-production-release/contracts/deployment-pipeline.md.
@@ -53,10 +54,9 @@ function classifyChanges(files) {
 }
 
 /**
- * Whether a push must be deployed at all. The workflow then deploys BOTH apps
- * (CMS first, then frontend). Deciding per app from one push's diff is unsafe:
- * GitHub replaces older pending runs with newer ones, so an app changed in a
- * replaced run would never ship. Deploying both is idempotent.
+ * Whether anything deployable changed (either app). The base commit passed to the CLI is the
+ * last successful deployment run, not just the current push, so an app changed in a replaced
+ * (superseded) pending run is still picked up by the next run.
  */
 function shouldDeploy(files) {
   const { cms, frontend } = classifyChanges(files);

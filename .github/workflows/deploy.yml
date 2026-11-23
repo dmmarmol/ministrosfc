@@ -6,8 +6,13 @@ name: Deploy
 #   workflow_dispatch   -> environment "development" (manual deploys never reach production)
 #
 # Flow: decide -> tests -> deploy CMS (migrations run as the Fly release command) -> smoke test
-#       -> deploy frontend -> smoke test. If a smoke test fails after a deploy, the previous
-#       image is restored automatically and the run is marked failed.
+#       -> deploy frontend -> smoke test. Only the apps whose files changed are deployed (CMS and
+#       frontend can ship separately). If a smoke test fails after a deploy, the previous image is
+#       restored automatically and the run is marked failed.
+#
+# "What changed" is measured against the last SUCCESSFUL run on the branch, not just this push:
+# GitHub replaces older pending runs with newer ones, so diffing a single push could skip an app
+# changed in a replaced run. Diffing from the last success guarantees nothing is missed.
 #
 # Secrets (FLY_API_TOKEN) come from the GitHub environment of the target; pull requests,
 # including those from forks, never run this workflow. Database migrations are never reverted
@@ -27,6 +32,15 @@ on:
         type: choice
         options:
           - development
+      apps:
+        description: "Which apps to deploy"
+        required: true
+        default: both
+        type: choice
+        options:
+          - both
+          - cms
+          - frontend
 
 # Deployments for the same environment queue instead of overlapping. GitHub keeps one pending
 # run per group and replaces older pending runs, which is why every run deploys both apps.
@@ -41,9 +55,13 @@ jobs:
   decide:
     name: Decide what to deploy
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read # read previous workflow runs to find the last successful deployment
     outputs:
       environment: ${{ steps.target.outputs.environment }}
-      deploy: ${{ steps.changes.outputs.deploy }}
+      cms: ${{ steps.pick.outputs.cms }}
+      frontend: ${{ steps.pick.outputs.frontend }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -65,35 +83,65 @@ jobs:
             echo "environment=development" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Detect deployable changes
-        id: changes
+      - name: Find the last successful deployment on this branch
+        id: base
         env:
           EVENT_NAME: ${{ github.event_name }}
+          BRANCH: ${{ github.ref_name }}
           BEFORE_SHA: ${{ github.event.before }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          base="$BEFORE_SHA"
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            last="$(gh run list --workflow deploy.yml --branch "$BRANCH" --status success --limit 1 --json headSha --jq '.[0].headSha' 2>/dev/null || true)"
+            if [[ -n "$last" && "$last" != "null" ]] && git cat-file -e "$last^{commit}" 2>/dev/null; then
+              base="$last"
+            fi
+          fi
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+
+      - name: Detect changed apps
+        id: changes
+        env:
+          BASE_SHA: ${{ steps.base.outputs.base }}
           AFTER_SHA: ${{ github.sha }}
+        run: node scripts/deploy/detect-changes.js "$BASE_SHA" "$AFTER_SHA"
+
+      - name: Pick apps to deploy
+        id: pick
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          APPS_INPUT: ${{ inputs.apps }}
+          CHANGED_CMS: ${{ steps.changes.outputs.cms }}
+          CHANGED_FRONTEND: ${{ steps.changes.outputs.frontend }}
         run: |
           if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
-            echo "deploy=true" >> "$GITHUB_OUTPUT"
+            cms=false; frontend=false
+            [[ "$APPS_INPUT" == "both" || "$APPS_INPUT" == "cms" ]] && cms=true
+            [[ "$APPS_INPUT" == "both" || "$APPS_INPUT" == "frontend" ]] && frontend=true
           else
-            node scripts/deploy/detect-changes.js "$BEFORE_SHA" "$AFTER_SHA"
+            cms="$CHANGED_CMS"; frontend="$CHANGED_FRONTEND"
           fi
+          echo "cms=$cms" >> "$GITHUB_OUTPUT"
+          echo "frontend=$frontend" >> "$GITHUB_OUTPUT"
+          echo "Deploying: cms=$cms frontend=$frontend"
 
   test-cms:
     name: Test CMS
     needs: decide
-    if: needs.decide.outputs.deploy == 'true'
+    if: needs.decide.outputs.cms == 'true'
     uses: ./.github/workflows/ci-cms.yml
 
   test-frontend:
     name: Test frontend
     needs: decide
-    if: needs.decide.outputs.deploy == 'true'
+    if: needs.decide.outputs.frontend == 'true'
     uses: ./.github/workflows/ci-frontend.yml
 
   deploy-cms:
     name: Deploy CMS (${{ needs.decide.outputs.environment }})
-    needs: [decide, test-cms, test-frontend]
-    if: needs.decide.outputs.deploy == 'true'
+    needs: [decide, test-cms]
+    if: ${{ !cancelled() && needs.decide.outputs.cms == 'true' && needs.test-cms.result == 'success' }}
     runs-on: ubuntu-latest
     environment: ${{ needs.decide.outputs.environment }}
     env:
@@ -155,9 +203,9 @@ jobs:
 
   deploy-frontend:
     name: Deploy frontend (${{ needs.decide.outputs.environment }})
-    # Only after the CMS it talks to is deployed and healthy.
-    needs: [decide, deploy-cms]
-    if: needs.decide.outputs.deploy == 'true'
+    # When the CMS is deployed in the same run, wait for it to be deployed and healthy first.
+    needs: [decide, test-frontend, deploy-cms]
+    if: ${{ !cancelled() && needs.decide.outputs.frontend == 'true' && needs.test-frontend.result == 'success' && (needs.deploy-cms.result == 'success' || needs.deploy-cms.result == 'skipped') }}
     runs-on: ubuntu-latest
     environment: ${{ needs.decide.outputs.environment }}
     env:
