@@ -24,7 +24,7 @@ function toggle() {
   <ClientOnly>
     <UButton
       type="button"
-      color="neutral"
+      :color="isDark ? 'neutral' : 'gray'"
       :variant="variant"
       size="sm"
       square
