@@ -149,7 +149,7 @@ description: "Task list for spec 022: first production release and automated pro
 
 - [X] T050 Run all checks: `npm run build --workspace=@ministrosfc/shared`, CMS build and `npm test --workspace=@ministrosfc/cms -- --runInBand`, frontend build and `npm run test --workspace=@ministrosfc/frontend -- --run`; fix regressions (re-run flaky CMS files alone before treating them as real).
 - [ ] T051 [OWNER] Validate the CSV import on DEV with a realistic file (quickstart D7 against DEV first); record limits, timing and Neon usage in the runbook; add a graceful-shutdown follow-up only if a running job is interrupted by auto stop.
-- [ ] T052 Update `specs/022-first-production-release/spec.md` status and add `specs/022-first-production-release/implementation-notes.md` (what shipped, deviations, owner steps still pending, how to roll back).
+- [X] T052 Update `specs/022-first-production-release/spec.md` status and add `specs/022-first-production-release/implementation-notes.md` (what shipped, deviations, owner steps still pending, how to roll back).
 - [ ] T053 Release prep with the `create-release` skill: version bump, root and per-package changelog entries, release commit and annotated tag (the owner chooses the bump).
 - [ ] T054 Final pre-push checks: no secret values or personal identifiers in the diff (`git grep` for known patterns), commit authors use the personal email; the owner runs the push.
 

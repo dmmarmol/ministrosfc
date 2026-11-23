@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-23
 
-**Status**: Draft
+**Status**: Implemented in the repository (owner-run production bootstrap and pipeline exercise still pending); see [`implementation-notes.md`](implementation-notes.md)
 
 **Input**: User description: "Deploy Ministros FC to production for the first time and make production deployment repeatable and automated: every merge to `main` deploys production with as little human intervention as possible, and the whole setup is described as code so it can be reproduced. Also stop the database free-tier allowance from being exhausted by idle wake-ups or non-human traffic, and settle the open questions about Redis for development and photo storage."
 

@@ -129,3 +129,7 @@ docs/guides/DEPLOYMENT.md                # NEW runbook (owner-run steps, secrets
 - **Order of delivery**: runtime code changes (safe, test-first) → Fly files and Dockerfile → workflows (DEV exercised first on `develop`) → runbook → production bootstrap by the owner → first merge to `main`.
 - **Risks**: first production deploy is untested (mitigation: run the whole pipeline against DEV on `develop` first, and use `workflow_dispatch` on DEV); Neon cold start on the first request (accepted, documented); image rollback with an incompatible migration (mitigation: expand/contract rule in the runbook); GitHub environment settings are owner-controlled (mitigation: workflow-level branch guard plus runbook checklist).
 - **Rollback of this feature itself**: the previous `fly.toml` files and workflow structure are recoverable from git; no data migration is involved.
+
+## Implementation status
+
+Implemented in the repository; owner-run steps remain. Deviations (per-app deploys measured from the last successful run, `useCmsCapabilities`, production-only page caching) and the findings made along the way are in [`implementation-notes.md`](implementation-notes.md).
