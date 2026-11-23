@@ -21,18 +21,18 @@ description: "Task list for spec 022: first production release and automated pro
 
 ## Phase 1: Setup
 
-- [ ] T001 Update `packages/cms/.env.example`: document `APP_ENV` (default `development`), `REDIS_DISABLED`, `DIRECT_URL` (direct Neon URL, optional) and mark the three `CLOUDINARY_*` variables as optional ("all or none"); names and placeholders only, no real values.
+- [X] T001 Update `packages/cms/.env.example`: document `APP_ENV` (default `development`), `REDIS_DISABLED`, `DIRECT_URL` (direct Neon URL, optional) and mark the three `CLOUDINARY_*` variables as optional ("all or none"); names and placeholders only, no real values.
 
 ## Phase 2: Foundational (blocks all user stories)
 
 **Purpose**: runtime configuration and health behavior that the pipeline, Fly files and later stories depend on.
 
-- [ ] T002 [P] Write failing tests for the new startup rules in `packages/cms/tests/unit/env-validation.test.ts`: `APP_ENV` required when `NODE_ENV=production`, defaults to `development` otherwise, other values rejected; `REDIS_URL` required when `APP_ENV=production`; `REDIS_DISABLED=true` accepted only when `APP_ENV` is not `production`; Cloudinary variables optional but all-or-none; when `APP_ENV=production`, `CORS_ORIGINS` must not contain `localhost` or a non-HTTPS origin; the error message lists every problem. Update the existing cases that assumed Cloudinary is required in production.
-- [ ] T003 Implement the rules from T002 in `packages/cms/src/config/env-validation.ts` (contract: `contracts/runtime-endpoints.md` > Startup validation) until T002 passes.
-- [ ] T004 [P] Write failing tests in `packages/cms/tests/unit/redis-config.test.ts`: with `REDIS_DISABLED=true` and `APP_ENV` not `production`, `getRedisClient()` returns the no-op client even when `NODE_ENV=production`; with `APP_ENV=production` the flag is ignored and a real client is built from `REDIS_URL`.
-- [ ] T005 Implement `REDIS_DISABLED` handling in `packages/cms/src/config/redis.ts` until T004 passes.
-- [ ] T006 [P] Write failing integration tests in `packages/cms/tests/integration/health.test.ts` (and update any existing health assertions found with a search of `packages/cms/tests` and `packages/frontend`): `GET /api/v1/health` returns `200 { status: "ok", uptime }` and performs no database or Redis call; `GET /api/v1/health/ready` returns the database and Redis status, `redis: "disabled"` when disabled, `503` when the database check fails, and serves a cached result for 30 seconds (second call does not query again).
-- [ ] T007 Implement the liveness and readiness endpoints in `packages/cms/src/routes/health.ts` (readiness result cached in memory for 30 s) until T006 passes; keep the router mounted in `packages/cms/src/config/server.ts`.
+- [X] T002 [P] Write failing tests for the new startup rules in `packages/cms/tests/unit/env-validation.test.ts`: `APP_ENV` required when `NODE_ENV=production`, defaults to `development` otherwise, other values rejected; `REDIS_URL` required when `APP_ENV=production`; `REDIS_DISABLED=true` accepted only when `APP_ENV` is not `production`; Cloudinary variables optional but all-or-none; when `APP_ENV=production`, `CORS_ORIGINS` must not contain `localhost` or a non-HTTPS origin; the error message lists every problem. Update the existing cases that assumed Cloudinary is required in production.
+- [X] T003 Implement the rules from T002 in `packages/cms/src/config/env-validation.ts` (contract: `contracts/runtime-endpoints.md` > Startup validation) until T002 passes.
+- [X] T004 [P] Write failing tests in `packages/cms/tests/unit/redis-config.test.ts`: with `REDIS_DISABLED=true` and `APP_ENV` not `production`, `getRedisClient()` returns the no-op client even when `NODE_ENV=production`; with `APP_ENV=production` the flag is ignored and a real client is built from `REDIS_URL`.
+- [X] T005 Implement `REDIS_DISABLED` handling in `packages/cms/src/config/redis.ts` until T004 passes.
+- [X] T006 [P] Write failing integration tests in `packages/cms/tests/integration/health.test.ts` (and update any existing health assertions found with a search of `packages/cms/tests` and `packages/frontend`): `GET /api/v1/health` returns `200 { status: "ok", uptime }` and performs no database or Redis call; `GET /api/v1/health/ready` returns the database and Redis status, `redis: "disabled"` when disabled, `503` when the database check fails, and serves a cached result for 30 seconds (second call does not query again).
+- [X] T007 Implement the liveness and readiness endpoints in `packages/cms/src/routes/health.ts` (readiness result cached in memory for 30 s) until T006 passes; keep the router mounted in `packages/cms/src/config/server.ts`.
 
 **Checkpoint**: configuration rules and health endpoints are ready; user stories can start.
 
