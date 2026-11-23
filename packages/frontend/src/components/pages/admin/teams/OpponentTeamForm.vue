@@ -23,7 +23,7 @@ const props = withDefaults(
   }>(),
   {
     opponentTeam: null,
-    submitLabel: "Guardar equipo",
+    submitLabel: "Guardá el equipo",
     cancelTo: "/admin/teams",
     loading: false,
     error: "",

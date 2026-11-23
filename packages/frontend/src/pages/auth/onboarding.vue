@@ -127,7 +127,7 @@ async function handleSubmit() {
   <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
     <div class="w-full max-w-md">
       <div class="mb-3">
-        <BackButton :to="backPath" label="Volver" />
+        <BackButton :to="backPath" label="Volvé" />
       </div>
       <div class="text-center mb-8">
         <div

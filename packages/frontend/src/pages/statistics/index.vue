@@ -5,7 +5,7 @@ import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 import { useAuthStore } from "~/stores/auth";
 
 definePageMeta({ layout: "statistics", public: true });
-useHead({ title: "Estadísticas – Ministros FC" });
+useHead({ title: "Estadísticas" });
 
 const authStore = useAuthStore();
 const { $api } = useNuxtApp();

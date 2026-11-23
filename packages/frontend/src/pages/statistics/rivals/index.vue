@@ -14,7 +14,7 @@ definePageMeta({
   middleware: "auth",
   requiresAuth: true,
 });
-useHead({ title: "Estadísticas por Rival – Ministros FC" });
+useHead({ title: "Estadísticas por Rival" });
 
 const { $api } = useNuxtApp();
 const route = useRoute();

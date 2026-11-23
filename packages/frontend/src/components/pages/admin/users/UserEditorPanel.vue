@@ -117,14 +117,14 @@ function confirmMerge() {
 
       <div>
         <label class="mb-1 block text-xs font-medium text-gray-700">
-          Email
+          Correo electrónico
         </label>
         <UInput v-model="form.email" type="email" class="w-full" />
       </div>
 
       <div class="flex justify-end gap-2">
         <UButton type="submit" color="primary" :loading="loading">
-          Guardar perfil
+          Guardá el perfil
         </UButton>
       </div>
     </form>
@@ -147,7 +147,7 @@ function confirmMerge() {
               type="text"
               size="lg"
               class="w-full"
-              placeholder="Buscar jugador huérfano"
+              placeholder="Buscá un jugador sin vincular"
               @input="handleOrphanSearchInput"
             />
             <UButton variant="outline" color="neutral" size="sm" type="submit">

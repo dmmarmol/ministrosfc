@@ -158,7 +158,7 @@ async function handleSubmit() {
           id="position"
           v-model="form.position"
           :include-all="false"
-          placeholder="Seleccionar posición"
+          placeholder="Elegí una posición"
           class="w-full"
         />
       </div>
@@ -201,7 +201,7 @@ async function handleSubmit() {
         <UiPlayerSelect
           id="invitedById"
           v-model="form.invitedById"
-          placeholder="Seleccionar jugador"
+          placeholder="Elegí un jugador"
           class="w-full"
         />
       </div>
@@ -225,7 +225,7 @@ async function handleSubmit() {
           v-if="photoPreview"
           :src="photoPreview"
           class="w-24 h-24 rounded-full object-cover mx-auto mb-2"
-          alt="Preview"
+          alt="Vista previa"
         />
         <p v-else class="text-gray-400 text-sm">
           Arrastrá una foto aquí o hacé clic para buscarla

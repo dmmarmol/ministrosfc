@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { GameStatus } from "@ministrosfc/shared";
 definePageMeta({ public: true });
-useHead({ title: "Schedule – Ministros FC" });
+useHead({ title: "Calendario" });
 
 const { $api } = useNuxtApp();
 

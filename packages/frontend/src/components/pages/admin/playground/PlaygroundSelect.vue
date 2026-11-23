@@ -62,7 +62,7 @@ function handleUpdate(value: SelectItem | undefined) {
     :loading="loading"
     value-key="value"
     label-key="label"
-    placeholder="Seleccionar cancha"
+    placeholder="Elegí una cancha"
     :search-input="false"
     :clear="true"
     :ui="{ content: 'min-w-fit' }"

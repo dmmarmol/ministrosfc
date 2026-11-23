@@ -3,7 +3,7 @@ import { ref, onMounted, reactive } from "vue";
 import { DEFAULT_DATE_LOCALE } from "@ministrosfc/shared";
 
 definePageMeta({ middleware: "auth", requiresAuth: true });
-useHead({ title: "Perfil de Usuario – Ministros FC" });
+useHead({ title: "Perfil de usuario" });
 
 const { $api } = useNuxtApp();
 
@@ -184,7 +184,7 @@ function roleBadgeClass(role: string): string {
               size="xl"
               @click="saveChanges"
             >
-              {{ loading ? "Guardando…" : "Guardar cambios" }}
+              {{ loading ? "Guardando…" : "Guardá los cambios" }}
             </UButton>
           </div>
           <UButton

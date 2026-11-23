@@ -117,7 +117,7 @@ export const useAuthStore = defineStore("auth", {
       const storedToken =
         this.refreshToken ??
         (useRuntime().isClient ? localStorage.getItem("refreshToken") : null);
-      if (!storedToken) throw new Error("No refresh token available");
+      if (!storedToken) throw new Error("No hay un token de renovación disponible.");
       const data = await $fetch<{
         data: { accessToken: string; refreshToken: string };
       }>(`${config.public.apiBaseUrl}/api/v1/auth/refresh`, {

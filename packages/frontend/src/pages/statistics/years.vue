@@ -10,7 +10,7 @@ definePageMeta({
   middleware: "auth",
   requiresAuth: true,
 });
-useHead({ title: "Estadísticas por Año – Ministros FC" });
+useHead({ title: "Estadísticas por Año" });
 
 const { $api } = useNuxtApp();
 const route = useRoute();

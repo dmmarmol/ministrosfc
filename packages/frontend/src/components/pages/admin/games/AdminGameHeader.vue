@@ -31,7 +31,7 @@ const emit = defineEmits<{
         <p v-if="game.status === GameStatus.COMPLETED" class="text-3xl font-bold">
           {{ game.homeTeamScore ?? 0 }} – {{ game.awayTeamScore ?? 0 }}
         </p>
-        <p v-else class="text-lg text-gray-400">vs</p>
+        <p v-else class="text-lg text-gray-400">vs.</p>
         <span
           class="text-xs px-2 py-0.5 rounded-full font-semibold mt-1 inline-block"
           :class="{
@@ -63,7 +63,7 @@ const emit = defineEmits<{
         class="text-sm font-medium"
         @click="emit('copy-signup-link')"
       >
-        📋 Copiar link de convocatoria
+        📋 Copiar enlace de convocatoria
       </UButton>
     </div>
   </div>

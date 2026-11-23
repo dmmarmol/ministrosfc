@@ -65,7 +65,7 @@ const canManageRoster = computed(() => {
 
 useHead(() => ({
   title: game.value
-    ? `Convocatoria vs ${game.value.opponentTeam?.name} – ${config.public.siteName}`
+    ? `Convocatoria vs. ${game.value.opponentTeam?.name} – ${config.public.siteName}`
     : "Convocatoria",
 }));
 

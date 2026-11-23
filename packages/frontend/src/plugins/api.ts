@@ -66,14 +66,16 @@ export default defineNuxtPlugin(() => {
       if (fetchError.status === 403) {
         throw {
           statusCode: 403,
-          message: "Access forbidden",
+          message: "No tenés permiso para realizar esta acción.",
           code: "FORBIDDEN",
         } satisfies ApiError;
       }
 
       throw {
         statusCode: fetchError.status ?? 500,
-        message: fetchError.data?.message ?? "An unexpected error occurred",
+        message:
+          fetchError.data?.message ??
+          "Ocurrió un error inesperado. Volvé a intentarlo.",
         code: fetchError.data?.code,
       } satisfies ApiError;
     }

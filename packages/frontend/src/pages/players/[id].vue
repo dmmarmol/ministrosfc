@@ -28,8 +28,8 @@ async function onYearChange(newYear: string) {
 
 useHead(() => ({
   title: player.value
-    ? `${player.value.firstName} ${player.value.lastName} – Ministros FC`
-    : "Jugador no encontrado – Ministros FC",
+    ? `${player.value.firstName} ${player.value.lastName}`
+    : "Jugador no encontrado",
 }));
 </script>
 

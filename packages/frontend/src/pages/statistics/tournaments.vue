@@ -13,7 +13,7 @@ definePageMeta({
   middleware: "auth",
   requiresAuth: true,
 });
-useHead({ title: "Estadísticas por Torneo – Ministros FC" });
+useHead({ title: "Estadísticas por Torneo" });
 
 const { $api } = useNuxtApp();
 const route = useRoute();

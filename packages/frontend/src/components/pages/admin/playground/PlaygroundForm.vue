@@ -24,7 +24,7 @@ const props = withDefaults(
   }>(),
   {
     playground: null,
-    submitLabel: "Guardar cancha",
+    submitLabel: "Guardá la cancha",
     cancelTo: "/admin/playgrounds",
     loading: false,
     error: "",

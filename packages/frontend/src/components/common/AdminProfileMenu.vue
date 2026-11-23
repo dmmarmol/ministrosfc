@@ -43,7 +43,7 @@ onUnmounted(() => {
       @click="openMenu"
       icon="mdi:chevron-down"
     >
-      {{ authStore.fullName || "Admin" }}
+      {{ authStore.fullName || "Administrador" }}
     </UButton>
 
     <div

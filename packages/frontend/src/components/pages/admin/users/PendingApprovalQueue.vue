@@ -63,7 +63,7 @@ const emit = defineEmits<{
                 {{ item.suggestions[0]!.lastName }}
               </p>
               <p class="text-xs text-gray-500">
-                score {{ item.suggestions[0]!.matchScore }}
+                Coincidencia: {{ item.suggestions[0]!.matchScore }}
               </p>
             </template>
             <span v-else class="text-xs text-gray-400">Sin sugerencias</span>

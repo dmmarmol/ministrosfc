@@ -153,7 +153,7 @@ function submitGuest() {
             :disabled="isInteractionDisabled || proxyLoading || fetchLoading"
             :loading="fetchLoading"
             :labels="{
-              placeholder: 'Seleccionar jugador',
+              placeholder: 'Elegí un jugador',
               addNew: '', // hide internal 'add more' trigger — separate button used instead (plan.md C1 fix)
             }"
             @select="onPlayerSelected"
