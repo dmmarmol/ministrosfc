@@ -5,7 +5,7 @@ Handoff document for any agent or developer returning to this feature. It record
 - **Branch / PR**: `021-pre-release-bugfixes` → `main`, https://github.com/dmmarmol/ministrosfc/pull/5 (title `fix(pre-release-bugfixes): fix game save flow, roster filters and dark mode`)
 - **Release**: 0.13.0 (minor) for the root and `@ministrosfc/{cms,frontend,shared}`. Changelog entries are in all four `CHANGELOG.md` files. No git tag was created.
 - **Status**: All tasks T001–T032 complete. Validation results are at the bottom.
-- **Manual QA**: repeatable browser runbook in `docs/guides/MANUAL_QA_CHROME.md` (setup, ground rules, scenarios S1–S7).
+- **Manual QA**: the browser runbook is kept out of the repository (gitignored `private/` directory, local to the maintainer). The scenarios are summarized in `quickstart.md`; the regressions they found are in §4.
 
 ## 1. What shipped, by user story
 
@@ -84,4 +84,4 @@ These were not in the original QA list. Each was found by driving the real app i
 - Frontend is served over **HTTPS** at `https://localhost.ministrosfc.com:5103`; CMS at `http://localhost:5102`. `curl http://localhost:5103` fails.
 - Start services with `podman machine start`, `npm run docker:up`, `npm run dev:all`. Jest uses the separate `ministrosfc_test` database.
 - Claude in Chrome: `resize_window` does not give a reliable phone viewport; use same-origin iframes of the target width. A tab can freeze after heavy scripts; open a fresh tab.
-- `gh` has two accounts logged in; `dmmarmol` has access to the repo, `redacted` (an enterprise-managed account) does not.
+- If `gh pr create` fails with an authorization error, check `gh auth status`: the active account must have access to this repository (`gh auth switch --user <name>`).

@@ -38,7 +38,6 @@ Minor release delivering the spec 021 pre-release bugfixes: reliable game-save a
 - Shared `BackButton`, `returnUrl` resolver and `usePlayers` composable.
 - Shared types: `PaginatedResponse`, `PlayerListQuery`, `GameListQuery`, `competitionTypeLabels`.
 - `AGENTS.md` and Claude Code assets under `.claude/` (skills, spec-kit commands, subagents, rules), including a `create-pr` skill.
-- `docs/guides/MANUAL_QA_CHROME.md`, a repeatable browser QA runbook.
 
 ### Fixed
 

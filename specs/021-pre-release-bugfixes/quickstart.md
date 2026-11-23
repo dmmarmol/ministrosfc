@@ -60,4 +60,4 @@ Confirm both Game and Tournament records formerly marked `SEASON` now read `LEAG
    - With `.dark` on the root HTML element, inspect public and admin surfaces for readable text, borders, and backgrounds using the existing theme tokens.
    - Confirm end-user game status labels are Spanish and missing/unknown values render `Sin estado` or `Sin tipo` without breaking the view.
 
-A repeatable, Chrome-driven version of these scenarios (with the regressions found during validation) is in `docs/guides/MANUAL_QA_CHROME.md`.
+The scenarios above were also run through a browser session; see `implementation-notes.md` for the regressions that session found.

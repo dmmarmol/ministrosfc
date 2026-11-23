@@ -110,4 +110,4 @@ Features are specified under `specs/NNN-name/` using spec-kit (slash commands `/
 
 ## Manual QA
 
-Browser-driven scenarios (setup, ground rules, per-feature steps and known regressions) live in `docs/guides/MANUAL_QA_CHROME.md`. Use it when asked to test the app in Chrome, always at `https://localhost.ministrosfc.com:5103`. Add new scenarios there when a feature ships or a QA run finds a regression.
+For browser-driven QA, use Claude in Chrome against `https://localhost.ministrosfc.com:5103` (the frontend is served over HTTPS, the CMS runs on `http://localhost:5102`). The user signs in themselves; never type passwords. Prefer read-only checks on the dev database, clean up any `QA Temp ...` records you create, and check responsive layouts with same-origin iframes rather than `resize_window`. Private QA runbooks and design sketches live in the gitignored `private/` directory when present locally; they are intentionally not part of the repository.

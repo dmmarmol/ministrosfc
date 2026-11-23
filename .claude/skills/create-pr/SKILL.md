@@ -125,7 +125,7 @@ fix(pre-release-bugfixes): fix game save flow, roster filters and dark mode
 Delivers the pre-release QA fixes from spec 021: game save navigation, public roster behavior, dashboard cleanup, a dark mode that is legible on every surface, and the removal of the ambiguous "Temporada" competition type.
 
 ## Why
-Manual QA in the dev environment surfaced bugs that block the first production release (BUGS-10_2026.md, `specs/021-pre-release-bugfixes`). Validating them in a real browser also exposed regressions that are fixed here.
+Manual QA in the dev environment surfaced bugs that block the first production release (`specs/021-pre-release-bugfixes`). Validating them in a real browser also exposed regressions that are fixed here.
 
 ## Changes
 - **Frontend:** Saving a game returns to a validated internal `returnUrl` (or `/admin/games`) and the list is fresh; shared `BackButton`.
@@ -136,6 +136,6 @@ Manual QA in the dev environment surfaced bugs that block the first production r
 - **Fix:** Admin team/playground/tournament forms no longer reload the page before redirecting.
 
 ## Documentation
-- `docs/guides/MANUAL_QA_CHROME.md`: repeatable browser QA runbook.
+- `docs/guides/TECH_STACK.md`: updated stack overview.
 - `AGENTS.md`: agent instructions derived from the Copilot instructions.
 ```
