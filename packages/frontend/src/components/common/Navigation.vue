@@ -60,7 +60,8 @@ const mobileOpen = ref(false);
         </li>
       </ul>
       <!-- Auth button (client-only to avoid hydration mismatch from storage-based auth state) -->
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <UiColorModeToggle class="text-gray-400 hover:text-white" />
         <ClientOnly>
           <template v-if="authStore.isAuthenticated">
             <AdminProfileMenu v-if="authStore.isEditor" />

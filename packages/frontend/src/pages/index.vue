@@ -56,7 +56,7 @@ const topScorers = computed(() => scorersData.value?.data ?? []);
       class="bg-gradient-to-br from-primary-100 to-primary-50 text-white py-8 px-8 h-96 rounded-2xl mb-10 flex items-end"
     >
       <div class="max-w-3xl">
-        <h2 class="text-gray-700 dark:text-white text-6xl font-bold mb-3">
+        <h2 class="text-gray-700 dark:text-white text-4xl sm:text-6xl font-bold mb-3 break-words">
           Bienvenido a <span class="text-brand">Ministros FC</span>
         </h2>
         <p class="text-gray-700 dark:text-white text-lg mb-6">

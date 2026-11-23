@@ -119,11 +119,12 @@ const handleLogout = () => {
     <!-- Main content -->
     <div class="flex-1 flex flex-col overflow-hidden">
       <header
-        class="bg-surface shadow-sm px-6 py-4 flex items-center justify-end"
+        class="bg-surface shadow-sm px-4 sm:px-6 py-4 flex items-center justify-end gap-2 sm:gap-3"
       >
         <!-- <h1 class="text-lg font-semibold text-gray-800">{{ pageTitle }}</h1> -->
-        <div v-if="authStore.user" class="flex flex-col text-right">
-          <p class="text-sm text-gray-800">
+        <UiColorModeToggle />
+        <div v-if="authStore.user" class="flex flex-col text-right min-w-0">
+          <p class="text-sm text-gray-800 truncate">
             Bienvenido,
             <span
               >{{ authStore.user?.firstName }}
