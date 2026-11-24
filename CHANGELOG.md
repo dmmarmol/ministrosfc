@@ -15,6 +15,14 @@ Per-package history is maintained in each package's own changelog:
 
 ## [Unreleased]
 
+### Fixed
+
+- Deployments with Redis disabled (local development and the DEV apps) now keep refresh tokens in an in-process store, so a signed-in session can be renewed instead of failing after the access token expires.
+
+### Changed
+
+- `deploy.yml` comment now describes the last-successful-run diff base accurately (spec 022 follow-up).
+
 ---
 
 ## [0.15.0] — 2026-11-23

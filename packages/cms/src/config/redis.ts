@@ -24,6 +24,73 @@ function createNoopClient(): Redis {
 }
 
 /**
+ * A tiny in-process stand-in for the Redis commands the CMS uses (get, setex, del, keys,
+ * flushall, ping). Used where Redis is deliberately absent (local development and DEV
+ * deployments). Refresh tokens live in Redis, so the stand-in must remember what it is
+ * given: a client that discards writes makes every session refresh fail. Data lasts for the
+ * process lifetime only, which is acceptable outside production.
+ */
+export function createMemoryClient(now: () => number = Date.now): Redis {
+  const store = new Map<string, { value: string; expiresAt: number }>();
+
+  const live = (key: string): string | null => {
+    const entry = store.get(key);
+    if (!entry) return null;
+    if (entry.expiresAt <= now()) {
+      store.delete(key);
+      return null;
+    }
+    return entry.value;
+  };
+
+  const toRegExp = (pattern: string): RegExp =>
+    new RegExp(
+      `^${pattern
+        .split("*")
+        .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, "\\$&"))
+        .join(".*")}$`,
+    );
+
+  const methods: Record<string, unknown> = {
+    status: "ready",
+    get: async (key: string) => live(key),
+    setex: async (key: string, seconds: number, value: string) => {
+      store.set(key, { value, expiresAt: now() + seconds * 1000 });
+      return "OK";
+    },
+    del: async (...keys: string[]) =>
+      keys.reduce((count, key) => {
+        const existed = live(key) !== null;
+        store.delete(key);
+        return count + (existed ? 1 : 0);
+      }, 0),
+    keys: async (pattern: string) => {
+      const matcher = toRegExp(pattern);
+      return [...store.keys()].filter(
+        (key) => matcher.test(key) && live(key) !== null,
+      );
+    },
+    flushall: async () => {
+      store.clear();
+      return "OK";
+    },
+    ping: async () => "PONG",
+    connect: async () => undefined,
+    quit: async () => "OK",
+    disconnect: () => undefined,
+  };
+  const client = new Proxy({} as Redis, {
+    get(_target, prop: string) {
+      if (prop === "on" || prop === "removeAllListeners") return () => client;
+      return methods[prop] ?? (async () => null);
+    },
+  });
+  return client;
+}
+
+let memoryClient: Redis | null = null;
+
+/**
  * Decides whether the cache should be a no-op.
  *
  * - Always in development, test and Jest workers.
@@ -58,7 +125,13 @@ export function isRedisDisabled(
 
 export function getRedisClient(): Redis {
   if (shouldUseNoopRedis()) {
-    return createNoopClient();
+    // Tests keep the stateless stub (every read is a miss); every other cache-less
+    // process shares one in-memory store so sessions survive between requests.
+    if (process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID != null) {
+      return createNoopClient();
+    }
+    memoryClient ??= createMemoryClient();
+    return memoryClient;
   }
   if (!redisClient) {
     // REDIS_URL takes precedence (Upstash / any provider that gives a full

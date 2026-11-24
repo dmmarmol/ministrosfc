@@ -9,6 +9,10 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `getRedisClient()` returns a shared in-memory store (`createMemoryClient`) when Redis is disabled outside Jest, instead of a stub that discarded writes. Refresh tokens (`session:refresh:*`) now persist for the process lifetime, so `POST /auth/refresh` works on DEV. Tests keep the stateless stub.
+
 ---
 
 ## [0.15.0] — 2026-11-23

@@ -197,3 +197,6 @@ service-account.json
 
 # Local-only notes, QA runbooks and design sketches (never commit)
 /private/
+
+# Temporary deployment notes (never commit)
+/DEPLOY_DEC_1.tmp.md
