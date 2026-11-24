@@ -43,7 +43,8 @@ on:
           - frontend
 
 # Deployments for the same environment queue instead of overlapping. GitHub keeps one pending
-# run per group and replaces older pending runs, which is why every run deploys both apps.
+# run per group and replaces older pending runs, which is why "what changed" is measured from the
+# last successful run (see the "decide" job) and not from this push alone.
 concurrency:
   group: deploy-${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'production' || 'development' }}
   cancel-in-progress: false
