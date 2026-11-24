@@ -58,7 +58,7 @@ description: "Task list for spec 022: first production release and automated pro
 - [X] T016 [US1] Create `.github/workflows/deploy.yml` per `contracts/deployment-pipeline.md`: triggers, `changes` job using `scripts/deploy/detect-changes.js`, test jobs via `workflow_call`, CMS then frontend deploy and verify jobs, previous-image recording and automatic rollback using the scripts from T012–T013, environment by branch, `concurrency` group per environment without cancellation, production guard `github.ref == 'refs/heads/main'`, least-privilege `permissions`, `setup-flyctl` pinned to a released version, deploy with `--config packages/<app>/fly.<environment>.toml`.
 - [X] T017 [US1] Create `.github/workflows/rollback.yml` per the contract (inputs `environment`, `app`, optional `version`), using `scripts/deploy/rollback-image.sh`.
 - [X] T018 [US1] Search the repository for references to the removed `fly.toml` files and the removed `release` trigger (workflows, scripts, docs, `specs/001-ministrosfc-monorepo/deployment.md`) and update them.
-- [ ] T019 [US1] Validate every workflow with `actionlint` (install with the owner's approval if missing) and run `scripts/deploy/smoke-test.sh --dry-run` and `rollback-image.sh --dry-run`; fix findings.
+- [X] T019 [US1] Validate every workflow with `actionlint` (install with the owner's approval if missing) and run `scripts/deploy/smoke-test.sh --dry-run` and `rollback-image.sh --dry-run`; fix findings.
 - [ ] T020 [OWNER] [US1] Exercise the DEV pipeline: quickstart B1–B6 (CMS-only change, docs-only change, two quick merges, failing migration, rollback, DEV crawler check).
 
 **Checkpoint**: a merge to `develop` deploys DEV through the new pipeline; the same workflow serves `main`.

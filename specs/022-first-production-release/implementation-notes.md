@@ -33,9 +33,9 @@ Handoff for anyone returning to this feature. Read after `spec.md` (intent) and 
 ## 3. Verification performed
 
 - CMS: build clean, 62 suites / 581 tests passing (one skipped). Frontend: 63 files / 434 tests passing. Lint: no errors on the changed files.
-- Workflow files parse; Fly files pass a structural check (`flyctl config validate` needs a Fly login and was not run); shell scripts ran in dry-run mode and failure paths were exercised.
+- All six workflows pass `actionlint` 1.7.12 (installed with `brew install actionlint`; run `actionlint` from the repository root). Fly files pass a structural check (`flyctl config validate` needs a Fly login and was not run); shell scripts ran in dry-run mode and failure paths were exercised.
 - The public pages were exercised against a freshly migrated empty database (dev server and a production build): all 200, Spanish empty states.
-- **Not verified here** (needs the owner's accounts or tools): the pipeline itself on GitHub, Fly deploys and rollbacks, Neon behavior (suspension, usage), `actionlint` (not installed).
+- **Not verified here** (needs the owner's accounts or tools): the pipeline itself on GitHub, Fly deploys and rollbacks, Neon behavior (suspension, usage), the pipeline's behavior on GitHub.
 
 ## 4. Deviations from the plan
 
@@ -52,7 +52,6 @@ Handoff for anyone returning to this feature. Read after `spec.md` (intent) and 
 - Configure the Neon usage alert and verify idle suspension; import the club data with the CSV import.
 
 **Repository follow-ups**:
-- Validate the workflows with `actionlint` (T019) once it is installed.
 - Release prep (T053): version bump, changelogs and annotated tag with the `create-release` skill.
 - Carried over from spec 021: switch the spec-kit integration to `claude`, update `apm.yml` / `apm.lock.yaml` paths, add a `CLAUDE.md` that imports `AGENTS.md`, remove `.github/copilot-instructions.md`.
 - Only if a running CSV import is interrupted by auto stop: add a graceful-shutdown wait for the running job (see research §11).

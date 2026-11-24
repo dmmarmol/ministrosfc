@@ -4,8 +4,7 @@ import { useJerseyAvailability } from "~/composables/useJerseyAvailability";
 import { useCmsCapabilities } from "~/composables/useCmsCapabilities";
 import UiPositionSelect from "~/components/ui/Position/Select.vue";
 import UiJerseyNumberInput from "~/components/ui/JerseyNumberInput.vue";
-import { type Position, type Player, PlayerStatus } from "@ministrosfc/shared";
-import { useNuxtApp } from "nuxt/app";
+import { type Position, PlayerStatus } from "@ministrosfc/shared";
 
 export type PlayerFormData = {
   firstName: string;
@@ -34,7 +33,6 @@ const emit = defineEmits<{
   (e: "submit", formData: PlayerFormData): void;
 }>();
 
-const { $api } = useNuxtApp();
 const { photoUploadsEnabled, load: loadAppConfig } = useCmsCapabilities();
 const photoInput = ref<HTMLInputElement | null>(null);
 const photoFile = ref<File | null>(null);
