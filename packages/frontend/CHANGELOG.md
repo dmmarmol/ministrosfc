@@ -13,6 +13,28 @@ For project-level release notes covering all packages, see the root [CHANGELOG.m
 
 ---
 
+## [0.15.0] — 2026-11-23
+
+### Summary
+
+Minor release for the first production launch: cached public pages, crawler controls and capability-driven photo upload. See the root changelog for the full release.
+
+### Changed
+
+- The admin player form shows the photo input only when the API reports photo uploads enabled.
+- Nuxt UI built-in texts, such as empty tables, use the Spanish locale.
+- `robots.txt` depends on the environment (production allows public routes, other environments disallow everything).
+
+### Added
+
+- Public pages are cached for 5 minutes (stale-while-revalidate) in production builds; private routes are never cached.
+- Server middleware: `X-Robots-Tag: noindex` outside production, a deny-list for abusive crawlers and a per-IP rate limit.
+- `useCmsCapabilities` composable and per-environment Fly config files.
+
+### Fixed
+
+- The container image no longer copies `.env*` files.
+
 ## [0.13.0] - 2026-11-23
 
 ### Summary

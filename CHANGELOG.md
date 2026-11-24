@@ -17,6 +17,37 @@ Per-package history is maintained in each package's own changelog:
 
 ---
 
+## [0.15.0] — 2026-11-23
+
+### Summary
+
+Minor release implementing spec 022 (first production release): a merge to `main` now deploys production automatically with tests, migrations, health checks and automatic rollback; the CMS and frontend ship separately; and the changes that were exhausting the free database allowance are fixed. Production owner-run bootstrap steps are documented in `docs/guides/DEPLOYMENT.md`.
+
+### Changed
+
+- Production deploys on merge to `main` (DEV on `develop`) instead of on a published release; the CI workflows are test-only and reusable, and workflows use least-privilege permissions and a pinned `flyctl` action.
+- `/api/v1/health` is dependency-free; game statuses sync at startup and, throttled, when games are read, instead of every 5 minutes, so an idle environment no longer wakes the database.
+- Photo storage (Cloudinary) is optional at launch, DEV runs without Redis (`REDIS_DISABLED`), and production requires `APP_ENV=production`, Redis and HTTPS CORS origins.
+- Public pages are cached for 5 minutes in production builds; DEV blocks crawlers, abusive crawler user agents are refused and SSR requests are rate limited per IP.
+- Nuxt UI built-in texts, such as empty tables, are shown in Spanish.
+
+### Added
+
+- `Deploy` workflow with per-app deployment measured from the last successful run, smoke tests, queueing per environment and automatic rollback; `Rollback` workflow and `scripts/deploy/` helpers.
+- Per-environment Fly config (`fly.development.toml`, `fly.production.toml`) for both apps, with scale to zero, liveness checks and migrations over the direct database URL.
+- `GET /api/v1/health/ready` (database and Redis, cached 30 s) and `GET /api/v1/config` (capability flags such as `photoUploadsEnabled`).
+- Environment-aware `robots.txt`, `X-Robots-Tag: noindex` outside production and `useCmsCapabilities` in the admin player form.
+- Deployment runbook (`docs/guides/DEPLOYMENT.md`) with secrets matrix, owner bootstrap, rollback and troubleshooting; spec 022 documents.
+
+### Fixed
+
+- Both container images no longer copy `.env*` files; a test guards it.
+- The "Reset CMS Database" workflow can no longer target production, and seeding the production admin needs a typed confirmation.
+
+### Removed
+
+- The shared `fly.toml` files and the release-triggered production deploy path.
+
 ## [0.14.0] — 2026-11-23
 
 ### Added
