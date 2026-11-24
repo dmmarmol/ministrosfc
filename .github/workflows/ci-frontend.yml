@@ -1,20 +1,13 @@
-name: Frontend CI/CD
+name: Frontend CI
 
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: "Deployment environment (manual deploys are development only)"
-        required: true
-        default: "development"
-        type: choice
-        options:
-          - development
-  release:
-    types: [published]
+  # Reused by deploy.yml (workflow_call) so the same tests gate every deployment.
+  workflow_call:
   push:
-    branches:
-      - "**"
+    # develop and main are tested by deploy.yml; other branches are tested here.
+    branches-ignore:
+      - develop
+      - main
     paths:
       - "packages/frontend/**"
       - "packages/shared/**"
@@ -30,6 +23,10 @@ on:
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/ci-frontend.yml"
+
+# Least privilege: tests only read the repository.
+permissions:
+  contents: read
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
@@ -73,30 +70,3 @@ jobs:
         run: npm test -- --run
         env:
           NODE_ENV: test
-
-  # ─────────────────────────────────────────────────────────────────────────────
-  # Deploy Frontend
-  #   release (published) → environment: production → ministrosfc-frontend
-  #   push to develop     → environment: development → ministrosfc-frontend-dev
-  #   workflow_dispatch   → environment: development → ministrosfc-frontend-dev
-  # Production is ONLY reachable via a published GitHub Release.
-  # ─────────────────────────────────────────────────────────────────────────────
-  deploy-frontend:
-    name: Deploy Frontend
-    needs: [build-frontend]
-    if: |
-      github.event_name == 'release' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/develop')
-    runs-on: ubuntu-latest
-    environment: ${{ github.event_name == 'release' && 'production' || 'development' }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-
-      - name: Deploy Frontend to Fly.io
-        run: flyctl deploy --config packages/frontend/fly.toml --app ${{ secrets.FRONTEND_APP_NAME }} --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

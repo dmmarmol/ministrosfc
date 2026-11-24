@@ -1,0 +1,46 @@
+# Ministros FC - Backend CMS (PRODUCTION)
+# One Fly config per environment: scaling and public settings differ explicitly.
+# Secrets are NEVER stored here. Set them with `flyctl secrets set` (see docs/guides/DEPLOYMENT.md):
+#   DATABASE_URL (Neon pooled), DIRECT_URL (Neon direct, migrations), JWT_SECRET, REDIS_URL (production),
+#   GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET (if Google sign-in is enabled).
+app = "ministrosfc-cms"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[deploy]
+  # Run Prisma migrations before traffic switches to the new version, over the direct (non-pooled)
+  # Neon connection when DIRECT_URL is set. If the migration fails, the release is aborted and the
+  # old version stays live.
+  release_command = "sh -c 'DATABASE_URL=\"${DIRECT_URL:-$DATABASE_URL}\" node_modules/.bin/prisma migrate deploy --schema=packages/cms/prisma/schema.prisma'"
+
+[http_service]
+  internal_port = 5102
+  force_https = true
+  # Scale to zero so an idle app stops using compute (and lets the database suspend).
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  # Liveness only: this endpoint never touches the database or Redis.
+  [[http_service.checks]]
+    grace_period = "20s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/api/v1/health"
+
+[env]
+  APP_ENV = "production"
+  NODE_ENV = "production"
+  API_PORT = "5102"
+  CORS_ORIGINS = "https://ministrosfc-frontend.fly.dev"
+  FRONTEND_URL = "https://ministrosfc-frontend.fly.dev"
+  GOOGLE_REDIRECT_URI = "https://ministrosfc-cms.fly.dev/api/v1/auth/google/callback"
+  # REDIS_URL is a secret (Upstash): flyctl secrets set REDIS_URL=...
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512

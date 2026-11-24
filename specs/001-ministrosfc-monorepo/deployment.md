@@ -1,5 +1,7 @@
 # Deployment Guide: Fly.io Configuration
 
+> **Superseded.** This was the initial plan (March 2026). The current, implemented process is described in [`docs/guides/DEPLOYMENT.md`](../../docs/guides/DEPLOYMENT.md) and specs 018 and 022.
+
 **Platform**: Fly.io  
 **Decision Date**: March 17, 2026  
 **Status**: Selected, not yet implemented  

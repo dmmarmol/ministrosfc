@@ -23,12 +23,41 @@ function createNoopClient(): Redis {
   return noop;
 }
 
-export function getRedisClient(): Redis {
+/**
+ * Decides whether the cache should be a no-op.
+ *
+ * - Always in development, test and Jest workers.
+ * - In a deployed development app (APP_ENV is not "production") when
+ *   REDIS_DISABLED=true, so DEV needs no Redis instance.
+ * - Never in production: REDIS_DISABLED is ignored when APP_ENV=production
+ *   (and rejected by env validation).
+ */
+export function shouldUseNoopRedis(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
   if (
-    process.env.NODE_ENV === "development" ||
-    process.env.NODE_ENV === "test" ||
-    process.env.JEST_WORKER_ID != null
+    env.NODE_ENV === "development" ||
+    env.NODE_ENV === "test" ||
+    env.JEST_WORKER_ID != null
   ) {
+    return true;
+  }
+  const disabled = env.REDIS_DISABLED?.trim().toLowerCase() === "true";
+  return disabled && env.APP_ENV !== "production";
+}
+
+/** True when the cache was deliberately turned off (DEV deployments only). */
+export function isRedisDisabled(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  return (
+    env.REDIS_DISABLED?.trim().toLowerCase() === "true" &&
+    env.APP_ENV !== "production"
+  );
+}
+
+export function getRedisClient(): Redis {
+  if (shouldUseNoopRedis()) {
     return createNoopClient();
   }
   if (!redisClient) {

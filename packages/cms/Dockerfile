@@ -68,8 +68,6 @@ COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 
 # Copy Prisma schema and migrations
 COPY packages/cms/prisma ./packages/cms/prisma
-COPY packages/cms/.env* ./packages/cms/
-COPY .env* ./
 
 # Copy package files (needed for runtime)
 COPY package.json package-lock.json ./

@@ -216,7 +216,7 @@ npm run test:e2e # Run E2E tests (Playwright)
 | [**plan.md**](./specs/001-ministrosfc-monorepo/plan.md)             | Implementation plan & architecture      |
 | [**data-model.md**](./specs/001-ministrosfc-monorepo/data-model.md) | Database schema & entity relationships  |
 | [**tasks.md**](./specs/001-ministrosfc-monorepo/tasks.md)           | Implementation tasks (180 tasks)        |
-| [**deployment.md**](./specs/001-ministrosfc-monorepo/deployment.md) | Fly.io deployment guide                 |
+| [**DEPLOYMENT.md**](./docs/guides/DEPLOYMENT.md) | Deployment runbook (Fly.io, Neon, pipeline) |
 | [**TECH_STACK.md**](./docs/guides/TECH_STACK.md)                    | Complete technology choices & rationale |
 
 ### API Contracts
@@ -354,23 +354,17 @@ cd packages/frontend && npm run build
 
 ## 🚀 Deployment
 
-### Fly.io (Selected Platform - Free Tier)
+### Fly.io (automated)
 
-See the full deployment guide: [deployment.md](./specs/001-ministrosfc-monorepo/deployment.md)
+Merging to `develop` deploys DEV and merging to `main` deploys production, automatically (tests, database migrations, CMS then frontend, health checks, automatic rollback on failure). Each environment has its own Fly config: `packages/{cms,frontend}/fly.development.toml` and `fly.production.toml`.
 
-For environment setup, first-time infrastructure provisioning, and secret rotation, see the **[spec 018 quickstart](./specs/018-deployment-process/quickstart.md)**.
+For the architecture, environments, secret names, first-time bootstrap, rollback and troubleshooting, see the **[deployment runbook](./docs/guides/DEPLOYMENT.md)**.
+
+Emergency manual deploy (needs a Fly token; see the runbook first):
 
 ```bash
-# Install Fly CLI
-curl -L https://fly.io/install.sh | sh
-
-# Deploy backend
-cd packages/cms
-fly deploy
-
-# Deploy frontend
-cd packages/frontend
-fly deploy
+flyctl deploy --config packages/cms/fly.production.toml --remote-only
+flyctl deploy --config packages/frontend/fly.production.toml --remote-only
 ```
 
 **Free Tier Allocation:**

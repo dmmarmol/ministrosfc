@@ -1,8 +1,15 @@
 name: Seed CMS Admin
 
+# Creates or updates the administrator user. Credentials come from the GitHub environment
+# secrets, are injected as environment variables and are never printed.
+#   - Automatically (development only) after a successful "Deploy" or "Reset CMS Database" run
+#     on develop.
+#   - Manually for development or production. Production needs the typed confirmation
+#     SEED_ADMIN and the protection rules of the "production" GitHub environment.
+
 on:
   workflow_run:
-    workflows: ["CMS CI/CD", "Reset CMS Database"]
+    workflows: ["Deploy", "Reset CMS Database"]
     types: [completed]
 
   workflow_dispatch:
@@ -15,6 +22,13 @@ on:
         options:
           - development
           - production
+      confirmation:
+        description: "Production only: type SEED_ADMIN to confirm"
+        required: false
+        type: string
+
+permissions:
+  contents: read
 
 jobs:
   seed-admin:
@@ -27,7 +41,7 @@ jobs:
     #
     #   This job only SSHes into the already-running Fly container and
     #   executes the pre-compiled file. It will work correctly whether
-    #   triggered automatically (after CMS CI/CD) or manually via
+    #   triggered automatically (after the Deploy workflow) or manually via
     #   workflow_dispatch, as long as the app was deployed at least once
     #   with the current Dockerfile.
     #
@@ -45,9 +59,19 @@ jobs:
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'development' }}
 
     steps:
+      - name: Require confirmation for production
+        if: github.event_name == 'workflow_dispatch' && inputs.environment == 'production'
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          if [[ "$CONFIRMATION" != "SEED_ADMIN" ]]; then
+            echo "Seeding production requires the typed confirmation SEED_ADMIN." >&2
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
 
-      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - uses: superfly/flyctl-actions/setup-flyctl@1.5
 
       - name: Upsert admin user on Fly app
         env:

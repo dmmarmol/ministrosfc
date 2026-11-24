@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from "vue";
 import { useJerseyAvailability } from "~/composables/useJerseyAvailability";
+import { useCmsCapabilities } from "~/composables/useCmsCapabilities";
 import UiPositionSelect from "~/components/ui/Position/Select.vue";
 import UiJerseyNumberInput from "~/components/ui/JerseyNumberInput.vue";
-import { type Position, type Player, PlayerStatus } from "@ministrosfc/shared";
-import { useNuxtApp } from "nuxt/app";
+import { type Position, PlayerStatus } from "@ministrosfc/shared";
 
 export type PlayerFormData = {
   firstName: string;
@@ -33,7 +33,7 @@ const emit = defineEmits<{
   (e: "submit", formData: PlayerFormData): void;
 }>();
 
-const { $api } = useNuxtApp();
+const { photoUploadsEnabled, load: loadAppConfig } = useCmsCapabilities();
 const photoInput = ref<HTMLInputElement | null>(null);
 const photoFile = ref<File | null>(null);
 const photoPreview = ref<string | null>(null);
@@ -92,6 +92,7 @@ function setPhoto(file: File) {
 const { taken: takenJerseys, fetch: fetchJerseyAvailability } =
   useJerseyAvailability();
 onMounted(async () => {
+  void loadAppConfig();
   const excludePlayerId: string | undefined = props.playerId;
   await fetchJerseyAvailability(excludePlayerId);
 });
@@ -207,13 +208,8 @@ async function handleSubmit() {
       </div>
     </div>
 
-    <!-- Photo upload -->
-    <div class="relative">
-      <UiLoadingOverlay>
-        <p class="text-lg font-medium text-gray-500">
-          Aun no es posible subir fotos
-        </p>
-      </UiLoadingOverlay>
+    <!-- Photo upload: only offered when the API reports photo storage is configured -->
+    <div v-if="photoUploadsEnabled" class="relative">
       <label class="block text-xs font-medium text-gray-700 mb-1">Foto</label>
       <div
         class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-brand transition-colors"
@@ -238,7 +234,6 @@ async function handleSubmit() {
         accept="image/jpeg,image/png"
         class="hidden"
         @change="onFileChange"
-        disabled
       />
     </div>
     <div class="flex justify-end w-full gap-3 pt-2">

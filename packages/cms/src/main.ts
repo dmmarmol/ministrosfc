@@ -3,9 +3,8 @@ import { validateEnv } from "./config/env-validation";
 import { createApp, API_PORT } from "./config/server";
 import { connectDatabase, disconnectDatabase } from "./config/database";
 import { runGameStatusTransitions } from "./jobs/GameStatusTransitionJob";
+import { recordGameStatusSync } from "./jobs/GameStatusSync";
 import { logger } from "./utils/logger";
-
-const JOB_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 async function bootstrap(): Promise<void> {
   // Fail fast if any required env var is missing — surfaces config errors
@@ -17,9 +16,11 @@ async function bootstrap(): Promise<void> {
   await connectDatabase();
   logger.info("Database connected");
 
-  // Run game status transitions on startup and every 5 minutes
+  // Synchronize game statuses once at startup. There is deliberately no recurring timer:
+  // later syncs run (throttled) when a request reads games, so an idle process never
+  // queries the database and the scale-to-zero database can suspend.
   await runGameStatusTransitions();
-  const jobInterval = setInterval(runGameStatusTransitions, JOB_INTERVAL_MS);
+  recordGameStatusSync();
 
   const app = createApp();
 
@@ -35,7 +36,6 @@ async function bootstrap(): Promise<void> {
 
   const shutdown = async (signal: string): Promise<void> => {
     logger.info({ signal }, "Shutting down...");
-    clearInterval(jobInterval);
     server.close(async () => {
       await disconnectDatabase();
       logger.info("Graceful shutdown complete");
