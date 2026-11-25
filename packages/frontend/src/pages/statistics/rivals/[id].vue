@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import StatsField from "~/components/pages/statistics/StatsField.vue";
 import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
+import StatsFilterBar from "~/components/pages/statistics/StatsFilterBar.vue";
 import PlaygroundSelect from "~/components/pages/admin/playground/PlaygroundSelect.vue";
 import { useStatsFilters } from "~/composables/useStatsFilters";
 
@@ -12,7 +14,7 @@ definePageMeta({
 
 const route = useRoute();
 const rivalId = route.params.id as string;
-useHead({ title: "Estadísticas – Ministros FC" });
+useHead({ title: "Estadísticas por rival" });
 
 const { $api } = useNuxtApp();
 const {
@@ -60,18 +62,8 @@ const tableRows = computed(() =>
   })),
 );
 
-const expandedYears = ref<string[]>(tableRows.value.map((r) => r.year));
-watch(tableRows, (rows) => {
-  rows.forEach((r) => {
-    if (!expandedYears.value.includes(r.year)) expandedYears.value.push(r.year);
-  });
-});
-
-function toggleYear(year: string) {
-  const idx = expandedYears.value.indexOf(year);
-  if (idx >= 0) expandedYears.value.splice(idx, 1);
-  else expandedYears.value.push(year);
-}
+const plural = (n: number, one: string, many: string) =>
+  `${n} ${n === 1 ? one : many}`;
 
 watch(
   () => route.query,
@@ -80,136 +72,83 @@ watch(
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div>
     <NuxtLink
       to="/statistics/rivals"
-      class="inline-flex items-center gap-1 w-24 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      class="sheet-link inline-flex min-h-11 items-center"
+      >← Rivales</NuxtLink
     >
-      <svg
-        class="w-4 h-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M15 19l-7-7 7-7"
-        />
-      </svg>
-      Volver
-    </NuxtLink>
-    <StatsTitle>Estadísticas vs "{{ rivalName }}"</StatsTitle>
-    <div class="flex flex-wrap gap-3">
-      <YearSelect v-model="yearFilter" />
-      <PlaygroundSelect v-model="playgroundFilter" />
-    </div>
+    <StatsTitle>vs {{ rivalName }}</StatsTitle>
+    <StatsFilterBar>
+      <StatsField label="Año"><YearSelect v-model="yearFilter" /></StatsField>
+      <StatsField label="Cancha"><PlaygroundSelect v-model="playgroundFilter" placeholder="Todas" /></StatsField>
+    </StatsFilterBar>
 
-    <div v-if="pending" class="text-center text-muted-foreground py-8">
-      Cargando...
-    </div>
-    <div
-      v-else-if="tableRows.length === 0"
-      class="text-center text-muted-foreground py-8"
-    >
-      Sin datos
-    </div>
-    <div v-else class="space-y-2">
-      <UiAccordion
+    <p v-if="pending" class="mt-6">Cargando…</p>
+    <p v-else-if="tableRows.length === 0" class="mt-6">
+      No hay partidos contra este rival para estos filtros.
+    </p>
+    <div v-else class="mt-6 space-y-6">
+      <details
         v-for="row in tableRows"
         :key="row.year"
-        :open="expandedYears.includes(row.year)"
-        @toggle="toggleYear(row.year)"
+        open
+        class="border-t-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)]"
       >
-        <template #header>
-          <div
-            class="grid items-center gap-x-3 px-4 py-3 text-gray-900 w-full"
-            style="
-              grid-template-columns: 5.5rem 3rem 3rem 3rem 3rem 3rem 3rem 3rem 3.5rem;
-            "
-          >
-            <span class="font-semibold text-sm">{{ row.year }}</span>
-            <span class="text-sm"
-              ><abbr title="Partidos Jugados">PJ</abbr> {{ row.games }}</span
-            >
-            <span class="text-sm text-green-600"
-              ><abbr title="Partidos Ganados">PG</abbr> {{ row.wins }}</span
-            >
-            <span class="text-sm text-red-500"
-              ><abbr title="Partidos Perdidos">PP</abbr> {{ row.losses }}</span
-            >
-            <span class="text-sm text-yellow-500"
-              ><abbr title="Partidos Empatados">PE</abbr> {{ row.draws }}</span
-            >
-            <span class="text-sm"
-              ><abbr title="Goles a Favor">GF</abbr> {{ row.goalsFor }}</span
-            >
-            <span class="text-sm"
-              ><abbr title="Goles en Contra">GC</abbr>
-              {{ row.goalsAgainst }}</span
-            >
-            <span
-              class="text-sm"
-              :class="
-                row.goalDiff > 0
-                  ? 'text-green-600'
-                  : row.goalDiff < 0
-                    ? 'text-red-500'
-                    : ''
-              "
-            >
-              <abbr title="Diferencia de gol">DG</abbr>
-              {{ row.goalDiff > 0 ? "+" : "" }}{{ row.goalDiff }}
+        <summary
+          class="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-3 py-3"
+        >
+          <span>
+            <span class="sheet-display block text-4xl">{{ row.year }}</span>
+            <span class="sheet-num flex flex-wrap gap-x-3 text-sm">
+              <span class="whitespace-nowrap">{{ plural(row.games, "partido", "partidos") }}</span>
+              <span class="whitespace-nowrap">{{ plural(row.wins, "ganado", "ganados") }}</span>
+              <span class="whitespace-nowrap">{{ plural(row.draws, "empatado", "empatados") }}</span>
+              <span class="whitespace-nowrap">{{ plural(row.losses, "perdido", "perdidos") }}</span>
             </span>
-            <span class="text-sm font-medium"
+            <span class="sheet-num block text-sm text-[var(--sheet-ink-soft)]">
+              {{ row.goalsFor }} goles a favor, {{ row.goalsAgainst }} en contra
+            </span>
+          </span>
+          <span class="text-right">
+            <span class="sheet-display sheet-num block text-4xl leading-none"
               >{{ Number(row.winRate).toFixed(1) }}%</span
             >
-          </div>
-        </template>
-
-        <template #content>
-          <ul class="divide-y">
-            <li
-              v-for="match in row.matches"
-              :key="match.date + match.homeScore + match.awayScore"
-              class="grid items-center gap-x-3 px-4 py-2 text-sm text-gray-900"
-              style="
-                grid-template-columns: 5.5rem 3rem 3rem 3rem 3rem 3rem 3rem 3rem 3.5rem auto;
-              "
-            >
-              <span>{{ match.date }}</span>
-              <span class="col-span-2 font-mono font-bold"
+            <span class="sheet-label block">victorias</span>
+          </span>
+        </summary>
+        <ul>
+          <li
+            v-for="match in row.matches"
+            :key="match.date + match.homeScore + match.awayScore"
+            class="grid grid-cols-[4.5rem_1fr_auto] items-center gap-x-3 border-t border-[var(--sheet-rule)] px-3 py-2.5"
+          >
+            <span class="sheet-num text-sm">{{ match.date }}</span>
+            <span class="min-w-0">
+              <span class="sheet-display sheet-num mr-2 text-2xl"
                 >{{ match.homeScore }}–{{ match.awayScore }}</span
               >
-              <span
-                class="col-span-2"
-                :class="{
-                  'text-green-600 font-medium': match.result === 'W',
-                  'text-red-500 font-medium': match.result === 'L',
-                  'text-yellow-500 font-medium': match.result === 'D',
-                }"
-              >
-                {{
-                  match.result === "W"
-                    ? "Victoria"
-                    : match.result === "L"
-                      ? "Derrota"
-                      : "Empate"
-                }}
-              </span>
-              <span class="col-span-4 text-xs text-muted-foreground truncate">{{
-                match.tournament ?? ""
+              <span class="font-bold">{{
+                match.result === "W"
+                  ? "Victoria"
+                  : match.result === "L"
+                    ? "Derrota"
+                    : "Empate"
               }}</span>
-              <NuxtLink
-                :to="`/games/${match.slug}`"
-                class="text-xs text-brand text-right hover:underline whitespace-nowrap"
-                >Ir al partido</NuxtLink
+              <span
+                v-if="match.tournament"
+                class="block truncate text-sm text-[var(--sheet-ink-soft)]"
+                >{{ match.tournament }}</span
               >
-            </li>
-          </ul>
-        </template>
-      </UiAccordion>
+            </span>
+            <NuxtLink
+              :to="`/games/${match.slug}`"
+              class="sheet-link inline-flex min-h-11 items-center text-sm"
+              >Partido →</NuxtLink
+            >
+          </li>
+        </ul>
+      </details>
     </div>
   </div>
 </template>

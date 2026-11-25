@@ -5,7 +5,7 @@ import AdminProfileMenu from "~/components/common/AdminProfileMenu.vue";
 const authStore = useAuthStore();
 const route = useRoute();
 const inner = computed(() =>
-  route.meta.sheetWide ? "max-w-5xl" : "max-w-3xl",
+  route.meta.sheetWide || route.path.startsWith("/statistics") ? "max-w-5xl" : "max-w-3xl",
 );
 
 const links = computed(() => [
@@ -47,7 +47,7 @@ const links = computed(() => [
         <div class="flex items-center gap-3 text-sm">
           <ClientOnly>
             <template v-if="authStore.isAuthenticated">
-              <AdminProfileMenu v-if="authStore.isEditor" />
+              <AdminProfileMenu v-if="authStore.isEditor" sheet />
               <template v-else>
                 <NuxtLink to="/profile/player" class="font-bold"
                   >Mi perfil</NuxtLink

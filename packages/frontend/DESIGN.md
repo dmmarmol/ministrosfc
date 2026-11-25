@@ -197,6 +197,18 @@ A portrait card for one player: 3px ink border, square corners, paper ground. To
 
 Search and selects are 3px ink-bordered, square, paper-filled boxes with 44px minimum height and a blue typewriter label above (`sheet-field`). Focus uses the world's 3px blue outline with 3px offset.
 
+### Ranked Rows
+
+Every statistics table is a list of ruled rows under a 3px ink rule on a paper ground, capped at 768px for reading. Each row (minimum 56px, one tap target) carries a blue rank, the surname or label in display caps, a small typewriter subtitle (first name, position, period, venue), and ONE headline numeral in display type with a blue unit label and a bar beneath it scaled to the leader. Tapping a row opens a four-column ruled grid with the remaining stats and a blue underlined link to the ficha or history. Rank is hidden when the list is in its natural order (years, tournaments). Negative values show their sign and no bar.
+
+### Sort Chips
+
+3px ink-bordered square chips under a blue "Ordenar por" label, 44px minimum height. The pressed chip inverts to ink with paper text (`aria-pressed`). They choose what the headline numeral and bar mean; a leading "Orden" chip restores the natural order where one exists.
+
+### Section Tabs and Filter Bar
+
+The statistics section sits under the header as a row of blue uppercase tabs (General, Goleadores, and, when signed in, Jugadores, Rivales, Año, Torneo). The active tab turns ink with a 4px blue underline. Tabs wrap to a second line instead of scrolling. Filters live in a ruled bar between two 3px ink rules in a one-column phone grid; Nuxt UI selects inside it are restyled to the same 3px ink, square, paper-filled field.
+
 ### Focus and Selection
 Focus-visible is a 3px blue outline with 3px offset (on-ink blue inside black strips). Text selection is blue on white.
 

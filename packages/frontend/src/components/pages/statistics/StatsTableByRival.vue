@@ -1,130 +1,54 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { type TeamStatPeriodDTO } from "@ministrosfc/shared";
-import type { ColumnDef } from "~/types/table";
-import {
-  cellWins,
-  cellLosses,
-  cellDraws,
-  cellPercent,
-  cellLink,
-} from "~/components/ui/Table/table-utils";
+import { computed } from "vue";
+import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
+import { formatStatDate } from "~/utils/stats";
+import StatsRanked, { type RankedItem, type RankedMetric } from "./StatsRanked.vue";
 
-type RivalRow = {
-  rival: string;
-  rivalId: string;
-  games: number;
-  wins: number;
-  losses: number;
-  draws: number;
-  goalsFor: number;
-  goalsAgainst: number;
-  goalDiff: number;
-  winRate: number;
-  playgroundName: string;
-};
+const props = defineProps<{ rows: TeamStatPeriodDTO[]; loading: boolean }>();
 
-const props = defineProps<{
-  rows: TeamStatPeriodDTO[];
-  loading: boolean;
-}>();
-
-const columns: ColumnDef<RivalRow>[] = [
-  {
-    accessorKey: "rival",
-    header: "Rival",
-    title: "Rival",
-    sortable: true,
-    cell: ({ row }) =>
-      cellLink(
-        row.getValue("rival"),
-        `/statistics/rivals/${row.original.rivalId}`,
-      ),
-  },
-  {
-    accessorKey: "games",
-    header: "PJ",
-    title: "Partidos Jugados",
-    sortable: true,
-  },
-  {
-    accessorKey: "wins",
-    header: "PG",
-    title: "Partidos Ganados",
-    sortable: true,
-    cell: ({ row }) => cellWins(row.getValue("wins")),
-  },
-  {
-    accessorKey: "losses",
-    header: "PP",
-    title: "Partidos Perdidos",
-    sortable: true,
-    cell: ({ row }) => cellLosses(row.getValue("losses")),
-  },
-  {
-    accessorKey: "draws",
-    header: "PE",
-    title: "Partidos Empatados",
-    sortable: true,
-    cell: ({ row }) => cellDraws(row.getValue("draws")),
-  },
-  {
-    accessorKey: "goalsFor",
-    header: "GF",
-    title: "Goles a Favor",
-    sortable: true,
-  },
-  {
-    accessorKey: "goalsAgainst",
-    header: "GC",
-    title: "Goles en Contra",
-    sortable: true,
-  },
-  {
-    accessorKey: "goalDiff",
-    header: "DG",
-    title: "Diferencia de gol",
-    sortable: true,
-  },
-  {
-    accessorKey: "winRate",
-    header: "Win%",
-    title: "Porcentaje de Victorias",
-    sortable: true,
-    cell: ({ row }) => cellPercent(row.getValue("winRate")),
-  },
-  {
-    accessorKey: "playgroundName",
-    header: "Cancha",
-    title: "Cancha Más Frecuente",
-    sortable: false,
-  },
+const pct = (v: number) => `${Number(v).toFixed(1)}%`;
+const signed = (v: number) => (v > 0 ? `+${v}` : String(v));
+const metrics: RankedMetric[] = [
+  { key: "games", label: "Partidos", unit: "partidos" },
+  { key: "wins", label: "Victorias", unit: "victorias" },
+  { key: "winRate", label: "% Victorias", unit: "% vict.", format: pct },
+  { key: "goalDiff", label: "Dif. gol", unit: "dif. gol", format: signed },
+  { key: "points", label: "Puntos", unit: "puntos" },
 ];
 
-const tableRows = computed((): RivalRow[] =>
-  props.rows.map((row) => ({
-    rival: row.label,
-    rivalId: row.key,
-    games: row.gamesPlayed,
-    wins: row.wins,
-    losses: row.losses,
-    draws: row.draws,
-    goalsFor: row.goalsFor,
-    goalsAgainst: row.goalsAgainst,
-    goalDiff: row.goalsFor - row.goalsAgainst,
-    winRate: row.winRate,
-    playgroundName: row.playgroundName ?? "—",
+const period = (r: TeamStatPeriodDTO) =>
+  r.periodStart && r.periodEnd
+    ? `${formatStatDate(r.periodStart)} – ${formatStatDate(r.periodEnd)}`
+    : null;
+
+const items = computed<RankedItem[]>(() =>
+  props.rows.map((r) => ({
+    id: r.key,
+    title: r.label,
+    subtitle: r.playgroundName ?? undefined,
+    to: `/statistics/rivals/${r.key}`,
+    linkLabel: `Ver historial contra ${r.label}`,
+    values: {
+      points: r.pointsEarned,
+      wins: r.wins,
+      games: r.gamesPlayed,
+      winRate: r.winRate,
+      goalDiff: r.goalDifference ?? r.goalsFor - r.goalsAgainst,
+    },
+    detail: [
+      { label: "PJ", value: r.gamesPlayed },
+      { label: "PG", value: r.wins },
+      { label: "PE", value: r.draws },
+      { label: "PP", value: r.losses },
+      { label: "GF", value: r.goalsFor },
+      { label: "GC", value: r.goalsAgainst },
+      { label: "DG", value: signed(r.goalDifference ?? r.goalsFor - r.goalsAgainst) },
+      { label: "% Vict.", value: pct(r.winRate) },
+    ],
   })),
 );
-
-const sorting = ref([{ id: "games", desc: true }]);
 </script>
 
 <template>
-  <UTable
-    v-model:sorting="sorting"
-    :data="tableRows"
-    :columns="columns"
-    :loading="loading"
-  />
+  <StatsRanked :items="items" :metrics="metrics" :loading="loading"  />
 </template>

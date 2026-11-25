@@ -3,9 +3,13 @@ import { ref, computed, onMounted } from "vue";
 import { usePlaygrounds } from "~/composables/usePlaygrounds";
 import type { SelectItem } from "#ui/types";
 
-const props = defineProps<{
-  modelValue: string | null;
-}>();
+const props = withDefaults(
+  defineProps<{
+    modelValue: string | null;
+    placeholder?: string;
+  }>(),
+  { placeholder: "Seleccionar cancha" },
+);
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: SelectItem | undefined): void;
@@ -62,7 +66,7 @@ function handleUpdate(value: SelectItem | undefined) {
     :loading="loading"
     value-key="value"
     label-key="label"
-    placeholder="Seleccionar cancha"
+    :placeholder="placeholder"
     :search-input="false"
     :clear="true"
     :ui="{ content: 'min-w-fit' }"

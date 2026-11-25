@@ -187,3 +187,43 @@
     transform: translateY(-3px);
   }
 }
+
+.sheet-chip {
+  min-height: 2.75rem;
+  border: 3px solid var(--sheet-ink);
+  background: var(--sheet-paper);
+  color: var(--sheet-ink);
+  padding: 0.25rem 0.75rem;
+  font-weight: 700;
+  font-size: 0.8125rem;
+}
+.sheet-chip[aria-pressed="true"] {
+  background: var(--sheet-ink);
+  color: var(--sheet-paper);
+}
+
+/* Nuxt UI controls (and their portaled menus) take the world's palette */
+body:has(.sheet-world) {
+  --ui-primary: var(--sheet-blue, #2748d6);
+  --ui-radius: 0rem;
+  --ui-border: #0b0b12;
+  --ui-border-accented: #0b0b12;
+  --ui-bg: #fbfbfc;
+  --ui-text: #0b0b12;
+  --ui-text-highlighted: #0b0b12;
+  --ui-text-dimmed: #5a5f73;
+  --ui-text-muted: #2b2e3b;
+  --font-sans: "Courier Prime", "Courier New", monospace;
+}
+
+/* Nuxt UI select triggers inside search bars match .sheet-field */
+.sheet-world [role="search"] button[data-slot="base"] {
+  width: 100%;
+  min-height: 2.75rem;
+  border-radius: 0;
+  background: var(--sheet-paper);
+  color: var(--sheet-ink);
+  box-shadow: inset 0 0 0 3px var(--sheet-ink);
+  font-family: var(--sheet-type);
+  font-size: 0.9375rem;
+}

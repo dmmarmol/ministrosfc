@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import StatsField from "~/components/pages/statistics/StatsField.vue";
+import StatsFilterBar from "~/components/pages/statistics/StatsFilterBar.vue";
 import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 import StatsTableByYear from "../../components/pages/statistics/StatsTableByYear.vue";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
@@ -10,7 +12,7 @@ definePageMeta({
   middleware: "auth",
   requiresAuth: true,
 });
-useHead({ title: "Estadísticas por Año – Ministros FC" });
+useHead({ title: "Estadísticas por Año" });
 
 const { $api } = useNuxtApp();
 const route = useRoute();
@@ -39,10 +41,10 @@ watch(
 
 <template>
   <div>
-    <div class="flex gap-3 mb-6">
-      <YearSelect v-model="yearFilter" class="w-1/4" />
-    </div>
-    <StatsTitle>Estadísticas del Equipo</StatsTitle>
+    <StatsTitle>Por año</StatsTitle>
+    <StatsFilterBar>
+      <StatsField label="Año"><YearSelect v-model="yearFilter" /></StatsField>
+    </StatsFilterBar>
     <StatsTableByYear :rows="rows" :loading="pending" />
   </div>
 </template>

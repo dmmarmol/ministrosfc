@@ -53,7 +53,7 @@ function handleUpdate(value: SelectItem | undefined) {
     :items="items"
     value-key="value"
     label-key="label"
-    placeholder="Seleccionar rival"
+    placeholder="Todos"
     :search-input="true"
     :clear="true"
     :ui="{ content: 'min-w-fit' }"

@@ -54,7 +54,7 @@ function handleUpdate(value: SelectItem | undefined) {
     :items="items"
     value-key="value"
     label-key="label"
-    placeholder="Seleccionar año"
+    placeholder="Todos"
     :search-input="false"
     :clear="true"
     :ui="{ content: 'min-w-fit' }"

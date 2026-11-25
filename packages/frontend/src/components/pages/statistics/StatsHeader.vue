@@ -1,160 +1,59 @@
 <script setup lang="ts">
 import type { TeamSummaryHeaderDTO } from "@ministrosfc/shared";
 
-const props = defineProps<{
-  summary: TeamSummaryHeaderDTO | null;
-}>();
+const props = defineProps<{ summary: TeamSummaryHeaderDTO | null }>();
+
+const totals = computed(() => {
+  const s = props.summary;
+  if (!s) return [];
+  return [
+    { label: "Partidos", value: s.totalGames },
+    { label: "Victorias", value: s.totalWins },
+    { label: "Empates", value: s.totalDraws },
+    { label: "Derrotas", value: s.totalLosses },
+    { label: "Goles a favor", value: s.totalGoalsFor },
+    { label: "Goles en contra", value: s.totalGoalsAgainst },
+    { label: "% Victorias", value: `${Number(s.winRate).toFixed(1)}%` },
+  ];
+});
+const records = computed(() => {
+  const s = props.summary;
+  if (!s) return [];
+  const r = (l: string, v?: { name?: string; count?: number } | null) => ({
+    label: l,
+    value: v?.name ? `${v.name} (${v.count ?? 0})` : "—",
+  });
+  return [
+    r("Rival más jugado", s.rivalMostPlayed),
+    r("Más victorias contra", s.rivalMostWins),
+    r("Más derrotas contra", s.rivalMostLosses),
+    r("Más empates contra", s.rivalMostDraws),
+  ];
+});
 </script>
 
 <template>
-  <div v-if="summary" class="space-y-4">
-    <!-- All-time totals -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+  <div v-if="summary" class="mt-6">
+    <dl class="grid grid-cols-2 border-y-[3px] border-[var(--sheet-ink)] sm:grid-cols-4">
       <div
-        class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100"
+        v-for="t in totals"
+        :key="t.label"
+        class="border-b border-r border-[var(--sheet-rule)] px-3 py-3 [&:last-child:nth-child(odd)]:col-span-2 sm:[&:last-child:nth-child(odd)]:col-span-1"
       >
-        <p class="text-2xl font-bold text-gray-900">{{ summary.totalGames }}</p>
-        <p class="text-xs text-gray-500 mt-1">Partidos</p>
+        <dt class="sheet-label">{{ t.label }}</dt>
+        <dd class="sheet-display sheet-num mt-1 text-5xl">{{ t.value }}</dd>
       </div>
+    </dl>
+    <h2 class="sheet-display mt-8 text-3xl">Récords contra rivales</h2>
+    <dl class="mt-2 border-t-[3px] border-[var(--sheet-ink)]">
       <div
-        class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100"
+        v-for="r in records"
+        :key="r.label"
+        class="flex flex-wrap items-baseline justify-between gap-x-4 border-b border-[var(--sheet-rule)] py-3"
       >
-        <p class="text-2xl font-bold text-green-600">{{ summary.totalWins }}</p>
-        <p class="text-xs text-gray-500 mt-1">Victorias</p>
+        <dt class="sheet-label">{{ r.label }}</dt>
+        <dd class="font-bold">{{ r.value }}</dd>
       </div>
-      <div
-        class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100"
-      >
-        <p class="text-2xl font-bold text-red-500">{{ summary.totalLosses }}</p>
-        <p class="text-xs text-gray-500 mt-1">Derrotas</p>
-      </div>
-      <div
-        class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100"
-      >
-        <p class="text-2xl font-bold text-yellow-500">
-          {{ summary.totalDraws }}
-        </p>
-        <p class="text-xs text-gray-500 mt-1">Empates</p>
-      </div>
-    </div>
-
-    <!-- Goals and win rate -->
-    <div class="grid grid-cols-3 gap-3">
-      <div
-        class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100"
-      >
-        <p class="text-2xl font-bold text-gray-900">
-          {{ summary.totalGoalsFor }}
-        </p>
-        <p class="text-xs text-gray-500 mt-1">Goles a Favor</p>
-      </div>
-      <div
-        class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100"
-      >
-        <p class="text-2xl font-bold text-gray-900">
-          {{ summary.totalGoalsAgainst }}
-        </p>
-        <p class="text-xs text-gray-500 mt-1">Goles en Contra</p>
-      </div>
-      <div
-        class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-100"
-      >
-        <p class="text-2xl font-bold text-brand">
-          {{ Number(summary.winRate).toFixed(1) }}%
-        </p>
-        <p class="text-xs text-gray-500 mt-1">% Victorias</p>
-      </div>
-    </div>
-
-    <!-- Records -->
-    <div
-      class="bg-white rounded-lg shadow-sm border border-gray-100 divide-y divide-gray-100"
-    >
-      <div class="flex justify-between px-4 py-2 text-sm">
-        <span class="text-gray-500">Rival más jugado</span>
-        <span class="font-medium text-gray-800"
-          >{{ summary.rivalMostPlayed?.name ?? "—" }} ({{
-            summary.rivalMostPlayed?.count ?? 0
-          }})</span
-        >
-      </div>
-      <div class="flex justify-between px-4 py-2 text-sm">
-        <span class="text-gray-500">Más victorias contra</span>
-        <span class="font-medium text-green-600"
-          >{{ summary.rivalMostWins?.name ?? "—" }} ({{
-            summary.rivalMostWins?.count ?? 0
-          }})</span
-        >
-      </div>
-      <div class="flex justify-between px-4 py-2 text-sm">
-        <span class="text-gray-500">Más derrotas contra</span>
-        <span class="font-medium text-red-500"
-          >{{ summary.rivalMostLosses?.name ?? "—" }} ({{
-            summary.rivalMostLosses?.count ?? 0
-          }})</span
-        >
-      </div>
-      <div class="flex justify-between px-4 py-2 text-sm">
-        <span class="text-gray-500">Más empates contra</span>
-        <span class="font-medium text-yellow-500"
-          >{{ summary.rivalMostDraws?.name ?? "—" }} ({{
-            summary.rivalMostDraws?.count ?? 0
-          }})</span
-        >
-      </div>
-      <div class="flex justify-between px-4 py-2 text-sm">
-        <span class="text-gray-500">Mejor victoria</span>
-        <span class="font-medium text-gray-800"
-          >{{ summary.bestWin?.score ?? "—" }} vs
-          {{ summary.bestWin?.rival ?? "—" }}</span
-        >
-      </div>
-      <div class="flex justify-between px-4 py-2 text-sm">
-        <span class="text-gray-500">Peor derrota</span>
-        <span class="font-medium text-gray-800"
-          >{{ summary.worstLoss?.score ?? "—" }} vs
-          {{ summary.worstLoss?.rival ?? "—" }}</span
-        >
-      </div>
-      <div class="flex justify-between px-4 py-2 text-sm">
-        <span class="text-gray-500">Más goles a favor contra</span>
-        <span class="font-medium text-gray-800"
-          >{{ summary.rivalMostGoalsFor?.name ?? "—" }} ({{
-            summary.rivalMostGoalsFor?.totalGoals ?? 0
-          }})</span
-        >
-      </div>
-      <div class="flex justify-between px-4 py-2 text-sm">
-        <span class="text-gray-500">Más goles en contra</span>
-        <span class="font-medium text-gray-800"
-          >{{ summary.rivalMostGoalsAgainst?.name ?? "—" }} ({{
-            summary.rivalMostGoalsAgainst?.totalGoals ?? 0
-          }})</span
-        >
-      </div>
-      <div class="flex justify-between px-4 py-2 text-sm">
-        <span class="text-gray-500">Goleador histórico</span>
-        <span class="flex gap-x-1">
-          <NuxtLink
-            v-if="summary.topScorer?.id"
-            :to="`/players/${summary.topScorer.id}`"
-            class="font-medium text-brand hover:underline"
-            >{{ summary.topScorer.name }}
-          </NuxtLink>
-          <span v-else class="font-medium text-gray-800">{{
-            summary.topScorer?.name ?? "—"
-          }}</span>
-          <span class="font-medium text-gray-800"
-            >({{ summary.topScorer.goals }} goles)</span
-          >
-        </span>
-      </div>
-    </div>
-  </div>
-  <div
-    v-else
-    class="bg-white rounded-lg p-6 text-center text-gray-400 border border-gray-100"
-  >
-    Sin datos de resumen disponibles
+    </dl>
   </div>
 </template>

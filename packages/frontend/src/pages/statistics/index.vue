@@ -5,7 +5,7 @@ import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 import { useAuthStore } from "~/stores/auth";
 
 definePageMeta({ layout: "statistics", public: true });
-useHead({ title: "Estadísticas – Ministros FC" });
+useHead({ title: "Estadísticas" });
 
 const authStore = useAuthStore();
 const { $api } = useNuxtApp();
@@ -23,13 +23,11 @@ const summary = computed(() => summaryData.value?.data ?? null);
 
 <template>
   <div>
-    <StatsTitle>Estadísticas Generales</StatsTitle>
+    <StatsTitle>General</StatsTitle>
     <StatsHeader v-if="authStore.isAuthenticated" :summary="summary" />
-    <div v-else class="text-center py-16 text-gray-500">
-      <p class="mb-2">Iniciá sesión para ver las estadísticas del equipo.</p>
-      <NuxtLink to="/login" class="text-brand hover:underline font-medium"
-        >Iniciar sesión</NuxtLink
-      >
+    <div v-else class="mt-6">
+      <p class="text-lg">Iniciá sesión para ver las estadísticas del equipo.</p>
+      <NuxtLink to="/login" class="sheet-link mt-2 inline-flex min-h-11 items-center">Iniciar sesión →</NuxtLink>
     </div>
   </div>
 </template>
