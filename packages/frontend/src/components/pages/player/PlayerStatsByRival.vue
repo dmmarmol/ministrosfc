@@ -63,7 +63,10 @@ const byId = computed(() => new Map(rivals.value.map((r) => [r.rivalId, r])));
 const matchesOf = (id: string): PlayerRivalMatchDTO[] =>
   byId.value.get(id)?.matches ?? [];
 
-const RESULT: Record<PlayerRivalMatchDTO["result"], { label: string; tone: string }> = {
+const RESULT: Record<
+  PlayerRivalMatchDTO["result"],
+  { label: string; tone: string }
+> = {
   W: { label: "Victoria", tone: "text-[var(--sheet-win)]" },
   L: { label: "Derrota", tone: "text-[var(--sheet-loss)]" },
   D: { label: "Empate", tone: "text-[var(--sheet-draw)]" },
@@ -92,7 +95,7 @@ const statCells = (m: PlayerRivalMatchDTO): { v: number; n: string }[] => [
       empty-text="No hay partidos contra equipos rivales todavía."
     >
       <template #extra="{ item }">
-        <div class="mt-3 border-t-[3px] border-[var(--sheet-ink)]">
+        <div class="mt-2">
           <!-- One grid for header and rows so the stat columns line up for comparison -->
           <div
             class="match-grid sheet-label border-b border-[var(--sheet-ink)] py-1.5 text-[0.6875rem]"
@@ -101,8 +104,14 @@ const statCells = (m: PlayerRivalMatchDTO): { v: number; n: string }[] => [
             <span>Partido</span>
             <span class="text-center" title="Goles">G</span>
             <span class="text-center" title="Asistencias">A</span>
-            <span class="flex justify-center" title="Tarjetas amarillas"><span class="inline-block size-3 border border-[var(--sheet-ink)] bg-[var(--sheet-card-yellow)]" /></span>
-            <span class="flex justify-center" title="Tarjetas rojas"><span class="inline-block size-3 border border-[var(--sheet-ink)] bg-[var(--sheet-card-red)]" /></span>
+            <span class="flex justify-center" title="Tarjetas amarillas"
+              ><span
+                class="inline-block size-3 border border-[var(--sheet-ink)] bg-[var(--sheet-card-yellow)]"
+            /></span>
+            <span class="flex justify-center" title="Tarjetas rojas"
+              ><span
+                class="inline-block size-3 border border-[var(--sheet-ink)] bg-[var(--sheet-card-red)]"
+            /></span>
             <span class="match-link-head" />
           </div>
           <ul>
@@ -112,15 +121,36 @@ const statCells = (m: PlayerRivalMatchDTO): { v: number; n: string }[] => [
               class="match-grid border-b border-[var(--sheet-rule)] py-2.5"
             >
               <span class="min-w-0">
-                <span class="sheet-num flex gap-x-2 text-xs text-[var(--sheet-ink-soft)]">
+                <span
+                  class="sheet-num flex gap-x-2 text-xs text-[var(--sheet-ink-soft)]"
+                >
                   <span class="shrink-0">{{ m.date }}</span>
-                  <span v-if="m.playgroundName" class="min-w-0 truncate" :title="m.playgroundName">· {{ m.playgroundName }}</span>
+                  <span
+                    v-if="m.playgroundName"
+                    class="min-w-0 truncate"
+                    :title="m.playgroundName"
+                    >· {{ m.playgroundName }}</span
+                  >
                 </span>
-                <span class="sheet-display sheet-num mr-2 text-2xl">{{ m.homeScore }}–{{ m.awayScore }}</span>
-                <span class="font-bold" :class="RESULT[m.result].tone">{{ RESULT[m.result].label }}</span>
-                <span v-if="m.tournament" class="block truncate text-xs text-[var(--sheet-ink-soft)]">{{ m.tournament }}</span>
+                <span class="sheet-display sheet-num mr-2 text-2xl"
+                  >{{ m.homeScore }}–{{ m.awayScore }}</span
+                >
+                <span class="font-bold" :class="RESULT[m.result].tone">{{
+                  RESULT[m.result].label
+                }}</span>
+                <span
+                  v-if="m.tournament"
+                  class="block truncate text-xs text-[var(--sheet-ink-soft)]"
+                  >{{ m.tournament }}</span
+                >
               </span>
-              <span v-for="s in statCells(m)" :key="s.n" class="sheet-display sheet-num text-center text-2xl leading-none" :title="s.n" :class="s.v ? '' : 'text-[var(--sheet-rule)]'">
+              <span
+                v-for="s in statCells(m)"
+                :key="s.n"
+                class="sheet-display sheet-num text-center text-2xl leading-none"
+                :title="s.n"
+                :class="s.v ? '' : 'text-[var(--sheet-rule)]'"
+              >
                 {{ s.v || "–" }}<span class="sr-only"> {{ s.n }}</span>
               </span>
               <NuxtLink

@@ -1,13 +1,22 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { formatDate, type Game } from "@ministrosfc/shared";
-import HomeArrow from "./HomeArrow.vue";
+import HomeListSection from "./HomeListSection.vue";
 
-defineProps<{
+interface Scorer {
+  player?: { id: string; firstName: string; lastName: string };
+  goalsScored: number;
+}
+
+const props = defineProps<{
   results: Game[];
-  scorers: { player?: { id: string; firstName: string; lastName: string }; goalsScored: number }[];
+  scorers: Scorer[];
   resultsLoading?: boolean;
   scorersLoading?: boolean;
 }>();
+
+// The home page shows the top five
+const topScorers = computed(() => props.scorers.slice(0, 5));
 
 const scored = (g: Game) => g.homeTeamScore != null && g.awayTeamScore != null;
 function outcome(g: Game) {
@@ -20,22 +29,26 @@ function outcome(g: Game) {
 
 <template>
   <div class="sheet-paper">
-  <div class="mx-auto grid max-w-3xl gap-10 px-4 py-10 md:grid-cols-2">
-    <section aria-labelledby="home-results">
-      <h2 id="home-results" class="sheet-display text-4xl">Resultados</h2>
-      <p v-if="resultsLoading" class="mt-4">Cargando…</p>
-      <ul v-else-if="results.length" class="mt-3 border-t-[3px] border-[var(--sheet-ink)]">
-        <li
-          v-for="g in results"
-          :key="g.id"
-          class="border-b border-[var(--sheet-rule)]"
-        >
+    <div class="mx-auto grid max-w-3xl gap-10 px-4 py-10 md:grid-cols-2">
+      <HomeListSection
+        id="home-results"
+        title="Resultados"
+        :items="results"
+        :item-key="(g: Game) => g.id"
+        :loading="resultsLoading"
+        empty-text="Todavía no hay partidos jugados."
+        link-to="/schedule"
+        link-label="Calendario completo"
+      >
+        <template #item="{ item: g }">
           <NuxtLink
             :to="`/games/${g.slug || g.id}`"
             class="flex min-h-14 items-center gap-3 py-3 no-underline hover:bg-[var(--sheet-paper)]"
           >
             <span class="sheet-display sheet-num w-20 shrink-0 text-4xl">
-              <template v-if="scored(g)">{{ g.homeTeamScore }}–{{ g.awayTeamScore }}</template><template v-else>–</template>
+              <template v-if="scored(g)"
+                >{{ g.homeTeamScore }}–{{ g.awayTeamScore }}</template
+              ><template v-else>–</template>
             </span>
             <span class="min-w-0 flex-1">
               <span class="block truncate font-bold">
@@ -47,30 +60,30 @@ function outcome(g: Game) {
               </span>
             </span>
           </NuxtLink>
-        </li>
-      </ul>
-      <p v-else class="mt-4">Todavía no hay partidos jugados.</p>
-      <NuxtLink to="/schedule" class="sheet-link mt-3 inline-flex min-h-11 items-center gap-2"
-        >Calendario completo <HomeArrow
-      /></NuxtLink>
-    </section>
+        </template>
+      </HomeListSection>
 
-    <section aria-labelledby="home-scorers">
-      <h2 id="home-scorers" class="sheet-display text-4xl">Goleadores</h2>
-      <p v-if="scorersLoading" class="mt-4">Cargando…</p>
-      <ol v-else-if="scorers.length" class="mt-3 border-t-[3px] border-[var(--sheet-ink)]">
-        <li
-          v-for="(s, i) in scorers.slice(0, 5)"
-          :key="s.player?.id ?? i"
-          class="border-b border-[var(--sheet-rule)]"
-        >
+      <HomeListSection
+        id="home-scorers"
+        title="Goleadores"
+        ordered
+        :items="topScorers"
+        :item-key="(s: Scorer, i: number) => s.player?.id ?? i"
+        :loading="scorersLoading"
+        empty-text="Sin datos de goleadores."
+        link-to="/statistics/top-scorers"
+        link-label="Tabla completa"
+      >
+        <template #item="{ item: s, index: i }">
           <NuxtLink
             :to="`/players/${s.player?.id}`"
             class="flex min-h-12 items-center gap-3 py-2.5 no-underline hover:bg-[var(--sheet-paper)]"
           >
-            <span class="sheet-num w-7 font-bold text-[var(--sheet-blue)]" aria-hidden="true">{{
-              String(i + 1).padStart(2, "0")
-            }}</span>
+            <span
+              class="sheet-num w-7 font-bold text-[var(--sheet-blue)]"
+              aria-hidden="true"
+              >{{ String(i + 1).padStart(2, "0") }}</span
+            >
             <span class="min-w-0 flex-1 truncate font-bold"
               >{{ s.player?.firstName }} {{ s.player?.lastName }}</span
             >
@@ -78,13 +91,8 @@ function outcome(g: Game) {
               >{{ s.goalsScored }}<span class="sr-only"> goles</span></span
             >
           </NuxtLink>
-        </li>
-      </ol>
-      <p v-else class="mt-4">Sin datos de goleadores.</p>
-      <NuxtLink to="/statistics/top-scorers" class="sheet-link mt-3 inline-flex min-h-11 items-center gap-2"
-        >Tabla completa <HomeArrow
-      /></NuxtLink>
-    </section>
-  </div>
+        </template>
+      </HomeListSection>
+    </div>
   </div>
 </template>
