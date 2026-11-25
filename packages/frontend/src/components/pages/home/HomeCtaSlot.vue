@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Reserved slot for the signup call to action (spec 023 FR-021).
- * Not rendered today: HomeSheet only mounts it when `ctaEnabled` is true.
+ * Not rendered today: GameSheet only mounts it when `ctaEnabled` is true.
  * It sits in the empty line after the last convocado so enabling it moves nothing else.
  */
 defineProps<{ to: string }>();

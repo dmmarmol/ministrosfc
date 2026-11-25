@@ -1,53 +1,47 @@
 <script setup lang="ts">
-import { useRoute, useHead, useRouter } from "nuxt/app";
-import GameParticipantsTable from "../../../components/pages/games/GameParticipantsTable.vue";
 import { useGameBySlug } from "~/composables/useGameBySlug";
+import GameSheet from "~/components/pages/games/GameSheet.vue";
 
-definePageMeta({ public: true });
+definePageMeta({ public: true, layout: "sheet" });
+
 const route = useRoute();
 const slug = route.params.slug as string;
-const router = useRouter();
+const config = useRuntimeConfig();
+// Signup call to action stays off until the club adopts it (spec 023 FR-020/FR-021).
+const ctaEnabled = computed(() => config.public.signupCtaEnabled === true);
 
-// T027: resolve slug → UUID, then fetch full game + participants
 const { game, participants, pending } = useGameBySlug(slug);
 
 useHead(() => ({
   title: game.value
-    ? `vs ${game.value.opponentTeam?.name} – Ministros FC`
-    : "Game",
+    ? `vs ${game.value.opponentTeam?.name ?? "Rival a confirmar"}`
+    : "Partido",
 }));
-
-function handleSignUp(gameId: string) {
-  router.push({ path: `/games/${gameId}/signup` });
-}
 </script>
 
 <template>
   <div>
-    <div v-if="pending" class="space-y-4">
-      <div class="h-48 bg-gray-200 animate-pulse rounded-2xl" />
-    </div>
-    <template v-else-if="game">
-      <div class="mb-8">
-        <GameHeader :game="game" />
+    <p v-if="pending" class="mx-auto max-w-3xl px-4 py-8">Cargando partido…</p>
+    <GameSheet
+      v-else-if="game"
+      :game="game"
+      :participants="participants"
+      :cta-enabled="ctaEnabled"
+      :signup-url="`/games/${game.slug || game.id}/signup`"
+      detail
+    />
+    <section v-else class="sheet-paper">
+      <div class="mx-auto max-w-3xl px-4 pb-8 pt-6">
+        <NuxtLink to="/schedule" class="sheet-link inline-flex min-h-11 items-center"
+          >← Calendario</NuxtLink
+        >
+        <h1 class="sheet-display mt-2 text-[clamp(3rem,15vw,6rem)]">
+          Partido no encontrado
+        </h1>
+        <p class="mt-4 max-w-prose">
+          Revisá el link o buscá el partido en el calendario.
+        </p>
       </div>
-
-      <div class="mb-4">
-        <GameMetadataRow
-          :game="game"
-          :participants="participants"
-          @signup="handleSignUp"
-        />
-      </div>
-
-      <GameParticipantsTable
-        v-if="participants.length"
-        :participants="participants"
-      />
-      <p v-else class="text-gray-500 text-sm">
-        Aun no hay jugadores confirmados.
-      </p>
-    </template>
-    <div v-else class="text-center py-16 text-gray-500">Game not found.</div>
+    </section>
   </div>
 </template>

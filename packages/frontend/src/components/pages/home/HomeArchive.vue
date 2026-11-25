@@ -9,9 +9,11 @@ defineProps<{
   scorersLoading?: boolean;
 }>();
 
+const scored = (g: Game) => g.homeTeamScore != null && g.awayTeamScore != null;
 function outcome(g: Game) {
-  const h = g.homeTeamScore ?? 0;
-  const a = g.awayTeamScore ?? 0;
+  if (!scored(g)) return "Sin resultado cargado";
+  const h = g.homeTeamScore!;
+  const a = g.awayTeamScore!;
   return h > a ? "Victoria" : h === a ? "Empate" : "Derrota";
 }
 </script>
@@ -33,7 +35,7 @@ function outcome(g: Game) {
             class="flex min-h-14 items-center gap-3 py-3 no-underline hover:bg-[var(--sheet-paper)]"
           >
             <span class="sheet-display sheet-num w-20 shrink-0 text-4xl">
-              {{ g.homeTeamScore ?? 0 }}–{{ g.awayTeamScore ?? 0 }}
+              <template v-if="scored(g)">{{ g.homeTeamScore }}–{{ g.awayTeamScore }}</template><template v-else>–</template>
             </span>
             <span class="min-w-0 flex-1">
               <span class="block truncate font-bold">

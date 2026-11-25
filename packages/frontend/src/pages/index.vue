@@ -4,7 +4,7 @@ import {
   type Game,
   type GameParticipant,
 } from "@ministrosfc/shared";
-import HomeSheet from "~/components/pages/home/HomeSheet.vue";
+import GameSheet from "~/components/pages/games/GameSheet.vue";
 import HomeCopies from "~/components/pages/home/HomeCopies.vue";
 import HomeArchive from "~/components/pages/home/HomeArchive.vue";
 
@@ -69,7 +69,7 @@ const { data: scorersData, pending: scorersLoading } = await useAsyncData(
 
 <template>
   <div>
-    <HomeSheet
+    <GameSheet
       v-if="nextGame"
       :game="nextGame"
       :participants="participants ?? []"

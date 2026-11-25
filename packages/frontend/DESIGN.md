@@ -177,6 +177,10 @@ The rival name in display type as the h1 ("vs {rival}"), then a ruled strip (3px
 ### Convocados Lines
 A numbered list: blue shirt number in a fixed 32px column, name in bold 18px, an optional blue-bordered position tag at right. Lines are separated by hairline rules and are links to the player; hover fills with ground. Guests appear as "Invitado de {name}" with a blue dash instead of a number and are not links. Empty state is a plain sentence between rules.
 
+### Game Sheet, Detail Mode
+
+The game detail page reuses the Next-Game Sheet and adds, on completed games: a state cell reading Jugado, a competition cell (Liga, Copa…), the score in display numerals up to 9rem with the result word beneath in blue (Victoria, Empate, Derrota), a "Jugaron" heading with the count out of the maximum, and per-player ink-bordered tags for goals, assists, yellow and red cards (only non-zero ones). A game with no recorded score states that plainly and never shows 0 – 0. A "← Calendario" link sits above the heading, and there is no signup call to action.
+
 ### Strips (Plantilla and Estadísticas)
 Two full-bleed rows of display type with an arrow: Plantilla in white on black (arrow in on-ink blue), Estadísticas in ink on white (arrow in blue) closed by a 3px rule. Hover shifts black to soft ink and white to ground.
 
