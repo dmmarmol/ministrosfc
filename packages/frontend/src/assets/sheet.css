@@ -76,6 +76,8 @@
   --sheet-ink: #0b0b12;
   --sheet-ink-soft: #2b2e3b;
   --sheet-rule: rgb(11 11 18 / 0.22);
+  /* Recessed well under an open row: a step darker than paper */
+  --sheet-well: #eceef3;
   --sheet-blue: #2748d6;
   --sheet-blue-on-ink: #8ea6ff;
   /* The colors of real cards: the one sanctioned exception to the single blue */
@@ -108,6 +110,7 @@
   --sheet-ink: #f3f4f8;
   --sheet-ink-soft: #c4c8d8;
   --sheet-rule: rgb(243 244 248 / 0.24);
+  --sheet-well: #0e1120;
   --sheet-blue: #8ea6ff;
   --sheet-blue-on-ink: #2748d6;
   --sheet-win: #5fd38a;

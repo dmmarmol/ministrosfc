@@ -109,7 +109,7 @@ const RESULT = {
                 { v: m.playerAssists, n: 'asistencias' },
                 { v: m.yellowCards, n: 'tarjetas amarillas' },
                 { v: m.redCards, n: 'tarjetas rojas' },
-              ]" :key="s.n" class="sheet-display sheet-num text-center text-2xl leading-none" :class="s.v ? '' : 'text-[var(--sheet-rule)]'">
+              ]" :key="s.n" class="sheet-display sheet-num text-center text-2xl leading-none" :title="s.n" :class="s.v ? '' : 'text-[var(--sheet-rule)]'">
                 {{ s.v || "–" }}<span class="sr-only"> {{ s.n }}</span>
               </span>
               <NuxtLink

@@ -19,12 +19,30 @@ export interface RankedItem {
   to?: string;
   linkLabel?: string;
   values: Record<string, number | null | undefined>;
-  detail?: { label: string; value: string | number }[];
+  detail?: { label: string; value: string | number; name?: string }[];
   /** Card counts shown on the collapsed row as yellow / red squares. */
   cards?: { yellow: number; red: number };
 }
 
 const NATURAL = "__natural";
+// Full names for the abbreviations used in the detail strips (title + screen readers)
+const ABBR: Record<string, string> = {
+  PJ: "Partidos jugados",
+  PG: "Partidos ganados",
+  PE: "Partidos empatados",
+  PP: "Partidos perdidos",
+  GF: "Goles a favor",
+  GC: "Goles en contra",
+  DG: "Diferencia de gol",
+  "% Vict.": "Porcentaje de victorias",
+  G: "Goles del jugador",
+  A: "Asistencias del jugador",
+  Goles: "Goles",
+  "Asist.": "Asistencias",
+  "Amar.": "Tarjetas amarillas",
+  Rojas: "Tarjetas rojas",
+  "G/PJ": "Goles por partido",
+};
 const props = withDefaults(
   defineProps<{
     items: RankedItem[];
@@ -194,7 +212,7 @@ function toggle(id: string) {
         <div
           v-if="open.has(item.id)"
           :id="`row-${item.id}`"
-          class="px-3 pb-3"
+          class="bg-[var(--sheet-well)] px-3 pb-3 pt-3"
         >
           <dl
             v-if="item.detail?.length"
@@ -205,7 +223,9 @@ function toggle(id: string) {
               :key="d.label"
               class="border-b border-r border-[var(--sheet-ink)] py-1.5 [&:nth-child(4n)]:border-r-0"
             >
-              <dt class="text-xs font-bold">{{ d.label }}</dt>
+              <dt class="text-xs font-bold">
+                <abbr :title="d.name ?? ABBR[d.label]" class="no-underline">{{ d.label }}</abbr>
+              </dt>
               <dd class="sheet-display sheet-num text-xl leading-none">{{ d.value }}</dd>
             </div>
           </dl>
