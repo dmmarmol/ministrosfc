@@ -78,6 +78,9 @@
   --sheet-rule: rgb(11 11 18 / 0.22);
   --sheet-blue: #2748d6;
   --sheet-blue-on-ink: #8ea6ff;
+  /* The colors of real cards: the one sanctioned exception to the single blue */
+  --sheet-card-yellow: #f5c400;
+  --sheet-card-red: #d62020;
   --sheet-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
   --sheet-type: "Courier Prime", "Courier New", monospace;
   --sheet-ease: cubic-bezier(0.16, 1, 0.3, 1);

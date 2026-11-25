@@ -179,7 +179,7 @@ A numbered list: blue shirt number in a fixed 32px column, name in bold 18px, an
 
 ### Game Sheet, Detail Mode
 
-The game detail page reuses the Next-Game Sheet and adds, on completed games: a state cell reading Jugado, a competition cell (Liga, Copa…), the score in display numerals up to 9rem with the result word beneath in blue (Victoria, Empate, Derrota), a "Jugaron" heading with the count out of the maximum, and per-player ink-bordered tags for goals, assists, yellow and red cards (only non-zero ones). A game with no recorded score states that plainly and never shows 0 – 0. A "← Calendario" link sits above the heading, and there is no signup call to action.
+The game detail page reuses the Next-Game Sheet and adds, on completed games: a state cell reading Jugado, a competition cell (Liga, Copa…), the score in display numerals up to 9rem with the result word beneath in blue (Victoria, Empate, Derrota), a "Jugaron" heading with the count out of the maximum, and per-player ink-bordered tags for goals (G), assists (A), yellow cards (a yellow square) and red cards (a red square), only the non-zero ones, each with a `title` naming it and a one-line legend under the list. Yellow (#f5c400) and red (#d62020) are the colors of real cards and the one sanctioned exception to the single blue; they appear only as these small squares. A game with no recorded score states that plainly and never shows 0 – 0. A "← Calendario" link sits above the heading, and there is no signup call to action.
 
 ### Strips (Plantilla and Estadísticas)
 Two full-bleed rows of display type with an arrow: Plantilla in white on black (arrow in on-ink blue), Estadísticas in ink on white (arrow in blue) closed by a 3px rule. Hover shifts black to soft ink and white to ground.

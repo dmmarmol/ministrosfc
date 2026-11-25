@@ -79,10 +79,10 @@ const hasTags = computed(
 );
 const statTags = (p: GameParticipant) =>
   [
-    { k: "G", n: p.goalsScored, name: "goles" },
-    { k: "A", n: p.assists, name: "asistencias" },
-    { k: "TA", n: p.yellowCards, name: "tarjetas amarillas" },
-    { k: "TR", n: p.redCards, name: "tarjetas rojas" },
+    { k: "G", n: p.goalsScored, name: "Goles", card: null },
+    { k: "A", n: p.assists, name: "Asistencias", card: null },
+    { k: "TA", n: p.yellowCards, name: "Tarjetas amarillas", card: "yellow" },
+    { k: "TR", n: p.redCards, name: "Tarjetas rojas", card: "red" },
   ].filter((t) => t.n > 0);
 const venue = computed(
   () => props.game.playground?.name ?? props.game.location ?? null,
@@ -252,10 +252,18 @@ const detailUrl = computed(() => `/games/${props.game.slug || props.game.id}`);
                 <span
                   v-for="t in statTags(p)"
                   :key="t.k"
-                  class="sheet-num border-2 border-[var(--sheet-ink)] px-1.5 text-xs font-bold"
+                  class="sheet-num inline-flex items-center gap-1.5 border-2 border-[var(--sheet-ink)] px-1.5 text-xs font-bold"
                   :title="t.name"
-                  >{{ t.k }} {{ t.n }}<span class="sr-only"> {{ t.name }}</span></span
                 >
+                  <span
+                    v-if="t.card"
+                    class="inline-block size-3 border border-[var(--sheet-ink)]"
+                    :class="t.card === 'yellow' ? 'bg-[var(--sheet-card-yellow)]' : 'bg-[var(--sheet-card-red)]'"
+                    aria-hidden="true"
+                  />
+                  <span v-else aria-hidden="true">{{ t.k }}</span>
+                  {{ t.n }}<span class="sr-only"> {{ t.name }}</span>
+                </span>
               </span>
               <span
                 v-if="p.player.position"
@@ -298,8 +306,8 @@ const detailUrl = computed(() => `/games/${props.game.slug || props.game.id}`);
       <p v-if="hasTags" class="mt-3 flex flex-wrap gap-x-4 text-sm text-[var(--sheet-ink-soft)]">
         <span class="whitespace-nowrap">G goles</span>
         <span class="whitespace-nowrap">A asistencias</span>
-        <span class="whitespace-nowrap">TA amarillas</span>
-        <span class="whitespace-nowrap">TR rojas</span>
+        <span class="inline-flex items-center gap-1.5 whitespace-nowrap"><span class="inline-block size-3 border border-[var(--sheet-ink)] bg-[var(--sheet-card-yellow)]" aria-hidden="true" />amarillas</span>
+        <span class="inline-flex items-center gap-1.5 whitespace-nowrap"><span class="inline-block size-3 border border-[var(--sheet-ink)] bg-[var(--sheet-card-red)]" aria-hidden="true" />rojas</span>
       </p>
 
       <a
