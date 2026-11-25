@@ -1,5 +1,6 @@
 import type { Game } from "./game";
 import { type Position } from "./player";
+import type { MinistrosRecord } from "./tournament";
 
 export interface Statistics {
   id: string;
@@ -203,15 +204,7 @@ export interface TournamentStatsResponse {
     endDate?: string | null;
     playgroundId: string | null;
   };
-  ministrosRecord: {
-    played: number;
-    wins: number;
-    losses: number;
-    draws: number;
-    goalsFor: number;
-    goalsAgainst: number;
-    goalDifference: number;
-  };
+  ministrosRecord: MinistrosRecord;
   playerStats: Array<{
     player?: {
       id: string;

@@ -15,7 +15,6 @@ export interface Tournament {
 
 /** Ministros FC record within a tournament (MVP scope: no full league standings) */
 export interface MinistrosRecord {
-  tournamentId: string;
   played: number;
   wins: number;
   draws: number;
@@ -23,7 +22,11 @@ export interface MinistrosRecord {
   goalsFor: number;
   goalsAgainst: number;
   goalDifference: number;
-  points: number;
+}
+
+/** A row of GET /tournaments: the tournament plus Ministros FC's record in it. */
+export interface TournamentWithRecord extends Tournament {
+  ministrosRecord: MinistrosRecord;
 }
 
 export interface TournamentCreatePayload {
