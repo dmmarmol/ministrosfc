@@ -62,4 +62,41 @@ describe("TournamentService", () => {
       ).rejects.toMatchObject({ statusCode: 404 });
     });
   });
+
+  describe("listTournaments", () => {
+    const empty = {
+      played: 0,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      goalsFor: 0,
+      goalsAgainst: 0,
+      goalDifference: 0,
+    };
+
+    it("attaches each tournament's Ministros record", async () => {
+      (TournamentModel.findMany as jest.Mock).mockResolvedValue({
+        tournaments: [{ id: "t1" }, { id: "t2" }],
+        total: 2,
+        page: 1,
+        limit: 20,
+        totalPages: 1,
+      });
+      const t1 = { ...empty, played: 2, wins: 1, losses: 1 };
+      (TournamentModel.calculateMinistrosRecords as jest.Mock).mockResolvedValue(
+        new Map([["t1", t1]]),
+      );
+
+      const result = await TournamentService.listTournaments();
+
+      expect(TournamentModel.calculateMinistrosRecords).toHaveBeenCalledWith([
+        "t1",
+        "t2",
+      ]);
+      expect(result.tournaments[0]).toMatchObject({ id: "t1", ministrosRecord: t1 });
+      // A tournament without completed games still gets an all-zero record
+      expect(result.tournaments[1]).toMatchObject({ id: "t2", ministrosRecord: empty });
+      expect(result.total).toBe(2);
+    });
+  });
 });
