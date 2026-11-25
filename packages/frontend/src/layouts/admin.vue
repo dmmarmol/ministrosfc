@@ -30,7 +30,7 @@ const handleLogout = () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex bg-gray-100">
+  <div class="sheet-world admin-sheet min-h-screen flex">
     <!-- Sidebar -->
     <USidebar
       v-model:open="openSlideover"
@@ -44,7 +44,7 @@ const handleLogout = () => {
       <template #default>
         <div class="p-4 pl-6 border-b border-white/10">
           <NuxtLink to="/admin/dashboard" class="flex items-center space-x-2">
-            <span class="text-brand font-bold text-lg">Ministros FC</span>
+            <span class="sheet-display text-2xl text-white">Ministros FC</span>
           </NuxtLink>
           <p class="text-xs text-gray-400 mt-1">Panel de administración</p>
         </div>
@@ -119,10 +119,10 @@ const handleLogout = () => {
     <!-- Main content -->
     <div class="flex-1 flex flex-col overflow-hidden">
       <header
-        class="bg-surface shadow-sm px-4 sm:px-6 py-4 flex items-center justify-end gap-2 sm:gap-3"
+        class="sheet-paper px-4 sm:px-6 py-4 flex items-center justify-end gap-2 sm:gap-3"
       >
         <!-- <h1 class="text-lg font-semibold text-gray-800">{{ pageTitle }}</h1> -->
-        <UiColorModeToggle />
+        <UiColorModeToggle class="sheet-toggle" />
         <div v-if="authStore.user" class="flex flex-col text-right min-w-0">
           <p class="text-sm text-gray-800 truncate">
             Bienvenido,

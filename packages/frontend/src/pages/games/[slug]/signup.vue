@@ -17,7 +17,7 @@ import SignupRegistrationRow from "~/components/pages/games/signup/SignupRegistr
 import SignupAddPlayer from "~/components/pages/games/signup/SignupAddPlayer.vue";
 
 // T022: auth guard — redirect unauthenticated to /login?redirect=...
-definePageMeta({ middleware: "auth", requiresAuth: true });
+definePageMeta({ layout: "sheet", middleware: "auth", requiresAuth: true });
 
 // T022: noindex,nofollow (FR-015)
 useHead({
@@ -137,12 +137,9 @@ async function handleCancelSelf() {
 </script>
 
 <template>
-  <div class="mx-auto max-w-4xl">
+  <div class="mx-auto max-w-4xl px-4 pb-12 pt-6">
     <!-- Error banner -->
-    <div
-      v-if="error"
-      class="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg"
-    >
+    <div v-if="error" class="sheet-notice mb-4" data-tone="error" role="alert">
       {{ error }}
     </div>
 

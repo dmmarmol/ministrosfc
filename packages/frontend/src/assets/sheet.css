@@ -368,3 +368,65 @@ body:has(.sheet-world) {
   border-bottom: 3px solid var(--sheet-paper);
   transform: rotate(-45deg) translate(1px, -1px);
 }
+
+/*
+ * Legacy utility remap. Pages and components that still use the old Tailwind
+ * tokens (gray scale, brand, surface, rounded, shadow) read the sheet palette
+ * inside the sheet world, so the admin panel and any leftover legacy class
+ * land in the same black-and-white world with square corners and no shadows.
+ */
+.sheet-world {
+  --color-gray-50: var(--sheet-paper);
+  --color-gray-100: var(--sheet-ground);
+  --color-gray-200: #c9ccd6;
+  --color-gray-300: #a9adbb;
+  --color-gray-400: #6a6f84;
+  --color-gray-500: #4a4e60;
+  --color-gray-600: var(--sheet-ink-soft);
+  --color-gray-700: var(--sheet-ink-soft);
+  --color-gray-800: var(--sheet-ink);
+  --color-gray-900: var(--sheet-ink);
+  --color-brand: var(--sheet-blue);
+  --color-primary: var(--sheet-blue);
+  --color-surface: var(--sheet-paper);
+  /* Legacy "ink block with white text" stays a dark block in both modes */
+  --color-ink: #0b0b12;
+  --color-on-brand: var(--sheet-paper);
+  /* The admin sidebar stays dark in both modes (its text is white) */
+  --color-admin-ui-sidebar-bg: #0b0b12;
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --shadow-lg: 0 0 #0000;
+  --shadow-xl: 0 0 #0000;
+  --shadow-2xl: 0 0 #0000;
+}
+.dark .sheet-world {
+  --color-admin-ui-sidebar-bg: #171923;
+  --color-ink: #232638;
+  --color-gray-200: #2c3042;
+  --color-gray-300: #3d4258;
+  --color-gray-400: #9aa0b8;
+  --color-gray-500: #aab0c4;
+}
+
+/* Admin is a dense tool: fields and labels sit quieter than on the public sheets */
+.admin-sheet .sheet-field {
+  border-width: 1px;
+  min-height: 2.5rem;
+  font-size: 0.875rem;
+}
+.admin-sheet .sheet-label {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: inherit;
+  font-size: 0.75rem;
+}
