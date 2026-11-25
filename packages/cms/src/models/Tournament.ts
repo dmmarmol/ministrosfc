@@ -14,16 +14,9 @@
  */
 import { prisma } from "../config/database";
 import { type Tournament, type Prisma, GameStatus } from "@prisma/client";
+import { tallyRecord, type MinistrosRecord } from "../utils/ministros-record";
 
-export interface MinistrosRecord {
-  played: number;
-  wins: number;
-  draws: number;
-  losses: number;
-  goalsFor: number;
-  goalsAgainst: number;
-  goalDifference: number;
-}
+export type { MinistrosRecord };
 
 interface FindManyOptions {
   competitionType?: string;
@@ -116,29 +109,26 @@ const TournamentModel = {
       where: { tournamentId, status: GameStatus.COMPLETED },
       select: { homeTeamScore: true, awayTeamScore: true },
     });
+    return tallyRecord(completedGames);
+  },
 
-    const record: MinistrosRecord = {
-      played: 0,
-      wins: 0,
-      draws: 0,
-      losses: 0,
-      goalsFor: 0,
-      goalsAgainst: 0,
-      goalDifference: 0,
-    };
-
+  /** Records for many tournaments in one query; tournaments without games are absent from the map. */
+  async calculateMinistrosRecords(
+    tournamentIds: string[],
+  ): Promise<Map<string, MinistrosRecord>> {
+    if (!tournamentIds.length) return new Map();
+    const completedGames = await prisma.game.findMany({
+      where: { tournamentId: { in: tournamentIds }, status: GameStatus.COMPLETED },
+      select: { tournamentId: true, homeTeamScore: true, awayTeamScore: true },
+    });
+    const byTournament = new Map<string, typeof completedGames>();
     for (const game of completedGames) {
-      if (game.homeTeamScore === null || game.awayTeamScore === null) continue;
-      record.played++;
-      record.goalsFor += game.homeTeamScore;
-      record.goalsAgainst += game.awayTeamScore;
-      if (game.homeTeamScore > game.awayTeamScore) record.wins++;
-      else if (game.homeTeamScore === game.awayTeamScore) record.draws++;
-      else record.losses++;
+      const id = game.tournamentId!;
+      byTournament.set(id, [...(byTournament.get(id) ?? []), game]);
     }
-
-    record.goalDifference = record.goalsFor - record.goalsAgainst;
-    return record;
+    return new Map(
+      [...byTournament].map(([id, games]) => [id, tallyRecord(games)]),
+    );
   },
 };
 

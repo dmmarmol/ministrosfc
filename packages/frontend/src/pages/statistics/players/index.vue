@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import StatsField from "~/components/pages/statistics/StatsField.vue";
+import StatsFilterBar from "~/components/pages/statistics/StatsFilterBar.vue";
 import {
   OPTION_FILTER_ALL,
   type PlayerStatus,
@@ -12,12 +14,14 @@ import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 import { useStatsFilters } from "~/composables/useStatsFilters";
 import { createTruthyObject } from "~/utils/object.js";
 
+
+const { t } = useI18n();
 definePageMeta({
   layout: "statistics-private",
   middleware: "auth",
   requiresAuth: true,
 });
-useHead({ title: "Estadísticas de Jugadores" });
+useHead({ title: t("statisticsPlayers.estadisticasDeJugadores") });
 
 const { $api } = useNuxtApp();
 const route = useRoute();
@@ -60,21 +64,21 @@ watch(
 
 <template>
   <div>
-    <div class="flex gap-3 mb-6">
-      <YearSelect v-model="yearFilter" class="w-full" />
-      <UiPlayerStatusSelect
+    <StatsTitle>{{ t("common.jugadores") }}</StatsTitle>
+    <StatsFilterBar>
+      <StatsField :label="t('common.ano')"><YearSelect v-model="yearFilter" /></StatsField>
+      <StatsField :label="t('common.estado')"><UiPlayerStatusSelect
         include-all
         v-model="playerStatusFilter"
-        class="w-full"
-      />
-      <PlayerSelect
+       
+      /></StatsField>
+      <StatsField :label="t('common.jugador')"><PlayerSelect
         :items="availablePlayers"
         v-model="playerFilter"
         :status="selectedPlayerStatus"
-        class="w-full"
-      />
-    </div>
-    <StatsTitle>Estadísticas de Jugadores</StatsTitle>
+       
+      /></StatsField>
+    </StatsFilterBar>
     <StatsTableByPlayer :rows="rows" :loading="pending" />
   </div>
 </template>

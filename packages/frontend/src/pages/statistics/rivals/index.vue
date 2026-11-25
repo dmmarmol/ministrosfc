@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import StatsField from "~/components/pages/statistics/StatsField.vue";
+import StatsFilterBar from "~/components/pages/statistics/StatsFilterBar.vue";
 import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 import StatsTableByRival from "../../../components/pages/statistics/StatsTableByRival.vue";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
@@ -9,12 +11,14 @@ import PlaygroundSelect from "~/components/pages/admin/playground/PlaygroundSele
 import { useStatsFilters } from "~/composables/useStatsFilters";
 import { createTruthyObject } from "~/utils/object.js";
 
+
+const { t } = useI18n();
 definePageMeta({
   layout: "statistics-private",
   middleware: "auth",
   requiresAuth: true,
 });
-useHead({ title: "Estadísticas por Rival" });
+useHead({ title: t("statisticsRivals.estadisticasPorRival") });
 
 const { $api } = useNuxtApp();
 const route = useRoute();
@@ -56,13 +60,13 @@ watch(
 
 <template>
   <div>
-    <div class="flex gap-3 mb-6">
-      <YearSelect v-model="yearFilter" class="w-full" />
-      <PlaygroundSelect v-model="playgroundFilter" class="w-full" />
-      <TournamentSelect v-model="tournamentFilter" class="w-full" />
-      <RivalSelect v-model="rivalFilter" class="w-full" />
-    </div>
-    <StatsTitle>Estadísticas por Rival</StatsTitle>
+    <StatsTitle>{{ t("common.rivales") }}</StatsTitle>
+    <StatsFilterBar>
+      <StatsField :label="t('common.ano')"><YearSelect v-model="yearFilter" /></StatsField>
+      <StatsField :label="t('common.cancha')"><PlaygroundSelect v-model="playgroundFilter" :placeholder="t('common.todas')" /></StatsField>
+      <StatsField :label="t('common.torneo')"><TournamentSelect v-model="tournamentFilter" /></StatsField>
+      <StatsField :label="t('statisticsRivals.rival')"><RivalSelect v-model="rivalFilter" /></StatsField>
+    </StatsFilterBar>
     <StatsTableByRival :rows="rows" :loading="pending" />
   </div>
 </template>

@@ -16,8 +16,10 @@ import SignupPlayerTable from "~/components/pages/games/signup/SignupPlayerTable
 import SignupRegistrationRow from "~/components/pages/games/signup/SignupRegistrationRow.vue";
 import SignupAddPlayer from "~/components/pages/games/signup/SignupAddPlayer.vue";
 
+
+const { t } = useI18n();
 // T022: auth guard — redirect unauthenticated to /login?redirect=...
-definePageMeta({ middleware: "auth", requiresAuth: true });
+definePageMeta({ layout: "sheet", middleware: "auth", requiresAuth: true });
 
 // T022: noindex,nofollow (FR-015)
 useHead({
@@ -66,7 +68,7 @@ const canManageRoster = computed(() => {
 useHead(() => ({
   title: game.value
     ? `Convocatoria vs. ${game.value.opponentTeam?.name} – ${config.public.siteName}`
-    : "Convocatoria",
+    : t("gamesSignup.convocatoria"),
 }));
 
 // T038: hover highlight state for field/table correlation
@@ -117,7 +119,7 @@ async function handleSignupProxy(targetPlayerId: string) {
     await signupProxy(targetPlayerId);
   } catch (e: any) {
     proxyError.value =
-      e?.data?.message ?? e?.message ?? "Error al agregar jugador";
+      e?.data?.message ?? e?.message ?? t("errors.errorAlAgregarJugador");
   } finally {
     proxyLoading.value = false;
   }
@@ -137,12 +139,9 @@ async function handleCancelSelf() {
 </script>
 
 <template>
-  <div class="mx-auto max-w-4xl">
+  <div class="mx-auto max-w-4xl px-4 pb-12 pt-6">
     <!-- Error banner -->
-    <div
-      v-if="error"
-      class="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg"
-    >
+    <div v-if="error" class="sheet-notice mb-4" data-tone="error" role="alert">
       {{ error }}
     </div>
 
@@ -192,7 +191,7 @@ async function handleCancelSelf() {
       <div class="md:col-span-6 mb-6 md:mb-0">
         <!-- T064: formation label -->
         <p class="text-sm font-semibold text-gray-700 mb-3">
-          Formación: {{ effectiveLineup }}
+          {{ t("signup.lineup", { lineup: effectiveLineup }) }}
         </p>
         <GameLineupField
           :lineup="effectiveLineup"
@@ -217,10 +216,10 @@ async function handleCancelSelf() {
         />
       </div>
     </div>
-    <p v-else class="mt-6 text-sm text-gray-500">Sin confirmados aún.</p>
+    <p v-else class="mt-6 text-sm text-gray-500">{{ t("gamesSignup.sinConfirmadosAun") }}</p>
 
     <div v-if="loading" class="mt-4 text-center text-sm text-gray-400">
-      Cargando…
+      {{ t("common.cargando") }}
     </div>
   </div>
 </template>

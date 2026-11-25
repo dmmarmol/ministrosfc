@@ -31,6 +31,8 @@ export interface DropdownAddMoreProps {
 import { ref, watch, computed } from "vue";
 import VSelect from "vue-select";
 
+const { t } = useI18n();
+
 const props = withDefaults(defineProps<DropdownAddMoreProps>(), {
   loading: false,
   creationError: null,
@@ -54,16 +56,16 @@ watch(
   },
 );
 
-const addNewLabel = computed(() => props.labels?.addNew ?? "Agregar nueva...");
+const addNewLabel = computed(() => props.labels?.addNew ?? t("dropdownAddMore.agregarNueva"));
 const showFooter = computed(() => addNewLabel.value !== "");
 const emptyLabel = computed(
-  () => props.labels?.empty ?? "Sin opciones disponibles",
+  () => props.labels?.empty ?? t("dropdownAddMore.sinOpcionesDisponibles"),
 );
 const noResultsLabel = computed(
-  () => props.labels?.noResults ?? "Sin resultados",
+  () => props.labels?.noResults ?? t("dropdownAddMore.sinResultados"),
 );
 const placeholderLabel = computed(
-  () => props.labels?.placeholder ?? "Elegí...",
+  () => props.labels?.placeholder ?? t("dropdownAddMore.elegi"),
 );
 
 // State for inline-create panel
@@ -164,14 +166,16 @@ function cancelCreate() {
 <style scoped>
 /* Align vue-select visuals with the Tailwind design system */
 :deep(.v-select) {
-  --vs-border-color: #d1d5db; /* gray-300 */
-  --vs-border-radius: 0.5rem; /* rounded-lg */
+  --vs-border-color: var(--color-gray-300);
+  --vs-border-radius: 0;
   --vs-font-size: 0.875rem; /* text-sm */
-  --vs-dropdown-box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --vs-dropdown-box-shadow: none;
+  --vs-colors--lightest: var(--color-gray-100);
+  --vs-dropdown-bg: var(--color-gray-50);
+  --vs-dropdown-color: var(--color-gray-900);
   --vs-dropdown-z-index: 9999;
-  --vs-controls-color: #6b7280; /* gray-500 */
-  --vs-selected-color: #111827; /* gray-900 */
+  --vs-controls-color: var(--color-gray-500);
+  --vs-selected-color: var(--color-gray-900);
 }
 
 :deep(.vs__dropdown-toggle) {
@@ -179,12 +183,12 @@ function cancelCreate() {
 }
 
 :deep(.vs__search::placeholder) {
-  color: #9ca3af; /* gray-400 */
+  color: var(--color-gray-400);
 }
 
 .vs__dropdown-add-more-footer {
   list-style: none;
-  border-top: 1px solid #f3f4f6; /* gray-100 */
+  border-top: 1px solid var(--color-gray-200);
   margin-top: 0.25rem;
 }
 
@@ -194,14 +198,14 @@ function cancelCreate() {
   padding: 0.5rem 0.75rem;
   text-align: left;
   font-size: 0.75rem;
-  color: #6b7280; /* gray-500 */
+  color: var(--color-gray-500);
   cursor: pointer;
   background: transparent;
   border: none;
 }
 
 :deep(.vs__add-new-btn:hover) {
-  background-color: #f9fafb; /* gray-50 */
-  color: #111827; /* gray-900 */
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-900);
 }
 </style>

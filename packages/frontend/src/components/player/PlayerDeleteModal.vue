@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
 
+
+const { t } = useI18n();
 const props = defineProps<{
   player: { id: string; firstName: string; lastName: string };
 }>();
@@ -11,14 +13,16 @@ defineEmits<{
 }>();
 
 function getDeletePlayerDescription(): string {
-  return `¿Estás seguro que deseas eliminar a ${props.player.firstName} ${props.player.lastName}? Esta acción es permanente e irreversible.`;
+  return t("playerDeleteModal.description", {
+    name: `${props.player.firstName} ${props.player.lastName}`,
+  });
 }
 </script>
 
 <template>
   <ConfirmationModal
     :open="true"
-    title="Eliminar Jugador"
+    :title="t('playerPlayerDeleteModal.eliminarJugador')"
     :description="getDeletePlayerDescription()"
     confirm-text="Eliminar Jugador"
     cancel-text="Cancelar"

@@ -1,16 +1,20 @@
 <script setup lang="ts">
+import StatsField from "~/components/pages/statistics/StatsField.vue";
+import StatsFilterBar from "~/components/pages/statistics/StatsFilterBar.vue";
 import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 import StatsTableByYear from "../../components/pages/statistics/StatsTableByYear.vue";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
 import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 import { useStatsFilters } from "~/composables/useStatsFilters";
 
+
+const { t } = useI18n();
 definePageMeta({
   layout: "statistics-private",
   middleware: "auth",
   requiresAuth: true,
 });
-useHead({ title: "Estadísticas por Año" });
+useHead({ title: t("statisticsYears.estadisticasPorAno") });
 
 const { $api } = useNuxtApp();
 const route = useRoute();
@@ -39,10 +43,10 @@ watch(
 
 <template>
   <div>
-    <div class="flex gap-3 mb-6">
-      <YearSelect v-model="yearFilter" class="w-1/4" />
-    </div>
-    <StatsTitle>Estadísticas del Equipo</StatsTitle>
+    <StatsTitle>{{ t("common.porAno") }}</StatsTitle>
+    <StatsFilterBar>
+      <StatsField :label="t('common.ano')"><YearSelect v-model="yearFilter" /></StatsField>
+    </StatsFilterBar>
     <StatsTableByYear :rows="rows" :loading="pending" />
   </div>
 </template>

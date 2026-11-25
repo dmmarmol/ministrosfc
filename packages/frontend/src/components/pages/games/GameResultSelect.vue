@@ -3,6 +3,8 @@ import type { SelectItem } from "#ui/types";
 import { GameResult, OPTION_FILTER_ALL } from "@ministrosfc/shared";
 import { resolveSelectedValue } from "~/utils/object";
 
+const { t } = useI18n();
+
 const props = withDefaults(
   defineProps<{
     modelValue?: GameResult | typeof OPTION_FILTER_ALL;
@@ -23,13 +25,13 @@ const emit = defineEmits<{
 
 const optionAll: SelectItem = {
   value: OPTION_FILTER_ALL,
-  label: "Todos los resultados",
+  label: t("gamesGameResultSelect.todosLosResultados"),
 };
 
 const gameResultItems: SelectItem[] = [
-  { value: GameResult.WIN, label: "Victoria" },
-  { value: GameResult.LOSS, label: "Derrota" },
-  { value: GameResult.DRAW, label: "Empate" },
+  { value: GameResult.WIN, label: t("common.victoria") },
+  { value: GameResult.LOSS, label: t("common.derrota") },
+  { value: GameResult.DRAW, label: t("common.empate") },
 ];
 
 const items: SelectItem[] = props.includeAll

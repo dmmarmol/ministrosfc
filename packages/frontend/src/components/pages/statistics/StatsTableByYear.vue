@@ -1,126 +1,55 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { type TeamStatPeriodDTO } from "@ministrosfc/shared";
+import { computed } from "vue";
+import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 import { formatStatDate } from "~/utils/stats";
-import type { ColumnDef, ColumnSort } from "~/types/table";
-import {
-  cellWins,
-  cellLosses,
-  cellDraws,
-  cellGoalDiff,
-  cellPercent,
-} from "~/components/ui/Table/table-utils";
+import StatsRanked, { type RankedItem, type RankedMetric } from "./StatsRanked.vue";
 
-type YearRow = {
-  year: string;
-  period: string;
-  games: number;
-  wins: number;
-  losses: number;
-  draws: number;
-  goalsFor: number;
-  goalsAgainst: number;
-  goalDiff: number;
-  points: number;
-  winRate: number;
-};
+const { t } = useI18n();
 
-const props = defineProps<{
-  rows: TeamStatPeriodDTO[];
-  loading: boolean;
-}>();
+const props = defineProps<{ rows: TeamStatPeriodDTO[]; loading: boolean }>();
 
-const columns: ColumnDef<YearRow>[] = [
-  { accessorKey: "year", header: "Año", title: "Año", sortable: true },
-  {
-    accessorKey: "period",
-    header: "Período",
-    title: "Período",
-    sortable: false,
-  },
-  {
-    accessorKey: "games",
-    header: "PJ",
-    title: "Partidos Jugados",
-    sortable: true,
-  },
-  {
-    accessorKey: "wins",
-    header: "PG",
-    title: "Partidos Ganados",
-    sortable: true,
-    cell: ({ row }) => cellWins(row.getValue("wins")),
-  },
-  {
-    accessorKey: "losses",
-    header: "PP",
-    title: "Partidos Perdidos",
-    sortable: true,
-    cell: ({ row }) => cellLosses(row.getValue("losses")),
-  },
-  {
-    accessorKey: "draws",
-    header: "PE",
-    title: "Partidos Empatados",
-    sortable: true,
-    cell: ({ row }) => cellDraws(row.getValue("draws")),
-  },
-  {
-    accessorKey: "goalsFor",
-    header: "GF",
-    title: "Goles a Favor",
-    sortable: true,
-  },
-  {
-    accessorKey: "goalsAgainst",
-    header: "GC",
-    title: "Goles en Contra",
-    sortable: true,
-  },
-  {
-    accessorKey: "goalDiff",
-    header: "DG",
-    title: "Diferencia de Goles",
-    sortable: true,
-    cell: ({ row }) => cellGoalDiff(row.getValue("goalDiff")),
-  },
-  { accessorKey: "points", header: "PTS", title: "Puntos", sortable: true },
-  {
-    accessorKey: "winRate",
-    header: "Win%",
-    title: "Porcentaje de Victorias",
-    sortable: true,
-    cell: ({ row }) => cellPercent(row.getValue("winRate")),
-  },
+const pct = (v: number) => `${Number(v).toFixed(1)}%`;
+const signed = (v: number) => (v > 0 ? `+${v}` : String(v));
+const metrics: RankedMetric[] = [
+  { key: "points", label: t("common.puntos"), unit: t("units.puntos") },
+  { key: "wins", label: t("common.victorias"), unit: t("units.victorias") },
+  { key: "games", label: t("common.partidos"), unit: t("units.partidos") },
+  { key: "winRate", label: t("stats.winRate"), unit: t("units.vict"), format: pct },
+  { key: "goalDiff", label: t("common.difGol"), unit: t("units.difGol"), format: signed },
 ];
 
-const tableRows = computed((): YearRow[] =>
-  props.rows.map((row) => ({
-    year: row.label,
-    period:
-      row.periodStart && row.periodEnd
-        ? `${formatStatDate(row.periodStart)} – ${formatStatDate(row.periodEnd)}`
-        : "—",
-    games: row.gamesPlayed,
-    wins: row.wins,
-    losses: row.losses,
-    draws: row.draws,
-    goalsFor: row.goalsFor,
-    goalsAgainst: row.goalsAgainst,
-    goalDiff: row.goalDifference,
-    points: row.pointsEarned,
-    winRate: row.winRate,
+const period = (r: TeamStatPeriodDTO) =>
+  r.periodStart && r.periodEnd
+    ? `${formatStatDate(r.periodStart)} – ${formatStatDate(r.periodEnd)}`
+    : null;
+
+const items = computed<RankedItem[]>(() =>
+  props.rows.map((r) => ({
+    id: r.key,
+    title: r.label,
+    subtitle: period(r) ?? undefined,
+    
+    values: {
+      points: r.pointsEarned,
+      wins: r.wins,
+      games: r.gamesPlayed,
+      winRate: r.winRate,
+      goalDiff: r.goalDifference ?? r.goalsFor - r.goalsAgainst,
+    },
+    detail: [
+      { label: "PJ", value: r.gamesPlayed },
+      { label: "PG", value: r.wins },
+      { label: "PE", value: r.draws },
+      { label: "PP", value: r.losses },
+      { label: "GF", value: r.goalsFor },
+      { label: "GC", value: r.goalsAgainst },
+      { label: "DG", value: signed(r.goalDifference ?? r.goalsFor - r.goalsAgainst) },
+      { label: t("stats.winRateShort"), value: pct(r.winRate) },
+    ],
   })),
 );
-
-const sorting = ref<ColumnSort<keyof YearRow>[]>([{ id: "year", desc: true }]);
 </script>
 
 <template>
-  <UTable
-    v-model:sorting="sorting"
-    :data="tableRows"
-    :columns="columns"
-    :loading="loading"
-  />
+  <StatsRanked :items="items" :metrics="metrics" :loading="loading" natural />
 </template>

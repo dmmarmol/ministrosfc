@@ -1,96 +1,172 @@
 <script setup lang="ts">
-import { GameStatus } from "@ministrosfc/shared";
-definePageMeta({ public: true });
-useHead({ title: "Calendario" });
+import { GameStatus, type Game } from "@ministrosfc/shared";
+import GameLine from "~/components/pages/schedule/GameLine.vue";
+
+
+const { t } = useI18n();
+definePageMeta({ public: true, layout: "sheet" });
+useHead({ title: t("common.calendario") });
 
 const { $api } = useNuxtApp();
 
-const tabs = [
-  { key: "upcoming", label: "Próximos" },
-  { key: "past", label: "Resultados Anteriores" },
+type View = "all" | "upcoming" | "past";
+const views: { key: View; label: string }[] = [
+  { key: "all", label: t("common.todos") },
+  { key: "upcoming", label: t("schedule.proximos") },
+  { key: "past", label: t("common.resultados") },
 ];
-const activeTab = ref("upcoming");
+const view = ref<View>("all");
 const opponentFilter = ref("");
+const LIMIT = 50;
 
 const { data: teamsData } = await useAsyncData("schedule-teams", () =>
   $api<{ data: any[] }>("/api/v1/opponent-teams"),
 );
 const teams = computed(() => teamsData.value?.data ?? []);
 
-const query = computed(() => ({
-  status:
-    activeTab.value === "upcoming"
-      ? GameStatus.SCHEDULED
-      : GameStatus.COMPLETED,
-  ...(opponentFilter.value ? { opponentTeamId: opponentFilter.value } : {}),
-  limit: 50,
-}));
+const list = (status: GameStatus) =>
+  $api<{ data: Game[] }>("/api/v1/games", {
+    query: {
+      status,
+      ...(opponentFilter.value ? { opponentTeamId: opponentFilter.value } : {}),
+      limit: LIMIT,
+    },
+  }).then((r) => r.data ?? []);
 
-const { data, pending, refresh } = await useAsyncData("schedule", () =>
-  $api<{ data: any[] }>("/api/v1/games", { query: query.value }),
+// Both halves load once; the buttons only choose what is shown.
+const { data, pending, error, refresh } = await useAsyncData(
+  "schedule",
+  async () => {
+    const [scheduled, cancelled, completed] = await Promise.all([
+      list(GameStatus.SCHEDULED),
+      list(GameStatus.CANCELLED),
+      list(GameStatus.COMPLETED),
+    ]);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const seen = new Set<string>();
+    const upcoming = [
+      ...scheduled,
+      ...cancelled.filter((g) => new Date(g.date) >= startOfToday),
+    ].filter((g) => (seen.has(g.id) ? false : (seen.add(g.id), true)));
+    return { upcoming, past: completed };
+  },
 );
 
-watch([activeTab, opponentFilter], () => refresh());
+watch(opponentFilter, () => refresh());
 
-const games = computed(() => data.value?.data ?? []);
+const byDate = (dir: 1 | -1) => (a: Game, b: Game) =>
+  dir * (new Date(a.date).getTime() - new Date(b.date).getTime());
+
+function monthGroups(games: Game[]) {
+  const out: { key: string; label: string; items: Game[] }[] = [];
+  for (const g of games) {
+    const d = new Date(g.date);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    let grp = out.find((x) => x.key === key);
+    if (!grp) {
+      const label = d.toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+      grp = { key, label: label.charAt(0).toUpperCase() + label.slice(1), items: [] };
+      out.push(grp);
+    }
+    grp.items.push(g);
+  }
+  return out;
+}
+
+const upcomingGroups = computed(() =>
+  monthGroups([...(data.value?.upcoming ?? [])].sort(byDate(1))),
+);
+const pastGroups = computed(() =>
+  monthGroups([...(data.value?.past ?? [])].sort(byDate(-1))),
+);
+
+const sections = computed(() => {
+  const s = [
+    {
+      key: "upcoming" as const,
+      title: t("schedule.proximosPartidos"),
+      groups: upcomingGroups.value,
+      count: data.value?.upcoming.length ?? 0,
+      empty: t("schedule.noHayPartidosProximos"),
+    },
+    {
+      key: "past" as const,
+      title: t("common.partidosJugados"),
+      groups: pastGroups.value,
+      count: data.value?.past.length ?? 0,
+      empty: t("common.todaviaNoHayPartidos"),
+    },
+  ];
+  return view.value === "all" ? s : s.filter((x) => x.key === view.value);
+});
+const hasData = computed(() => !!data.value);
 </script>
 
 <template>
-  <div>
-    <!-- Tabs -->
-    <div class="flex gap-1 mb-6 bg-gray-100 p-1 rounded-lg w-fit">
+  <div class="mx-auto max-w-3xl px-4 pb-12 pt-6">
+    <UiSheetTitle>{{ t("common.calendario") }}</UiSheetTitle>
+
+    <div class="mt-5 flex flex-wrap gap-2" role="group" :aria-label="t('schedule.ver')">
       <button
-        v-for="tab in tabs"
-        :key="tab.key"
-        :class="
-          activeTab === tab.key
-            ? 'bg-surface shadow-sm text-gray-900 font-semibold'
-            : 'text-gray-500 hover:text-gray-700'
-        "
-        class="px-4 py-2 rounded-md text-sm transition-all"
-        @click="activeTab = tab.key"
+        v-for="v in views"
+        :key="v.key"
+        type="button"
+        class="sheet-chip"
+        :aria-pressed="view === v.key"
+        @click="view = v.key"
       >
-        {{ tab.label }}
+        {{ v.label }}
       </button>
     </div>
 
-    <!-- Filters -->
-    <div class="flex flex-col sm:flex-row gap-3 mb-6">
-      <select
-        v-model="opponentFilter"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-      >
-        <option value="">Todos los rivales</option>
-        <option v-for="team in teams" :key="team.id" :value="team.id">
-          {{ team.name }}
-        </option>
-      </select>
+    <div class="mt-4 border-y-[3px] border-[var(--sheet-ink)] py-4" role="search">
+      <label class="block sm:max-w-xs">
+        <span class="sheet-label">{{ t("schedule.rival") }}</span>
+        <select v-model="opponentFilter" class="sheet-field mt-1">
+          <option value="">{{ t("common.todos") }}</option>
+          <option v-for="team in teams" :key="team.id" :value="team.id">
+            {{ team.name }}
+          </option>
+        </select>
+      </label>
     </div>
 
-    <!-- List -->
-    <div v-if="pending" class="space-y-3">
-      <div
-        v-for="i in 5"
-        :key="i"
-        class="h-16 bg-gray-200 animate-pulse rounded-xl"
-      />
-    </div>
-    <div v-else-if="games.length" class="space-y-3">
-      <GameCard
-        v-for="game in games"
-        :key="game.id"
-        :game="game"
-        :signup-state="game.currentPlayerStatus ?? undefined"
-      />
-    </div>
-    <div v-else class="text-center py-16 text-gray-500">
-      <p>
-        {{
-          activeTab === "upcoming"
-            ? "No hay partidos próximos."
-            : "No hay partidos anteriores."
-        }}
-      </p>
+    <p v-if="error" class="mt-8 text-lg" role="alert">
+      {{ t("errors.noSePudoCargarEl2") }}
+      <button type="button" class="sheet-link ml-1" @click="refresh()">{{ t("schedule.reintentar") }}</button>
+    </p>
+    <UiSheetMessage v-else-if="!hasData" class="mt-6">{{ t("schedule.cargandoPartidos") }}</UiSheetMessage>
+    <div v-else class="transition-opacity" :class="pending && 'opacity-60'">
+      <section
+        v-for="sec in sections"
+        :key="sec.key"
+        class="mt-8"
+        :aria-labelledby="`sec-${sec.key}`"
+      >
+        <UiSheetBand :id="`sec-${sec.key}`" :count="sec.count" count-label="partidos">{{ sec.title }}</UiSheetBand>
+
+        <p v-if="!sec.groups.length" class="border-b-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] px-3 py-4">
+          {{ opponentFilter ? t("schedule.noHayPartidosCon") : sec.empty }}
+        </p>
+        <template v-else>
+          <div v-for="grp in sec.groups" :key="grp.key" class="mt-5">
+            <h3 class="sheet-display text-2xl">{{ grp.label }}</h3>
+            <ul class="mt-1 border-t-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)]">
+              <li
+                v-for="g in grp.items"
+                :key="g.id"
+                class="border-b border-[var(--sheet-rule)] px-3"
+              >
+                <GameLine :game="g" />
+              </li>
+            </ul>
+          </div>
+          <p v-if="sec.count >= LIMIT" class="mt-4 text-sm text-[var(--sheet-ink-soft)]">
+            {{ t(sec.key === "upcoming" ? "schedule.limitUpcoming" : "schedule.limitRecent", { limit: LIMIT }) }}
+          </p>
+        </template>
+      </section>
     </div>
   </div>
 </template>

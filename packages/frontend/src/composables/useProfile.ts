@@ -10,6 +10,7 @@ import {
 export type { PlayerProfileResponse };
 
 export function useProfile() {
+  const { t } = useI18n();
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
   const profile = ref<PlayerProfileResponse | null>(null);
@@ -26,7 +27,7 @@ export function useProfile() {
       );
       profile.value = res.data;
     } catch (e: unknown) {
-      error.value = (e as Error)?.message ?? "Error al cargar el perfil";
+      error.value = (e as Error)?.message ?? t("errors.errorAlCargarElPerfil");
     } finally {
       loading.value = false;
     }
@@ -46,7 +47,7 @@ export function useProfile() {
       );
       profile.value = res.data;
     } catch (e: unknown) {
-      error.value = (e as Error)?.message ?? "Error al actualizar el perfil";
+      error.value = (e as Error)?.message ?? t("errors.errorAlActualizarElPerfil");
       throw e;
     } finally {
       loading.value = false;
@@ -72,7 +73,7 @@ export function useProfile() {
       }
       return res.data.photoUrl;
     } catch (e: unknown) {
-      error.value = (e as Error)?.message ?? "Error al subir la foto";
+      error.value = (e as Error)?.message ?? t("errors.errorAlSubirLaFoto");
       throw e;
     } finally {
       loading.value = false;

@@ -4,6 +4,8 @@ import StatsTableByRival from "~/components/pages/statistics/StatsTableByRival.v
 import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 
 const row: TeamStatPeriodDTO = {
+  key: "rival-1",
+  playgroundName: "Cancha 1",
   label: "Rival FC",
   periodStart: undefined,
   periodEnd: undefined,
@@ -21,26 +23,36 @@ const row: TeamStatPeriodDTO = {
 };
 
 describe("StatsTableByRival", () => {
-  it("renders all-rivals mode with correct header", () => {
-    const wrapper = mount(StatsTableByRival, {
-      props: { rows: [row], loading: false },
+  const mountIt = (rows = [row], loading = false) =>
+    mount(StatsTableByRival, {
+      props: { rows, loading },
+      global: { stubs: { NuxtLink: { template: "<a :href=\"to\"><slot /></a>", props: ["to"] } } },
     });
-    expect(wrapper.text()).toContain("Rival");
+
+  it("shows the rival name as the row title", () => {
+    expect(mountIt().text()).toContain("Rival FC");
   });
 
-  it("maps rows correctly", () => {
-    const wrapper = mount(StatsTableByRival, {
-      props: { rows: [row], loading: false },
-    });
-    const text = wrapper.text();
-    expect(text).toContain("Rival FC");
-    expect(text).toContain("60.0%");
+  it("leads with games played as the headline number", () => {
+    const text = mountIt().text();
+    expect(text).toContain("10");
+    expect(text).toContain("partidos");
   });
 
-  it("shows empty state", () => {
-    const wrapper = mount(StatsTableByRival, {
-      props: { rows: [], loading: false },
-    });
-    expect(wrapper.text()).toContain("Sin datos");
+  it("opens the detail with the win rate and a link to the rival history", async () => {
+    const wrapper = mountIt();
+    await wrapper.find("ol button").trigger("click");
+    expect(wrapper.text()).toContain("60.0%");
+    expect(wrapper.find("a").attributes("href")).toBe("/statistics/rivals/rival-1");
+  });
+
+  it("shows the empty message when there are no rows", () => {
+    const wrapper = mount(StatsTableByRival, { props: { rows: [], loading: false } });
+    expect(wrapper.text()).toContain("No hay datos para estos filtros.");
+  });
+
+  it("shows the loading message while loading", () => {
+    const wrapper = mount(StatsTableByRival, { props: { rows: [], loading: true } });
+    expect(wrapper.text()).toContain("Cargando…");
   });
 });

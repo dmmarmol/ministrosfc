@@ -1,0 +1,527 @@
+{
+  "addressAutocompleteInput": {
+    "openstreetmapContributors": "© OpenStreetMap contributors",
+    "sinResultadosParaEsta": "Sin resultados para esta búsqueda"
+  },
+  "authGoogleSignInButton": {
+    "iniciarSesionConGoogle": "Iniciar sesión con Google"
+  },
+  "authLoginForm": {
+    "correoElectronico": "Correo electrónico",
+    "iniciandoSesion": "Iniciando sesión…",
+    "iniciarSesion": "Iniciar sesión"
+  },
+  "authOnboarding": {
+    "bienvenidoAMinistrosFc": "Bienvenido a Ministros FC",
+    "completaTuPerfilPara": "Completá tu perfil para continuar",
+    "continuar": "Continuar",
+    "cualEsTuNumero": "¿Cuál es tu número de camiseta?",
+    "cualEsTuPosicion": "¿Cuál es tu posición en la cancha?",
+    "eresUnJugadorDel": "¿Eres un jugador del equipo?",
+    "seleccionaUnaPosicion": "Seleccioná una posición",
+    "siSosParteDel": "Si sos parte del plantel, marcá esta opción"
+  },
+  "authPendingApprovalBanner": {
+    "solicitudEnviada": "Solicitud enviada"
+  },
+  "authRegisterForm": {
+    "confirmarContrasena": "Confirmar contraseña",
+    "correoElectronico": "Correo electrónico",
+    "juan": "Juan",
+    "lasContrasenasNoCoinciden": "Las contraseñas no coinciden",
+    "perez": "Pérez",
+    "registrando": "Registrando…",
+    "registrarse": "Registrarse"
+  },
+  "colorModeToggle": {
+    "cambiarAModoClaro": "Cambiar a modo claro",
+    "cambiarAModoOscuro": "Cambiar a modo oscuro"
+  },
+  "common": {
+    "activo": "Activo",
+    "activos": "Activos",
+    "amar": "Amar.",
+    "ano": "Año",
+    "anulado": "Anulado",
+    "apellido": "Apellido",
+    "asist": "Asist.",
+    "asistencias": "Asistencias",
+    "calendario": "Calendario",
+    "cancelado": "Cancelado",
+    "cancelar": "Cancelar",
+    "cancha": "Cancha",
+    "cargando": "Cargando…",
+    "completado": "Completado",
+    "confirmar": "Confirmar",
+    "contrasena": "Contraseña",
+    "derrota": "Derrota",
+    "derrotas": "Derrotas",
+    "difGol": "Dif. gol",
+    "elCupoEstaCompleto": "El cupo está completo.",
+    "empate": "Empate",
+    "empates": "Empates",
+    "enCurso": "En curso",
+    "enJuego": "En juego",
+    "estadisticas": "Estadísticas",
+    "estado": "Estado",
+    "general": "General",
+    "goleadores": "Goleadores",
+    "goles": "Goles",
+    "golesAFavor": "Goles a favor",
+    "golesEnContra": "Goles en contra",
+    "guardaLosCambios": "Guardá los cambios",
+    "guardando": "Guardando…",
+    "inactivo": "Inactivo",
+    "inactivos": "Inactivos",
+    "ingresar": "Ingresar",
+    "inicio": "Inicio",
+    "inv": "Inv.",
+    "invitado": "Invitado",
+    "jugador": "Jugador",
+    "jugadores": "Jugadores",
+    "nombre": "Nombre",
+    "partido": "Partido",
+    "partidos": "Partidos",
+    "partidosJugados": "Partidos jugados",
+    "plantilla": "Plantilla",
+    "porAno": "Por año",
+    "porTorneo": "Por torneo",
+    "programado": "Programado",
+    "proximo": "Próximo",
+    "puntos": "Puntos",
+    "reg": "Reg.",
+    "resultados": "Resultados",
+    "rivalAConfirmar": "Rival a confirmar",
+    "rivales": "Rivales",
+    "rojas": "Rojas",
+    "sinEstado": "Sin estado",
+    "sinPosicion": "Sin posición",
+    "tarjetasAmarillas": "Tarjetas amarillas",
+    "tarjetasRojas": "Tarjetas rojas",
+    "todas": "Todas",
+    "todaviaNoHayPartidos": "Todavía no hay partidos jugados.",
+    "todos": "Todos",
+    "todosLosAnos": "Todos los años",
+    "todosLosEstados": "Todos los estados",
+    "torneo": "Torneo",
+    "torneos": "Torneos",
+    "victoria": "Victoria",
+    "victorias": "Victorias",
+    "volve": "Volvé",
+    "vs": "vs {name}"
+  },
+  "confirmationModal": {
+    "procesando": "Procesando..."
+  },
+  "dropdownAddMore": {
+    "agregarNueva": "Agregar nueva...",
+    "elegi": "Elegí...",
+    "sinOpcionesDisponibles": "Sin opciones disponibles",
+    "sinResultados": "Sin resultados"
+  },
+  "emailInput": {
+    "ingresaUnCorreoElectronico": "Ingresá un correo electrónico válido (ej: tu{'@'}ejemplo.com)",
+    "tuEjemploCom": "tu{'@'}ejemplo.com"
+  },
+  "error": {
+    "algoSalioMal": "Algo salió mal",
+    "laPaginaQueBuscas": "La página que buscás no existe o cambió de lugar.",
+    "noEncontrado": "No encontrado",
+    "tuvimosUnProblemaAl": "Tuvimos un problema al cargar esta página. Probá de nuevo en un momento.",
+    "volverAlInicio": "Volver al inicio"
+  },
+  "errors": {
+    "errorAlActualizarElPerfil": "Error al actualizar el perfil",
+    "errorAlAgregarInvitado": "Error al agregar invitado",
+    "errorAlAgregarJugador": "Error al agregar jugador",
+    "errorAlCancelarInscripcion": "Error al cancelar inscripción",
+    "errorAlCargarCanchas": "Error al cargar canchas",
+    "errorAlCargarElEquipo": "Error al cargar el equipo.",
+    "errorAlCargarElEstado": "Error al cargar el estado de onboarding.",
+    "errorAlCargarElPartido": "Error al cargar el partido.",
+    "errorAlCargarElPerfil": "Error al cargar el perfil",
+    "errorAlCargarElTorneo": "Error al cargar el torneo.",
+    "errorAlCargarEquipos": "Error al cargar equipos",
+    "errorAlCargarJugadores": "Error al cargar jugadores.",
+    "errorAlCargarLaConvocatoria": "Error al cargar la convocatoria",
+    "errorAlCargarPartidos": "Error al cargar partidos",
+    "errorAlCompletarElOnboarding": "Error al completar el onboarding.",
+    "errorAlEliminarAlJugador": "Error al eliminar al jugador",
+    "errorAlGuardarLosCambios": "Error al guardar los cambios",
+    "errorAlIniciarSesionCon": "Error al iniciar sesión con Google. Intentá de nuevo.",
+    "errorAlInscribirse": "Error al inscribirse",
+    "errorAlRegistrarseIntentaDe": "Error al registrarse. Intentá de nuevo.",
+    "errorAlSubirLaFoto": "Error al subir la foto",
+    "errorDeSeguridadIntentaDe": "Error de seguridad. Intentá de nuevo.",
+    "errorDesconocido": "Error desconocido.",
+    "eseNumeroDeCamisetaYa": "Ese número de camiseta ya está en uso.",
+    "inicioDeSesionConGoogle": "Inicio de sesión con Google cancelado.",
+    "noSeEncontraronJugadores": "No se encontraron jugadores.",
+    "noSeEncontraronTorneos": "No se encontraron torneos.",
+    "noSeEncontroElPartido": "No se encontró el partido.",
+    "noSeEncontroElTorneo": "No se encontró el torneo.",
+    "noSePudieronCargarLos": "No se pudieron cargar los torneos.",
+    "noSePudoCargarEl": "No se pudo cargar el perfil",
+    "noSePudoCargarEl2": "No se pudo cargar el calendario.",
+    "noSePudoCompletarLa": "No se pudo completar la acción. Intentá nuevamente.",
+    "noSePuedenCargarSugerencias": "No se pueden cargar sugerencias en este momento"
+  },
+  "gamePublicParticipants": {
+    "invitedBy": "Invitado por {name}",
+    "players": "Jugadores ({count})"
+  },
+  "gameSheet": {
+    "aPlayer": "un jugador",
+    "guestOf": "Invitado de {name}"
+  },
+  "gamesDetail": {
+    "cargandoPartido": "Cargando partido…",
+    "partidoNoEncontrado": "Partido no encontrado",
+    "revisaElLinkO": "Revisá el link o buscá el partido en el calendario."
+  },
+  "gamesGamePublicParticipants": {
+    "noHayJugadoresConfirmados": "No hay jugadores confirmados."
+  },
+  "gamesGameResultSelect": {
+    "todosLosResultados": "Todos los resultados"
+  },
+  "gamesGameSheet": {
+    "aAsistencias": "A asistencias",
+    "amarillas": "amarillas",
+    "comoLlegar": "Cómo llegar",
+    "competencia": "Competencia",
+    "convocados": "Convocados",
+    "elDtTodaviaNo": "El DT todavía no cargó los convocados.",
+    "elResultadoDeEste": "El resultado de este partido no está cargado.",
+    "fecha": "Fecha",
+    "gGoles": "G goles",
+    "hora": "Hora",
+    "jugado": "Jugado",
+    "jugaron": "Jugaron",
+    "noSeCargaronLos": "No se cargaron los jugadores de este partido.",
+    "planilla": "Planilla",
+    "rojas": "rojas",
+    "sinNumero": "Sin número",
+    "suspendido": "Suspendido",
+    "verFichaDelPartido": "Ver ficha del partido"
+  },
+  "gamesSignup": {
+    "convocatoria": "Convocatoria",
+    "sinConfirmadosAun": "Sin confirmados aún."
+  },
+  "googleCallback": {
+    "procesandoAutenticacion": "Procesando autenticación…"
+  },
+  "home": {
+    "cuandoSeCargueEl": "Cuando se cargue el próximo partido vas a verlo acá.",
+    "sinPartidoProgramado": "Sin partido programado"
+  },
+  "homeHomeArchive": {
+    "sinDatosDeGoleadores": "Sin datos de goleadores.",
+    "sinResultadoCargado": "Sin resultado cargado"
+  },
+  "homeHomeCopies": {
+    "estadisticas": "Estadísticas",
+    "masSecciones": "Más secciones"
+  },
+  "homeHomeCtaSlot": {
+    "anotarme": "Anotarme"
+  },
+  "isPlayerCheckbox": {
+    "eresJugadorDelEquipo": "¿Eres jugador del equipo?",
+    "marcaEstaOpcionSi": "Marcá esta opción si jugas o jugaste en el equipo"
+  },
+  "jerseyNumberInput": {
+    "available": "Disponibles: {ranges}",
+    "dorsal": "Dorsal #",
+    "esteNumeroYaEsta": "Este número ya está ocupado"
+  },
+  "layoutsSheet": {
+    "irAlContenido": "Ir al contenido",
+    "miPerfil": "Mi perfil",
+    "ministrosFc": "Ministros FC",
+    "ministrosFcDesde2023": "Ministros FC · Desde 2023",
+    "ministrosFcInicio": "Ministros FC, inicio",
+    "principal": "Principal",
+    "salir": "Salir"
+  },
+  "loadingOverlay": {
+    "guardando": "Guardando..."
+  },
+  "login": {
+    "creaTuCuenta": "Creá tu cuenta",
+    "elCorreoElectronicoO": "El correo electrónico o la contraseña son incorrectos.",
+    "iniciaSesionEnTu": "Iniciá sesión en tu cuenta",
+    "noTenesCuentaRegistrate": "¿No tenés cuenta? Registrate",
+    "registrate": "Registrate",
+    "volveAlSitio": "Volvé al sitio",
+    "yaTenesCuentaInicia": "¿Ya tenés cuenta? Iniciá sesión"
+  },
+  "playerDeleteModal": {
+    "description": "¿Estás seguro que deseas eliminar a {name}? Esta acción es permanente e irreversible."
+  },
+  "playerPlayerCareerStats": {
+    "amarillas": "Amarillas",
+    "estadisticasDeCarrera": "Estadísticas de carrera",
+    "sinEstadisticasParaEste": "Sin estadísticas para este período."
+  },
+  "playerPlayerDeleteModal": {
+    "eliminarJugador": "Eliminar Jugador"
+  },
+  "playerPlayerStatsByRival": {
+    "buscarEquipo": "Buscar equipo",
+    "goles": "Goles",
+    "irAlPartido": "Ir al partido →",
+    "noHayPartidosContra": "No hay partidos contra equipos rivales todavía."
+  },
+  "playersDetail": {
+    "cargandoJugador": "Cargando jugador…",
+    "estadisticasPorEquipoRival": "Estadísticas por equipo rival",
+    "jugadorNoEncontrado": "Jugador no encontrado.",
+    "jugadorNoEncontrado2": "Jugador no encontrado"
+  },
+  "positionNumber": {
+    "camiseta": "Camiseta"
+  },
+  "positionSelect": {
+    "todasLasPosiciones": "Todas las posiciones"
+  },
+  "profile": {
+    "autenticacion": "Autenticación",
+    "cargandoPerfil": "Cargando perfil…",
+    "editar": "Editar",
+    "google": "Google",
+    "miPerfil": "Mi perfil",
+    "miembroDesde": "Miembro desde",
+    "perfilDeUsuario": "Perfil de usuario",
+    "tambienTenesAccesoA": "También tenés acceso a tu perfil de jugador",
+    "verPerfilDeJugador": "Ver perfil de jugador →"
+  },
+  "profileEditForm": {
+    "inactiveWarningEnd": "dejás de aparecer en la plantilla, no podés ser convocado a partidos y tu número de camiseta queda disponible para otro jugador. Podés volver a activarte en cualquier momento.",
+    "inactiveWarningStart": "Al marcarte como"
+  },
+  "profileHeader": {
+    "memberSince": "Miembro desde {date}"
+  },
+  "profileInvitedGuestsList": {
+    "invitados": "Invitados",
+    "verPartido": "Ver partido →"
+  },
+  "profileJerseySvg": {
+    "camiseta": "Camiseta"
+  },
+  "profilePlayer": {
+    "cargandoPerfil": "Cargando perfil…",
+    "perfilDeJugador": "Perfil de jugador",
+    "perfilDelJugador": "Perfil del jugador"
+  },
+  "profileProfileEditForm": {
+    "activoEnElEquipo": "Activo en el equipo",
+    "apodo": "Apodo",
+    "contactoDeEmergencia": "Contacto de emergencia",
+    "desmarcaEstaOpcionPara": "Desmarcá esta opción para marcarme como inactivo",
+    "direccion": "Dirección",
+    "ejJuanchi": "Ej: Juanchi",
+    "fechaDeNacimiento": "Fecha de nacimiento",
+    "inactivo": "inactivo",
+    "nombreYTelefono": "Nombre y teléfono",
+    "numeroDeCamiseta": "Número de camiseta",
+    "posicion": "Posición",
+    "sinAsignar": "Sin asignar",
+    "telefono": "Teléfono",
+    "whatsapp": "WhatsApp"
+  },
+  "profileProfileHeader": {
+    "cambiarFoto": "Cambiar foto"
+  },
+  "registrationStatusBadge": {
+    "aprobado": "Aprobado",
+    "pendiente": "Pendiente",
+    "rechazado": "Rechazado"
+  },
+  "rivalDetail": {
+    "drawn": "{n} empatado | {n} empatados",
+    "goalsSummary": "{scored} goles a favor, {conceded} en contra",
+    "lost": "{n} perdido | {n} perdidos",
+    "played": "{n} partido | {n} partidos",
+    "won": "{n} ganado | {n} ganados"
+  },
+  "rivalsDetail": {
+    "estadisticasPorRival": "Estadísticas por rival",
+    "noHayPartidosContra": "No hay partidos contra este rival para estos filtros.",
+    "partido": "Partido →",
+    "rivales": "Rivales"
+  },
+  "roleSelect": {
+    "admins": "Admins",
+    "dts": "DTs",
+    "editores": "Editores",
+    "todosLosRoles": "Todos los roles"
+  },
+  "roster": {
+    "arco": "Arco",
+    "ataque": "Ataque",
+    "buscarJugador": "Buscar jugador",
+    "cargandoPlantilla": "Cargando plantilla…",
+    "defensa": "Defensa",
+    "mediocampo": "Mediocampo",
+    "nombreOApodo": "Nombre o apodo",
+    "posicion": "Posición"
+  },
+  "schedule": {
+    "cargandoPartidos": "Cargando partidos…",
+    "limitRecent": "Se muestran los {limit} partidos más recientes.",
+    "limitUpcoming": "Se muestran los {limit} partidos más próximos.",
+    "noHayPartidosCon": "No hay partidos con este rival.",
+    "noHayPartidosProximos": "No hay partidos próximos.",
+    "proximos": "Próximos",
+    "proximosPartidos": "Próximos partidos",
+    "reintentar": "Reintentar",
+    "rival": "Rival",
+    "ver": "Ver"
+  },
+  "scheduleGameLine": {
+    "sinDato": "Sin dato"
+  },
+  "signup": {
+    "lineup": "Formación: {lineup}"
+  },
+  "signupAddPlayer": {
+    "confirmedLabel": "Confirmados:"
+  },
+  "signupSignupAddPlayer": {
+    "agregarInvitado": "Agregar invitado",
+    "agregarOtroJugador": "Agregar otro jugador",
+    "cerrarFormulario": "Cerrar formulario",
+    "confirmaTuAsistenciaPara": "Confirmá tu asistencia para habilitar esta sección.",
+    "elegiUnJugador": "Elegí un jugador",
+    "nombre": "Nombre *",
+    "posicionOpcional": "Posición (opcional)"
+  },
+  "signupSignupGameHeader": {
+    "ministrosFc": "Ministros FC",
+    "vs": "vs"
+  },
+  "signupSignupPlayerTable": {
+    "eliminarDelEquipo": "Eliminar del equipo",
+    "equipoCompleto": "Equipo completo",
+    "registrado": "Registrado",
+    "remover": "Remover"
+  },
+  "signupSignupSelfSection": {
+    "cancelarInscripcion": "Cancelar inscripción",
+    "confirmando": "Confirmando…",
+    "confirmarAsistencia": "Confirmar asistencia",
+    "yaEstasConfirmado": "✓ Ya estás confirmado."
+  },
+  "signupTable": {
+    "addedBy": "Agregado por {name}",
+    "confirmed": "Confirmados ({count})",
+    "confirmedOfMax": "Confirmados ({count} / {max})",
+    "invitedBy": "Invitado por {name}"
+  },
+  "statistics": {
+    "iniciaSesionParaVer": "Iniciá sesión para ver las estadísticas del equipo.",
+    "iniciarSesion": "Iniciar sesión →"
+  },
+  "statisticsPlayers": {
+    "estadisticasDeJugadores": "Estadísticas de Jugadores"
+  },
+  "statisticsRivals": {
+    "estadisticasPorRival": "Estadísticas por Rival",
+    "rival": "Rival"
+  },
+  "statisticsStatsHeader": {
+    "masDerrotasContra": "Más derrotas contra",
+    "masEmpatesContra": "Más empates contra",
+    "masVictoriasContra": "Más victorias contra",
+    "recordsContraRivales": "Récords contra rivales",
+    "rivalMasJugado": "Rival más jugado"
+  },
+  "statisticsStatsRanked": {
+    "asistenciasDelJugador": "Asistencias del jugador",
+    "diferenciaDeGol": "Diferencia de gol",
+    "golesDelJugador": "Goles del jugador",
+    "golesPorPartido": "Goles por partido",
+    "noHayDatosPara": "No hay datos para estos filtros.",
+    "orden": "Orden",
+    "ordenarPor": "Ordenar por",
+    "partidosEmpatados": "Partidos empatados",
+    "partidosGanados": "Partidos ganados",
+    "partidosPerdidos": "Partidos perdidos",
+    "porcentajeDeVictorias": "Porcentaje de victorias",
+    "tarjetasAmarillas": "tarjeta amarilla | tarjetas amarillas",
+    "tarjetasRojas": "tarjeta roja | tarjetas rojas",
+    "verDetalle": "Ver detalle"
+  },
+  "statisticsStatsTableByPlayer": {
+    "presencia": "Presencia",
+    "presente": "% presente"
+  },
+  "statisticsTopscorers": {
+    "buscarJugador": "Buscar jugador",
+    "golesPartido": "goles/partido",
+    "promGol": "Prom. gol"
+  },
+  "statisticsTournaments": {
+    "estadisticasPorTorneo": "Estadísticas por Torneo"
+  },
+  "statisticsYears": {
+    "estadisticasPorAno": "Estadísticas por Año"
+  },
+  "stats": {
+    "winRate": "% Victorias",
+    "winRateShort": "% Vict."
+  },
+  "statsFiltersPlayerSelect": {
+    "todosLosJugadores": "Todos los jugadores"
+  },
+  "statsFiltersPlayerStatusSelect": {
+    "activos": "Activos",
+    "inactivos": "Inactivos",
+    "todosLosEstados": "Todos los estados"
+  },
+  "statsFiltersRivalSelect": {
+    "todosLosRivales": "Todos los rivales"
+  },
+  "statsFiltersTournamentSelect": {
+    "todosLosTorneos": "Todos los torneos"
+  },
+  "teamSelect": {
+    "elegiUnEquipo": "Elegí un equipo",
+    "todosLosEquipos": "Todos los equipos"
+  },
+  "tournamentCompetitionType": {
+    "sinTipo": "Sin tipo"
+  },
+  "tournaments": {
+    "cargandoTorneos": "Cargando torneos…",
+    "formato": "Formato",
+    "record": "{wins} G · {draws} E · {losses} P",
+    "recordLabel": "Ganados {wins}, empatados {draws}, perdidos {losses}",
+    "reintentar": "Reintentar"
+  },
+  "tournamentsDetail": {
+    "cargandoTorneo": "Cargando torneo…",
+    "todaviaNoHayGoles": "Todavía no hay goles registrados en este torneo.",
+    "todaviaNoHayPartidos": "Todavía no hay partidos en este torneo.",
+    "torneos": "Torneos"
+  },
+  "units": {
+    "asist": "asist.",
+    "difGol": "dif. gol",
+    "goles": "goles",
+    "partidos": "partidos",
+    "puntos": "puntos",
+    "vict": "% vict.",
+    "victorias": "victorias"
+  },
+  "useStatisticsAvailableTournaments": {
+    "amistoso": "Amistoso"
+  },
+  "userRoleBadge": {
+    "administrador": "Administrador",
+    "directorTecnico": "Director Técnico"
+  }
+}

@@ -37,7 +37,7 @@ test.describe("Player public stats", () => {
     if (count === 0) return;
 
     const href = await playerLinks.first().getAttribute("href");
-    await page.goto(href ?? "/");
+    await page.goto(href ?? "/", { waitUntil: "networkidle" });
 
     // Find the year select
     const yearSelect = page.locator("select").first();
@@ -70,16 +70,23 @@ test.describe("Player public stats", () => {
     if (count === 0) return;
 
     const href = await playerLinks.first().getAttribute("href");
-    const playerUrl = `${href}?year=2023`;
+    await page.goto(href ?? "/", { waitUntil: "networkidle" });
 
-    await page.goto(playerUrl);
-    await expect(page).toHaveURL(/year=2023/);
-
-    // The year select should show 2023 as selected
+    // Use a year this player really has: the select can only show listed years
     const yearSelect = page.locator("select").first();
-    const selectedValue = await yearSelect.inputValue().catch(() => null);
-    if (selectedValue !== null) {
-      expect(selectedValue).toBe("2023");
-    }
+    if (!(await yearSelect.count())) return;
+    const years = (
+      await yearSelect.locator("option").evaluateAll((o) =>
+        o.map((x) => (x as HTMLOptionElement).value),
+      )
+    ).filter(Boolean);
+    if (!years.length) return;
+    const year = years[years.length - 1]!;
+
+    await page.goto(`${href}?year=${year}`, { waitUntil: "networkidle" });
+    await expect(page).toHaveURL(new RegExp(`year=${year}`));
+
+    // The year select should show that year as selected
+    await expect(page.locator("select").first()).toHaveValue(year);
   });
 });

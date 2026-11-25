@@ -6,9 +6,12 @@ import AddressAutocompleteInput from "~/components/AddressAutocompleteInput.vue"
 import {
   PlayerStatus,
   Position,
+  PositionDisplayName,
   type UpdatePlayerProfilePayload,
 } from "@ministrosfc/shared";
 
+
+const { t } = useI18n();
 const positions = Object.values(Position);
 
 interface ProfileFields {
@@ -89,53 +92,44 @@ const isActive = computed({
 </script>
 
 <template>
-  <form class="space-y-4" @submit.prevent="handleSubmit">
+  <form class="space-y-5" @submit.prevent="handleSubmit">
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label
-          class="block text-sm font-medium text-gray-700 mb-1"
-          for="profile-firstName"
-        >
-          Nombre
+        <label class="sheet-label" for="profile-firstName">
+          {{ t("common.nombre") }}
         </label>
         <input
           id="profile-firstName"
           v-model="form.firstName"
           type="text"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          class="sheet-field mt-1"
         />
       </div>
       <div>
-        <label
-          class="block text-sm font-medium text-gray-700 mb-1"
-          for="profile-lastName"
-        >
-          Apellido
+        <label class="sheet-label" for="profile-lastName">
+          {{ t("common.apellido") }}
         </label>
         <input
           id="profile-lastName"
           v-model="form.lastName"
           type="text"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          class="sheet-field mt-1"
           @input="emit('lastNameChange', form.lastName)"
         />
       </div>
     </div>
 
     <div>
-      <label
-        class="block text-sm font-medium text-gray-700 mb-1"
-        for="profile-nickname"
-      >
-        Apodo
+      <label class="sheet-label" for="profile-nickname">
+        {{ t("profileProfileEditForm.apodo") }}
       </label>
       <input
         id="profile-nickname"
         v-model="form.nickname"
         type="text"
         maxlength="100"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-        placeholder="Ej: Juanchi"
+        class="sheet-field mt-1"
+        :placeholder="t('profileProfileEditForm.ejJuanchi')"
       />
     </div>
 
@@ -143,39 +137,36 @@ const isActive = computed({
       <IsPlayerCheckbox
         id="profileStatus"
         v-model="isActive"
-        label="Activo en el equipo"
-        description="Desmarcá esta opción para marcarme como inactivo"
+        :label="t('profileProfileEditForm.activoEnElEquipo')"
+        :description="t('profileProfileEditForm.desmarcaEstaOpcionPara')"
       />
       <div
         v-if="!isActive"
-        class="mt-2 flex gap-2 rounded-lg border border-yellow-300 bg-yellow-50 px-3 py-2.5 text-sm text-yellow-800"
+        class="sheet-notice mt-2"
+        role="note"
+        data-testid="inactive-warning"
       >
-        <span class="mt-0.5 shrink-0">⚠️</span>
-        <p>
-          Al marcarte como <strong>inactivo</strong> dejás de aparecer en la
-          plantilla, no podés ser convocado a partidos y tu número de camiseta
-          queda disponible para otro jugador. Podés volver a activarte en
-          cualquier momento.
+        <p class="font-normal">
+          {{ t("profileEditForm.inactiveWarningStart") }}
+          <strong>{{ t("profileProfileEditForm.inactivo") }}</strong>
+          {{ t("profileEditForm.inactiveWarningEnd") }}
         </p>
       </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-2 items-end gap-3">
       <div>
-        <label
-          class="block text-sm font-medium text-gray-700 mb-1"
-          for="profile-position"
-        >
-          Posición
+        <label class="sheet-label" for="profile-position">
+          {{ t("profileProfileEditForm.posicion") }}
         </label>
         <select
           id="profile-position"
           v-model="form.position"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          class="sheet-field mt-1"
         >
-          <option value="">Sin asignar</option>
+          <option value="">{{ t("profileProfileEditForm.sinAsignar") }}</option>
           <option v-for="pos in positions" :key="pos" :value="pos">
-            {{ pos }}
+            {{ PositionDisplayName[pos] }} ({{ pos }})
           </option>
         </select>
       </div>
@@ -184,95 +175,78 @@ const isActive = computed({
           v-model="form.jerseyNumber"
           :taken-numbers="takenJerseys"
           @update:model-value="emit('jerseyChange', $event)"
-          label="Número de camiseta"
+          :label="t('profileProfileEditForm.numeroDeCamiseta')"
         />
       </div>
     </div>
 
     <div>
-      <label
-        class="block text-sm font-medium text-gray-700 mb-1"
-        for="profile-dateOfBirth"
-      >
-        Fecha de nacimiento
+      <label class="sheet-label" for="profile-dateOfBirth">
+        {{ t("profileProfileEditForm.fechaDeNacimiento") }}
       </label>
       <input
         id="profile-dateOfBirth"
         v-model="form.dateOfBirth"
         type="date"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+        class="sheet-field mt-1"
       />
     </div>
 
     <div>
-      <label
-        class="block text-sm font-medium text-gray-700 mb-1"
-        for="profile-address"
-      >
-        Dirección
+      <label class="sheet-label" for="profile-address">
+        {{ t("profileProfileEditForm.direccion") }}
       </label>
       <AddressAutocompleteInput id="profile-address" v-model="form.address" />
     </div>
 
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label
-          class="block text-sm font-medium text-gray-700 mb-1"
-          for="profile-phone"
-        >
-          Teléfono
+        <label class="sheet-label" for="profile-phone">
+          {{ t("profileProfileEditForm.telefono") }}
         </label>
         <input
           id="profile-phone"
           v-model="form.phone"
           type="tel"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          class="sheet-field mt-1"
         />
       </div>
       <div>
-        <label
-          class="block text-sm font-medium text-gray-700 mb-1"
-          for="profile-whatsapp"
-        >
-          WhatsApp
+        <label class="sheet-label" for="profile-whatsapp">
+          {{ t("profileProfileEditForm.whatsapp") }}
         </label>
         <input
           id="profile-whatsapp"
           v-model="form.whatsapp"
           type="tel"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          class="sheet-field mt-1"
         />
       </div>
     </div>
 
     <div>
-      <label
-        class="block text-sm font-medium text-gray-700 mb-1"
-        for="profile-emergencyContact"
-      >
-        Contacto de emergencia
+      <label class="sheet-label" for="profile-emergencyContact">
+        {{ t("profileProfileEditForm.contactoDeEmergencia") }}
       </label>
       <input
         id="profile-emergencyContact"
         v-model="form.emergencyContact"
         type="text"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-        placeholder="Nombre y teléfono"
+        class="sheet-field mt-1"
+        :placeholder="t('profileProfileEditForm.nombreYTelefono')"
       />
     </div>
 
-    <p v-if="error" class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+    <p v-if="error" class="sheet-notice" data-tone="error" role="alert">
       {{ error }}
     </p>
 
-    <UButton
+    <button
       type="submit"
       :disabled="loading || jerseyIsTaken"
-      class="w-full"
-      variant="ghost"
-      color="primary"
+      class="sheet-button w-full"
     >
-      {{ loading ? "Guardando…" : "Guardá los cambios" }}
-    </UButton>
+      {{ loading ? t("common.guardando") : t("common.guardaLosCambios") }}
+    </button>
   </form>
 </template>

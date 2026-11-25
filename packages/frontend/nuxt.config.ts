@@ -11,8 +11,20 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     "@nuxt/image",
     "@nuxt/ui",
+    "@nuxtjs/i18n",
     /** "@nuxtjs/color-mode", */
   ],
+
+  // Spanish only for now; every visible string still goes through t() so a
+  // second locale is a message file away. Messages: i18n/locales/es.json.
+  i18n: {
+    defaultLocale: "es",
+    strategy: "no_prefix",
+    detectBrowserLanguage: false,
+    locales: [
+      { code: "es", language: "es-AR", name: "Español", file: "es.json" },
+    ],
+  },
 
   css: [
     // "leaflet/dist/leaflet.css",
@@ -22,6 +34,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
+      // Signup call to action on the public home stays hidden until adopted.
+      signupCtaEnabled: process.env.NUXT_PUBLIC_SIGNUP_CTA_ENABLED === "true",
       apiBaseUrl:
         process.env.NUXT_PUBLIC_API_BASE_URL ?? "http://localhost:5102",
     },

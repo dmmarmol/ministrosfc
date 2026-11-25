@@ -71,6 +71,27 @@
   --color-tertiary-900: color-mix(in srgb, var(--tertiary) 42%, black);
 }
 
+/* Sheet palette (spec 023) as Tailwind colors: bg-sheet-paper, text-sheet-ink-soft,
+   fill-sheet-win... The values live in sheet.css and flip with the dark mode. */
+@theme inline {
+  --color-sheet-paper: var(--sheet-paper);
+  --color-sheet-ground: var(--sheet-ground);
+  --color-sheet-ink: var(--sheet-ink);
+  --color-sheet-ink-soft: var(--sheet-ink-soft);
+  --color-sheet-rule: var(--sheet-rule);
+  --color-sheet-well: var(--sheet-well);
+  --color-sheet-blue: var(--sheet-blue);
+  --color-sheet-blue-on-ink: var(--sheet-blue-on-ink);
+  --color-sheet-card-yellow: var(--sheet-card-yellow);
+  --color-sheet-card-red: var(--sheet-card-red);
+  --color-sheet-win: var(--sheet-win);
+  --color-sheet-loss: var(--sheet-loss);
+  --color-sheet-draw: var(--sheet-draw);
+  --color-sheet-pitch: var(--sheet-pitch);
+  --color-sheet-pitch-line: var(--sheet-pitch-line);
+}
+
+
 :root {
   /* --brand: #d4af37;
   --primary: #8d818c; */

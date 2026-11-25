@@ -2,6 +2,8 @@
 import { computed } from "vue";
 import { formatAvailableRanges } from "@ministrosfc/shared";
 
+
+const { t } = useI18n();
 const props = withDefaults(
   defineProps<{
     modelValue: number | null;
@@ -9,8 +11,10 @@ const props = withDefaults(
     label?: string;
     disabled?: boolean;
   }>(),
-  { disabled: false, label: "Dorsal #" },
+  { disabled: false },
 );
+
+const label = computed(() => props.label ?? t("jerseyNumberInput.dorsal"));
 
 const emit = defineEmits<{
   "update:modelValue": [value: number | null];
@@ -36,39 +40,33 @@ function onInput(event: Event) {
 
 <template>
   <div>
-    <label
-      class="flex gap-x-2 items-baseline text-xs font-medium text-gray-700 mb-1"
-      for="jerseyNumberInput"
-      >{{ props.label }}
-      <p
+    <label class="sheet-label flex flex-wrap items-baseline gap-x-2" for="jerseyNumberInput"
+      >{{ label }}
+      <span
         v-if="isTaken"
-        class="text-xs text-error-500"
+        class="sheet-error-text normal-case tracking-normal"
         data-testid="jersey-taken-error"
       >
-        Este número ya está ocupado
-      </p></label
+        {{ t("jerseyNumberInput.esteNumeroYaEsta") }}
+      </span></label
     >
-    <UInput
+    <input
       id="jerseyNumberInput"
       :value="modelValue ?? ''"
       type="number"
       min="1"
       max="99"
       :disabled="disabled"
-      :class="[
-        'w-full',
-        isTaken
-          ? 'border-red-400 focus:ring-red-300'
-          : 'border-gray-300 focus:ring-brand/50',
-      ]"
+      class="sheet-field sheet-num mt-1"
+      :aria-invalid="isTaken ? 'true' : undefined"
       @input="onInput"
     />
     <p
       v-if="availableRanges"
-      class="text-xs text-gray-400 mt-1"
+      class="mt-1 text-sm text-[var(--sheet-ink-soft)]"
       data-testid="jersey-available-hint"
     >
-      Disponibles: {{ availableRanges }}
+      {{ t("jerseyNumberInput.available", { ranges: availableRanges }) }}
     </p>
   </div>
 </template>

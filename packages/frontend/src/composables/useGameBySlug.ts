@@ -11,6 +11,7 @@ type GameBySlug = {
 };
 
 export function useGameBySlug(slug: string): GameBySlug {
+  const { t } = useI18n();
   const { $api } = useNuxtApp();
 
   const { data, pending, error } = useAsyncData(
@@ -22,7 +23,7 @@ export function useGameBySlug(slug: string): GameBySlug {
       if (!slugRes.data?.id) {
         throw createError({
           statusCode: 404,
-          statusMessage: "No se encontró el partido.",
+          statusMessage: t("errors.noSeEncontroElPartido"),
         });
       }
       const id = slugRes.data.id;

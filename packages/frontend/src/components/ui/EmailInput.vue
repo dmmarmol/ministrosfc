@@ -2,6 +2,8 @@
 import { ref, computed } from "vue";
 import { isValidEmail } from "@ministrosfc/shared";
 
+
+const { t } = useI18n();
 const props = withDefaults(
   defineProps<{
     modelValue: string;
@@ -29,7 +31,7 @@ const error = computed(() =>
   touched.value &&
   props.modelValue.length > 0 &&
   !isValidEmail(props.modelValue)
-    ? "Ingresá un correo electrónico válido (ej: tu@ejemplo.com)"
+    ? t("emailInput.ingresaUnCorreoElectronico")
     : "",
 );
 
@@ -58,13 +60,9 @@ defineExpose({ validate, hasError });
       :autocomplete="autocomplete"
       :required="required"
       :disabled="disabled"
-      :class="[
-        'w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2',
-        hasError
-          ? 'border-red-400 focus:ring-red-300'
-          : 'border-gray-300 focus:ring-brand/50',
-      ]"
-      placeholder="tu@ejemplo.com"
+      class="sheet-field mt-1"
+      :aria-invalid="hasError ? 'true' : undefined"
+      :placeholder="t('emailInput.tuEjemploCom')"
       @input="
         emit('update:modelValue', ($event.target as HTMLInputElement).value)
       "
@@ -72,7 +70,7 @@ defineExpose({ validate, hasError });
     />
     <p
       v-if="hasError"
-      class="text-xs text-red-500 mt-1"
+      class="sheet-error-text mt-1"
       data-testid="email-error"
     >
       {{ error }}

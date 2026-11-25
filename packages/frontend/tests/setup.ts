@@ -12,6 +12,12 @@
 import { config } from "@vue/test-utils";
 import { computed, defineComponent, h, ref } from "vue";
 import { vi } from "vitest";
+import messages from "../i18n/locales/es.json";
+import UiSheetBand from "../src/components/ui/Sheet/Band.vue";
+import UiSheetHeading from "../src/components/ui/Sheet/Heading.vue";
+import UiSheetMessage from "../src/components/ui/Sheet/Message.vue";
+import UiSheetTitle from "../src/components/ui/Sheet/Title.vue";
+import UiSheetTotals from "../src/components/ui/Sheet/Totals.vue";
 
 vi.mock("#build/nuxt.config.mjs", () => ({
   default: {},
@@ -27,6 +33,41 @@ if (!("h" in globalThis)) {
 
 if (!("ref" in globalThis)) {
   Object.assign(globalThis, { ref });
+}
+
+/**
+ * `useI18n` is auto-imported by @nuxtjs/i18n in the Nuxt runtime. Tests get a
+ * stand-in that resolves keys against the real Spanish messages (named
+ * `{param}` interpolation and `a | b` plurals), so assertions keep reading
+ * the text users see.
+ */
+export function translate(
+  key: string,
+  params?: Record<string, unknown> | number,
+  count?: number,
+): string {
+  const found = key
+    .split(".")
+    .reduce<unknown>(
+      (node, part) => (node as Record<string, unknown> | undefined)?.[part],
+      messages,
+    );
+  if (typeof found !== "string") return key;
+  const n = typeof params === "number" ? params : count;
+  const values = typeof params === "object" && params ? params : {};
+  const forms = found.split("|").map((f) => f.trim());
+  const chosen =
+    forms.length > 1 ? (forms[n === 1 ? 0 : 1] ?? forms[0]!) : forms[0]!;
+  return chosen
+    .replace(/\{'(.)'\}/g, "$1")
+    .replace(/\{(\w+)\}/g, (_, name) =>
+    String(name === "n" || name === "count" ? (n ?? values[name]) : values[name]),
+  );
+}
+if (!("useI18n" in globalThis)) {
+  Object.assign(globalThis, {
+    useI18n: () => ({ t: translate, locale: ref("es") }),
+  });
 }
 
 const UiPositionLabelStub = defineComponent({
@@ -330,4 +371,9 @@ config.global.components = {
   UInput: UInputStub,
   UiUserRoleSelect: UiUserRoleSelectStub,
   UiPositionLabel: UiPositionLabelStub,
+  UiSheetBand,
+  UiSheetHeading,
+  UiSheetMessage,
+  UiSheetTitle,
+  UiSheetTotals,
 };

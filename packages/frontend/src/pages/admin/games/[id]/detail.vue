@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PositionLabel from "~/components/ui/Position/Label.vue";
 import { ref, computed } from "vue";
 import { useNuxtApp, useRoute, useAsyncData, useHead } from "nuxt/app";
 import { GameStatus, formatDate } from "@ministrosfc/shared";
@@ -209,9 +210,7 @@ async function copySignupLink() {
             {{ p.player?.firstName }}
             {{ p.player?.playerType === "GUEST" ? "" : p.player?.lastName }}
           </span>
-          <span class="text-xs text-gray-400">{{
-            p.player?.position ?? "—"
-          }}</span>
+          <PositionLabel :position="p.player?.position ?? null" size="sm" />
         </div>
       </div>
       <p v-else class="text-sm text-gray-500">Sin convocados aún.</p>

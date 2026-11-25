@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import SoccerJersey from "soccer-jersey";
+import { useSheetColors } from "~/composables/useSheetColors";
 
+
+const { t } = useI18n();
 const props = withDefaults(
   defineProps<{
     jerseyNumber: number | null;
@@ -9,23 +12,28 @@ const props = withDefaults(
     bgColor?: string;
     textColor?: string;
   }>(),
-  {
-    bgColor: "#1a1a1a",
-    textColor: "#FFFFFF",
-  },
+  { bgColor: undefined, textColor: undefined },
 );
+
+// Default shirt: sheet ink with a paper number, flipping in dark mode.
+const sheet = useSheetColors(
+  { shirt: "ink", number: "paper" },
+  { shirt: "black", number: "white" },
+);
+const shirtColor = computed(() => props.bgColor ?? sheet.shirt.value);
+const numberColor = computed(() => props.textColor ?? sheet.number.value);
 
 const displayName = computed(() => props.lastName?.toUpperCase() ?? "");
 
 const jerseyDataUri = computed(() =>
   SoccerJersey.draw({
     shirtText: props.jerseyNumber?.toString() ?? "",
-    shirtColor: props.bgColor,
-    sleeveColor: props.bgColor,
+    shirtColor: shirtColor.value,
+    sleeveColor: shirtColor.value,
     shirtStyle: "plain",
     shirtStyleDirection: "vertical",
-    textColor: props.textColor,
-    textOutlineColor: props.textColor,
+    textColor: numberColor.value,
+    textOutlineColor: numberColor.value,
     isBack: true,
   }),
 );
@@ -33,7 +41,7 @@ const jerseyDataUri = computed(() =>
 
 <template>
   <div class="relative w-full">
-    <img :src="jerseyDataUri" class="w-full h-auto" alt="Camiseta" />
+    <img :src="jerseyDataUri" class="w-full h-auto" :alt="t('profileJerseySvg.camiseta')" />
     <div
       class="absolute inset-x-0 w-1/2 top-[60%] left-[50%] transform -translate-x-1/2 flex flex-col items-center leading-none pointer-events-none"
     >

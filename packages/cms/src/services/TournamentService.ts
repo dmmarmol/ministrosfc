@@ -1,4 +1,5 @@
 import { TournamentModel } from "../models/Tournament";
+import { emptyRecord } from "../utils/ministros-record";
 import { createError } from "../middleware/error-handler";
 import { ErrorCode } from "../utils/error-codes";
 import type {
@@ -44,7 +45,17 @@ const TournamentService = {
   },
 
   async listTournaments(options: SearchOptions = {}) {
-    return TournamentModel.findMany(options);
+    const result = await TournamentModel.findMany(options);
+    const records = await TournamentModel.calculateMinistrosRecords(
+      result.tournaments.map((t) => t.id),
+    );
+    return {
+      ...result,
+      tournaments: result.tournaments.map((t) => ({
+        ...t,
+        ministrosRecord: records.get(t.id) ?? emptyRecord(),
+      })),
+    };
   },
 
   async updateTournament(id: string, dto: TournamentUpdatePayload) {

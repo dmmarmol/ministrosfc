@@ -1,0 +1,418 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-25T15:57:42.792187+00:00",
+  "title": "Design System: Ministros FC",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Sheet Ink (Dark mode: ink-dark #f3f4f8 (--sheet-ink flips to near-white, so every ink band, rule and pressed chip becomes light))",
+        "canonical": "#0b0b12",
+        "tonalRamp": [
+          "#040407",
+          "#07070b",
+          "#09090e",
+          "#0b0b12",
+          "#48484d",
+          "#858588",
+          "#c2c2c4",
+          "#e7e7e7"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Soft Ink (Dark mode: #c4c8d8)",
+        "canonical": "#2b2e3b",
+        "tonalRamp": [
+          "#111218",
+          "#1a1c23",
+          "#22252f",
+          "#2b2e3b",
+          "#60626c",
+          "#95969d",
+          "#cacbce",
+          "#eaeaeb"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Sheet White (Dark mode: paper-dark #171923 (the sheet turns dark navy-black))",
+        "canonical": "#fbfbfc",
+        "tonalRamp": [
+          "#646465",
+          "#979797",
+          "#c9c9ca",
+          "#fbfbfc",
+          "#fcfcfd",
+          "#fdfdfe",
+          "#fefefe",
+          "#ffffff"
+        ]
+      },
+      "ground": {
+        "role": "neutral",
+        "displayName": "Sheet Ground (Dark mode: ground-dark #0b0b12 (page background behind the sheets))",
+        "canonical": "#e4e5ea",
+        "tonalRamp": [
+          "#5b5c5e",
+          "#89898c",
+          "#b6b7bb",
+          "#e4e5ea",
+          "#ebecef",
+          "#f2f2f4",
+          "#f8f8fa",
+          "#fcfcfd"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Line Rule (Dark mode: rgb(243 244 248 / 0.24))",
+        "canonical": "rgba(11, 11, 18, 0.22)",
+        "tonalRamp": [
+          "#040407",
+          "#07070b",
+          "#09090e",
+          "#0b0b12",
+          "#48484d",
+          "#858588",
+          "#c2c2c4",
+          "#e7e7e7"
+        ]
+      },
+      "detail-blue": {
+        "role": "primary",
+        "displayName": "Detail Blue (Dark mode: #8ea6ff (the two blues swap so the light blue reads on the dark page))",
+        "canonical": "#2748d6",
+        "tonalRamp": [
+          "#101d56",
+          "#172b80",
+          "#1f3aab",
+          "#2748d6",
+          "#5d76e0",
+          "#93a4ea",
+          "#c9d1f5",
+          "#e9edfb"
+        ]
+      },
+      "detail-blue-on-ink": {
+        "role": "primary",
+        "displayName": "Detail Blue on Ink (Dark mode: #2748d6 (swaps with detail-blue, since ink bands are light in negative print))",
+        "canonical": "#8ea6ff",
+        "tonalRamp": [
+          "#394266",
+          "#556499",
+          "#7285cc",
+          "#8ea6ff",
+          "#aabcff",
+          "#c6d2ff",
+          "#e3e9ff",
+          "#f4f6ff"
+        ]
+      },
+      "well": {
+        "role": "neutral",
+        "displayName": "Recessed Well (dark mode: #0e1120)",
+        "canonical": "#eceef3",
+        "tonalRamp": [
+          "#474749",
+          "#76777a",
+          "#b1b2b6",
+          "#eceef3",
+          "#f1f2f6",
+          "#f6f6f9",
+          "#fafbfc",
+          "#fdfefe"
+        ],
+        "purpose": "Recessed well under the open rival row on the player page, a step darker than paper. Dark mode #0e1120."
+      },
+      "win": {
+        "role": "semantic",
+        "displayName": "Win Tone (dark mode: #5fd38a)",
+        "canonical": "#17753a",
+        "tonalRamp": [
+          "#072311",
+          "#0c3a1d",
+          "#11582c",
+          "#17753a",
+          "#51986b",
+          "#8bba9c",
+          "#c5dcce",
+          "#ecf4ef"
+        ],
+        "purpose": "Victory result text on paper (4.5:1). Dark mode #5fd38a."
+      },
+      "loss": {
+        "role": "semantic",
+        "displayName": "Loss Tone, also error (dark mode: #ff7b80)",
+        "canonical": "#c0262d",
+        "tonalRamp": [
+          "#3a0b0e",
+          "#601316",
+          "#901c22",
+          "#c0262d",
+          "#d05c62",
+          "#e09296",
+          "#efc9ca",
+          "#faeeee"
+        ],
+        "purpose": "Defeat result text, error notice border and text, invalid field border. Dark mode #ff7b80."
+      },
+      "draw": {
+        "role": "semantic",
+        "displayName": "Draw Tone (dark mode: #f5c400)",
+        "canonical": "#8a6a00",
+        "tonalRamp": [
+          "#292000",
+          "#453500",
+          "#685000",
+          "#8a6a00",
+          "#a78f40",
+          "#c4b480",
+          "#e2dabf",
+          "#f6f3eb"
+        ],
+        "purpose": "Draw result text. Dark mode #f5c400."
+      },
+      "paper-dark": {
+        "role": "neutral",
+        "displayName": "Negative Print Paper (dark-mode value of --sheet-paper)",
+        "canonical": "#171923",
+        "tonalRamp": [
+          "#07080a",
+          "#0c0c12",
+          "#11131a",
+          "#171923",
+          "#51525a",
+          "#8b8c91",
+          "#c5c6c8",
+          "#eceded"
+        ]
+      },
+      "ink-dark": {
+        "role": "neutral",
+        "displayName": "Negative Print Ink (dark-mode value of --sheet-ink)",
+        "canonical": "#f3f4f8",
+        "tonalRamp": [
+          "#49494a",
+          "#7a7a7c",
+          "#b6b7ba",
+          "#f3f4f8",
+          "#f6f7fa",
+          "#f9fafc",
+          "#fcfcfd",
+          "#fefefe"
+        ]
+      },
+      "ground-dark": {
+        "role": "neutral",
+        "displayName": "Negative Print Ground (dark-mode value of --sheet-ground)",
+        "canonical": "#0b0b12",
+        "tonalRamp": [
+          "#030305",
+          "#060609",
+          "#08080e",
+          "#0b0b12",
+          "#48484d",
+          "#858588",
+          "#c2c2c4",
+          "#ebebec"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Rival name h1 and sheet-button lettering; uppercase Big Shoulders Display 800, zero tracking."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings, copy strips, ink-band titles, scores and game-line day numerals."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Player names on convocado lines (Courier Prime bold)."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Courier Prime typewriter default for lines, meta, fields and empty states."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Blue uppercase tracked labels: nav, field labels, sort label, ranks and units."
+      }
+    },
+    "shadows": [
+      {
+        "name": "none",
+        "value": "none",
+        "purpose": "The system has no elevation shadows. Depth comes from 3px ink rules, hairline rules, ink bands and the paper-to-ground step. Legacy --shadow-* tokens are remapped to '0 0 #0000' under .sheet-world. Inset box-shadow is used only to draw 3px borders on Nuxt UI select triggers and the color-mode toggle, and the double printed ring inside the crest."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-sheet",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "--sheet-ease: overshooting ease for the stamp landing and the ficha lift."
+      },
+      {
+        "name": "duration-stamp",
+        "value": "420ms",
+        "purpose": "The one authored motion: SUSPENDIDO stamp scales 1.5 to 1 at -8deg; disabled under prefers-reduced-motion."
+      },
+      {
+        "name": "duration-ficha-lift",
+        "value": "200ms",
+        "purpose": "Linked ficha cards lift translateY(-3px) on hover, only with hover and no reduced-motion preference."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Sheet Button",
+      "kind": "button",
+      "refersTo": "sheet-button",
+      "description": "Ink block with display lettering; the primary action.",
+      "html": "<div class=\"ds-wrap\"><button class=\"ds-btn\">Guardar</button></div>",
+      "css": ".ds-wrap{--sheet-paper:#fbfbfc;--sheet-ground:#e4e5ea;--sheet-ink:#0b0b12;--sheet-ink-soft:#2b2e3b;--sheet-rule:rgb(11 11 18 / .22);--sheet-well:#eceef3;--sheet-blue:#2748d6;--sheet-blue-on-ink:#8ea6ff;--sheet-win:#17753a;--sheet-loss:#c0262d;--sheet-draw:#8a6a00;--sheet-display:'Big Shoulders Display','Arial Narrow',sans-serif;--sheet-type:'Courier Prime','Courier New',monospace;font-family:var(--sheet-type);color:var(--sheet-ink);background:var(--sheet-paper);padding:12px;line-height:1.45;font-size:15px}.ds-btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;border:3px solid var(--sheet-ink);border-radius:0;background:var(--sheet-ink);color:var(--sheet-paper);padding:8px 20px;font-family:var(--sheet-display);font-weight:800;font-size:24px;line-height:1;text-transform:uppercase;cursor:pointer}.ds-btn:hover{background:var(--sheet-ink-soft)}.ds-btn:focus-visible{outline:3px solid var(--sheet-blue);outline-offset:3px}"
+    },
+    {
+      "name": "Sheet Button Outline",
+      "kind": "button",
+      "refersTo": "sheet-button[data-variant=outline]",
+      "description": "Quiet action: same block, transparent, inverts on hover.",
+      "html": "<div class=\"ds-wrap\"><button class=\"ds-btn-outline\">Cancelar</button></div>",
+      "css": ".ds-wrap{--sheet-paper:#fbfbfc;--sheet-ground:#e4e5ea;--sheet-ink:#0b0b12;--sheet-ink-soft:#2b2e3b;--sheet-rule:rgb(11 11 18 / .22);--sheet-well:#eceef3;--sheet-blue:#2748d6;--sheet-blue-on-ink:#8ea6ff;--sheet-win:#17753a;--sheet-loss:#c0262d;--sheet-draw:#8a6a00;--sheet-display:'Big Shoulders Display','Arial Narrow',sans-serif;--sheet-type:'Courier Prime','Courier New',monospace;font-family:var(--sheet-type);color:var(--sheet-ink);background:var(--sheet-paper);padding:12px;line-height:1.45;font-size:15px}.ds-btn-outline{display:inline-flex;align-items:center;justify-content:center;min-height:48px;border:3px solid var(--sheet-ink);border-radius:0;background:transparent;color:var(--sheet-ink);padding:8px 20px;font-family:var(--sheet-display);font-weight:800;font-size:24px;line-height:1;text-transform:uppercase;cursor:pointer}.ds-btn-outline:hover{background:var(--sheet-ink);color:var(--sheet-paper)}.ds-btn-outline:focus-visible{outline:3px solid var(--sheet-blue);outline-offset:3px}"
+    },
+    {
+      "name": "Sheet Field",
+      "kind": "input",
+      "refersTo": "sheet-field",
+      "description": "3px ink-bordered, square, paper-filled box under a blue typewriter label.",
+      "html": "<div class=\"ds-wrap\"><label class=\"ds-label\" for=\"ds-q\">Buscar</label><input id=\"ds-q\" class=\"ds-field\" placeholder=\"Rival\"></div>",
+      "css": ".ds-wrap{--sheet-paper:#fbfbfc;--sheet-ground:#e4e5ea;--sheet-ink:#0b0b12;--sheet-ink-soft:#2b2e3b;--sheet-rule:rgb(11 11 18 / .22);--sheet-well:#eceef3;--sheet-blue:#2748d6;--sheet-blue-on-ink:#8ea6ff;--sheet-win:#17753a;--sheet-loss:#c0262d;--sheet-draw:#8a6a00;--sheet-display:'Big Shoulders Display','Arial Narrow',sans-serif;--sheet-type:'Courier Prime','Courier New',monospace;font-family:var(--sheet-type);color:var(--sheet-ink);background:var(--sheet-paper);padding:12px;line-height:1.45;font-size:15px}.ds-label{display:block;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--sheet-blue);margin-bottom:4px}.ds-field{display:block;width:100%;box-sizing:border-box;min-height:44px;border:3px solid var(--sheet-ink);border-radius:0;background:var(--sheet-paper);color:var(--sheet-ink);padding:8px 12px;font:inherit}.ds-field::placeholder{color:var(--sheet-ink-soft);opacity:.8}.ds-field:focus-visible{outline:3px solid var(--sheet-blue);outline-offset:3px}"
+    },
+    {
+      "name": "Sheet Chip",
+      "kind": "chip",
+      "refersTo": "sheet-chip",
+      "description": "Square ink-bordered chip; the pressed chip inverts to ink with paper text.",
+      "html": "<div class=\"ds-wrap\"><button class=\"ds-chip\" aria-pressed=\"true\">Goles</button> <button class=\"ds-chip\" aria-pressed=\"false\">Asistencias</button></div>",
+      "css": ".ds-wrap{--sheet-paper:#fbfbfc;--sheet-ground:#e4e5ea;--sheet-ink:#0b0b12;--sheet-ink-soft:#2b2e3b;--sheet-rule:rgb(11 11 18 / .22);--sheet-well:#eceef3;--sheet-blue:#2748d6;--sheet-blue-on-ink:#8ea6ff;--sheet-win:#17753a;--sheet-loss:#c0262d;--sheet-draw:#8a6a00;--sheet-display:'Big Shoulders Display','Arial Narrow',sans-serif;--sheet-type:'Courier Prime','Courier New',monospace;font-family:var(--sheet-type);color:var(--sheet-ink);background:var(--sheet-paper);padding:12px;line-height:1.45;font-size:15px}.ds-chip{min-height:44px;border:3px solid var(--sheet-ink);border-radius:0;background:var(--sheet-paper);color:var(--sheet-ink);padding:4px 12px;font-family:var(--sheet-type);font-weight:700;font-size:13px;cursor:pointer}.ds-chip[aria-pressed=true]{background:var(--sheet-ink);color:var(--sheet-paper)}.ds-chip:focus-visible{outline:3px solid var(--sheet-blue);outline-offset:3px}"
+    },
+    {
+      "name": "Sheet Notice (error)",
+      "kind": "custom",
+      "refersTo": "sheet-notice[data-tone=error]",
+      "description": "Boxed line; error tone swaps border and text to the loss tone and always carries words.",
+      "html": "<div class=\"ds-wrap\"><p class=\"ds-notice\">Error: credenciales incorrectas.</p></div>",
+      "css": ".ds-wrap{--sheet-paper:#fbfbfc;--sheet-ground:#e4e5ea;--sheet-ink:#0b0b12;--sheet-ink-soft:#2b2e3b;--sheet-rule:rgb(11 11 18 / .22);--sheet-well:#eceef3;--sheet-blue:#2748d6;--sheet-blue-on-ink:#8ea6ff;--sheet-win:#17753a;--sheet-loss:#c0262d;--sheet-draw:#8a6a00;--sheet-display:'Big Shoulders Display','Arial Narrow',sans-serif;--sheet-type:'Courier Prime','Courier New',monospace;font-family:var(--sheet-type);color:var(--sheet-ink);background:var(--sheet-paper);padding:12px;line-height:1.45;font-size:15px}.ds-notice{margin:0;border:3px solid var(--sheet-loss);background:var(--sheet-paper);color:var(--sheet-loss);padding:10px 12px;font-weight:700;font-size:14px;overflow-wrap:anywhere}"
+    },
+    {
+      "name": "Ranked Row",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "Statistics row: blue rank, display-caps surname, typewriter subtitle, one headline numeral with blue unit and a bar scaled to the leader.",
+      "html": "<div class=\"ds-wrap\"><div class=\"ds-row\"><span class=\"ds-rank\">01</span><span class=\"ds-name\">Martin<small>Diego, delantero</small></span><span class=\"ds-val\">14<small>goles</small><i class=\"ds-bar\"><b style=\"width:100%\"></b></i></span></div></div>",
+      "css": ".ds-wrap{--sheet-paper:#fbfbfc;--sheet-ground:#e4e5ea;--sheet-ink:#0b0b12;--sheet-ink-soft:#2b2e3b;--sheet-rule:rgb(11 11 18 / .22);--sheet-well:#eceef3;--sheet-blue:#2748d6;--sheet-blue-on-ink:#8ea6ff;--sheet-win:#17753a;--sheet-loss:#c0262d;--sheet-draw:#8a6a00;--sheet-display:'Big Shoulders Display','Arial Narrow',sans-serif;--sheet-type:'Courier Prime','Courier New',monospace;font-family:var(--sheet-type);color:var(--sheet-ink);background:var(--sheet-paper);padding:12px;line-height:1.45;font-size:15px}.ds-row{display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:12px;min-height:56px;border-top:3px solid var(--sheet-ink);border-bottom:1px solid var(--sheet-rule);padding:4px 0}.ds-rank{font-weight:700;font-size:12px;letter-spacing:.12em;color:var(--sheet-blue);font-variant-numeric:tabular-nums}.ds-name{font-family:var(--sheet-display);font-weight:800;text-transform:uppercase;font-size:24px;line-height:.92}.ds-name small{display:block;font-family:var(--sheet-type);font-weight:400;font-size:13px;text-transform:none;color:var(--sheet-ink-soft)}.ds-val{font-family:var(--sheet-display);font-weight:800;font-size:36px;line-height:.92;font-variant-numeric:tabular-nums;text-align:right}.ds-val small{font-family:var(--sheet-type);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--sheet-blue);margin-left:4px}.ds-bar{display:block;height:6px;margin-top:4px;background:var(--sheet-ground)}.ds-bar b{display:block;height:100%;background:var(--sheet-ink)}"
+    },
+    {
+      "name": "Player Ficha",
+      "kind": "card",
+      "refersTo": "",
+      "description": "Portrait card: 3px ink border, grayscale photo or huge initials, dorsal tab, ruled PJ/G/A strip.",
+      "html": "<div class=\"ds-wrap\" style=\"max-width:220px\"><a class=\"ds-ficha\"><div class=\"ds-pic\"><span class=\"ds-tab\">9</span>MD</div><div class=\"ds-info\"><span class=\"ds-nick\">\"Diego\"</span><div class=\"ds-sur\">Martin</div><div>Diego</div><span class=\"ds-pos\">DEL</span></div><div class=\"ds-stats\"><span>12<small>PJ</small></span><span>14<small>G</small></span><span>&mdash;<small>A</small></span></div></a></div>",
+      "css": ".ds-wrap{--sheet-paper:#fbfbfc;--sheet-ground:#e4e5ea;--sheet-ink:#0b0b12;--sheet-ink-soft:#2b2e3b;--sheet-rule:rgb(11 11 18 / .22);--sheet-well:#eceef3;--sheet-blue:#2748d6;--sheet-blue-on-ink:#8ea6ff;--sheet-win:#17753a;--sheet-loss:#c0262d;--sheet-draw:#8a6a00;--sheet-display:'Big Shoulders Display','Arial Narrow',sans-serif;--sheet-type:'Courier Prime','Courier New',monospace;font-family:var(--sheet-type);color:var(--sheet-ink);background:var(--sheet-paper);padding:12px;line-height:1.45;font-size:15px}.ds-ficha{display:block;border:3px solid var(--sheet-ink);border-radius:0;background:var(--sheet-paper);color:var(--sheet-ink);text-decoration:none;transition:transform 200ms var(--sheet-ease)}.ds-ficha:hover{transform:translateY(-3px)}.ds-pic{position:relative;aspect-ratio:1;display:grid;place-items:center;background:var(--sheet-ground);font-family:var(--sheet-display);font-weight:800;font-size:72px}.ds-tab{position:absolute;top:0;left:0;background:var(--sheet-paper);color:var(--sheet-blue);font-size:28px;padding:2px 10px}.ds-info{border-top:3px solid var(--sheet-ink);padding:8px}.ds-nick{font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--sheet-blue)}.ds-sur{font-family:var(--sheet-display);font-weight:800;text-transform:uppercase;font-size:28px;line-height:.92}.ds-pos{display:inline-block;border:1px solid var(--sheet-blue);color:var(--sheet-blue);font-weight:700;font-size:12px;letter-spacing:.12em;padding:0 6px;margin-top:4px}.ds-stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:3px solid var(--sheet-ink);text-align:center;font-family:var(--sheet-display);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums}.ds-stats small{display:block;font-family:var(--sheet-type);font-size:11px;letter-spacing:.12em;color:var(--sheet-blue)}.ds-stats span+span{border-left:1px solid var(--sheet-rule)}"
+    },
+    {
+      "name": "Game Line",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "Schedule line (min 72px): day tile, rival in display caps with time and venue, score with blue result word on the right.",
+      "html": "<div class=\"ds-wrap\"><a class=\"ds-game\"><span class=\"ds-day\"><small>SAB</small>14</span><span class=\"ds-rival\">Rayo Sur<small>18:30 Campo Norte</small></span><span class=\"ds-score\">3 - 1<small>Victoria</small></span></a></div>",
+      "css": ".ds-wrap{--sheet-paper:#fbfbfc;--sheet-ground:#e4e5ea;--sheet-ink:#0b0b12;--sheet-ink-soft:#2b2e3b;--sheet-rule:rgb(11 11 18 / .22);--sheet-well:#eceef3;--sheet-blue:#2748d6;--sheet-blue-on-ink:#8ea6ff;--sheet-win:#17753a;--sheet-loss:#c0262d;--sheet-draw:#8a6a00;--sheet-display:'Big Shoulders Display','Arial Narrow',sans-serif;--sheet-type:'Courier Prime','Courier New',monospace;font-family:var(--sheet-type);color:var(--sheet-ink);background:var(--sheet-paper);padding:12px;line-height:1.45;font-size:15px}.ds-game{display:grid;grid-template-columns:56px 1fr auto;align-items:center;gap:12px;min-height:72px;border-bottom:1px solid var(--sheet-rule);color:var(--sheet-ink);text-decoration:none}.ds-game:hover{background:var(--sheet-ground)}.ds-day{font-family:var(--sheet-display);font-weight:800;font-size:36px;line-height:.92;text-align:center;font-variant-numeric:tabular-nums}.ds-day small{display:block;font-family:var(--sheet-type);font-size:12px;letter-spacing:.12em;color:var(--sheet-blue)}.ds-rival{font-family:var(--sheet-display);font-weight:800;text-transform:uppercase;font-size:28px;line-height:.92}.ds-rival small{display:block;font-family:var(--sheet-type);font-weight:400;font-size:13px;text-transform:none}.ds-score{font-family:var(--sheet-display);font-weight:800;font-size:36px;line-height:.92;text-align:right;font-variant-numeric:tabular-nums}.ds-score small{display:block;font-family:var(--sheet-type);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--sheet-blue)}"
+    },
+    {
+      "name": "Ink Band Section Header",
+      "kind": "custom",
+      "refersTo": "strip-ink",
+      "description": "Full-bleed ink band with the title in display caps in paper color and its count in blue-on-ink.",
+      "html": "<div class=\"ds-wrap\" style=\"padding:0\"><div class=\"ds-bandh\"><span>Próximos partidos</span><small>3</small></div></div>",
+      "css": ".ds-wrap{--sheet-paper:#fbfbfc;--sheet-ground:#e4e5ea;--sheet-ink:#0b0b12;--sheet-ink-soft:#2b2e3b;--sheet-rule:rgb(11 11 18 / .22);--sheet-well:#eceef3;--sheet-blue:#2748d6;--sheet-blue-on-ink:#8ea6ff;--sheet-win:#17753a;--sheet-loss:#c0262d;--sheet-draw:#8a6a00;--sheet-display:'Big Shoulders Display','Arial Narrow',sans-serif;--sheet-type:'Courier Prime','Courier New',monospace;font-family:var(--sheet-type);color:var(--sheet-ink);background:var(--sheet-paper);padding:12px;line-height:1.45;font-size:15px}.ds-bandh{display:flex;align-items:baseline;justify-content:space-between;background:var(--sheet-ink);color:var(--sheet-paper);padding:16px;font-family:var(--sheet-display);font-weight:800;text-transform:uppercase;font-size:30px;line-height:.92}.ds-bandh small{font-size:30px;color:var(--sheet-blue-on-ink);font-variant-numeric:tabular-nums}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Planilla en Triplicado",
+    "overview": "The public home is one team sheet for the next game, printed in black ink on a white sheet with hard black rules. Black and white carry the page; a single blue marks details and nothing else. The sheet reads like a form filled in on a typewriter: heavy condensed capitals for names and headings, a monospaced typewriter face for everything written on the lines.\n\nThe system is flat and ruled. There are no cards, no radii, no soft shadows; structure comes from 3px black rules, hairline rules between lines, and full-bleed black and white strips. Density is that of a form: numbered lines, tabular figures, generous 44-48px tap rows. Copy is Spanish.\n\nMigration status, stated honestly: only the public home (`src/pages/index.vue`) and the `sheet` layout have moved to this system. Other pages and the admin still use the earlier Nuxt UI look driven by `theme.css` and `app.config.ts` (brand #4f72e2 and related tokens), and those tokens stay in force there until each page migrates. The tokens below apply to the `.sheet-world` scope only.",
+    "keyCharacteristics": [
+      "Black ink on a white sheet, with a light gray ground (#e4e5ea) behind the sheets.",
+      "One blue (#2748d6) for details only; on black it becomes a lighter blue (#8ea6ff).",
+      "Hard 3px black rules frame each sheet; hairline rules separate lines.",
+      "Square everywhere except the round crest.",
+      "One authored motion moment: the stamp landing.",
+      "Self-hosted type (Big Shoulders Display, Courier Prime), no external font requests."
+    ],
+    "rules": [
+      {
+        "name": "The One Blue Rule",
+        "body": "Blue is for details: numbers, labels, tags, links, arrows, the stamp, the reserved slot. It never fills a surface, never becomes a button, and never appears as a large area. Black and white are the main colors.",
+        "section": "colors"
+      },
+      {
+        "name": "The On-Ink Blue Rule",
+        "body": "On black, details use #8ea6ff; #2748d6 is for white only.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Every number (shirt numbers, dates, times, scores, ranks) uses tabular figures so columns align like a form.",
+        "section": "typography"
+      },
+      {
+        "name": "The Caps Rule",
+        "body": "Display type is always uppercase with zero letter-spacing; only the label uses tracking.",
+        "section": "typography"
+      },
+      {
+        "name": "The Fixed Frame Rule",
+        "body": "The header, section nav and footer are always 768px (`max-w-3xl`) wide on every page, so the logo, the nav and the footer never move between pages. Only page content may be wider: the home, schedule and game detail use the same 768px column; the roster, the player profile and the statistics section (tabs, title, filters, lists) use 1024px (`max-w-5xl`). Never size the frame by page.",
+        "section": "layout"
+      },
+      {
+        "name": "The Ruled Depth Rule",
+        "body": "A surface is separated by a 3px ink rule or a hairline rule. No drop shadows, glows, or blurs.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** keep black and white as the main colors and use blue (#2748d6) only for details.",
+      "**Do** use #8ea6ff for blue on black surfaces.",
+      "**Do** separate content with 3px ink rules and hairline rules (rgba(11,11,18,0.22)).",
+      "**Do** set display type in uppercase Big Shoulders Display and everything written on the lines in Courier Prime.",
+      "**Do** use tabular figures for every number.",
+      "**Do** keep tap targets at 44px or more and underline links with 2px blue.",
+      "**Do** respect reduced motion by removing the stamp animation.",
+      "Build pages from the shared blocks in components/ui/Sheet (Title, Heading, Band, Totals, Message) and UiPositionLabel before adding new markup."
+    ],
+    "donts": [
+      "**Don't** fill surfaces or buttons with blue.",
+      "**Don't** round corners or add shadows; the crest is the only circle.",
+      "**Don't** use a signup call to action on the home until the club adopts it; the reserved slot stays hidden.",
+      "**Don't** apply this system to the admin or the other pages until they are migrated; they still use the Nuxt UI theme tokens.",
+      "Don't add hard-coded hex colors or Tailwind palette utilities to sheet pages; use the --sheet-* tokens or their Tailwind form (bg-sheet-paper, text-sheet-win, fill-sheet-pitch). Only the Google logo keeps brand colors."
+    ]
+  }
+}

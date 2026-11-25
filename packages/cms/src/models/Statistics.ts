@@ -586,12 +586,17 @@ const StatisticsModel = {
       where: { playerId, game: { status: GameStatus.COMPLETED } },
       select: {
         goalsScored: true,
+        assists: true,
+        yellowCards: true,
+        redCards: true,
         game: {
           select: {
             date: true,
             homeTeamScore: true,
             awayTeamScore: true,
             slug: true,
+            location: true,
+            playground: { select: { name: true } },
             opponentTeam: { select: { id: true, name: true } },
             tournament: { select: { name: true } },
           },
@@ -623,6 +628,9 @@ const StatisticsModel = {
           goalsFor: 0,
           goalsAgainst: 0,
           playerGoals: 0,
+          playerAssists: 0,
+          yellowCards: 0,
+          redCards: 0,
           matches: [],
         };
       }
@@ -631,6 +639,9 @@ const StatisticsModel = {
       r.goalsFor += gf;
       r.goalsAgainst += ga;
       r.playerGoals += p.goalsScored ?? 0;
+      r.playerAssists += p.assists ?? 0;
+      r.yellowCards += p.yellowCards ?? 0;
+      r.redCards += p.redCards ?? 0;
       if (result === "W") r.wins++;
       else if (result === "L") r.losses++;
       else r.draws++;
@@ -640,9 +651,13 @@ const StatisticsModel = {
         homeScore: gf,
         awayScore: ga,
         tournament: p.game.tournament?.name ?? null,
+        playgroundName: p.game.playground?.name ?? p.game.location ?? null,
         result,
         slug: p.game.slug ?? null,
         playerGoals: p.goalsScored ?? 0,
+        playerAssists: p.assists ?? 0,
+        yellowCards: p.yellowCards ?? 0,
+        redCards: p.redCards ?? 0,
       });
     }
 

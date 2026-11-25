@@ -8,6 +8,7 @@ import type {
 } from "@ministrosfc/shared";
 
 export function useTournaments() {
+  const { t } = useI18n();
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
 
@@ -29,11 +30,11 @@ export function useTournaments() {
       return res.data;
     } catch (err) {
       error.value =
-        err instanceof Error ? err.message : "Error al cargar canchas";
+        err instanceof Error ? err.message : t("errors.errorAlCargarCanchas");
     } finally {
       loading.value = false;
     }
-    throw new Error(error.value ?? "Error al cargar el torneo.");
+    throw new Error(error.value ?? t("errors.errorAlCargarElTorneo"));
   }
 
   async function fetchTournaments(): Promise<Tournament[]> {
@@ -45,7 +46,7 @@ export function useTournaments() {
       return res.data;
     } catch (err) {
       error.value =
-        err instanceof Error ? err.message : "Error al cargar canchas";
+        err instanceof Error ? err.message : t("errors.errorAlCargarCanchas");
       return [];
     } finally {
       loading.value = false;

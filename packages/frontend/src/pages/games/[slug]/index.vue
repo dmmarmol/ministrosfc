@@ -1,53 +1,47 @@
 <script setup lang="ts">
-import { useRoute, useHead, useRouter } from "nuxt/app";
-import GameParticipantsTable from "../../../components/pages/games/GameParticipantsTable.vue";
 import { useGameBySlug } from "~/composables/useGameBySlug";
+import GameSheet from "~/components/pages/games/GameSheet.vue";
 
-definePageMeta({ public: true });
+
+const { t } = useI18n();
+definePageMeta({ public: true, layout: "sheet" });
+
 const route = useRoute();
 const slug = route.params.slug as string;
-const router = useRouter();
+const config = useRuntimeConfig();
+// Signup call to action stays off until the club adopts it (spec 023 FR-020/FR-021).
+const ctaEnabled = computed(() => config.public.signupCtaEnabled === true);
 
-// T027: resolve slug → UUID, then fetch full game + participants
 const { game, participants, pending } = useGameBySlug(slug);
 
 useHead(() => ({
-  title: game.value ? `vs. ${game.value.opponentTeam?.name}` : "Partido",
+  title: game.value
+    ? `vs ${game.value.opponentTeam?.name ?? t("common.rivalAConfirmar")}`
+    : t("common.partido"),
 }));
-
-function handleSignUp(gameId: string) {
-  router.push({ path: `/games/${gameId}/signup` });
-}
 </script>
 
 <template>
   <div>
-    <div v-if="pending" class="space-y-4">
-      <div class="h-48 bg-gray-200 animate-pulse rounded-2xl" />
-    </div>
-    <template v-else-if="game">
-      <div class="mb-8">
-        <GameHeader :game="game" />
+    <p v-if="pending" class="mx-auto max-w-3xl px-4 py-8">{{ t("gamesDetail.cargandoPartido") }}</p>
+    <GameSheet
+      v-else-if="game"
+      :game="game"
+      :participants="participants"
+      :cta-enabled="ctaEnabled"
+      :signup-url="`/games/${game.slug || game.id}/signup`"
+      detail
+    />
+    <section v-else class="sheet-paper">
+      <div class="mx-auto max-w-3xl px-4 pb-8 pt-6">
+        <UiBackButton to="/schedule" :label="t('common.calendario')" />
+        <UiSheetTitle class="mt-2">
+          {{ t("gamesDetail.partidoNoEncontrado") }}
+        </UiSheetTitle>
+        <p class="mt-4 max-w-prose">
+          {{ t("gamesDetail.revisaElLinkO") }}
+        </p>
       </div>
-
-      <div class="mb-4">
-        <GameMetadataRow
-          :game="game"
-          :participants="participants"
-          @signup="handleSignUp"
-        />
-      </div>
-
-      <GameParticipantsTable
-        v-if="participants.length"
-        :participants="participants"
-      />
-      <p v-else class="text-gray-500 text-sm">
-        Aun no hay jugadores confirmados.
-      </p>
-    </template>
-    <div v-else class="text-center py-16 text-gray-500">
-      No se encontró el partido.
-    </div>
+    </section>
   </div>
 </template>

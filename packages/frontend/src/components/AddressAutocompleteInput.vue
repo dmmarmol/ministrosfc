@@ -2,6 +2,8 @@
 import { ref } from "vue";
 import type { AddressSuggestion } from "@ministrosfc/shared";
 
+
+const { t } = useI18n();
 const config = useRuntimeConfig();
 const apiBase = config.public.apiBaseUrl as string;
 
@@ -58,7 +60,7 @@ function onInput(event: Event) {
       suggestions.value = result.data;
       open.value = true;
     } catch (e) {
-      error.value = "No se pueden cargar sugerencias en este momento";
+      error.value = t("errors.noSePuedenCargarSugerencias");
       suggestions.value = [];
       open.value = true;
       emit("error", e);
@@ -94,7 +96,7 @@ function closeDropdown() {
       :value="modelValue"
       :placeholder="placeholder"
       :required="required"
-      class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+      class="sheet-field mt-1"
       autocomplete="off"
       @input="onInput"
       @keydown="onKeydown"
@@ -104,14 +106,14 @@ function closeDropdown() {
     <ul
       v-if="open"
       data-testid="suggestions"
-      class="absolute z-50 mt-1 w-full rounded border border-gray-200 bg-surface shadow-lg"
+      class="absolute z-50 w-full border-[3px] border-t-0 border-[var(--sheet-ink)] bg-[var(--sheet-paper)]"
     >
       <template v-if="error">
-        <li class="px-3 py-2 text-xs text-red-600">{{ error }}</li>
+        <li class="sheet-error-text px-3 py-2">{{ error }}</li>
       </template>
       <template v-else-if="suggestions.length === 0">
-        <li class="px-3 py-2 text-sm text-gray-500">
-          Sin resultados para esta búsqueda
+        <li class="px-3 py-2 text-sm text-[var(--sheet-ink-soft)]">
+          {{ t("addressAutocompleteInput.sinResultadosParaEsta") }}
         </li>
       </template>
       <template v-else>
@@ -119,15 +121,15 @@ function closeDropdown() {
           v-for="suggestion in suggestions"
           :key="suggestion.placeId ?? suggestion.displayName"
           data-testid="suggestion-item"
-          class="cursor-pointer truncate px-3 py-2 text-sm hover:bg-blue-50"
+          class="min-h-11 cursor-pointer truncate px-3 py-2.5 text-sm hover:bg-[var(--sheet-ground)]"
           @mousedown.prevent
           @click="selectSuggestion(suggestion)"
         >
           {{ suggestion.displayName }}
         </li>
       </template>
-      <li class="border-t border-gray-100 px-3 py-1 text-xs text-gray-400">
-        © OpenStreetMap contributors
+      <li class="border-t border-[var(--sheet-rule)] px-3 py-1 text-xs text-[var(--sheet-ink-soft)]">
+        {{ t("addressAutocompleteInput.openstreetmapContributors") }}
       </li>
     </ul>
   </div>

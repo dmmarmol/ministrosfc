@@ -1,73 +1,43 @@
 <script setup lang="ts">
 import { useAuthStore } from "~/stores/auth";
 
+
+const { t } = useI18n();
 const authStore = useAuthStore();
 
-const linkClass =
-  "block w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-brand transition-colors";
-const activeClass = "bg-brand/10 text-brand font-semibold";
+const links = computed(() => [
+  { to: "/statistics", label: t("common.general"), exact: true },
+  { to: "/statistics/top-scorers?playerStatus=ACTIVE", label: t("common.goleadores"), match: "/statistics/top-scorers" },
+  ...(authStore.isAuthenticated
+    ? [
+        { to: "/statistics/players", label: t("common.jugadores"), match: "/statistics/players" },
+        { to: "/statistics/rivals", label: t("common.rivales"), match: "/statistics/rivals" },
+        { to: "/statistics/years", label: t("common.porAno"), match: "/statistics/years" },
+        { to: "/statistics/tournaments", label: t("common.porTorneo"), match: "/statistics/tournaments" },
+      ]
+    : []),
+]);
+const route = useRoute();
+const isActive = (l: { exact?: boolean; match?: string; to: string }) =>
+  l.exact ? route.path === l.to : route.path.startsWith(l.match ?? l.to);
 </script>
 
 <template>
-  <nav class="w-48 shrink-0">
-    <ul class="space-y-1">
-      <li>
+  <nav :aria-label="t('common.estadisticas')" class="border-b-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)]">
+    <ul class="mx-auto flex max-w-5xl flex-wrap px-4">
+      <li v-for="l in links" :key="l.label" class="shrink-0">
         <NuxtLink
-          to="/statistics"
-          :class="linkClass"
-          :active-class="activeClass"
-          exact
+          :to="l.to"
+          class="block border-b-4 px-2.5 py-3 text-xs font-bold uppercase tracking-[0.06em] no-underline"
+          :class="
+            isActive(l)
+              ? 'border-[var(--sheet-blue)] text-[var(--sheet-ink)]'
+              : 'border-transparent text-[var(--sheet-blue)] hover:underline'
+          "
+          :aria-current="isActive(l) ? 'page' : undefined"
+          >{{ l.label }}</NuxtLink
         >
-          General
-        </NuxtLink>
       </li>
-      <li>
-        <NuxtLink
-          to="/statistics/top-scorers?playerStatus=ACTIVE"
-          :class="linkClass"
-          :active-class="activeClass"
-        >
-          Goleadores
-        </NuxtLink>
-      </li>
-      <template v-if="authStore.isAuthenticated">
-        <li>
-          <NuxtLink
-            to="/statistics/years"
-            :class="linkClass"
-            :active-class="activeClass"
-          >
-            Por año
-          </NuxtLink>
-        </li>
-        <li>
-          <NuxtLink
-            to="/statistics/tournaments"
-            :class="linkClass"
-            :active-class="activeClass"
-          >
-            Por torneo
-          </NuxtLink>
-        </li>
-        <li>
-          <NuxtLink
-            to="/statistics/rivals"
-            :class="linkClass"
-            :active-class="activeClass"
-          >
-            Por rival
-          </NuxtLink>
-        </li>
-        <li>
-          <NuxtLink
-            to="/statistics/players?playerStatus=ACTIVE"
-            :class="linkClass"
-            :active-class="activeClass"
-          >
-            Por jugador
-          </NuxtLink>
-        </li>
-      </template>
     </ul>
   </nav>
 </template>

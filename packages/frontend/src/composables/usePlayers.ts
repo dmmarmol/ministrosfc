@@ -10,6 +10,7 @@ import type {
 import { useAuthStore } from "~/stores/auth";
 
 export function usePlayers() {
+  const { t } = useI18n();
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
   const players = ref<Player[]>([]);
@@ -37,7 +38,7 @@ export function usePlayers() {
       return response;
     } catch (cause) {
       error.value =
-        cause instanceof Error ? cause.message : "Error al cargar jugadores.";
+        cause instanceof Error ? cause.message : t("errors.errorAlCargarJugadores");
       throw cause;
     } finally {
       loading.value = false;

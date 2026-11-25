@@ -73,24 +73,6 @@ describe("StatsHeader", () => {
     expect(wrapper.text()).toContain("Rival D");
   });
 
-  it("renders best win", () => {
-    const wrapper = mount(StatsHeader, { props: { summary: baseSummary } });
-    expect(wrapper.text()).toContain("5-0");
-    expect(wrapper.text()).toContain("Rival E");
-  });
-
-  it("renders worst loss", () => {
-    const wrapper = mount(StatsHeader, { props: { summary: baseSummary } });
-    expect(wrapper.text()).toContain("0-4");
-    expect(wrapper.text()).toContain("Rival F");
-  });
-
-  it("renders top scorer", () => {
-    const wrapper = mount(StatsHeader, { props: { summary: baseSummary } });
-    expect(wrapper.text()).toContain("Juan Perez");
-    expect(wrapper.text()).toContain("45");
-  });
-
   it("handles null values gracefully", () => {
     const summary = {
       ...baseSummary,
@@ -101,8 +83,13 @@ describe("StatsHeader", () => {
     expect(wrapper.text()).toContain("0");
   });
 
-  it("renders empty state when summary is null", () => {
+  it("renders nothing when summary is null", () => {
     const wrapper = mount(StatsHeader, { props: { summary: null } });
-    expect(wrapper.text()).toContain("Sin datos");
+    expect(wrapper.text()).toBe("");
+  });
+
+  it("labels the rival records section", () => {
+    const wrapper = mount(StatsHeader, { props: { summary: baseSummary } });
+    expect(wrapper.text()).toContain("Récords contra rivales");
   });
 });

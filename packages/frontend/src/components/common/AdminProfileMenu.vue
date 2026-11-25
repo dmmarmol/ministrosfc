@@ -2,6 +2,7 @@
 import { UButton } from "#components";
 import { useAuthStore } from "~/stores/auth";
 
+defineProps<{ sheet?: boolean }>();
 const authStore = useAuthStore();
 const open = ref(false);
 const menuEl = ref<HTMLElement | null>(null);
@@ -36,7 +37,36 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="menuEl" class="relative">
+  <div v-if="sheet" ref="menuEl" class="relative">
+    <button
+      type="button"
+      class="sheet-chip inline-flex items-center gap-2"
+      :aria-expanded="open"
+      aria-haspopup="true"
+      @click="open = !open"
+    >
+      {{ authStore.fullName || "Admin" }}
+      <span aria-hidden="true">▾</span>
+    </button>
+    <ul
+      v-if="open"
+      class="absolute right-0 z-50 mt-1 min-w-48 border-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)]"
+    >
+      <li v-if="authStore.isEditor">
+        <NuxtLink to="/admin/dashboard" class="block min-h-11 px-3 py-2.5 font-bold no-underline hover:bg-[var(--sheet-ground)]" @click="closeMenu">Panel</NuxtLink>
+      </li>
+      <li>
+        <NuxtLink to="/profile" class="block min-h-11 px-3 py-2.5 font-bold no-underline hover:bg-[var(--sheet-ground)]" @click="closeMenu">Perfil de usuario</NuxtLink>
+      </li>
+      <li v-if="authStore.user?.playerId">
+        <NuxtLink to="/profile/player" class="block min-h-11 px-3 py-2.5 font-bold no-underline hover:bg-[var(--sheet-ground)]" @click="closeMenu">Perfil de jugador</NuxtLink>
+      </li>
+      <li class="border-t-[3px] border-[var(--sheet-ink)]">
+        <NuxtLink to="/logout" class="block min-h-11 px-3 py-2.5 font-bold no-underline hover:bg-[var(--sheet-ground)]">Cerrar sesión</NuxtLink>
+      </li>
+    </ul>
+  </div>
+  <div v-else ref="menuEl" class="relative">
     <UButton
       variant="solid"
       color="primary"

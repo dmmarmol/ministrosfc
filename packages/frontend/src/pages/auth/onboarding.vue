@@ -7,8 +7,10 @@ import { useJerseyAvailability } from "~/composables/useJerseyAvailability";
 import IsPlayerCheckbox from "~/components/ui/IsPlayerCheckbox.vue";
 import BackButton from "~/components/ui/BackButton.vue";
 
+
+const { t } = useI18n();
 definePageMeta({
-  layout: false,
+  layout: "sheet",
   middleware: "auth",
   requiresAuth: true,
   onboardingPage: true,
@@ -124,84 +126,54 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-    <div class="w-full max-w-md">
-      <div class="mb-3">
-        <BackButton :to="backPath" label="Volvé" />
-      </div>
-      <div class="text-center mb-8">
-        <div
-          class="w-16 h-16 bg-brand rounded-full mx-auto flex items-center justify-center text-gray-900 font-bold text-2xl mb-4"
-        >
-          M
+  <div class="mx-auto max-w-md px-4 pb-16 pt-6">
+    <BackButton :to="backPath" :label="t('common.volve')" />
+    <UiSheetTitle size="md" class="mt-2">
+      {{ t("authOnboarding.bienvenidoAMinistrosFc") }}
+    </UiSheetTitle>
+    <p class="mt-2">{{ t("authOnboarding.completaTuPerfilPara") }}</p>
+
+    <div class="mt-6 space-y-5 border-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] p-5">
+      <IsPlayerCheckbox
+        v-model="isPlayer"
+        :label="t('authOnboarding.eresUnJugadorDel')"
+        :description="t('authOnboarding.siSosParteDel')"
+      />
+
+      <template v-if="isPlayer">
+        <div>
+          <label class="sheet-label" for="position">
+            {{ t("authOnboarding.cualEsTuPosicion") }}
+          </label>
+          <select id="position" v-model="position" required class="sheet-field mt-1">
+            <option :value="null" disabled>{{ t("authOnboarding.seleccionaUnaPosicion") }}</option>
+            <option v-for="pos in POSITIONS" :key="pos.value" :value="pos.value">
+              {{ pos.label }} ({{ pos.value }})
+            </option>
+          </select>
         </div>
-        <h1 class="text-2xl font-bold text-gray-900">
-          Bienvenido a Ministros FC
-        </h1>
-        <p class="text-gray-500 text-sm mt-1">
-          Completá tu perfil para continuar
-        </p>
-      </div>
 
-      <div
-        class="bg-surface rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5"
+        <div>
+          <UiJerseyNumberInput
+            v-model="jerseyNumber"
+            :taken-numbers="takenJerseys"
+            :label="t('authOnboarding.cualEsTuNumero')"
+          />
+        </div>
+      </template>
+
+      <p v-if="error" class="sheet-notice" data-tone="error" role="alert">
+        {{ error }}
+      </p>
+
+      <button
+        type="button"
+        :disabled="loading || !canSubmit"
+        class="sheet-button w-full"
+        @click="handleSubmit"
       >
-        <IsPlayerCheckbox
-          v-model="isPlayer"
-          label="¿Eres un jugador del equipo?"
-          description="Si sos parte del plantel, marcá esta opción"
-        />
-
-        <template v-if="isPlayer">
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 mb-1"
-              for="position"
-            >
-              ¿Cuál es tu posición en la cancha?
-            </label>
-            <select
-              id="position"
-              v-model="position"
-              required
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-            >
-              <option :value="null" disabled>Seleccioná una posición</option>
-              <option
-                v-for="pos in POSITIONS"
-                :key="pos.value"
-                :value="pos.value"
-              >
-                {{ pos.label }} ({{ pos.value }})
-              </option>
-            </select>
-          </div>
-
-          <div>
-            <UiJerseyNumberInput
-              v-model="jerseyNumber"
-              :taken-numbers="takenJerseys"
-              label="¿Cuál es tu número de camiseta?"
-            />
-          </div>
-        </template>
-
-        <p
-          v-if="error"
-          class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2"
-        >
-          {{ error }}
-        </p>
-
-        <button
-          type="button"
-          :disabled="loading || !canSubmit"
-          class="w-full bg-brand text-gray-900 font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-60"
-          @click="handleSubmit"
-        >
-          {{ loading ? "Guardando…" : "Continuar" }}
-        </button>
-      </div>
+        {{ loading ? t("common.guardando") : t("authOnboarding.continuar") }}
+      </button>
     </div>
   </div>
 </template>

@@ -11,6 +11,8 @@ import {
 import DropdownAddMore from "~/components/ui/DropdownAddMore.vue";
 import type { DropdownOption } from "~/components/ui/DropdownAddMore.vue";
 
+
+const { t } = useI18n();
 const props = defineProps<{
   confirmedPlayerIds: string[];
   proxyLoading: boolean;
@@ -128,7 +130,7 @@ function submitGuest() {
       v-if="mode === 'guest'"
       data-testid="dismiss-guest"
       class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-lg leading-none"
-      aria-label="Cerrar formulario"
+      :aria-label="t('signupSignupAddPlayer.cerrarFormulario')"
       @click="cancelGuest"
     >
       ✕
@@ -140,10 +142,10 @@ function submitGuest() {
         <div class="w-full">
           <div class="flex justify-between">
             <p class="text-sm font-medium text-gray-700 mb-3">
-              Agregar otro jugador
+              {{ t("signupSignupAddPlayer.agregarOtroJugador") }}
             </p>
             <p class="text-sm text-gray-700">
-              Confirmados: <strong>{{ confirmedCount }}</strong>
+              {{ t("signupAddPlayer.confirmedLabel") }} <strong>{{ confirmedCount }}</strong>
               <span v-if="maxPlayers"> / {{ maxPlayers }}</span>
             </p>
           </div>
@@ -153,13 +155,13 @@ function submitGuest() {
             :disabled="isInteractionDisabled || proxyLoading || fetchLoading"
             :loading="fetchLoading"
             :labels="{
-              placeholder: 'Elegí un jugador',
+              placeholder: t('signupSignupAddPlayer.elegiUnJugador'),
               addNew: '', // hide internal 'add more' trigger — separate button used instead (plan.md C1 fix)
             }"
             @select="onPlayerSelected"
           />
         </div>
-        <!-- "Agregar invitado" trigger — rendered outside DropdownAddMore (plan.md C1 fix) -->
+        <!-- t("signupSignupAddPlayer.agregarInvitado") trigger — rendered outside DropdownAddMore (plan.md C1 fix) -->
         <UButton
           data-testid="open-guest-form"
           to="/admin/players/create"
@@ -168,9 +170,9 @@ function submitGuest() {
           icon="mdi:account-plus"
           :disabled="isInteractionDisabled"
           @click="openGuestForm"
-          >Agregar invitado</UButton
+          >{{ t("signupSignupAddPlayer.agregarInvitado") }}</UButton
         >
-        <p v-if="proxyError" class="text-xs text-red-600 mt-2">
+        <p v-if="proxyError" class="text-xs text-sheet-loss mt-2">
           {{ proxyError }}
         </p>
       </div>
@@ -178,23 +180,23 @@ function submitGuest() {
 
     <!-- GUEST mode form (v-else) — completely replaces dropdown (FR-039) -->
     <template v-else>
-      <p class="text-sm font-medium text-gray-700 mb-3">Agregar invitado</p>
+      <p class="text-sm font-medium text-gray-700 mb-3">{{ t("signupSignupAddPlayer.agregarInvitado") }}</p>
       <div data-testid="guest-form" class="space-y-3">
         <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div>
-            <label class="text-xs text-gray-500 block mb-1">Nombre *</label>
+            <label class="text-xs text-gray-500 block mb-1">{{ t("signupSignupAddPlayer.nombre") }}</label>
             <input
               v-model="guestFirst"
               data-testid="guest-first"
               type="text"
-              placeholder="Nombre"
+              :placeholder="t('common.nombre')"
               :disabled="isInteractionDisabled"
               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
             />
           </div>
           <div>
             <label class="text-xs text-gray-500 block mb-1"
-              >Posición (opcional)</label
+              >{{ t("signupSignupAddPlayer.posicionOpcional") }}</label
             >
             <select
               v-model="guestPosition"
@@ -202,7 +204,7 @@ function submitGuest() {
               :disabled="isInteractionDisabled"
               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
             >
-              <option value="">Sin posición</option>
+              <option value="">{{ t("common.sinPosicion") }}</option>
               <option
                 v-for="pos in POSITIONS"
                 :key="pos.value"
@@ -213,14 +215,14 @@ function submitGuest() {
             </select>
           </div>
         </div>
-        <p v-if="guestError" class="text-xs text-red-600">{{ guestError }}</p>
+        <p v-if="guestError" class="text-xs text-sheet-loss">{{ guestError }}</p>
         <button
           data-testid="guest-submit"
           class="w-full bg-brand text-gray-900 font-semibold text-sm py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
           :disabled="isInteractionDisabled || !guestFirst.trim()"
           @click="submitGuest"
         >
-          Confirmar
+          {{ t("common.confirmar") }}
         </button>
       </div>
     </template>
@@ -235,8 +237,8 @@ function submitGuest() {
     >
       {{
         isFull
-          ? "El cupo está completo."
-          : "Confirmá tu asistencia para habilitar esta sección."
+          ? t("common.elCupoEstaCompleto")
+          : t("signupSignupAddPlayer.confirmaTuAsistenciaPara")
       }}
     </p>
   </div>

@@ -1,0 +1,504 @@
+/*
+ * The Team Sheet world (spec 023). Black and white carry the page; one blue
+ * marks details. Scoped to the "sheet" layout and the home components.
+ */
+
+@font-face {
+  font-family: "Big Shoulders Display";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("./fonts/big-shoulders-display-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Big Shoulders Display";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("./fonts/big-shoulders-display-latin-ext.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Courier Prime";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./fonts/courier-prime-400-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Courier Prime";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./fonts/courier-prime-700-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Courier Prime";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./fonts/courier-prime-400-latin-ext.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Courier Prime";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./fonts/courier-prime-700-latin-ext.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+.sheet-world {
+  --sheet-paper: #fbfbfc;
+  --sheet-ground: #e4e5ea;
+  --sheet-ink: #0b0b12;
+  --sheet-ink-soft: #2b2e3b;
+  --sheet-rule: rgb(11 11 18 / 0.22);
+  /* Recessed well under an open row: a step darker than paper */
+  --sheet-well: #eceef3;
+  --sheet-blue: #2748d6;
+  --sheet-blue-on-ink: #8ea6ff;
+  /* The colors of real cards: the one sanctioned exception to the single blue */
+  --sheet-card-yellow: #f5c400;
+  --sheet-card-red: #d62020;
+  /* Result tones for won / lost / tied games (text on paper, 4.5:1 or better) */
+  --sheet-win: #17753a;
+  --sheet-loss: #c0262d;
+  --sheet-draw: #8a6a00;
+  --sheet-pitch: #2f8a4f;
+  --sheet-pitch-line: #1f6a39;
+  --sheet-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  --sheet-type: "Courier Prime", "Courier New", monospace;
+  --sheet-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  background: var(--sheet-ground);
+  color: var(--sheet-ink);
+  font-family: var(--sheet-type);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+/*
+ * Negative print: the same sheet run in reverse. Ink and paper swap, so every
+ * ink band, plate and pressed chip flips with them. The two blues swap too:
+ * the light blue reads on the dark page, the deep blue on the light bands.
+ */
+.dark .sheet-world {
+  color-scheme: dark;
+  --sheet-paper: #171923;
+  --sheet-ground: #0b0b12;
+  --sheet-ink: #f3f4f8;
+  --sheet-ink-soft: #c4c8d8;
+  --sheet-rule: rgb(243 244 248 / 0.24);
+  --sheet-well: #0e1120;
+  --sheet-blue: #8ea6ff;
+  --sheet-blue-on-ink: #2748d6;
+  --sheet-win: #5fd38a;
+  --sheet-loss: #ff7b80;
+  --sheet-draw: #f5c400;
+  --sheet-pitch: #1a5632;
+  --sheet-pitch-line: #0f3a21;
+}
+
+/* Browser surfaces themed from the palette */
+.sheet-world ::selection {
+  background: var(--sheet-blue);
+  color: var(--sheet-paper);
+}
+.sheet-world :focus-visible {
+  outline: 3px solid var(--sheet-blue);
+  outline-offset: 3px;
+}
+.sheet-world .sheet-on-ink :focus-visible {
+  outline-color: var(--sheet-blue-on-ink);
+}
+.sheet-world a {
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--sheet-blue);
+}
+
+.sheet-link {
+  text-decoration-line: underline;
+  font-weight: 700;
+}
+
+.sheet-display {
+  font-family: var(--sheet-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  line-height: 0.92;
+  text-wrap: balance;
+}
+
+.sheet-label {
+  font-family: var(--sheet-type);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sheet-blue);
+}
+
+.sheet-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet-paper {
+  background: var(--sheet-paper);
+  border-bottom: 3px solid var(--sheet-ink);
+}
+
+/* One authored moment: the stamp lands */
+@keyframes sheet-stamp {
+  0% {
+    opacity: 0;
+    transform: rotate(-8deg) scale(1.5);
+  }
+  60% {
+    opacity: 1;
+    transform: rotate(-8deg) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-8deg) scale(1);
+  }
+}
+.sheet-stamp {
+  animation: sheet-stamp 420ms var(--sheet-ease) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet-stamp {
+    animation: none;
+  }
+}
+
+.sheet-field {
+  display: block;
+  width: 100%;
+  min-height: 2.75rem;
+  border: 3px solid var(--sheet-ink);
+  border-radius: 0;
+  background: var(--sheet-paper);
+  color: var(--sheet-ink);
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+}
+.sheet-field::placeholder {
+  color: var(--sheet-ink-soft);
+  opacity: 0.8;
+}
+
+.ficha {
+  transition: transform 200ms var(--sheet-ease);
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  a.ficha:hover {
+    transform: translateY(-3px);
+  }
+}
+
+.sheet-chip {
+  min-height: 2.75rem;
+  border: 3px solid var(--sheet-ink);
+  background: var(--sheet-paper);
+  color: var(--sheet-ink);
+  padding: 0.25rem 0.75rem;
+  font-weight: 700;
+  font-size: 0.8125rem;
+}
+.sheet-chip[aria-pressed="true"] {
+  background: var(--sheet-ink);
+  color: var(--sheet-paper);
+}
+
+/* Nuxt UI controls (and their portaled menus) take the world's palette */
+body:has(.sheet-world) {
+  --ui-primary: var(--sheet-blue, #2748d6);
+  --ui-radius: 0rem;
+  --ui-border: #0b0b12;
+  --ui-border-accented: #0b0b12;
+  --ui-bg: #fbfbfc;
+  --ui-text: #0b0b12;
+  --ui-text-highlighted: #0b0b12;
+  --ui-text-dimmed: #5a5f73;
+  --ui-text-muted: #2b2e3b;
+  --font-sans: "Courier Prime", "Courier New", monospace;
+}
+
+.dark body:has(.sheet-world) {
+  --ui-primary: #8ea6ff;
+  --ui-border: #f3f4f8;
+  --ui-border-accented: #f3f4f8;
+  --ui-bg: #171923;
+  --ui-text: #f3f4f8;
+  --ui-text-highlighted: #f3f4f8;
+  --ui-text-dimmed: #9aa0b8;
+  --ui-text-muted: #c4c8d8;
+}
+
+/* Nuxt UI select triggers inside search bars match .sheet-field */
+.sheet-world [role="search"] button[data-slot="base"] {
+  width: 100%;
+  min-height: 2.75rem;
+  border-radius: 0;
+  background: var(--sheet-paper);
+  color: var(--sheet-ink);
+  box-shadow: inset 0 0 0 3px var(--sheet-ink);
+  font-family: var(--sheet-type);
+  font-size: 0.9375rem;
+}
+
+/* The color mode switch, drawn as a square sheet control */
+.sheet-world .sheet-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border-radius: 0;
+  background: transparent;
+  color: var(--sheet-ink);
+  box-shadow: inset 0 0 0 3px var(--sheet-ink);
+}
+.sheet-world .sheet-toggle:hover,
+.sheet-world .sheet-toggle:focus-visible {
+  background: var(--sheet-ink);
+  color: var(--sheet-paper);
+}
+
+/* Primary action: an ink block with display lettering */
+.sheet-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  border: 3px solid var(--sheet-ink);
+  border-radius: 0;
+  background: var(--sheet-ink);
+  color: var(--sheet-paper);
+  padding: 0.5rem 1.25rem;
+  font-family: var(--sheet-display);
+  font-weight: 800;
+  font-size: 1.5rem;
+  line-height: 1;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+.sheet-button:hover:not(:disabled) {
+  background: var(--sheet-ink-soft);
+}
+.sheet-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+/* Quiet action: same block, outlined */
+.sheet-button[data-variant="outline"] {
+  background: transparent;
+  color: var(--sheet-ink);
+}
+.sheet-button[data-variant="outline"]:hover:not(:disabled) {
+  background: var(--sheet-ink);
+  color: var(--sheet-paper);
+}
+
+/* Messages: a boxed line. Error states carry the loss tone and a word, not color alone. */
+.sheet-notice {
+  border: 3px solid var(--sheet-ink);
+  background: var(--sheet-paper);
+  padding: 0.625rem 0.75rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+.sheet-notice[data-tone="error"] {
+  border-color: var(--sheet-loss);
+  color: var(--sheet-loss);
+}
+.sheet-field[aria-invalid="true"] {
+  border-color: var(--sheet-loss);
+}
+.sheet-error-text {
+  color: var(--sheet-loss);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+/* Checkbox as a square ink box */
+.sheet-checkbox {
+  appearance: none;
+  display: inline-grid;
+  place-content: center;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 3px solid var(--sheet-ink);
+  border-radius: 0;
+  background: var(--sheet-paper);
+  cursor: pointer;
+}
+.sheet-checkbox:checked {
+  background: var(--sheet-ink);
+}
+.sheet-checkbox:checked::after {
+  content: "";
+  width: 0.8rem;
+  height: 0.8rem;
+  background: var(--sheet-paper);
+  clip-path: polygon(12% 46%, 0 64%, 42% 100%, 100% 22%, 82% 8%, 41% 66%);
+}
+
+/*
+ * Legacy utility remap. Pages and components that still use the old Tailwind
+ * tokens (gray scale, brand, surface, rounded, shadow) read the sheet palette
+ * inside the sheet world, so the admin panel and any leftover legacy class
+ * land in the same black-and-white world with square corners and no shadows.
+ */
+.sheet-world {
+  --color-gray-50: var(--sheet-paper);
+  --color-gray-100: var(--sheet-ground);
+  --color-gray-200: #c9ccd6;
+  --color-gray-300: #a9adbb;
+  --color-gray-400: #6a6f84;
+  --color-gray-500: #4a4e60;
+  --color-gray-600: var(--sheet-ink-soft);
+  --color-gray-700: var(--sheet-ink-soft);
+  --color-gray-800: var(--sheet-ink);
+  --color-gray-900: var(--sheet-ink);
+  --color-brand: var(--sheet-blue);
+  --color-primary: var(--sheet-blue);
+  --color-surface: var(--sheet-paper);
+  /* Legacy "ink block with white text" stays a dark block in both modes */
+  --color-ink: #0b0b12;
+  --color-on-brand: var(--sheet-paper);
+  /* The admin sidebar stays dark in both modes (its text is white) */
+  --color-admin-ui-sidebar-bg: #0b0b12;
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --shadow-lg: 0 0 #0000;
+  --shadow-xl: 0 0 #0000;
+  --shadow-2xl: 0 0 #0000;
+}
+.dark .sheet-world {
+  --color-admin-ui-sidebar-bg: #171923;
+  --color-ink: #232638;
+  --color-gray-200: #2c3042;
+  --color-gray-300: #3d4258;
+  --color-gray-400: #9aa0b8;
+  --color-gray-500: #aab0c4;
+}
+
+/* Admin is a dense tool: fields and labels sit quieter than on the public sheets */
+.admin-sheet .sheet-field {
+  border-width: 1px;
+  min-height: 2.5rem;
+  font-size: 0.875rem;
+}
+.admin-sheet .sheet-label {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: inherit;
+  font-size: 0.75rem;
+}
+
+/* Footer: an ink block on light; in dark mode it matches the header (paper) and mirrors its rule */
+.sheet-footer {
+  background: var(--sheet-ink);
+  color: var(--sheet-paper);
+}
+.sheet-footer-accent {
+  color: var(--sheet-blue-on-ink);
+}
+.dark .sheet-footer {
+  background: var(--sheet-paper);
+  color: var(--sheet-ink);
+  border-top: 3px solid var(--sheet-ink);
+}
+.dark .sheet-footer-accent {
+  color: var(--sheet-blue);
+}
+.dark .sheet-footer.sheet-on-ink :focus-visible {
+  outline-color: var(--sheet-blue);
+}
+
+/* Position badge: dark block, code in display type, bottom edge colored by line of play */
+.sheet-world {
+  /* the win green, tuned to read on an ink block (swapped in dark mode like the blues) */
+  --sheet-win-on-ink: #5fd38a;
+}
+.dark .sheet-world {
+  --sheet-win-on-ink: #17753a;
+}
+.sheet-pos {
+  --pos-color: var(--sheet-ink-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 2.5rem;
+  padding: 0.1rem 0.375rem 0;
+  border-bottom: 4px solid var(--pos-color);
+  background: var(--sheet-ink);
+  color: var(--sheet-paper);
+  font-family: var(--sheet-display);
+  font-weight: 800;
+  font-size: 1rem;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.sheet-pos[data-size="sm"] {
+  min-width: 2rem;
+  font-size: 0.875rem;
+  border-bottom-width: 3px;
+}
+.sheet-pos[data-line="gk"] {
+  --pos-color: var(--sheet-card-yellow);
+}
+.sheet-pos[data-line="def"] {
+  --pos-color: var(--sheet-blue-on-ink);
+}
+.sheet-pos[data-line="mid"] {
+  --pos-color: var(--sheet-win-on-ink);
+}
+.sheet-pos[data-line="fwd"] {
+  --pos-color: var(--sheet-card-red);
+}
+.sheet-pos[data-empty] {
+  background: var(--sheet-ground);
+  color: var(--sheet-ink-soft);
+  border-bottom-color: var(--sheet-rule);
+}

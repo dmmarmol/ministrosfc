@@ -3,6 +3,8 @@ import { ref } from "vue";
 import type { CurrentPlayerStatus } from "@ministrosfc/shared";
 import SignupSelfSection from "./SignupSelfSection.vue";
 
+
+const { t } = useI18n();
 const props = defineProps<{
   currentPlayerStatus: CurrentPlayerStatus;
   isFull: boolean;
@@ -31,9 +33,9 @@ async function handleSelf() {
   <!-- Capacity full -->
   <div
     v-if="props.isFull"
-    class="mb-4 bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3 rounded-lg text-center font-medium"
+    class="mb-4 bg-sheet-draw/10 border border-sheet-draw/40 text-sheet-draw text-sm px-4 py-3 rounded-lg text-center font-medium"
   >
-    El cupo está completo.
+    {{ t("common.elCupoEstaCompleto") }}
   </div>
 
   <template v-else>

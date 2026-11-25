@@ -7,7 +7,9 @@ import RegisterForm from "~/components/auth/RegisterForm.vue";
 import PendingApprovalBanner from "~/components/auth/PendingApprovalBanner.vue";
 import BackButton from "~/components/ui/BackButton.vue";
 
-definePageMeta({ layout: false, middleware: "auth", authPage: true });
+
+const { t } = useI18n();
+definePageMeta({ layout: "sheet", middleware: "auth", authPage: true });
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -19,14 +21,14 @@ const error = ref("");
 const pendingApprovalMessage = ref("");
 
 const GOOGLE_ERROR_MESSAGES: Record<string, string> = {
-  google_cancelled: "Inicio de sesión con Google cancelado.",
-  google_failed: "Error al iniciar sesión con Google. Intentá de nuevo.",
-  csrf_mismatch: "Error de seguridad. Intentá de nuevo.",
+  google_cancelled: t("errors.inicioDeSesionConGoogle"),
+  google_failed: t("errors.errorAlIniciarSesionCon"),
+  csrf_mismatch: t("errors.errorDeSeguridadIntentaDe"),
 };
 
 const googleError = computed(() => {
   const err = route.query.error as string | undefined;
-  return err ? (GOOGLE_ERROR_MESSAGES[err] ?? "Error desconocido.") : "";
+  return err ? (GOOGLE_ERROR_MESSAGES[err] ?? t("errors.errorDesconocido")) : "";
 });
 
 function toggleMode() {
@@ -61,7 +63,7 @@ async function handleLogin(payload: { email: string; password: string }) {
     return;
   } catch (e: any) {
     error.value =
-      e?.message ?? "El correo electrónico o la contraseña son incorrectos.";
+      e?.message ?? t("login.elCorreoElectronicoO");
   }
   loading.value = false;
 }
@@ -81,7 +83,7 @@ async function handleRegister(payload: {
     pendingApprovalMessage.value = result.message;
     isRegisterMode.value = false;
   } catch (e: any) {
-    error.value = e?.message ?? "Error al registrarse. Intentá de nuevo.";
+    error.value = e?.message ?? t("errors.errorAlRegistrarseIntentaDe");
   } finally {
     loading.value = false;
   }
@@ -95,77 +97,50 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-    <div class="w-full max-w-sm">
-      <div class="mb-3">
-        <BackButton to="/" label="Volvé al sitio" />
-      </div>
-      <div class="text-center mb-8">
-        <div
-          class="w-16 h-16 bg-brand rounded-full mx-auto flex items-center justify-center text-gray-900 font-bold text-2xl mb-4"
-        >
-          M
-        </div>
-        <h1 class="text-2xl font-bold text-gray-900">Ministros FC</h1>
-        <p class="text-gray-500 text-sm mt-1">
-          {{ isRegisterMode ? "Creá tu cuenta" : "Iniciá sesión en tu cuenta" }}
-        </p>
-      </div>
+  <div class="mx-auto max-w-md px-4 pb-16 pt-6">
+    <BackButton to="/" :label="t('login.volveAlSitio')" />
+    <UiSheetTitle size="md" class="mt-2">
+      {{ isRegisterMode ? t("login.registrate") : t("common.ingresar") }}
+    </UiSheetTitle>
+    <p class="mt-2">
+      {{ isRegisterMode ? t("login.creaTuCuenta") : t("login.iniciaSesionEnTu") }}
+    </p>
 
-      <div
-        class="bg-surface rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4"
-      >
-        <p
-          v-if="googleError"
-          class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2"
-        >
-          {{ googleError }}
-        </p>
+    <div class="mt-6 space-y-5 border-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] p-5">
+      <p v-if="googleError" class="sheet-notice" data-tone="error" role="alert">
+        {{ googleError }}
+      </p>
 
-        <LoginForm
-          v-if="!isRegisterMode"
-          :loading="loading"
-          :error="error"
-          @submit="handleLogin"
-        />
-        <RegisterForm
-          v-else
-          :loading="loading"
-          :error="error"
-          @submit="handleRegister"
-        />
+      <LoginForm
+        v-if="!isRegisterMode"
+        :loading="loading"
+        :error="error"
+        @submit="handleLogin"
+      />
+      <RegisterForm
+        v-else
+        :loading="loading"
+        :error="error"
+        @submit="handleRegister"
+      />
 
-        <PendingApprovalBanner
-          v-if="pendingApprovalMessage"
-          :message="pendingApprovalMessage"
-        />
+      <PendingApprovalBanner
+        v-if="pendingApprovalMessage"
+        :message="pendingApprovalMessage"
+      />
 
-        <div class="relative my-2">
-          <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-gray-200" />
-          </div>
-          <div class="relative flex justify-center text-xs">
-            <span class="bg-surface px-2 text-gray-400">o</span>
-          </div>
-        </div>
+      <!-- @TODO Temporary disable google sign in -->
+      <!-- <GoogleSignInButton /> -->
 
-        <!-- @TODO Temporary disable google sign in -->
-        <!-- <GoogleSignInButton /> -->
-
-        <p class="text-center text-sm text-gray-500 mt-4">
-          <button
-            type="button"
-            class="text-brand font-medium hover:underline"
-            @click="toggleMode"
-          >
-            {{
-              isRegisterMode
-                ? "¿Ya tenés cuenta? Iniciá sesión"
-                : "¿No tenés cuenta? Registrate"
-            }}
-          </button>
-        </p>
-      </div>
+      <p class="border-t-[3px] border-[var(--sheet-ink)] pt-4">
+        <button type="button" class="sheet-link min-h-11 text-left" @click="toggleMode">
+          {{
+            isRegisterMode
+              ? t("login.yaTenesCuentaInicia")
+              : t("login.noTenesCuentaRegistrate")
+          }}
+        </button>
+      </p>
     </div>
   </div>
 </template>

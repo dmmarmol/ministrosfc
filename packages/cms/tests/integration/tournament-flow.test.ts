@@ -134,6 +134,21 @@ describe("Tournament flow (integration)", () => {
     expect(record.goalsFor).toBeGreaterThanOrEqual(4);
   });
 
+  it("GET /api/v1/tournaments → each row carries its ministrosRecord", async () => {
+    const res = await request(app).get("/api/v1/tournaments");
+    const found = res.body.data.find((t: any) => t.id === tournamentId);
+    expect(found.ministrosRecord.wins).toBeGreaterThanOrEqual(1);
+    expect(found.ministrosRecord.draws).toBeGreaterThanOrEqual(1);
+    expect(found.ministrosRecord.played).toBe(
+      found.ministrosRecord.wins +
+        found.ministrosRecord.draws +
+        found.ministrosRecord.losses,
+    );
+    for (const row of res.body.data) {
+      expect(row.ministrosRecord).toHaveProperty("goalDifference");
+    }
+  });
+
   it("DELETE /api/v1/tournaments/:id → 204 deletes tournament (admin)", async () => {
     const createRes = await request(app)
       .post("/api/v1/tournaments")

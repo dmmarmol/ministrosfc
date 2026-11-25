@@ -1,4 +1,6 @@
 <script setup lang="ts">
+
+const { t } = useI18n();
 /**
  * Icon-only light/dark switch. Relies on Nuxt UI's color mode (persisted in
  * localStorage, toggles `.dark` on <html>). Rendered client-side only because
@@ -12,7 +14,7 @@ const colorMode = useColorMode();
 
 const isDark = computed(() => colorMode.value === "dark");
 const label = computed(() =>
-  isDark.value ? "Cambiar a modo claro" : "Cambiar a modo oscuro",
+  isDark.value ? t("colorModeToggle.cambiarAModoClaro") : t("colorModeToggle.cambiarAModoOscuro"),
 );
 
 function toggle() {

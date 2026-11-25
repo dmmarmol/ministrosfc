@@ -10,6 +10,7 @@ import type {
 const TEAMS_PAGE_SIZE = 100;
 
 export function useOpponentTeams() {
+  const { t } = useI18n();
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
 
@@ -31,11 +32,11 @@ export function useOpponentTeams() {
       return res.data;
     } catch (err) {
       error.value =
-        err instanceof Error ? err.message : "Error al cargar equipos";
+        err instanceof Error ? err.message : t("errors.errorAlCargarEquipos");
     } finally {
       loading.value = false;
     }
-    throw new Error(error.value ?? "Error al cargar el equipo.");
+    throw new Error(error.value ?? t("errors.errorAlCargarElEquipo"));
   }
 
   async function fetchOpponentTeams(): Promise<OpponentTeam[]> {
@@ -59,7 +60,7 @@ export function useOpponentTeams() {
       return all;
     } catch (err) {
       error.value =
-        err instanceof Error ? err.message : "Error al cargar canchas";
+        err instanceof Error ? err.message : t("errors.errorAlCargarCanchas");
       return [];
     } finally {
       loading.value = false;

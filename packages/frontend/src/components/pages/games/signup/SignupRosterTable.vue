@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import PositionLabel from "~/components/ui/Position/Label.vue";
 import { ref } from "vue";
 import GameLineupField from "~/components/game/GameLineupField.vue";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   roster: any[];
@@ -31,8 +34,11 @@ const hoveredParticipantId = ref<string | null>(null);
     <!-- Confirmed players table (4/12 cols with field, full-width without) -->
     <div :class="lineup ? 'md:col-span-4' : ''">
       <h3 class="text-sm font-semibold text-gray-700 mb-3">
-        Confirmados ({{ confirmedCount
-        }}<span v-if="maxPlayers"> / {{ maxPlayers }}</span>)
+        {{
+        maxPlayers
+          ? t("signupTable.confirmedOfMax", { count: confirmedCount, max: maxPlayers })
+          : t("signupTable.confirmed", { count: confirmedCount })
+      }}
       </h3>
       <div class="bg-surface border border-gray-200 rounded-xl overflow-hidden">
         <div
@@ -40,7 +46,7 @@ const hoveredParticipantId = ref<string | null>(null);
           :key="entry.participantId"
           class="flex items-start gap-3 px-4 py-3 border-b border-gray-50 last:border-0 text-sm transition-colors"
           :class="
-            hoveredParticipantId === entry.participantId ? 'bg-yellow-50' : ''
+            hoveredParticipantId === entry.participantId ? 'bg-sheet-draw/10' : ''
           "
         >
           <span
@@ -52,15 +58,13 @@ const hoveredParticipantId = ref<string | null>(null);
             class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 mt-0.5"
             :class="
               entry.player.playerType === 'GUEST'
-                ? 'bg-yellow-100 text-yellow-700'
-                : 'bg-green-100 text-green-700'
+                ? 'bg-sheet-draw/15 text-sheet-draw'
+                : 'bg-sheet-win/15 text-sheet-win'
             "
           >
-            {{ entry.player.playerType === "GUEST" ? "Inv." : "Reg." }}
+            {{ entry.player.playerType === "GUEST" ? t("common.inv") : t("common.reg") }}
           </span>
-          <span class="text-xs text-gray-500 w-8 flex-shrink-0 mt-0.5">
-            {{ entry.player.position ?? "—" }}
-          </span>
+          <PositionLabel :position="entry.player.position ?? null" size="sm" />
           <div class="flex-1 min-w-0">
             <p class="font-medium text-gray-900 truncate">
               <span
@@ -84,7 +88,7 @@ const hoveredParticipantId = ref<string | null>(null);
               "
               class="text-xs text-gray-400 truncate"
             >
-              Invitado por {{ entry.player.invitedByName }}
+              {{ t("signupTable.invitedBy", { name: entry.player.invitedByName }) }}
             </p>
             <p
               v-else-if="
@@ -94,7 +98,7 @@ const hoveredParticipantId = ref<string | null>(null);
               "
               class="text-xs text-gray-400 truncate"
             >
-              Agregado por {{ entry.confirmedByName }}
+              {{ t("signupTable.addedBy", { name: entry.confirmedByName }) }}
             </p>
           </div>
         </div>

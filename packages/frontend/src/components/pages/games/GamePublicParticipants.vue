@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import PositionLabel from "~/components/ui/Position/Label.vue";
+
+const { t } = useI18n();
 defineProps<{
   participants: any[];
 }>();
@@ -8,7 +11,7 @@ defineProps<{
 <template>
   <div>
     <h2 class="text-lg font-bold text-gray-800 mb-4">
-      Jugadores ({{ participants.length }})
+      {{ t("gamePublicParticipants.players", { count: participants.length }) }}
     </h2>
     <div
       v-if="participants.length"
@@ -26,15 +29,13 @@ defineProps<{
           class="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
           :class="
             p.player?.playerType === 'GUEST'
-              ? 'bg-yellow-100 text-yellow-700'
-              : 'bg-green-100 text-green-700'
+              ? 'bg-sheet-draw/15 text-sheet-draw'
+              : 'bg-sheet-win/15 text-sheet-win'
           "
         >
-          {{ p.player?.playerType === "GUEST" ? "Inv." : "Reg." }}
+          {{ p.player?.playerType === "GUEST" ? t("common.inv") : t("common.reg") }}
         </span>
-        <span class="text-xs text-gray-500 w-8 flex-shrink-0">
-          {{ p.player?.position ?? "—" }}
-        </span>
+        <PositionLabel :position="p.player?.position ?? null" size="sm" />
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium text-gray-800 truncate">
             {{
@@ -47,11 +48,12 @@ defineProps<{
             v-if="p.player?.playerType === 'GUEST'"
             class="text-xs text-gray-400 truncate"
           >
-            Invitado por
             {{
-              p.confirmedBy
-                ? `${p.confirmedBy.firstName} ${p.confirmedBy.lastName}`
-                : "—"
+              t("gamePublicParticipants.invitedBy", {
+                name: p.confirmedBy
+                  ? `${p.confirmedBy.firstName} ${p.confirmedBy.lastName}`
+                  : "—",
+              })
             }}
           </p>
         </div>
@@ -60,6 +62,6 @@ defineProps<{
         </span>
       </div>
     </div>
-    <p v-else class="text-gray-500 text-sm">No hay jugadores confirmados.</p>
+    <p v-else class="text-gray-500 text-sm">{{ t("gamesGamePublicParticipants.noHayJugadoresConfirmados") }}</p>
   </div>
 </template>

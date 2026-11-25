@@ -2,6 +2,8 @@
 import { reactive } from "vue";
 import EmailInput from "~/components/ui/EmailInput.vue";
 
+
+const { t } = useI18n();
 const props = defineProps<{
   loading: boolean;
   error: string;
@@ -19,13 +21,10 @@ function handleSubmit() {
 </script>
 
 <template>
-  <form class="space-y-4" @submit.prevent="handleSubmit">
+  <form class="space-y-5" @submit.prevent="handleSubmit">
     <div>
-      <label
-        class="block text-sm font-medium text-gray-700 mb-1"
-        for="login-email"
-      >
-        Correo electrónico
+      <label class="sheet-label" for="login-email">
+        {{ t("authLoginForm.correoElectronico") }}
       </label>
       <EmailInput
         id="login-email"
@@ -35,11 +34,8 @@ function handleSubmit() {
       />
     </div>
     <div>
-      <label
-        class="block text-sm font-medium text-gray-700 mb-1"
-        for="login-password"
-      >
-        Contraseña
+      <label class="sheet-label" for="login-password">
+        {{ t("common.contrasena") }}
       </label>
       <input
         id="login-password"
@@ -47,22 +43,15 @@ function handleSubmit() {
         type="password"
         autocomplete="current-password"
         required
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+        class="sheet-field mt-1"
         placeholder="••••••••"
       />
     </div>
-    <p v-if="error" class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+    <p v-if="error" class="sheet-notice" data-tone="error" role="alert">
       {{ error }}
     </p>
-    <UButton
-      type="submit"
-      :disabled="loading"
-      variant="solid"
-      color="primary"
-      class="w-full flex justify-center"
-      size="xl"
-    >
-      {{ loading ? "Iniciando sesión…" : "Iniciar sesión" }}
-    </UButton>
+    <button type="submit" :disabled="loading" class="sheet-button w-full">
+      {{ loading ? t("authLoginForm.iniciandoSesion") : t("authLoginForm.iniciarSesion") }}
+    </button>
   </form>
 </template>

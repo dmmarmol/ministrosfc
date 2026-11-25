@@ -3,6 +3,8 @@ import { reactive, ref, computed } from "vue";
 import { PASSWORD_RULES } from "@ministrosfc/shared";
 import EmailInput from "~/components/ui/EmailInput.vue";
 
+
+const { t } = useI18n();
 defineProps<{
   loading: boolean;
   error: string;
@@ -56,14 +58,11 @@ function handleSubmit() {
 </script>
 
 <template>
-  <form class="space-y-4" @submit.prevent="handleSubmit">
+  <form class="space-y-5" @submit.prevent="handleSubmit">
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label
-          class="block text-sm font-medium text-gray-700 mb-1"
-          for="firstName"
-        >
-          Nombre
+        <label class="sheet-label" for="firstName">
+          {{ t("common.nombre") }}
         </label>
         <input
           id="firstName"
@@ -71,16 +70,13 @@ function handleSubmit() {
           type="text"
           autocomplete="given-name"
           required
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-          placeholder="Juan"
+          class="sheet-field mt-1"
+          :placeholder="t('authRegisterForm.juan')"
         />
       </div>
       <div>
-        <label
-          class="block text-sm font-medium text-gray-700 mb-1"
-          for="lastName"
-        >
-          Apellido
+        <label class="sheet-label" for="lastName">
+          {{ t("common.apellido") }}
         </label>
         <input
           id="lastName"
@@ -88,14 +84,14 @@ function handleSubmit() {
           type="text"
           autocomplete="family-name"
           required
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
-          placeholder="Pérez"
+          class="sheet-field mt-1"
+          :placeholder="t('authRegisterForm.perez')"
         />
       </div>
     </div>
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1" for="email">
-        Correo electrónico
+      <label class="sheet-label" for="email">
+        {{ t("authRegisterForm.correoElectronico") }}
       </label>
       <EmailInput
         id="email"
@@ -106,11 +102,8 @@ function handleSubmit() {
       />
     </div>
     <div>
-      <label
-        class="block text-sm font-medium text-gray-700 mb-1"
-        for="password"
-      >
-        Contraseña
+      <label class="sheet-label" for="password">
+        {{ t("common.contrasena") }}
       </label>
       <input
         id="password"
@@ -118,7 +111,7 @@ function handleSubmit() {
         type="password"
         autocomplete="new-password"
         required
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+        class="sheet-field mt-1"
         placeholder="••••••••"
       />
       <ul
@@ -129,7 +122,8 @@ function handleSubmit() {
         <li
           v-for="rule in passwordRuleStatus"
           :key="rule.message"
-          :class="rule.met ? 'text-green-600' : 'text-gray-400'"
+          :data-met="rule.met"
+          :class="rule.met ? 'text-sheet-win font-bold' : 'text-[var(--sheet-ink-soft)]'"
           class="flex items-center gap-1"
         >
           <span>{{ rule.met ? "✓" : "○" }}</span>
@@ -138,11 +132,8 @@ function handleSubmit() {
       </ul>
     </div>
     <div>
-      <label
-        class="block text-sm font-medium text-gray-700 mb-1"
-        for="passwordConfirmation"
-      >
-        Confirmar contraseña
+      <label class="sheet-label" for="passwordConfirmation">
+        {{ t("authRegisterForm.confirmarContrasena") }}
       </label>
       <input
         id="passwordConfirmation"
@@ -150,26 +141,19 @@ function handleSubmit() {
         type="password"
         autocomplete="new-password"
         required
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+        class="sheet-field mt-1"
         placeholder="••••••••"
       />
     </div>
 
-    <p
-      v-if="mismatchError"
-      class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2"
-    >
-      Las contraseñas no coinciden
+    <p v-if="mismatchError" class="sheet-notice" data-tone="error" role="alert">
+      {{ t("authRegisterForm.lasContrasenasNoCoinciden") }}
     </p>
-    <p v-if="error" class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+    <p v-if="error" class="sheet-notice" data-tone="error" role="alert">
       {{ error }}
     </p>
-    <button
-      type="submit"
-      :disabled="loading"
-      class="w-full bg-brand text-gray-900 font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-60"
-    >
-      {{ loading ? "Registrando…" : "Registrarse" }}
+    <button type="submit" :disabled="loading" class="sheet-button w-full">
+      {{ loading ? t("authRegisterForm.registrando") : t("authRegisterForm.registrarse") }}
     </button>
   </form>
 </template>

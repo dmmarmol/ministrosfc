@@ -1,5 +1,6 @@
 import type { Game } from "./game";
 import { type Position } from "./player";
+import type { MinistrosRecord } from "./tournament";
 
 export interface Statistics {
   id: string;
@@ -139,9 +140,14 @@ export interface PlayerRivalMatchDTO {
   homeScore: number;
   awayScore: number;
   tournament: string | null;
+  /** Where the game was played (its playground, else the free-text location). */
+  playgroundName: string | null;
   result: "W" | "L" | "D";
   slug: Game["slug"];
   playerGoals: number;
+  playerAssists: number;
+  yellowCards: number;
+  redCards: number;
 }
 
 export interface PlayerRivalPeriodDTO {
@@ -154,6 +160,9 @@ export interface PlayerRivalPeriodDTO {
   goalsFor: number;
   goalsAgainst: number;
   playerGoals: number;
+  playerAssists: number;
+  yellowCards: number;
+  redCards: number;
   matches: PlayerRivalMatchDTO[];
 }
 
@@ -189,15 +198,13 @@ export interface TournamentStatsResponse {
   tournament: {
     id: string;
     name: string;
+    description?: string | null;
+    competitionType: string;
     startDate: string;
     endDate?: string | null;
-    playgroundId: string;
+    playgroundId: string | null;
   };
-  ministrosRecord: {
-    wins: number;
-    losses: number;
-    draws: number;
-  };
+  ministrosRecord: MinistrosRecord;
   playerStats: Array<{
     player?: {
       id: string;

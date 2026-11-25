@@ -8,6 +8,8 @@ import {
 import { resolveSelectedValue } from "~/utils/object";
 import Label from "./Label.vue";
 
+const { t } = useI18n();
+
 const props = withDefaults(
   defineProps<{
     modelValue?: Position | typeof OPTION_FILTER_ALL;
@@ -17,8 +19,11 @@ const props = withDefaults(
   {
     modelValue: OPTION_FILTER_ALL,
     includeAll: true,
-    placeholder: "Todas las posiciones",
   },
+);
+
+const placeholder = computed(
+  () => props.placeholder ?? t("positionSelect.todasLasPosiciones"),
 );
 
 const emit = defineEmits<{
@@ -35,7 +40,7 @@ const positionItems: SelectItem[] = Object.values(Position).map((pos) => ({
 
 const optionAll: SelectItem = {
   value: OPTION_FILTER_ALL,
-  label: "Todas las posiciones",
+  label: t("positionSelect.todasLasPosiciones"),
 };
 const shouldShowOptionAll = computed(() => props.includeAll && false);
 
@@ -84,7 +89,7 @@ function getItemLabel(item: unknown): string {
 
   const value = extractItemValue(item);
   if (value === OPTION_FILTER_ALL) {
-    return "Todas las posiciones";
+    return t("positionSelect.todasLasPosiciones");
   }
   if (isPositionValue(value)) {
     return PositionDisplayName[value];
@@ -136,7 +141,7 @@ const selectedLabel = computed(() => {
     value-key="value"
     label-key="label"
     :search-input="false"
-    :placeholder="props.placeholder"
+    :placeholder="placeholder"
     :label="selectedLabel"
     :ui="{ content: 'min-w-fit', base: 'justify-between' }"
   >

@@ -8,6 +8,7 @@ import type {
 } from "@ministrosfc/shared";
 
 export function usePlaygrounds() {
+  const { t } = useI18n();
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
 
@@ -29,7 +30,7 @@ export function usePlaygrounds() {
       return res.data;
     } catch (err) {
       error.value =
-        err instanceof Error ? err.message : "Error al cargar canchas";
+        err instanceof Error ? err.message : t("errors.errorAlCargarCanchas");
       return null;
     } finally {
       loading.value = false;
@@ -45,7 +46,7 @@ export function usePlaygrounds() {
       return playgrounds.value;
     } catch (err) {
       error.value =
-        err instanceof Error ? err.message : "Error al cargar canchas";
+        err instanceof Error ? err.message : t("errors.errorAlCargarCanchas");
       return [];
     } finally {
       loading.value = false;

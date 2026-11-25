@@ -3,6 +3,7 @@ import { useNuxtApp } from "nuxt/app";
 import type { GameSignupPageDTO, RosterEntry } from "@ministrosfc/shared";
 
 export function useGameSignup(gameId: string) {
+  const { t } = useI18n();
   const { $api } = useNuxtApp();
 
   const data = ref<GameSignupPageDTO | null>(null);
@@ -30,7 +31,7 @@ export function useGameSignup(gameId: string) {
       );
       data.value = res.data;
     } catch (e: any) {
-      error.value = e?.message ?? "Error al cargar la convocatoria";
+      error.value = e?.message ?? t("errors.errorAlCargarLaConvocatoria");
     } finally {
       loading.value = false;
     }
@@ -73,7 +74,7 @@ export function useGameSignup(gameId: string) {
       });
       applyResult(res.data);
     } catch (e: any) {
-      error.value = e?.data?.message ?? e?.message ?? "Error al inscribirse";
+      error.value = e?.data?.message ?? e?.message ?? t("errors.errorAlInscribirse");
       throw e;
     }
   }
@@ -99,7 +100,7 @@ export function useGameSignup(gameId: string) {
       applyResult(res.data);
     } catch (e: any) {
       error.value =
-        e?.data?.message ?? e?.message ?? "Error al agregar invitado";
+        e?.data?.message ?? e?.message ?? t("errors.errorAlAgregarInvitado");
       throw e;
     }
   }
@@ -116,7 +117,7 @@ export function useGameSignup(gameId: string) {
       applyResult(res.data);
     } catch (e: any) {
       error.value =
-        e?.data?.message ?? e?.message ?? "Error al agregar jugador";
+        e?.data?.message ?? e?.message ?? t("errors.errorAlAgregarJugador");
       throw e;
     }
   }
@@ -143,7 +144,7 @@ export function useGameSignup(gameId: string) {
       }
     } catch (e: any) {
       error.value =
-        e?.data?.message ?? e?.message ?? "Error al eliminar al jugador";
+        e?.data?.message ?? e?.message ?? t("errors.errorAlEliminarAlJugador");
       throw e;
     }
   }
@@ -165,7 +166,7 @@ export function useGameSignup(gameId: string) {
       }
     } catch (e: any) {
       error.value =
-        e?.data?.message ?? e?.message ?? "Error al cancelar inscripción";
+        e?.data?.message ?? e?.message ?? t("errors.errorAlCancelarInscripcion");
     }
   }
 

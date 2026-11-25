@@ -1,163 +1,91 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
-import { GameStatus, type Game } from "@ministrosfc/shared";
-import { useAuthStore } from "~/stores/auth";
+import {
+  GameStatus,
+  type Game,
+  type GameParticipant,
+} from "@ministrosfc/shared";
+import GameSheet from "~/components/pages/games/GameSheet.vue";
+import HomeCopies from "~/components/pages/home/HomeCopies.vue";
+import HomeArchive from "~/components/pages/home/HomeArchive.vue";
+import { fetchNextGame } from "~/utils/nextGame";
 
-definePageMeta({ public: true });
+
+const { t } = useI18n();
+definePageMeta({ public: true, layout: "sheet" });
+useHead({ title: t("common.inicio") });
 
 const { $api } = useNuxtApp();
-const authStore = useAuthStore();
+const config = useRuntimeConfig();
+// Signup call to action stays off until the club adopts it (spec 023 FR-020/FR-021).
+const ctaEnabled = computed(() => config.public.signupCtaEnabled === true);
 
-// Upcoming games (next 3, scheduled)
-const {
-  data: upcomingData,
-  pending: upcomingLoading,
-  refresh: refreshUpcoming,
-} = await useAsyncData("home-upcoming", () =>
+const listGames = (
+  status: GameStatus,
+  limit: number,
+  dateFrom?: string,
+) =>
   $api<{ data: Game[] }>("/api/v1/games", {
-    query: { status: GameStatus.SCHEDULED, limit: 3 },
-  }),
+    query: { status, limit, ...(dateFrom ? { dateFrom } : {}) },
+  }).then((r) => r.data ?? []);
+
+// The next sheet: earliest upcoming game that is scheduled, live, or called off.
+const { data: nextGame, pending: nextLoading } = await useAsyncData(
+  "home-next-game",
+  () => fetchNextGame(listGames),
 );
-const upcomingGames = computed(() => upcomingData.value?.data ?? []);
 
-// On mount: PLAYER users re-fetch upcoming games so the auth header is included
-// (token lives in sessionStorage — unavailable during SSR)
-onMounted(async () => {
-  if (authStore.user?.role === "PLAYER") {
-    await refreshUpcoming();
-  }
-});
+const { data: participants } = await useAsyncData(
+  "home-next-participants",
+  async () => {
+    if (!nextGame.value) return [] as GameParticipant[];
+    const res = await $api<{ data: GameParticipant[] }>(
+      `/api/v1/games/${nextGame.value.id}/participants`,
+    ).catch(() => ({ data: [] as GameParticipant[] }));
+    return res.data ?? [];
+  },
+  { watch: [nextGame] },
+);
 
-// Recent results (last 3 completed)
 const { data: recentData, pending: recentLoading } = await useAsyncData(
   "home-recent",
-  () =>
-    $api<{ data: any[] }>("/api/v1/games", {
-      query: { status: GameStatus.COMPLETED, limit: 3 },
-    }),
+  () => listGames(GameStatus.COMPLETED, 3),
 );
-const recentGames = computed(() => recentData.value?.data ?? []);
 
-// Top scorers
 const { data: scorersData, pending: scorersLoading } = await useAsyncData(
   "home-scorers",
   () =>
     $api<{ data: any[] }>("/api/v1/statistics/top-scorers", {
       query: { limit: 5 },
-    }),
+    }).then((r) => r.data ?? []),
 );
-const topScorers = computed(() => scorersData.value?.data ?? []);
 </script>
 
 <template>
   <div>
-    <!-- Hero -->
-    <section
-      class="bg-gradient-to-br from-primary-100 to-primary-50 text-white py-8 px-8 h-96 rounded-2xl mb-10 flex items-end"
-    >
-      <div class="max-w-3xl">
-        <h2 class="text-gray-700 dark:text-white text-4xl sm:text-6xl font-bold mb-3 break-words">
-          Bienvenido a <span class="text-brand">Ministros FC</span>
-        </h2>
-        <p class="text-gray-700 dark:text-white text-lg mb-6">
-          Seguí al equipo — resultados, plantilla y próximos partidos.
+    <GameSheet
+      v-if="nextGame"
+      :game="nextGame"
+      :participants="participants ?? []"
+      :cta-enabled="ctaEnabled"
+    />
+    <section v-else class="sheet-paper" aria-labelledby="home-empty">
+      <div class="mx-auto max-w-3xl px-4 pb-8 pt-6">
+        <UiSheetTitle id="home-empty">
+          <template v-if="nextLoading">{{ t("common.cargando") }}</template>
+          <template v-else>{{ t("home.sinPartidoProgramado") }}</template>
+        </UiSheetTitle>
+        <p v-if="!nextLoading" class="mt-4 max-w-prose">
+          {{ t("home.cuandoSeCargueEl") }}
         </p>
-        <div class="flex gap-3 flex-wrap">
-          <UButton to="/roster" variant="solid" color="primary" size="xl">
-            Ver Plantilla Completa
-          </UButton>
-          <UButton to="/schedule" variant="outline" color="primary" size="xl">
-            Ver Calendario
-          </UButton>
-        </div>
       </div>
     </section>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Upcoming games -->
-      <section class="lg:col-span-2">
-        <h3 class="text-lg font-bold text-gray-800 mb-4">Próximos Partidos</h3>
-        <div v-if="upcomingLoading" class="space-y-3">
-          <div
-            v-for="i in 3"
-            :key="i"
-            class="h-16 bg-gray-200 animate-pulse rounded-xl"
-          />
-        </div>
-        <div v-else-if="upcomingGames.length" class="space-y-3">
-          <GameCard
-            v-for="game in upcomingGames"
-            :key="game.id"
-            :game="game"
-            :signup-state="game.currentPlayerStatus ?? undefined"
-          />
-        </div>
-        <p v-else class="text-gray-500 text-sm">
-          Sin partidos próximos programados.
-        </p>
-        <NuxtLink
-          to="/schedule"
-          class="mt-4 inline-block text-sm text-brand font-medium hover:underline"
-          >Ver calendario completo →</NuxtLink
-        >
-      </section>
-
-      <!-- Top scorers widget -->
-      <section>
-        <h3 class="text-lg font-bold text-gray-800 mb-4">Máximos Goleadores</h3>
-        <div v-if="scorersLoading" class="space-y-2">
-          <div
-            v-for="i in 5"
-            :key="i"
-            class="h-10 bg-gray-200 animate-pulse rounded"
-          />
-        </div>
-        <div
-          v-else-if="topScorers.length"
-          class="bg-surface rounded-xl shadow-sm border border-gray-100 overflow-hidden"
-        >
-          <div
-            v-for="(entry, idx) in topScorers.slice(0, 5)"
-            :key="entry.player?.id ?? idx"
-            class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0"
-          >
-            <span class="text-sm font-bold text-gray-400 w-5">{{
-              idx + 1
-            }}</span>
-            <NuxtLink
-              :to="`/players/${entry.player?.id}`"
-              class="flex-1 text-sm font-medium text-gray-800 hover:text-brand transition-colors truncate"
-              >{{ entry.player?.firstName }}
-              {{ entry.player?.lastName }}</NuxtLink
-            >
-            <span class="text-sm font-bold text-brand"
-              >{{ entry.goalsScored }} ⚽</span
-            >
-          </div>
-        </div>
-        <p v-else class="text-gray-500 text-sm">Sin datos de goleadores.</p>
-        <NuxtLink
-          to="/statistics/top-scorers"
-          class="mt-4 inline-block text-sm text-brand font-medium hover:underline"
-          >Ver tabla completa →</NuxtLink
-        >
-      </section>
-    </div>
-
-    <!-- Recent results -->
-    <section class="mt-10">
-      <h3 class="text-lg font-bold text-gray-800 mb-4">Resultados Recientes</h3>
-      <div v-if="recentLoading" class="space-y-3">
-        <div
-          v-for="i in 3"
-          :key="i"
-          class="h-16 bg-gray-200 animate-pulse rounded-xl"
-        />
-      </div>
-      <div v-else-if="recentGames.length" class="space-y-3">
-        <GameCard v-for="game in recentGames" :key="game.id" :game="game" />
-      </div>
-      <p v-else class="text-gray-500 text-sm">Sin partidos completados.</p>
-    </section>
+    <HomeCopies />
+    <HomeArchive
+      :results="recentData ?? []"
+      :scorers="scorersData ?? []"
+      :results-loading="recentLoading"
+      :scorers-loading="scorersLoading"
+    />
   </div>
 </template>

@@ -3,6 +3,8 @@ import type { SelectItem } from "#ui/types";
 import { OPTION_FILTER_ALL, type PlayerStatus } from "@ministrosfc/shared";
 import { useStatisticsAvailablePlayers } from "~/composables/useStatisticsAvailablePlayers";
 
+
+const { t } = useI18n();
 const props = defineProps<{
   modelValue: string | null;
   includeAll?: boolean;
@@ -18,7 +20,7 @@ const { availablePlayers } = useStatisticsAvailablePlayers(statusRef);
 
 const optionAll: SelectItem = {
   value: OPTION_FILTER_ALL,
-  label: "Todos los jugadores",
+  label: t("statsFiltersPlayerSelect.todosLosJugadores"),
 };
 const items = computed<SelectItem[]>(() =>
   props.includeAll
@@ -62,7 +64,7 @@ function handleUpdate(value: SelectItem | undefined) {
     :items="items"
     value-key="value"
     label-key="label"
-    placeholder="Elegí un jugador"
+    :placeholder="t('common.todos')"
     :search-input="true"
     :clear="true"
     :ui="{ content: 'min-w-fit' }"

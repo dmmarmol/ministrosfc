@@ -1,121 +1,147 @@
 <script setup lang="ts">
-import { formatCompetitionType } from "~/utils/stats";
+import type {
+  ApiResponse,
+  Game,
+  TournamentStatsResponse,
+} from "@ministrosfc/shared";
+import { formatCompetitionType, formatDateRange } from "~/utils/stats";
+import GameLine from "~/components/pages/schedule/GameLine.vue";
+import StatsRanked, {
+  type RankedItem,
+  type RankedMetric,
+} from "~/components/pages/statistics/StatsRanked.vue";
 
-definePageMeta({ public: true });
+
+const { t } = useI18n();
+definePageMeta({ public: true, layout: "sheet" });
+
 const { $api } = useNuxtApp();
 const route = useRoute();
 const id = route.params.id as string;
 
-const { data: tData, pending } = await useAsyncData(`tournament-${id}`, () =>
-  $api<{ data: any }>(`/api/v1/tournaments/${id}`),
+const { data: statsData, pending } = await useAsyncData(`tournament-${id}`, () =>
+  $api<ApiResponse<TournamentStatsResponse>>(`/api/v1/statistics/tournaments/${id}`).catch(() => null),
 );
-const tournament = computed(() => tData.value?.data ?? null);
-
-const { data: statsData } = await useAsyncData(`tournament-stats-${id}`, () =>
-  $api<{ data: any }>(`/api/v1/statistics/tournaments/${id}`),
+const { data: gamesData } = await useAsyncData(`tournament-games-${id}`, () =>
+  $api<{ data: Game[] }>("/api/v1/games", {
+    query: { tournamentId: id, limit: 100 },
+  })
+    .then((r) => r.data ?? [])
+    .catch(() => [] as Game[]),
 );
-const topScorers = computed(() => statsData.value?.data?.topScorers ?? []);
-const games = computed(() => tournament.value?.games ?? []);
 
-useHead(() => ({
-  title: tournament.value ? `${tournament.value.name}` : "Torneo",
-}));
+const tournament = computed(() => statsData.value?.data?.tournament ?? null);
+const record = computed(() => statsData.value?.data?.ministrosRecord ?? null);
+const games = computed(() =>
+  [...(gamesData.value ?? [])].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  ),
+);
+
+// Game lines show weekday and day only, so group them under their month
+const gameGroups = computed(() => {
+  const out: { key: string; label: string; items: Game[] }[] = [];
+  for (const g of games.value) {
+    const d = new Date(g.date);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    let grp = out.find((x) => x.key === key);
+    if (!grp) {
+      const label = d.toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+      out.push((grp = { key, label: label.charAt(0).toUpperCase() + label.slice(1), items: [] }));
+    }
+    grp.items.push(g);
+  }
+  return out;
+});
+
+useHead(() => ({ title: tournament.value?.name ?? t("common.torneo") }));
+
+const signed = (v: number) => (v > 0 ? `+${v}` : String(v));
+const totals = computed(() => {
+  const r = record.value;
+  if (!r) return [];
+  return [
+    { label: t("common.partidos"), value: r.played },
+    { label: t("common.victorias"), value: r.wins },
+    { label: t("common.empates"), value: r.draws },
+    { label: t("common.derrotas"), value: r.losses },
+    { label: t("common.golesAFavor"), value: r.goalsFor },
+    { label: t("common.golesEnContra"), value: r.goalsAgainst },
+    { label: t("common.difGol"), value: signed(r.goalDifference) },
+  ];
+});
+
+const metrics: RankedMetric[] = [
+  { key: "goals", label: t("common.goles"), unit: t("units.goles") },
+  { key: "assists", label: t("common.asist"), unit: t("units.asist") },
+  { key: "games", label: t("common.partidos"), unit: t("units.partidos") },
+];
+const scorers = computed<RankedItem[]>(() =>
+  (statsData.value?.data?.playerStats ?? [])
+    .filter((s) => s.player && (s.goalsScored > 0 || s.assists > 0))
+    .map((s) => ({
+      id: s.player!.id,
+      title: s.player!.lastName,
+      subtitle: s.player!.firstName,
+      to: `/players/${s.player!.id}`,
+      linkLabel: `Ver ficha de ${s.player!.firstName}`,
+      cards: { yellow: s.yellowCards, red: s.redCards },
+      values: { goals: s.goalsScored, assists: s.assists, games: s.appearances },
+      detail: [
+        { label: "PJ", value: s.appearances },
+        { label: t("common.goles"), value: s.goalsScored },
+        { label: t("common.asist"), value: s.assists },
+        { label: t("common.amar"), value: s.yellowCards },
+      ],
+    })),
+);
 </script>
 
 <template>
-  <div>
-    <div v-if="pending" class="space-y-4">
-      <div class="h-32 bg-gray-200 animate-pulse rounded-2xl" />
-      <div
-        v-for="i in 5"
-        :key="i"
-        class="h-10 bg-gray-200 animate-pulse rounded"
-      />
-    </div>
+  <div class="mx-auto max-w-3xl px-4 pb-12 pt-6">
+    <UiBackButton to="/tournaments" :label="t('tournamentsDetail.torneos')" />
+
+    <UiSheetMessage v-if="pending" class="mt-6">{{ t("tournamentsDetail.cargandoTorneo") }}</UiSheetMessage>
     <template v-else-if="tournament">
-      <!-- Header -->
-      <div class="bg-ink text-white rounded-2xl p-6 mb-8">
-        <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
-          {{ formatCompetitionType(tournament.format) }}
-        </p>
-        <h1 class="text-2xl font-bold mb-1">{{ tournament.name }}</h1>
-        <p v-if="tournament.description" class="text-white/70 text-sm mb-4">
-          {{ tournament.description }}
-        </p>
-        <!-- Record summary -->
-        <div
-          v-if="tournament.ministrosRecord"
-          class="flex gap-6 flex-wrap mt-4"
-        >
-          <div class="text-center">
-            <p class="text-2xl font-bold text-green-400">
-              {{ tournament.ministrosRecord.wins }}
-            </p>
-            <p class="text-xs text-gray-400">Ganados</p>
-          </div>
-          <div class="text-center">
-            <p class="text-2xl font-bold text-yellow-400">
-              {{ tournament.ministrosRecord.draws }}
-            </p>
-            <p class="text-xs text-gray-400">Empatados</p>
-          </div>
-          <div class="text-center">
-            <p class="text-2xl font-bold text-red-400">
-              {{ tournament.ministrosRecord.losses }}
-            </p>
-            <p class="text-xs text-gray-400">Perdidos</p>
-          </div>
-          <div class="text-center">
-            <p class="text-2xl font-bold">
-              {{ tournament.ministrosRecord.goalsFor }}
-            </p>
-            <p class="text-xs text-gray-400">Goles a favor</p>
-          </div>
-          <div class="text-center">
-            <p class="text-2xl font-bold">
-              {{ tournament.ministrosRecord.goalsAgainst }}
-            </p>
-            <p class="text-xs text-gray-400">Goles en contra</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Games list -->
-      <h2 class="text-lg font-bold text-gray-800 mb-4">Partidos</h2>
-      <div v-if="games.length" class="space-y-3">
-        <GameCard v-for="game in games" :key="game.id" :game="game" />
-      </div>
-      <p v-else class="text-gray-500 text-sm">
-        Todavía no hay partidos asociados a este torneo.
+      <UiSheetTitle size="md" class="mt-2">{{ tournament.name }}</UiSheetTitle>
+      <p class="sheet-label mt-3">
+        {{ formatCompetitionType(tournament.competitionType) }} ·
+        {{ formatDateRange(tournament.startDate, tournament.endDate) }}
       </p>
+      <p v-if="tournament.description" class="mt-3 max-w-prose">{{ tournament.description }}</p>
 
-      <!-- Top scorers -->
-      <h2 class="text-lg font-bold text-gray-800 mt-8 mb-4">Goleadores</h2>
-      <div
-        v-if="topScorers.length"
-        class="bg-surface rounded-xl shadow-sm border border-gray-100 overflow-hidden"
-      >
-        <div
-          v-for="(entry, idx) in topScorers"
-          :key="entry.playerId"
-          class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0"
-        >
-          <span class="text-sm font-bold text-gray-400 w-5">{{ idx + 1 }}</span>
-          <NuxtLink
-            :to="`/players/${entry.playerId}`"
-            class="flex-1 text-sm font-medium text-gray-800 hover:text-brand truncate"
-            >{{ entry.playerName }}</NuxtLink
-          >
-          <span class="text-sm font-bold text-brand">{{ entry.goals }} ⚽</span>
-          <span class="text-xs text-gray-500">{{ entry.assists }} 🅰️</span>
-        </div>
-      </div>
-      <p v-else class="text-gray-500 text-sm">
-        Todavía no hay datos de goleadores.
-      </p>
+      <UiSheetTotals v-if="record && record.played" :items="totals" class="mt-6" />
+
+      <section class="mt-10" aria-labelledby="t-games">
+        <UiSheetBand id="t-games" :count="games.length" count-label="partidos">{{ t("common.partidos") }}</UiSheetBand>
+        <template v-if="games.length">
+          <div v-for="grp in gameGroups" :key="grp.key" class="mt-5">
+            <h3 class="sheet-display text-2xl">{{ grp.label }}</h3>
+            <ul class="mt-1 border-t-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)]">
+              <li
+                v-for="g in grp.items"
+                :key="g.id"
+                class="border-b border-[var(--sheet-rule)] px-3"
+              >
+                <GameLine :game="g" />
+              </li>
+            </ul>
+          </div>
+        </template>
+        <p v-else class="border-b-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] px-3 py-4">
+          {{ t("tournamentsDetail.todaviaNoHayPartidos") }}
+        </p>
+      </section>
+
+      <section class="mt-10" aria-labelledby="t-scorers">
+        <UiSheetBand id="t-scorers">{{ t("common.goleadores") }}</UiSheetBand>
+        <StatsRanked
+          :items="scorers"
+          :metrics="metrics"
+          :empty-text="t('tournamentsDetail.todaviaNoHayGoles')"
+        />
+      </section>
     </template>
-    <div v-else class="text-center py-16 text-gray-500">
-      No se encontró el torneo.
-    </div>
+    <UiSheetMessage v-else tone="empty" class="mt-8">{{ t("errors.noSeEncontroElTorneo") }}</UiSheetMessage>
   </div>
 </template>
