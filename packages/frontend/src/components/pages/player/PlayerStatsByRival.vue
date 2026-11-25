@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import type { PlayerRivalPeriodDTO } from "@ministrosfc/shared";
+import type {
+  PlayerRivalMatchDTO,
+  PlayerRivalPeriodDTO,
+} from "@ministrosfc/shared";
 import StatsRanked, {
   type RankedItem,
   type RankedMetric,
@@ -57,13 +60,22 @@ const items = computed<RankedItem[]>(() =>
 );
 
 const byId = computed(() => new Map(rivals.value.map((r) => [r.rivalId, r])));
-const matchesOf = (id: string) => byId.value.get(id)?.matches ?? [];
+const matchesOf = (id: string): PlayerRivalMatchDTO[] =>
+  byId.value.get(id)?.matches ?? [];
 
-const RESULT = {
+const RESULT: Record<PlayerRivalMatchDTO["result"], { label: string; tone: string }> = {
   W: { label: "Victoria", tone: "text-[var(--sheet-win)]" },
   L: { label: "Derrota", tone: "text-[var(--sheet-loss)]" },
   D: { label: "Empate", tone: "text-[var(--sheet-draw)]" },
-} as const;
+};
+
+// Stat columns of the match grid, in header order
+const statCells = (m: PlayerRivalMatchDTO): { v: number; n: string }[] => [
+  { v: m.playerGoals, n: "goles" },
+  { v: m.playerAssists, n: "asistencias" },
+  { v: m.yellowCards, n: "tarjetas amarillas" },
+  { v: m.redCards, n: "tarjetas rojas" },
+];
 </script>
 
 <template>
@@ -106,12 +118,7 @@ const RESULT = {
                 <span v-if="m.tournament" class="block truncate text-xs text-[var(--sheet-ink-soft)]">{{ m.tournament }}</span>
                 <span v-if="m.playgroundName" class="block truncate text-xs text-[var(--sheet-ink-soft)]">{{ m.playgroundName }}</span>
               </span>
-              <span v-for="s in [
-                { v: m.playerGoals, n: 'goles' },
-                { v: m.playerAssists, n: 'asistencias' },
-                { v: m.yellowCards, n: 'tarjetas amarillas' },
-                { v: m.redCards, n: 'tarjetas rojas' },
-              ]" :key="s.n" class="sheet-display sheet-num text-center text-2xl leading-none" :title="s.n" :class="s.v ? '' : 'text-[var(--sheet-rule)]'">
+              <span v-for="s in statCells(m)" :key="s.n" class="sheet-display sheet-num text-center text-2xl leading-none" :title="s.n" :class="s.v ? '' : 'text-[var(--sheet-rule)]'">
                 {{ s.v || "–" }}<span class="sr-only"> {{ s.n }}</span>
               </span>
               <NuxtLink
