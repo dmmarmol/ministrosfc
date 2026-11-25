@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { Game } from "@ministrosfc/shared";
+import type {
+  ApiResponse,
+  Game,
+  TournamentStatsResponse,
+} from "@ministrosfc/shared";
 import { formatCompetitionType, formatDateRange } from "~/utils/stats";
 import GameLine from "~/components/pages/schedule/GameLine.vue";
 import StatsRanked, {
@@ -13,32 +17,8 @@ const { $api } = useNuxtApp();
 const route = useRoute();
 const id = route.params.id as string;
 
-interface TournamentRecord {
-  played: number;
-  wins: number;
-  draws: number;
-  losses: number;
-  goalsFor: number;
-  goalsAgainst: number;
-  goalDifference: number;
-}
-interface PlayerStat {
-  player?: { id: string; firstName: string; lastName: string; position?: string | null };
-  appearances: number;
-  goalsScored: number;
-  assists: number;
-  yellowCards: number;
-  redCards: number;
-}
-
 const { data: statsData, pending } = await useAsyncData(`tournament-${id}`, () =>
-  $api<{
-    data: {
-      tournament: { name: string; description?: string | null; competitionType: string; startDate: string; endDate: string | null };
-      ministrosRecord: TournamentRecord | null;
-      playerStats: PlayerStat[];
-    };
-  }>(`/api/v1/statistics/tournaments/${id}`).catch(() => null),
+  $api<ApiResponse<TournamentStatsResponse>>(`/api/v1/statistics/tournaments/${id}`).catch(() => null),
 );
 const { data: gamesData } = await useAsyncData(`tournament-games-${id}`, () =>
   $api<{ data: Game[] }>("/api/v1/games", {

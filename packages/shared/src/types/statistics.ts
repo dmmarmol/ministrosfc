@@ -197,14 +197,20 @@ export interface TournamentStatsResponse {
   tournament: {
     id: string;
     name: string;
+    description?: string | null;
+    competitionType: string;
     startDate: string;
     endDate?: string | null;
-    playgroundId: string;
+    playgroundId: string | null;
   };
   ministrosRecord: {
+    played: number;
     wins: number;
     losses: number;
     draws: number;
+    goalsFor: number;
+    goalsAgainst: number;
+    goalDifference: number;
   };
   playerStats: Array<{
     player?: {
