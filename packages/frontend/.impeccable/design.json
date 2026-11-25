@@ -1,0 +1,332 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-24T23:58:16.070002+00:00",
+  "title": "Design System: Ministros FC",
+  "extensions": {
+    "colorMeta": {
+      "brand": {
+        "role": "primary",
+        "displayName": "Club Blue",
+        "canonical": "#4f72e2",
+        "tonalRamp": [
+          "#233263",
+          "#3952a3",
+          "#4462c2",
+          "#4f72e2",
+          "#8ea5ec",
+          "#b5c4f3",
+          "#e3e8fa",
+          "#f1f4fd"
+        ]
+      },
+      "ink-black": {
+        "role": "secondary",
+        "displayName": "Ink Black",
+        "canonical": "#0c0908",
+        "tonalRamp": [
+          "#050404",
+          "#090606",
+          "#0a0807",
+          "#0c0908",
+          "#636261",
+          "#999897",
+          "#d8d8d7",
+          "#ecebeb"
+        ]
+      },
+      "sky-wash": {
+        "role": "tertiary",
+        "displayName": "Sky Wash",
+        "canonical": "#dfeef7",
+        "tonalRamp": [
+          "#62696d",
+          "#a1abb2",
+          "#c0cdd4",
+          "#dfeef7",
+          "#ebf4fa",
+          "#f2f8fc",
+          "#fafcfe",
+          "#fcfefe"
+        ]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Canvas",
+        "canonical": "#f7f8fa",
+        "tonalRamp": [
+          "#6d6d6e",
+          "#b2b3b4",
+          "#d4d5d7",
+          "#f7f8fa",
+          "#fafbfc",
+          "#fcfcfd",
+          "#fefefe",
+          "#fefeff"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#111827",
+        "tonalRamp": [
+          "#070b11",
+          "#0c111c",
+          "#0f1522",
+          "#111827",
+          "#676b75",
+          "#9b9ea4",
+          "#d9dadc",
+          "#ecedee"
+        ]
+      },
+      "slate": {
+        "role": "neutral",
+        "displayName": "Slate",
+        "canonical": "#4b5563",
+        "tonalRamp": [
+          "#21252c",
+          "#363d47",
+          "#404955",
+          "#4b5563",
+          "#8c929b",
+          "#b3b8bd",
+          "#e2e4e6",
+          "#f1f1f3"
+        ]
+      },
+      "success": {
+        "role": "semantic",
+        "displayName": "Success Green",
+        "canonical": "#4bb543",
+        "tonalRamp": [
+          "#21501d",
+          "#368230",
+          "#409c3a",
+          "#4bb543",
+          "#8cd087",
+          "#b3e0b0",
+          "#e2f3e1",
+          "#f1f9f0"
+        ]
+      },
+      "info": {
+        "role": "semantic",
+        "displayName": "Info Blue",
+        "canonical": "#2563eb",
+        "tonalRamp": [
+          "#102c67",
+          "#1b47a9",
+          "#2055ca",
+          "#2563eb",
+          "#739bf2",
+          "#a3bdf7",
+          "#dce6fc",
+          "#eef3fd"
+        ]
+      },
+      "warning": {
+        "role": "semantic",
+        "displayName": "Warning Amber",
+        "canonical": "#fca307",
+        "tonalRamp": [
+          "#6f4803",
+          "#b57505",
+          "#d98c06",
+          "#fca307",
+          "#fdc460",
+          "#fed897",
+          "#fff0d7",
+          "#fff8eb"
+        ]
+      },
+      "error": {
+        "role": "semantic",
+        "displayName": "Error Red",
+        "canonical": "#f50013",
+        "tonalRamp": [
+          "#6c0008",
+          "#b0000e",
+          "#d30010",
+          "#f50013",
+          "#f95c68",
+          "#fb949c",
+          "#fdd6d9",
+          "#feebec"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Club name in the masthead and page titles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default UI text."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Badges, meta lines, result words."
+      }
+    },
+    "shadows": [
+      {
+        "name": "rest",
+        "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        "purpose": "Cards at rest (shadow-sm)."
+      },
+      {
+        "name": "lift",
+        "value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+        "purpose": "Card hover and masthead (shadow-md)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-fluid",
+        "value": "cubic-bezier(0.3, 0, 0, 1)",
+        "purpose": "Declared in theme.css; general state transitions."
+      },
+      {
+        "name": "ease-snappy",
+        "value": "cubic-bezier(0.2, 0, 0, 1)",
+        "purpose": "Declared in theme.css; quick responses."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      },
+      {
+        "name": "2xl",
+        "value": "1536px"
+      },
+      {
+        "name": "3xl",
+        "value": "1920px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Default solid action; one per screen region.",
+      "html": "<button class=\"ds-btn-primary\">Guardar</button>",
+      "css": ".ds-btn-primary{background:#4f72e2;color:#f9fafb;font:500 14px Inter,system-ui,sans-serif;padding:6px 10px;border:0;border-radius:6px;cursor:pointer;transition:background-color .15s}.ds-btn-primary:hover,.ds-btn-primary:active{background:rgba(79,114,226,.75)}.ds-btn-primary:focus-visible{outline:2px solid #4f72e2;outline-offset:2px}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Secondary action using the primary tint.",
+      "html": "<button class=\"ds-btn-outline\">Cancelar</button>",
+      "css": ".ds-btn-outline{background:transparent;color:#4f72e2;font:500 14px Inter,system-ui,sans-serif;padding:6px 10px;border:0;border-radius:6px;box-shadow:inset 0 0 0 1px rgba(79,114,226,.5);cursor:pointer;transition:background-color .15s}.ds-btn-outline:hover{background:rgba(79,114,226,.1)}.ds-btn-outline:focus-visible{outline:none;box-shadow:inset 0 0 0 2px #4f72e2}"
+    },
+    {
+      "name": "Game Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Fixture or result row; whole card links to the game.",
+      "html": "<div class=\"ds-game\"><div class=\"ds-crest\">RV</div><div class=\"ds-info\"><p class=\"ds-name\">vs Rayo Vallecano</p><p class=\"ds-meta\">12 oct 2026 · Cancha 3</p></div><div class=\"ds-score\"><p class=\"ds-num\">3 – 1</p><p class=\"ds-res\">Victoria</p></div></div>",
+      "css": ".ds-game{display:flex;align-items:center;gap:16px;padding:16px;background:#fff;border:1px solid #f3f4f6;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.05);font-family:Inter,system-ui,sans-serif;transition:box-shadow .15s}.ds-game:hover{box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1)}.ds-crest{width:48px;height:48px;border-radius:9999px;background:#f3f4f6;color:#9ca3af;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}.ds-info{flex:1;min-width:0}.ds-name{margin:0;font-size:14px;font-weight:600;color:#111827}.ds-meta{margin:2px 0 0;font-size:12px;color:#6b7280}.ds-score{text-align:right}.ds-num{margin:0;font-size:18px;font-weight:700;line-height:1;color:#111827}.ds-res{margin:2px 0 0;font-size:12px;font-weight:600;color:#16a34a}"
+    },
+    {
+      "name": "Status Pill",
+      "kind": "chip",
+      "refersTo": "badge-status",
+      "description": "Fully round status tag with tinted background.",
+      "html": "<span class=\"ds-pill\">Próximo</span>",
+      "css": ".ds-pill{display:inline-block;background:#dbeafe;color:#1d4ed8;font:600 12px Inter,system-ui,sans-serif;padding:2px 8px;border-radius:9999px}"
+    },
+    {
+      "name": "Jersey Number Pill",
+      "kind": "chip",
+      "refersTo": "badge-status",
+      "description": "Brand-filled round number on player cards.",
+      "html": "<span class=\"ds-jersey\">#10</span>",
+      "css": ".ds-jersey{display:inline-block;background:#4f72e2;color:#111827;font:700 12px Inter,system-ui,sans-serif;padding:2px 8px;border-radius:9999px;text-align:center}"
+    },
+    {
+      "name": "Navigation Bar",
+      "kind": "nav",
+      "refersTo": "nav-bar",
+      "description": "48px dark bar; active and hover links turn brand blue.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-link ds-active\" href=\"#\">Inicio</a><a class=\"ds-link\" href=\"#\">Plantilla</a><a class=\"ds-link\" href=\"#\">Calendario</a><a class=\"ds-link\" href=\"#\">Estadísticas</a></nav>",
+      "css": ".ds-nav{display:flex;align-items:center;gap:24px;height:48px;padding:0 16px;background:#111827;font:500 14px Inter,system-ui,sans-serif}.ds-link{color:#fff;text-decoration:none;transition:color .15s}.ds-link:hover,.ds-active{color:#4f72e2}"
+    },
+    {
+      "name": "Masthead",
+      "kind": "custom",
+      "refersTo": "site-header",
+      "description": "Brand-blue club header with monogram.",
+      "html": "<header class=\"ds-mast\"><div class=\"ds-mono\">M</div><div><h1 class=\"ds-title\">Ministros FC</h1><p class=\"ds-since\">Desde 2023</p></div></header>",
+      "css": ".ds-mast{display:flex;align-items:center;gap:12px;padding:20px 16px;background:#4f72e2;color:#fff;box-shadow:0 4px 6px -1px rgba(0,0,0,.1);font-family:Satoshi,Inter,system-ui,sans-serif}.ds-mono{width:48px;height:48px;border-radius:9999px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px}.ds-title{margin:0;font-size:24px;font-weight:700;line-height:1.25}.ds-since{margin:0;font-size:12px;opacity:.8}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Matchday Programme",
+    "overview": "Ministros FC is an amateur football club's public home: who plays, when, against whom, and how it went. The system reads like a matchday programme: a calm light canvas, plain information set in confident small type, and a single blue masthead carrying the club's name.",
+    "keyCharacteristics": [
+      "Blue masthead, near-black nav and footer, light-gray canvas, white cards.",
+      "Flat at rest; shadow appears only as a hover response.",
+      "Soft geometry: 12px cards, 6px controls, fully round pills and avatars.",
+      "Spanish-language copy; short labels, results spelled out.",
+      "Built on Nuxt UI with Tailwind v4 tokens."
+    ],
+    "rules": [
+      {
+        "name": "The One Blue Rule",
+        "body": "Blue is the only chromatic brand color. Do not introduce a second accent; gold is retired.",
+        "section": "colors"
+      },
+      {
+        "name": "The Result Color Rule",
+        "body": "Win, draw and loss are always green, amber and red, with a text label beside the color.",
+        "section": "colors"
+      },
+      {
+        "name": "The Small and Sure Rule",
+        "body": "The default size is 14px. Emphasis is weight, never color tricks or decorative faces.",
+        "section": "typography"
+      },
+      {
+        "name": "The Hover-Lift Rule",
+        "body": "Surfaces are flat at rest. Interactive cards gain one shadow step on hover.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** use `primary` / `brand` (`#4f72e2`) for the single main action and the active location on a screen.",
+      "**Do** build new surfaces from the card recipe: white, `rounded-xl`, 1px gray-100 border, `shadow-sm`, `hover:shadow-md`.",
+      "**Do** use Nuxt UI components (`UButton`, `UBadge`, `UInput`) with semantic color names before reaching for raw Tailwind colors.",
+      "**Do** pair every result color with a word (Victoria, Empate, Derrota) and keep copy in Spanish.",
+      "**Do** truncate names in single-line rows and keep meta text at 12px gray-500."
+    ],
+    "donts": [
+      "**Don't** reintroduce gold or any second brand accent.",
+      "**Don't** hard-code `blue-100/700`, `green-600`, `gray-*` pairs where a semantic token exists; the repo already mixes both and drift is the main risk.",
+      "**Don't** add resting shadows heavier than `shadow-sm` or shadows on non-interactive surfaces.",
+      "**Don't** use fully round shapes for containers or buttons; round is reserved for avatars, crests and pills.",
+      "**Don't** add decorative type faces or gradients; hierarchy is weight and size."
+    ]
+  }
+}

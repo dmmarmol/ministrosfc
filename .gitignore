@@ -194,3 +194,8 @@ data/
 secrets.json
 credentials.json
 service-account.json
+
+private/
+
+# Temporary deployment notes (never commit)
+/DEPLOY_DEC_1.tmp.md
