@@ -162,3 +162,28 @@
     animation: none;
   }
 }
+
+.sheet-field {
+  display: block;
+  width: 100%;
+  min-height: 2.75rem;
+  border: 3px solid var(--sheet-ink);
+  border-radius: 0;
+  background: var(--sheet-paper);
+  color: var(--sheet-ink);
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+}
+.sheet-field::placeholder {
+  color: var(--sheet-ink-soft);
+  opacity: 0.8;
+}
+
+.ficha {
+  transition: transform 200ms var(--sheet-ease);
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  a.ficha:hover {
+    transform: translateY(-3px);
+  }
+}

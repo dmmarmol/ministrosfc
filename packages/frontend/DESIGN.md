@@ -189,6 +189,14 @@ When a game is cancelled, a blue-bordered (6px), white-backed, rotated (-8deg) d
 ### Reserved Signup Slot
 A dashed blue 3px rule above a full-width black display-type button ("Anotarme"). It is mounted only when the runtime flag `signupCtaEnabled` is true and the game is not cancelled; it is hidden in production and sits in the line after the last convocado so enabling it moves nothing else.
 
+### Player Ficha
+
+A portrait card for one player: 3px ink border, square corners, paper ground. Top: the photo in grayscale with a contrast lift (color returns on hover or focus), with the dorsal in blue display type inside a paper tab pinned to the top-left corner. With no real photo (the seeded generic avatar counts as none) the picture area becomes a ground-gray field with the dorsal, or the player's initials, set huge in ink. Below a 3px rule: the nickname as a blue label in quotes, the surname in display caps, the first name in typewriter, and a blue position tag. At the foot, a ruled three-cell strip (PJ, G, A) in display numerals; a missing value reads as an em dash. Only real data appears: no ratings, flags or abilities, and the strip can take more cells later. Grid size sits two to a row on phones, three from `sm`, four from `lg`; the large size is used on the profile and is not a link.
+
+### Form Fields
+
+Search and selects are 3px ink-bordered, square, paper-filled boxes with 44px minimum height and a blue typewriter label above (`sheet-field`). Focus uses the world's 3px blue outline with 3px offset.
+
 ### Focus and Selection
 Focus-visible is a 3px blue outline with 3px offset (on-ink blue inside black strips). Text selection is blue on white.
 

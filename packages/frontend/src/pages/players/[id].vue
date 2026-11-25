@@ -1,12 +1,13 @@
 <script setup lang="ts">
-definePageMeta({ public: true });
 import { useGetPlayerById } from "~/composables/useGetPlayerById";
 import { useGetPlayerStatsById } from "~/composables/useGetPlayerStatsById";
-import PlayerHeader from "~/components/pages/player/PlayerHeader.vue";
+import PlayerFicha from "~/components/player/PlayerFicha.vue";
 import PlayerCareerStats from "~/components/pages/player/PlayerCareerStats.vue";
 import PlayerStatsByRival from "~/components/pages/player/PlayerStatsByRival.vue";
 import { useAuthStore } from "~/stores/auth";
 import { useQueryParams } from "~/composables/useQueryParams";
+
+definePageMeta({ public: true, layout: "sheet", sheetWide: true });
 
 const route = useRoute();
 const qp = useQueryParams();
@@ -28,49 +29,57 @@ async function onYearChange(newYear: string) {
 
 useHead(() => ({
   title: player.value
-    ? `${player.value.firstName} ${player.value.lastName} – Ministros FC`
-    : "Jugador no encontrado – Ministros FC",
+    ? `${player.value.firstName} ${player.value.lastName}`
+    : "Jugador no encontrado",
 }));
 </script>
 
 <template>
-  <div>
-    <div v-if="pending" class="space-y-4">
-      <div class="h-64 bg-gray-200 animate-pulse rounded-2xl" />
-    </div>
-    <template v-else-if="player">
-      <PlayerHeader :player="player" />
+  <div class="mx-auto max-w-5xl px-4 pb-12 pt-6">
+    <NuxtLink to="/roster" class="sheet-link inline-flex min-h-11 items-center"
+      >← Plantilla</NuxtLink
+    >
 
-      <div class="lg:grid lg:grid-cols-12 lg:gap-8">
-        <div class="lg:col-span-7">
+    <p v-if="pending" class="mt-6">Cargando jugador…</p>
+    <div
+      v-else-if="player"
+      class="mt-4 grid gap-8 md:grid-cols-[minmax(0,22rem)_1fr]"
+    >
+      <PlayerFicha
+        :player="player"
+        size="large"
+        :as-link="false"
+        :show-stats="false"
+      />
+
+      <div>
+        <h1 class="sheet-display text-[clamp(2.25rem,8vw,4rem)]">
+          {{ player.firstName }} {{ player.lastName }}
+        </h1>
+        <p v-if="player.status === 'INACTIVE'" class="sheet-label mt-2">
+          Inactivo
+        </p>
+
+        <div class="mt-8">
           <PlayerCareerStats
             :stats="stats"
             :available-years="availableYears"
             :year="year"
             @year-change="onYearChange"
           />
-          <div v-if="authStore.isAuthenticated" class="mt-8">
-            <PlayerStatsByRival :player-id="id">
-              <template #header>
-                <h2 class="text-lg font-bold text-gray-800">
-                  Estadísticas por equipo rival
-                </h2>
-              </template>
-            </PlayerStatsByRival>
-          </div>
         </div>
-        <div class="lg:col-span-5">
-          <img
-            v-if="player.photoUrl"
-            :src="player.photoUrl"
-            :alt="`${player.firstName} ${player.lastName}`"
-            class="w-full h-full object-cover"
-          />
+
+        <div v-if="authStore.isAuthenticated" class="mt-10">
+          <PlayerStatsByRival :player-id="id">
+            <template #header>
+              <h2 class="sheet-display text-3xl">
+                Estadísticas por equipo rival
+              </h2>
+            </template>
+          </PlayerStatsByRival>
         </div>
       </div>
-    </template>
-    <div v-else class="text-center py-16 text-gray-500">
-      Jugador no encontrado.
     </div>
+    <p v-else class="mt-8 text-lg">Jugador no encontrado.</p>
   </div>
 </template>

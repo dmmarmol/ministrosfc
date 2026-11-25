@@ -3,6 +3,10 @@ import { useAuthStore } from "~/stores/auth";
 import AdminProfileMenu from "~/components/common/AdminProfileMenu.vue";
 
 const authStore = useAuthStore();
+const route = useRoute();
+const inner = computed(() =>
+  route.meta.sheetWide ? "max-w-5xl" : "max-w-3xl",
+);
 
 const links = computed(() => [
   { to: "/", label: "Inicio", exact: true },
@@ -24,7 +28,8 @@ const links = computed(() => [
     >
     <header class="sheet-paper">
       <div
-        class="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 pt-4"
+        :class="inner"
+        class="mx-auto flex items-center justify-between gap-3 px-4 pt-4"
       >
         <NuxtLink
           to="/"
@@ -64,8 +69,9 @@ const links = computed(() => [
         </div>
       </div>
       <nav
-        class="mx-auto mt-3 flex max-w-3xl justify-between gap-0 overflow-x-auto px-3 pb-3 sm:justify-start sm:gap-1 sm:px-4"
+        class="mx-auto mt-3 flex justify-between gap-0 overflow-x-auto px-3 pb-3 sm:justify-start sm:gap-1 sm:px-4"
         aria-label="Principal"
+        :class="inner"
       >
         <NuxtLink
           v-for="l in links"
@@ -86,7 +92,8 @@ const links = computed(() => [
 
     <footer class="sheet-on-ink bg-[var(--sheet-ink)] text-[var(--sheet-paper)]">
       <div
-        class="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-6 text-sm"
+        :class="inner"
+        class="mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-6 text-sm"
       >
         <span class="sheet-display text-lg">Ministros FC · Desde 2023</span>
         <span class="text-[var(--sheet-blue-on-ink)]"
