@@ -11,6 +11,7 @@ import {
 } from "@ministrosfc/shared";
 
 definePageMeta({
+  layout: "sheet",
   middleware: "auth",
   requiresAuth: true,
   skipOnboardingCheck: true,
@@ -68,14 +69,14 @@ async function handlePhotoUpload(file: File) {
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto px-4 py-8 space-y-8">
-    <div v-if="loading && !profile" class="text-center py-16 text-gray-400">
-      Cargando perfil…
-    </div>
+  <div class="mx-auto max-w-4xl px-4 pb-16 pt-6">
+    <h1 class="sheet-display text-[clamp(3rem,14vw,5rem)]">Perfil de jugador</h1>
+
+    <p v-if="loading && !profile" class="mt-6">Cargando perfil…</p>
 
     <template v-else-if="profile">
-      <div class="flex flex-col md:flex-row gap-8">
-        <!-- Left: Header + Edit Form -->
+      <div class="mt-6 flex flex-col gap-8 md:flex-row">
+        <!-- Left: header + edit form -->
         <div class="flex-1 space-y-6">
           <ProfileHeader
             :photo-url="profile.player.photoUrl"
@@ -87,19 +88,21 @@ async function handlePhotoUpload(file: File) {
             @upload-photo="handlePhotoUpload"
           />
 
-          <ProfileEditForm
-            :profile="editableProfile"
-            :taken-jerseys="takenJerseys"
-            :loading="loading"
-            :error="error"
-            @save="handleSave"
-            @jersey-change="previewJerseyNumber = $event"
-            @last-name-change="previewLastName = $event"
-          />
+          <div class="border-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] p-5">
+            <ProfileEditForm
+              :profile="editableProfile"
+              :taken-jerseys="takenJerseys"
+              :loading="loading"
+              :error="error"
+              @save="handleSave"
+              @jersey-change="previewJerseyNumber = $event"
+              @last-name-change="previewLastName = $event"
+            />
+          </div>
         </div>
 
-        <!-- Right: Jersey SVG -->
-        <div class="w-48 shrink-0 self-start hidden md:block">
+        <!-- Right: jersey preview -->
+        <div class="hidden w-48 shrink-0 self-start md:block md:sticky md:top-4">
           <JerseySvg
             :jersey-number="previewJerseyNumber"
             :last-name="previewLastName"
@@ -107,11 +110,13 @@ async function handlePhotoUpload(file: File) {
         </div>
       </div>
 
-      <InvitedGuestsList :guests="profile.invitedGuests" />
+      <div class="mt-8">
+        <InvitedGuestsList :guests="profile.invitedGuests" />
+      </div>
     </template>
 
-    <div v-else class="text-center py-16 text-red-500">
+    <p v-else class="sheet-notice mt-6" data-tone="error" role="alert">
       {{ error || "No se pudo cargar el perfil" }}
-    </div>
+    </p>
   </div>
 </template>

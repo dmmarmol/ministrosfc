@@ -2,7 +2,7 @@
 import { ref, onMounted, reactive } from "vue";
 import { DEFAULT_DATE_LOCALE } from "@ministrosfc/shared";
 
-definePageMeta({ middleware: "auth", requiresAuth: true });
+definePageMeta({ layout: "sheet", middleware: "auth", requiresAuth: true });
 useHead({ title: "Perfil de usuario" });
 
 const { $api } = useNuxtApp();
@@ -66,172 +66,95 @@ function memberSince(date: string): string {
   });
 }
 
-function roleBadgeClass(role: string): string {
-  const classes: Record<string, string> = {
-    ADMIN: "bg-red-100 text-red-800",
-    EDITOR: "bg-purple-100 text-purple-800",
-    DT: "bg-blue-100 text-blue-800",
-    PLAYER: "bg-green-100 text-green-800",
-  };
-  return classes[role] ?? "bg-gray-100 text-gray-800";
-}
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto px-4 py-8 space-y-8">
-    <div v-if="loading" class="text-center py-16 text-gray-400">
-      Cargando perfil…
-    </div>
+  <div class="mx-auto max-w-2xl px-4 pb-16 pt-6">
+    <h1 class="sheet-display text-[clamp(3rem,14vw,5rem)]">Mi perfil</h1>
+
+    <p v-if="loading" class="mt-6">Cargando perfil…</p>
 
     <template v-else-if="profile">
-      <!-- User Info Card -->
-      <div class="bg-surface rounded-xl shadow-sm border border-gray-100 p-6">
-        <div class="flex items-start justify-between mb-6">
-          <div>
-            <h2 class="text-2xl font-bold text-gray-900">
+      <section class="mt-6 border-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] p-5">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h2 class="sheet-display break-words text-4xl">
               {{ profile.user.firstName }} {{ profile.user.lastName }}
             </h2>
-            <p class="text-gray-500 text-sm mt-1">{{ profile.user.email }}</p>
+            <p class="mt-1 break-all text-sm text-[var(--sheet-ink-soft)]">{{ profile.user.email }}</p>
           </div>
-          <span
-            class="inline-block px-3 py-1 text-sm font-semibold rounded-full"
-            :class="roleBadgeClass(profile.user.role)"
-          >
+          <span class="shrink-0 border border-[var(--sheet-blue)] px-1.5 text-xs font-bold text-[var(--sheet-blue)]">
             {{ profile.user.role }}
           </span>
         </div>
 
-        <!-- Name Fields (disabled until edit mode) -->
-        <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="mt-6 grid grid-cols-2 gap-4">
           <div>
-            <label
-              class="block text-xs font-semibold text-gray-500 uppercase mb-2"
-            >
-              Nombre
-            </label>
-            <UInput
+            <label class="sheet-label" for="profile-first">Nombre</label>
+            <input
+              id="profile-first"
               v-model="form.firstName"
               type="text"
               :disabled="!editMode"
-              size="xl"
-              class="w-full"
+              class="sheet-field mt-1 disabled:opacity-70"
             />
           </div>
           <div>
-            <label
-              class="block text-xs font-semibold text-gray-500 uppercase mb-2"
-            >
-              Apellido
-            </label>
-            <UInput
+            <label class="sheet-label" for="profile-last">Apellido</label>
+            <input
+              id="profile-last"
               v-model="form.lastName"
               type="text"
               :disabled="!editMode"
-              size="xl"
-              class="w-full"
+              class="sheet-field mt-1 disabled:opacity-70"
             />
           </div>
         </div>
 
-        <!-- Info Fields -->
-        <div class="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-6">
+        <dl class="mt-6 grid grid-cols-2 gap-4 border-t-[3px] border-[var(--sheet-ink)] pt-4 text-sm">
           <div>
-            <p class="text-gray-500 text-xs uppercase font-semibold">
-              Miembro desde
-            </p>
-            <p class="text-gray-800">
-              {{ memberSince(profile.user.createdAt) }}
-            </p>
+            <dt class="sheet-label">Miembro desde</dt>
+            <dd class="mt-1 font-bold">{{ memberSince(profile.user.createdAt) }}</dd>
           </div>
           <div>
-            <p class="text-gray-500 text-xs uppercase font-semibold">
-              Métodos de autenticación
-            </p>
-            <p class="text-gray-800">
+            <dt class="sheet-label">Autenticación</dt>
+            <dd class="mt-1 font-bold">
               <span v-if="profile.user.hasPassword">Contraseña</span>
-              <span v-if="profile.user.hasPassword && profile.user.hasGoogle">
-                +
-              </span>
+              <span v-if="profile.user.hasPassword && profile.user.hasGoogle"> + </span>
               <span v-if="profile.user.hasGoogle">Google</span>
-            </p>
+            </dd>
           </div>
-        </div>
+        </dl>
 
-        <!-- Error Message -->
-        <p
-          v-if="error"
-          class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-4"
-        >
+        <p v-if="error" class="sheet-notice mt-4" data-tone="error" role="alert">
           {{ error }}
         </p>
 
-        <!-- Action Buttons -->
-        <div class="flex justify-end">
-          <div v-if="editMode" class="flex gap-2">
-            <UButton
-              type="button"
-              variant="outline"
-              color="neutral"
-              size="xl"
-              @click="editMode = false"
-            >
+        <div class="mt-6 flex justify-end gap-3">
+          <template v-if="editMode">
+            <button type="button" class="sheet-button" data-variant="outline" @click="editMode = false">
               Cancelar
-            </UButton>
-            <UButton
-              type="button"
-              variant="solid"
-              color="primary"
-              size="xl"
-              @click="saveChanges"
-            >
+            </button>
+            <button type="button" class="sheet-button" @click="saveChanges">
               {{ loading ? "Guardando…" : "Guardá los cambios" }}
-            </UButton>
-          </div>
-          <UButton
-            v-else
-            type="button"
-            variant="ghost"
-            color="primary"
-            size="xl"
-            @click="editMode = true"
-          >
+            </button>
+          </template>
+          <button v-else type="button" class="sheet-button" data-variant="outline" @click="editMode = true">
             Editar
-          </UButton>
+          </button>
         </div>
-      </div>
+      </section>
 
-      <!-- Player Profile Link -->
-      <div
-        v-if="profile.user.playerId"
-        class="bg-blue-50 rounded-xl border border-blue-200 p-6"
-      >
-        <p class="text-sm text-blue-800 mb-4">
-          También tenés acceso a tu perfil de jugador
-        </p>
-        <NuxtLink
-          to="/profile/player"
-          class="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700"
-        >
-          Ver Perfil de Jugador
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
+      <section v-if="profile.user.playerId" class="mt-6 border-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] p-5">
+        <p>También tenés acceso a tu perfil de jugador</p>
+        <NuxtLink to="/profile/player" class="sheet-link mt-2 inline-flex min-h-11 items-center">
+          Ver perfil de jugador →
         </NuxtLink>
-      </div>
+      </section>
     </template>
 
-    <div v-else class="text-center py-16 text-red-500">
+    <p v-else class="sheet-notice mt-6" data-tone="error" role="alert">
       {{ error || "No se pudo cargar el perfil" }}
-    </div>
+    </p>
   </div>
 </template>

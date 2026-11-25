@@ -5,7 +5,7 @@ import { useAuthStore } from "~/stores/auth";
 import { useRuntime } from "~/composables/useRuntime";
 import { useOnboarding } from "~/composables/useOnboarding";
 
-definePageMeta({ middleware: "auth", authPage: true });
+definePageMeta({ layout: "sheet", middleware: "auth", authPage: true });
 
 const route = useRoute();
 const authStore = useAuthStore();
@@ -106,7 +106,7 @@ async function navigateAfterAuth() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center">
-    <p class="text-gray-500 text-sm">Procesando autenticación…</p>
+  <div class="mx-auto max-w-md px-4 py-24">
+    <p class="sheet-display text-4xl" role="status">Procesando autenticación…</p>
   </div>
 </template>

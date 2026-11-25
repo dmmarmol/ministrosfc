@@ -89,44 +89,35 @@ const isActive = computed({
 </script>
 
 <template>
-  <form class="space-y-4" @submit.prevent="handleSubmit">
+  <form class="space-y-5" @submit.prevent="handleSubmit">
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label
-          class="block text-sm font-medium text-gray-700 mb-1"
-          for="profile-firstName"
-        >
+        <label class="sheet-label" for="profile-firstName">
           Nombre
         </label>
         <input
           id="profile-firstName"
           v-model="form.firstName"
           type="text"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          class="sheet-field mt-1"
         />
       </div>
       <div>
-        <label
-          class="block text-sm font-medium text-gray-700 mb-1"
-          for="profile-lastName"
-        >
+        <label class="sheet-label" for="profile-lastName">
           Apellido
         </label>
         <input
           id="profile-lastName"
           v-model="form.lastName"
           type="text"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          class="sheet-field mt-1"
           @input="emit('lastNameChange', form.lastName)"
         />
       </div>
     </div>
 
     <div>
-      <label
-        class="block text-sm font-medium text-gray-700 mb-1"
-        for="profile-nickname"
-      >
+      <label class="sheet-label" for="profile-nickname">
         Apodo
       </label>
       <input
@@ -134,7 +125,7 @@ const isActive = computed({
         v-model="form.nickname"
         type="text"
         maxlength="100"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+        class="sheet-field mt-1"
         placeholder="Ej: Juanchi"
       />
     </div>
@@ -148,10 +139,11 @@ const isActive = computed({
       />
       <div
         v-if="!isActive"
-        class="mt-2 flex gap-2 rounded-lg border border-yellow-300 bg-yellow-50 px-3 py-2.5 text-sm text-yellow-800"
+        class="sheet-notice mt-2"
+        role="note"
+        data-testid="inactive-warning"
       >
-        <span class="mt-0.5 shrink-0">⚠️</span>
-        <p>
+        <p class="font-normal">
           Al marcarte como <strong>inactivo</strong> dejás de aparecer en la
           plantilla, no podés ser convocado a partidos y tu número de camiseta
           queda disponible para otro jugador. Podés volver a activarte en
@@ -160,18 +152,15 @@ const isActive = computed({
       </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-2 items-end gap-3">
       <div>
-        <label
-          class="block text-sm font-medium text-gray-700 mb-1"
-          for="profile-position"
-        >
+        <label class="sheet-label" for="profile-position">
           Posición
         </label>
         <select
           id="profile-position"
           v-model="form.position"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          class="sheet-field mt-1"
         >
           <option value="">Sin asignar</option>
           <option v-for="pos in positions" :key="pos" :value="pos">
@@ -190,25 +179,19 @@ const isActive = computed({
     </div>
 
     <div>
-      <label
-        class="block text-sm font-medium text-gray-700 mb-1"
-        for="profile-dateOfBirth"
-      >
+      <label class="sheet-label" for="profile-dateOfBirth">
         Fecha de nacimiento
       </label>
       <input
         id="profile-dateOfBirth"
         v-model="form.dateOfBirth"
         type="date"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+        class="sheet-field mt-1"
       />
     </div>
 
     <div>
-      <label
-        class="block text-sm font-medium text-gray-700 mb-1"
-        for="profile-address"
-      >
+      <label class="sheet-label" for="profile-address">
         Dirección
       </label>
       <AddressAutocompleteInput id="profile-address" v-model="form.address" />
@@ -216,63 +199,52 @@ const isActive = computed({
 
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label
-          class="block text-sm font-medium text-gray-700 mb-1"
-          for="profile-phone"
-        >
+        <label class="sheet-label" for="profile-phone">
           Teléfono
         </label>
         <input
           id="profile-phone"
           v-model="form.phone"
           type="tel"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          class="sheet-field mt-1"
         />
       </div>
       <div>
-        <label
-          class="block text-sm font-medium text-gray-700 mb-1"
-          for="profile-whatsapp"
-        >
+        <label class="sheet-label" for="profile-whatsapp">
           WhatsApp
         </label>
         <input
           id="profile-whatsapp"
           v-model="form.whatsapp"
           type="tel"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          class="sheet-field mt-1"
         />
       </div>
     </div>
 
     <div>
-      <label
-        class="block text-sm font-medium text-gray-700 mb-1"
-        for="profile-emergencyContact"
-      >
+      <label class="sheet-label" for="profile-emergencyContact">
         Contacto de emergencia
       </label>
       <input
         id="profile-emergencyContact"
         v-model="form.emergencyContact"
         type="text"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+        class="sheet-field mt-1"
         placeholder="Nombre y teléfono"
       />
     </div>
 
-    <p v-if="error" class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+    <p v-if="error" class="sheet-notice" data-tone="error" role="alert">
       {{ error }}
     </p>
 
-    <UButton
+    <button
       type="submit"
       :disabled="loading || jerseyIsTaken"
-      class="w-full"
-      variant="ghost"
-      color="primary"
+      class="sheet-button w-full"
     >
       {{ loading ? "Guardando…" : "Guardá los cambios" }}
-    </UButton>
+    </button>
   </form>
 </template>

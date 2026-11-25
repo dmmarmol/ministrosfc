@@ -196,12 +196,12 @@ describe("ProfileEditForm", () => {
   it("shows inactive warning when status is INACTIVE", async () => {
     const wrapper = mountForm();
     await wrapper.find("#profileStatus").setValue(false);
-    expect(wrapper.find(".border-yellow-300").exists()).toBe(true);
+    expect(wrapper.find('[data-testid="inactive-warning"]').exists()).toBe(true);
   });
 
   it("hides inactive warning when status is ACTIVE", () => {
     const wrapper = mountForm();
-    expect(wrapper.find(".border-yellow-300").exists()).toBe(false);
+    expect(wrapper.find('[data-testid="inactive-warning"]').exists()).toBe(false);
   });
 
   // EC-6: no error element rendered when error prop is empty

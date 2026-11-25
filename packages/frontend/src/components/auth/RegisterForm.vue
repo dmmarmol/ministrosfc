@@ -56,13 +56,10 @@ function handleSubmit() {
 </script>
 
 <template>
-  <form class="space-y-4" @submit.prevent="handleSubmit">
+  <form class="space-y-5" @submit.prevent="handleSubmit">
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label
-          class="block text-sm font-medium text-gray-700 mb-1"
-          for="firstName"
-        >
+        <label class="sheet-label" for="firstName">
           Nombre
         </label>
         <input
@@ -71,15 +68,12 @@ function handleSubmit() {
           type="text"
           autocomplete="given-name"
           required
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          class="sheet-field mt-1"
           placeholder="Juan"
         />
       </div>
       <div>
-        <label
-          class="block text-sm font-medium text-gray-700 mb-1"
-          for="lastName"
-        >
+        <label class="sheet-label" for="lastName">
           Apellido
         </label>
         <input
@@ -88,13 +82,13 @@ function handleSubmit() {
           type="text"
           autocomplete="family-name"
           required
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+          class="sheet-field mt-1"
           placeholder="Pérez"
         />
       </div>
     </div>
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1" for="email">
+      <label class="sheet-label" for="email">
         Correo electrónico
       </label>
       <EmailInput
@@ -106,10 +100,7 @@ function handleSubmit() {
       />
     </div>
     <div>
-      <label
-        class="block text-sm font-medium text-gray-700 mb-1"
-        for="password"
-      >
+      <label class="sheet-label" for="password">
         Contraseña
       </label>
       <input
@@ -118,7 +109,7 @@ function handleSubmit() {
         type="password"
         autocomplete="new-password"
         required
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+        class="sheet-field mt-1"
         placeholder="••••••••"
       />
       <ul
@@ -129,7 +120,7 @@ function handleSubmit() {
         <li
           v-for="rule in passwordRuleStatus"
           :key="rule.message"
-          :class="rule.met ? 'text-green-600' : 'text-gray-400'"
+          :class="rule.met ? 'text-green-600 font-bold' : 'text-[var(--sheet-ink-soft)]'"
           class="flex items-center gap-1"
         >
           <span>{{ rule.met ? "✓" : "○" }}</span>
@@ -138,10 +129,7 @@ function handleSubmit() {
       </ul>
     </div>
     <div>
-      <label
-        class="block text-sm font-medium text-gray-700 mb-1"
-        for="passwordConfirmation"
-      >
+      <label class="sheet-label" for="passwordConfirmation">
         Confirmar contraseña
       </label>
       <input
@@ -150,25 +138,18 @@ function handleSubmit() {
         type="password"
         autocomplete="new-password"
         required
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50"
+        class="sheet-field mt-1"
         placeholder="••••••••"
       />
     </div>
 
-    <p
-      v-if="mismatchError"
-      class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2"
-    >
+    <p v-if="mismatchError" class="sheet-notice" data-tone="error" role="alert">
       Las contraseñas no coinciden
     </p>
-    <p v-if="error" class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+    <p v-if="error" class="sheet-notice" data-tone="error" role="alert">
       {{ error }}
     </p>
-    <button
-      type="submit"
-      :disabled="loading"
-      class="w-full bg-brand text-gray-900 font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-60"
-    >
+    <button type="submit" :disabled="loading" class="sheet-button w-full">
       {{ loading ? "Registrando…" : "Registrarse" }}
     </button>
   </form>

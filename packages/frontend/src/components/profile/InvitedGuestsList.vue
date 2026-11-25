@@ -21,32 +21,25 @@ defineProps<{
 
 <template>
   <section v-if="guests.length > 0">
-    <h3 class="text-lg font-semibold text-gray-800 mb-3">Invitados</h3>
-    <ul class="divide-y divide-gray-100">
+    <h3 class="sheet-display text-3xl">Invitados</h3>
+    <ul class="mt-2 border-t-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)]">
       <li
         v-for="guest in guests"
         :key="guest.id"
-        class="py-3 flex items-center justify-between"
+        class="flex items-center justify-between gap-3 border-b border-[var(--sheet-rule)] px-3 py-3"
       >
-        <div>
-          <p class="text-sm font-medium text-gray-900">
-            {{ guest.firstName }} {{ guest.lastName }}
-          </p>
-          <p v-if="guest.game" class="text-xs text-gray-500">
-            vs {{ guest.game.opponent }} —
-            {{ formatDate(guest.game.date) }}
+        <div class="min-w-0">
+          <p class="font-bold">{{ guest.firstName }} {{ guest.lastName }}</p>
+          <p v-if="guest.game" class="sheet-num text-sm text-[var(--sheet-ink-soft)]">
+            vs {{ guest.game.opponent }} · {{ formatDate(guest.game.date) }}
           </p>
         </div>
         <NuxtLink
           v-if="guest.game"
-          :to="
-            guest.game.slug
-              ? `/games/${guest.game.slug}`
-              : `/games/${guest.game.id}`
-          "
-          class="text-xs text-brand hover:underline"
+          :to="guest.game.slug ? `/games/${guest.game.slug}` : `/games/${guest.game.id}`"
+          class="sheet-link inline-flex min-h-11 items-center text-sm"
         >
-          Ver partido
+          Ver partido →
         </NuxtLink>
       </li>
     </ul>

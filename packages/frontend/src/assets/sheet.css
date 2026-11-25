@@ -285,3 +285,86 @@ body:has(.sheet-world) {
   background: var(--sheet-ink);
   color: var(--sheet-paper);
 }
+
+/* Primary action: an ink block with display lettering */
+.sheet-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  border: 3px solid var(--sheet-ink);
+  border-radius: 0;
+  background: var(--sheet-ink);
+  color: var(--sheet-paper);
+  padding: 0.5rem 1.25rem;
+  font-family: var(--sheet-display);
+  font-weight: 800;
+  font-size: 1.5rem;
+  line-height: 1;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+.sheet-button:hover:not(:disabled) {
+  background: var(--sheet-ink-soft);
+}
+.sheet-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+/* Quiet action: same block, outlined */
+.sheet-button[data-variant="outline"] {
+  background: transparent;
+  color: var(--sheet-ink);
+}
+.sheet-button[data-variant="outline"]:hover:not(:disabled) {
+  background: var(--sheet-ink);
+  color: var(--sheet-paper);
+}
+
+/* Messages: a boxed line. Error states carry the loss tone and a word, not color alone. */
+.sheet-notice {
+  border: 3px solid var(--sheet-ink);
+  background: var(--sheet-paper);
+  padding: 0.625rem 0.75rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+.sheet-notice[data-tone="error"] {
+  border-color: var(--sheet-loss);
+  color: var(--sheet-loss);
+}
+.sheet-field[aria-invalid="true"] {
+  border-color: var(--sheet-loss);
+}
+.sheet-error-text {
+  color: var(--sheet-loss);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+/* Checkbox as a square ink box */
+.sheet-checkbox {
+  appearance: none;
+  display: inline-grid;
+  place-content: center;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 3px solid var(--sheet-ink);
+  border-radius: 0;
+  background: var(--sheet-paper);
+  cursor: pointer;
+}
+.sheet-checkbox:checked {
+  background: var(--sheet-ink);
+}
+.sheet-checkbox:checked::after {
+  content: "";
+  width: 0.65rem;
+  height: 0.35rem;
+  border-left: 3px solid var(--sheet-paper);
+  border-bottom: 3px solid var(--sheet-paper);
+  transform: rotate(-45deg) translate(1px, -1px);
+}
