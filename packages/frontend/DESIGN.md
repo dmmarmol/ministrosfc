@@ -9,6 +9,13 @@ colors:
   rule: "rgba(11, 11, 18, 0.22)"
   detail-blue: "#2748d6"
   detail-blue-on-ink: "#8ea6ff"
+  well: "#eceef3"
+  win: "#17753a"
+  loss: "#c0262d"
+  draw: "#8a6a00"
+  paper-dark: "#171923"
+  ink-dark: "#f3f4f8"
+  ground-dark: "#0b0b12"
 typography:
   display:
     fontFamily: "Big Shoulders Display, Arial Narrow, sans-serif"
@@ -102,7 +109,7 @@ The public home is one team sheet for the next game, printed in black ink on a w
 
 The system is flat and ruled. There are no cards, no radii, no soft shadows; structure comes from 3px black rules, hairline rules between lines, and full-bleed black and white strips. Density is that of a form: numbered lines, tabular figures, generous 44-48px tap rows. Copy is Spanish.
 
-Migration status, stated honestly: only the public home (`src/pages/index.vue`) and the `sheet` layout have moved to this system. Other pages and the admin still use the earlier Nuxt UI look driven by `theme.css` and `app.config.ts` (brand #4f72e2 and related tokens), and those tokens stay in force there until each page migrates. The tokens below apply to the `.sheet-world` scope only.
+Migration status: every public page, the sign-in, onboarding and profile pages, and the error page are built in this system. The admin panel and the signup route run in the same world through a legacy token remap and their layout, not a page-by-page redesign; some legacy components keep fixed colors (lineup field, position number, jersey drawing). The tokens below apply to the `.sheet-world` scope.
 
 **Key Characteristics:**
 - Black ink on a white sheet, with a light gray ground (#e4e5ea) behind the sheets.
@@ -131,6 +138,7 @@ A strict black-and-white palette with a single blue reserved for details.
 **The One Blue Rule.** Blue is for details: numbers, labels, tags, links, arrows, the stamp, the reserved slot. It never fills a surface, never becomes a button, and never appears as a large area. Black and white are the main colors.
 
 **The On-Ink Blue Rule.** On black, details use #8ea6ff; #2748d6 is for white only.
+**The Negative Print Rule.** Dark mode is the same sheet printed in reverse, not a second palette: paper becomes #171923 on a #0b0b12 ground, ink becomes #f3f4f8, so every ink band, plate and pressed chip flips with them, and the two blues swap (#8ea6ff on the dark page, #2748d6 on the light bands). The footer matches the header. The admin sidebar stays dark in both modes. Card yellow and red do not change.
 
 ## Typography
 
@@ -257,6 +265,6 @@ Focus-visible is a 3px blue outline with 3px offset (on-ink blue inside black st
 - **Don't** fill surfaces or buttons with blue.
 - **Don't** round corners or add shadows; the crest is the only circle.
 - **Don't** use a signup call to action on the home until the club adopts it; the reserved slot stays hidden.
-- **Don't** apply this system to the admin or the other pages until they are migrated; they still use the Nuxt UI theme tokens.
+- **Don't** add new hard-coded hex colors or Tailwind gray utilities to sheet pages; use the `--sheet-*` tokens so dark mode and the admin remap follow.
 
 Not canonized: none observed in the home that the craft floor bans.
