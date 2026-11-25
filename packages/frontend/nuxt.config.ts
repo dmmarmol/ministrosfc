@@ -21,6 +21,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
+      // Signup call to action on the public home stays hidden until adopted.
+      signupCtaEnabled: process.env.NUXT_PUBLIC_SIGNUP_CTA_ENABLED === "true",
       apiBaseUrl:
         process.env.NUXT_PUBLIC_API_BASE_URL ?? "http://localhost:5102",
     },

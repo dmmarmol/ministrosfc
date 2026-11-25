@@ -1,200 +1,154 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-24T23:58:16.070002+00:00",
+  "generatedAt": "2026-11-25T01:18:17.147826+00:00",
   "title": "Design System: Ministros FC",
   "extensions": {
     "colorMeta": {
-      "brand": {
-        "role": "primary",
-        "displayName": "Club Blue",
-        "canonical": "#4f72e2",
-        "tonalRamp": [
-          "#233263",
-          "#3952a3",
-          "#4462c2",
-          "#4f72e2",
-          "#8ea5ec",
-          "#b5c4f3",
-          "#e3e8fa",
-          "#f1f4fd"
-        ]
-      },
-      "ink-black": {
-        "role": "secondary",
-        "displayName": "Ink Black",
-        "canonical": "#0c0908",
-        "tonalRamp": [
-          "#050404",
-          "#090606",
-          "#0a0807",
-          "#0c0908",
-          "#636261",
-          "#999897",
-          "#d8d8d7",
-          "#ecebeb"
-        ]
-      },
-      "sky-wash": {
-        "role": "tertiary",
-        "displayName": "Sky Wash",
-        "canonical": "#dfeef7",
-        "tonalRamp": [
-          "#62696d",
-          "#a1abb2",
-          "#c0cdd4",
-          "#dfeef7",
-          "#ebf4fa",
-          "#f2f8fc",
-          "#fafcfe",
-          "#fcfefe"
-        ]
-      },
-      "canvas": {
-        "role": "neutral",
-        "displayName": "Canvas",
-        "canonical": "#f7f8fa",
-        "tonalRamp": [
-          "#6d6d6e",
-          "#b2b3b4",
-          "#d4d5d7",
-          "#f7f8fa",
-          "#fafbfc",
-          "#fcfcfd",
-          "#fefefe",
-          "#fefeff"
-        ]
-      },
       "ink": {
         "role": "neutral",
-        "displayName": "Ink",
-        "canonical": "#111827",
+        "displayName": "Sheet Ink",
+        "canonical": "#0b0b12",
         "tonalRamp": [
-          "#070b11",
-          "#0c111c",
-          "#0f1522",
-          "#111827",
-          "#676b75",
-          "#9b9ea4",
-          "#d9dadc",
-          "#ecedee"
+          "#040407",
+          "#07070b",
+          "#09090e",
+          "#0b0b12",
+          "#48484d",
+          "#858588",
+          "#c2c2c4",
+          "#e7e7e7"
         ]
       },
-      "slate": {
+      "ink-soft": {
         "role": "neutral",
-        "displayName": "Slate",
-        "canonical": "#4b5563",
+        "displayName": "Soft Ink",
+        "canonical": "#2b2e3b",
         "tonalRamp": [
-          "#21252c",
-          "#363d47",
-          "#404955",
-          "#4b5563",
-          "#8c929b",
-          "#b3b8bd",
-          "#e2e4e6",
-          "#f1f1f3"
+          "#111218",
+          "#1a1c23",
+          "#22252f",
+          "#2b2e3b",
+          "#60626c",
+          "#95969d",
+          "#cacbce",
+          "#eaeaeb"
         ]
       },
-      "success": {
-        "role": "semantic",
-        "displayName": "Success Green",
-        "canonical": "#4bb543",
+      "paper": {
+        "role": "neutral",
+        "displayName": "Sheet White",
+        "canonical": "#fbfbfc",
         "tonalRamp": [
-          "#21501d",
-          "#368230",
-          "#409c3a",
-          "#4bb543",
-          "#8cd087",
-          "#b3e0b0",
-          "#e2f3e1",
-          "#f1f9f0"
+          "#646465",
+          "#979797",
+          "#c9c9ca",
+          "#fbfbfc",
+          "#fcfcfd",
+          "#fdfdfe",
+          "#fefefe",
+          "#ffffff"
         ]
       },
-      "info": {
-        "role": "semantic",
-        "displayName": "Info Blue",
-        "canonical": "#2563eb",
+      "ground": {
+        "role": "neutral",
+        "displayName": "Sheet Ground",
+        "canonical": "#e4e5ea",
         "tonalRamp": [
-          "#102c67",
-          "#1b47a9",
-          "#2055ca",
-          "#2563eb",
-          "#739bf2",
-          "#a3bdf7",
-          "#dce6fc",
-          "#eef3fd"
+          "#5b5c5e",
+          "#89898c",
+          "#b6b7bb",
+          "#e4e5ea",
+          "#ebecef",
+          "#f2f2f4",
+          "#f8f8fa",
+          "#fcfcfd"
         ]
       },
-      "warning": {
-        "role": "semantic",
-        "displayName": "Warning Amber",
-        "canonical": "#fca307",
+      "rule": {
+        "role": "neutral",
+        "displayName": "Line Rule",
+        "canonical": "rgba(11, 11, 18, 0.22)",
         "tonalRamp": [
-          "#6f4803",
-          "#b57505",
-          "#d98c06",
-          "#fca307",
-          "#fdc460",
-          "#fed897",
-          "#fff0d7",
-          "#fff8eb"
+          "#040407",
+          "#07070b",
+          "#09090e",
+          "#0b0b12",
+          "#48484d",
+          "#858588",
+          "#c2c2c4",
+          "#e7e7e7"
         ]
       },
-      "error": {
-        "role": "semantic",
-        "displayName": "Error Red",
-        "canonical": "#f50013",
+      "detail-blue": {
+        "role": "primary",
+        "displayName": "Detail Blue",
+        "canonical": "#2748d6",
         "tonalRamp": [
-          "#6c0008",
-          "#b0000e",
-          "#d30010",
-          "#f50013",
-          "#f95c68",
-          "#fb949c",
-          "#fdd6d9",
-          "#feebec"
+          "#101d56",
+          "#172b80",
+          "#1f3aab",
+          "#2748d6",
+          "#5d76e0",
+          "#93a4ea",
+          "#c9d1f5",
+          "#e9edfb"
+        ]
+      },
+      "detail-blue-on-ink": {
+        "role": "primary",
+        "displayName": "Detail Blue on Ink",
+        "canonical": "#8ea6ff",
+        "tonalRamp": [
+          "#394266",
+          "#556499",
+          "#7285cc",
+          "#8ea6ff",
+          "#aabcff",
+          "#c6d2ff",
+          "#e3e9ff",
+          "#f4f6ff"
         ]
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "Club name in the masthead and page titles."
+        "purpose": "Rival name h1, uppercase Big Shoulders Display."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings, copy strips, scores."
       },
       "title": {
         "displayName": "Title",
-        "purpose": "Card headings."
+        "purpose": "Player names on convocado lines."
       },
       "body": {
         "displayName": "Body",
-        "purpose": "Default UI text."
+        "purpose": "Courier Prime typewriter default."
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Badges, meta lines, result words."
+        "purpose": "Blue uppercase nav labels."
       }
     },
     "shadows": [
       {
-        "name": "rest",
-        "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
-        "purpose": "Cards at rest (shadow-sm)."
-      },
-      {
-        "name": "lift",
-        "value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
-        "purpose": "Card hover and masthead (shadow-md)."
+        "name": "crest-ring",
+        "value": "inset 0 0 0 3px #0b0b12, inset 0 0 0 4px #fbfbfc",
+        "purpose": "Double printed ring inside the crest; the only shadow in the system."
       }
     ],
     "motion": [
       {
-        "name": "ease-fluid",
-        "value": "cubic-bezier(0.3, 0, 0, 1)",
-        "purpose": "Declared in theme.css; general state transitions."
+        "name": "ease-stamp",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Overshooting ease for the stamp landing."
       },
       {
-        "name": "ease-snappy",
-        "value": "cubic-bezier(0.2, 0, 0, 1)",
-        "purpose": "Declared in theme.css; quick responses."
+        "name": "duration-stamp",
+        "value": "420ms",
+        "purpose": "The single authored motion; disabled under prefers-reduced-motion."
       }
     ],
     "breakpoints": [
@@ -205,128 +159,119 @@
       {
         "name": "md",
         "value": "768px"
-      },
-      {
-        "name": "lg",
-        "value": "1024px"
-      },
-      {
-        "name": "xl",
-        "value": "1280px"
-      },
-      {
-        "name": "2xl",
-        "value": "1536px"
-      },
-      {
-        "name": "3xl",
-        "value": "1920px"
       }
     ]
   },
   "components": [
     {
-      "name": "Primary Button",
-      "kind": "button",
-      "refersTo": "button-primary",
-      "description": "Default solid action; one per screen region.",
-      "html": "<button class=\"ds-btn-primary\">Guardar</button>",
-      "css": ".ds-btn-primary{background:#4f72e2;color:#f9fafb;font:500 14px Inter,system-ui,sans-serif;padding:6px 10px;border:0;border-radius:6px;cursor:pointer;transition:background-color .15s}.ds-btn-primary:hover,.ds-btn-primary:active{background:rgba(79,114,226,.75)}.ds-btn-primary:focus-visible{outline:2px solid #4f72e2;outline-offset:2px}"
-    },
-    {
-      "name": "Outline Button",
-      "kind": "button",
-      "refersTo": "button-primary",
-      "description": "Secondary action using the primary tint.",
-      "html": "<button class=\"ds-btn-outline\">Cancelar</button>",
-      "css": ".ds-btn-outline{background:transparent;color:#4f72e2;font:500 14px Inter,system-ui,sans-serif;padding:6px 10px;border:0;border-radius:6px;box-shadow:inset 0 0 0 1px rgba(79,114,226,.5);cursor:pointer;transition:background-color .15s}.ds-btn-outline:hover{background:rgba(79,114,226,.1)}.ds-btn-outline:focus-visible{outline:none;box-shadow:inset 0 0 0 2px #4f72e2}"
-    },
-    {
-      "name": "Game Card",
-      "kind": "card",
-      "refersTo": "card",
-      "description": "Fixture or result row; whole card links to the game.",
-      "html": "<div class=\"ds-game\"><div class=\"ds-crest\">RV</div><div class=\"ds-info\"><p class=\"ds-name\">vs Rayo Vallecano</p><p class=\"ds-meta\">12 oct 2026 · Cancha 3</p></div><div class=\"ds-score\"><p class=\"ds-num\">3 – 1</p><p class=\"ds-res\">Victoria</p></div></div>",
-      "css": ".ds-game{display:flex;align-items:center;gap:16px;padding:16px;background:#fff;border:1px solid #f3f4f6;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.05);font-family:Inter,system-ui,sans-serif;transition:box-shadow .15s}.ds-game:hover{box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1)}.ds-crest{width:48px;height:48px;border-radius:9999px;background:#f3f4f6;color:#9ca3af;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}.ds-info{flex:1;min-width:0}.ds-name{margin:0;font-size:14px;font-weight:600;color:#111827}.ds-meta{margin:2px 0 0;font-size:12px;color:#6b7280}.ds-score{text-align:right}.ds-num{margin:0;font-size:18px;font-weight:700;line-height:1;color:#111827}.ds-res{margin:2px 0 0;font-size:12px;font-weight:600;color:#16a34a}"
-    },
-    {
-      "name": "Status Pill",
-      "kind": "chip",
-      "refersTo": "badge-status",
-      "description": "Fully round status tag with tinted background.",
-      "html": "<span class=\"ds-pill\">Próximo</span>",
-      "css": ".ds-pill{display:inline-block;background:#dbeafe;color:#1d4ed8;font:600 12px Inter,system-ui,sans-serif;padding:2px 8px;border-radius:9999px}"
-    },
-    {
-      "name": "Jersey Number Pill",
-      "kind": "chip",
-      "refersTo": "badge-status",
-      "description": "Brand-filled round number on player cards.",
-      "html": "<span class=\"ds-jersey\">#10</span>",
-      "css": ".ds-jersey{display:inline-block;background:#4f72e2;color:#111827;font:700 12px Inter,system-ui,sans-serif;padding:2px 8px;border-radius:9999px;text-align:center}"
-    },
-    {
-      "name": "Navigation Bar",
+      "name": "Header and Crest",
       "kind": "nav",
-      "refersTo": "nav-bar",
-      "description": "48px dark bar; active and hover links turn brand blue.",
-      "html": "<nav class=\"ds-nav\"><a class=\"ds-link ds-active\" href=\"#\">Inicio</a><a class=\"ds-link\" href=\"#\">Plantilla</a><a class=\"ds-link\" href=\"#\">Calendario</a><a class=\"ds-link\" href=\"#\">Estadísticas</a></nav>",
-      "css": ".ds-nav{display:flex;align-items:center;gap:24px;height:48px;padding:0 16px;background:#111827;font:500 14px Inter,system-ui,sans-serif}.ds-link{color:#fff;text-decoration:none;transition:color .15s}.ds-link:hover,.ds-active{color:#4f72e2}"
+      "refersTo": "crest",
+      "description": "White header sheet: crest, wordmark, blue uppercase nav labels.",
+      "html": "<div class=\"ds-head\"><span class=\"ds-crest\">M</span><span class=\"ds-word\">Ministros FC</span></div><nav class=\"ds-nav\"><a class=\"ds-nav-link\" href=\"#\">Inicio</a><a class=\"ds-nav-link\" href=\"#\">Plantilla</a><a class=\"ds-nav-link\" href=\"#\">Calendario</a></nav>",
+      "css": ".ds-head{display:flex;align-items:center;gap:12px;background:#fbfbfc;padding:12px;border-bottom:3px solid #0b0b12}.ds-crest{display:grid;place-items:center;width:36px;height:36px;border-radius:9999px;background:#0b0b12;color:#fbfbfc;font-family:'Big Shoulders Display','Arial Narrow',sans-serif;font-weight:800;box-shadow:inset 0 0 0 3px #0b0b12,inset 0 0 0 4px #fbfbfc}.ds-word{font-family:'Big Shoulders Display','Arial Narrow',sans-serif;font-weight:800;text-transform:uppercase;font-size:1.25rem;line-height:.92}.ds-nav{display:flex;gap:4px;background:#fbfbfc;padding:0 12px 12px}.ds-nav-link{font-family:'Courier Prime',monospace;font-weight:700;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:#2748d6;text-decoration:none;padding:12px 4px}.ds-nav-link:hover{text-decoration:underline}.ds-nav-link:focus-visible{outline:3px solid #2748d6;outline-offset:3px}"
     },
     {
-      "name": "Masthead",
+      "name": "Game State Strip",
       "kind": "custom",
-      "refersTo": "site-header",
-      "description": "Brand-blue club header with monogram.",
-      "html": "<header class=\"ds-mast\"><div class=\"ds-mono\">M</div><div><h1 class=\"ds-title\">Ministros FC</h1><p class=\"ds-since\">Desde 2023</p></div></header>",
-      "css": ".ds-mast{display:flex;align-items:center;gap:12px;padding:20px 16px;background:#4f72e2;color:#fff;box-shadow:0 4px 6px -1px rgba(0,0,0,.1);font-family:Satoshi,Inter,system-ui,sans-serif}.ds-mono{width:48px;height:48px;border-radius:9999px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px}.ds-title{margin:0;font-size:24px;font-weight:700;line-height:1.25}.ds-since{margin:0;font-size:12px;opacity:.8}"
+      "refersTo": "sheet-paper",
+      "description": "Ruled strip of state, date, time and venue under the rival name.",
+      "html": "<div class=\"ds-sheet\"><h1 class=\"ds-h1\">vs Rival FC</h1><dl class=\"ds-strip\"><dd class=\"ds-state\">Próximo</dd><dd>Sáb 12 dic</dd><dd>20:00 h</dd><dd>Cancha 3</dd></dl><a class=\"ds-link\" href=\"#\">Cómo llegar →</a></div>",
+      "css": ".ds-sheet{background:#fbfbfc;padding:24px 16px;color:#0b0b12;font-family:'Courier Prime',monospace}.ds-h1{margin:0;font-family:'Big Shoulders Display','Arial Narrow',sans-serif;font-weight:800;text-transform:uppercase;line-height:.92;font-size:3.5rem}.ds-strip{display:flex;flex-wrap:wrap;gap:4px 20px;margin:20px 0 0;padding:10px 0;border-top:3px solid #0b0b12;border-bottom:3px solid #0b0b12;font-weight:700;text-transform:uppercase;font-variant-numeric:tabular-nums}.ds-strip dd{margin:0}.ds-state{color:#2748d6}.ds-link{display:inline-block;margin-top:8px;font-weight:700;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:.2em;text-decoration-color:#2748d6;color:#0b0b12}.ds-link:focus-visible{outline:3px solid #2748d6;outline-offset:3px}"
+    },
+    {
+      "name": "Convocado Line",
+      "kind": "custom",
+      "refersTo": "position-tag",
+      "description": "Numbered line with blue shirt number and optional blue position tag.",
+      "html": "<ol class=\"ds-lines\"><li><a class=\"ds-line\" href=\"#\"><span class=\"ds-num\">10</span><span class=\"ds-name\">Diego Martin</span><span class=\"ds-tag\">DEL</span></a></li><li><a class=\"ds-line\" href=\"#\"><span class=\"ds-num\">01</span><span class=\"ds-name\">Ana Pérez</span><span class=\"ds-tag\">POR</span></a></li></ol>",
+      "css": ".ds-lines{list-style:none;margin:0;padding:0;background:#fbfbfc;font-family:'Courier Prime',monospace;color:#0b0b12}.ds-lines li{border-top:1px solid rgba(11,11,18,.22)}.ds-lines li:first-child{border-top:0}.ds-line{display:flex;align-items:center;gap:12px;min-height:48px;padding:10px 0;text-decoration:none;color:inherit}.ds-line:hover{background:#e4e5ea}.ds-line:focus-visible{outline:3px solid #2748d6;outline-offset:3px}.ds-num{width:32px;font-weight:700;color:#2748d6;font-variant-numeric:tabular-nums}.ds-name{flex:1;font-weight:700;font-size:1.125rem}.ds-tag{border:1px solid #2748d6;color:#2748d6;padding:0 6px;font-size:.75rem;font-weight:700}"
+    },
+    {
+      "name": "Black Strip",
+      "kind": "custom",
+      "refersTo": "strip-ink",
+      "description": "Full-bleed black copy strip with on-ink blue arrow (Plantilla).",
+      "html": "<a class=\"ds-strip-ink\" href=\"#\">Plantilla <span class=\"ds-arrow\">→</span></a>",
+      "css": ".ds-strip-ink{display:flex;justify-content:space-between;align-items:center;background:#0b0b12;color:#fbfbfc;padding:16px;font-family:'Big Shoulders Display','Arial Narrow',sans-serif;font-weight:800;text-transform:uppercase;font-size:1.875rem;line-height:.92;text-decoration:none}.ds-strip-ink:hover{background:#2b2e3b}.ds-strip-ink:focus-visible{outline:3px solid #8ea6ff;outline-offset:-3px}.ds-arrow{color:#8ea6ff}"
+    },
+    {
+      "name": "White Strip",
+      "kind": "custom",
+      "refersTo": "strip-paper",
+      "description": "Full-bleed white copy strip with blue arrow and closing 3px rule (Estadísticas).",
+      "html": "<a class=\"ds-strip-paper\" href=\"#\">Estadísticas <span class=\"ds-arrow-b\">→</span></a>",
+      "css": ".ds-strip-paper{display:flex;justify-content:space-between;align-items:center;background:#fbfbfc;color:#0b0b12;border-bottom:3px solid #0b0b12;padding:16px;font-family:'Big Shoulders Display','Arial Narrow',sans-serif;font-weight:800;text-transform:uppercase;font-size:1.875rem;line-height:.92;text-decoration:none}.ds-strip-paper:hover{background:#e4e5ea}.ds-strip-paper:focus-visible{outline:3px solid #2748d6;outline-offset:-3px}.ds-arrow-b{color:#2748d6}"
+    },
+    {
+      "name": "Stamp",
+      "kind": "custom",
+      "refersTo": "stamp",
+      "description": "SUSPENDIDO stamp, the one motion moment; lands in 420ms, off under reduced motion.",
+      "html": "<div class=\"ds-stamp-wrap\"><span class=\"ds-stamp\" role=\"status\">Suspendido</span></div>",
+      "css": ".ds-stamp-wrap{display:grid;place-items:center;padding:24px;background:#fbfbfc}.ds-stamp{display:inline-block;border:6px solid #2748d6;background:rgba(251,251,252,.85);color:#2748d6;padding:4px 16px;font-family:'Big Shoulders Display','Arial Narrow',sans-serif;font-weight:800;text-transform:uppercase;font-size:3rem;line-height:.92;transform:rotate(-8deg);animation:ds-stamp 420ms cubic-bezier(.16,1,.3,1) both}@keyframes ds-stamp{0%{opacity:0;transform:rotate(-8deg) scale(1.5)}60%{opacity:1;transform:rotate(-8deg) scale(.96)}100%{opacity:1;transform:rotate(-8deg) scale(1)}}@media (prefers-reduced-motion:reduce){.ds-stamp{animation:none}}"
+    },
+    {
+      "name": "Reserved Signup Slot",
+      "kind": "button",
+      "refersTo": "cta-slot-button",
+      "description": "Hidden in production: dashed blue rule over a black display-type button.",
+      "html": "<div class=\"ds-slot\"><a class=\"ds-slot-btn\" href=\"#\">Anotarme</a></div>",
+      "css": ".ds-slot{background:#fbfbfc;padding:16px;border-top:3px dashed #2748d6}.ds-slot-btn{display:block;background:#0b0b12;color:#fbfbfc;text-align:center;padding:14px 16px;font-family:'Big Shoulders Display','Arial Narrow',sans-serif;font-weight:800;text-transform:uppercase;font-size:1.5rem;line-height:.92;text-decoration:none}.ds-slot-btn:hover{background:#2b2e3b}.ds-slot-btn:focus-visible{outline:3px solid #2748d6;outline-offset:3px}"
     }
   ],
   "narrative": {
-    "northStar": "The Matchday Programme",
-    "overview": "Ministros FC is an amateur football club's public home: who plays, when, against whom, and how it went. The system reads like a matchday programme: a calm light canvas, plain information set in confident small type, and a single blue masthead carrying the club's name.",
+    "northStar": "Planilla en Triplicado",
+    "overview": "The public home is one team sheet for the next game, printed in black ink on a white sheet with hard black rules. Black and white carry the page; a single blue marks details and nothing else. Heavy condensed capitals for names and headings, a typewriter face for everything written on the lines. Only the public home and the sheet layout have migrated; other pages and the admin still use the Nuxt UI theme tokens until migrated.",
     "keyCharacteristics": [
-      "Blue masthead, near-black nav and footer, light-gray canvas, white cards.",
-      "Flat at rest; shadow appears only as a hover response.",
-      "Soft geometry: 12px cards, 6px controls, fully round pills and avatars.",
-      "Spanish-language copy; short labels, results spelled out.",
-      "Built on Nuxt UI with Tailwind v4 tokens."
+      "Black ink on a white sheet, light gray ground behind",
+      "One blue (#2748d6) for details only; #8ea6ff on black",
+      "Hard 3px black rules and hairline rules",
+      "Square everywhere except the round crest",
+      "One authored motion: the stamp landing",
+      "Self-hosted Big Shoulders Display and Courier Prime"
     ],
     "rules": [
       {
         "name": "The One Blue Rule",
-        "body": "Blue is the only chromatic brand color. Do not introduce a second accent; gold is retired.",
+        "body": "Blue is for details: numbers, labels, tags, links, arrows, the stamp, the reserved slot. It never fills a surface or becomes a button.",
         "section": "colors"
       },
       {
-        "name": "The Result Color Rule",
-        "body": "Win, draw and loss are always green, amber and red, with a text label beside the color.",
+        "name": "The On-Ink Blue Rule",
+        "body": "On black, details use #8ea6ff; #2748d6 is for white only.",
         "section": "colors"
       },
       {
-        "name": "The Small and Sure Rule",
-        "body": "The default size is 14px. Emphasis is weight, never color tricks or decorative faces.",
+        "name": "The Tabular Rule",
+        "body": "Every number uses tabular figures so columns align like a form.",
         "section": "typography"
       },
       {
-        "name": "The Hover-Lift Rule",
-        "body": "Surfaces are flat at rest. Interactive cards gain one shadow step on hover.",
+        "name": "The Caps Rule",
+        "body": "Display type is always uppercase with zero letter-spacing; only the label uses tracking.",
+        "section": "typography"
+      },
+      {
+        "name": "The Ruled Depth Rule",
+        "body": "A surface is separated by a 3px ink rule or a hairline rule. No drop shadows, glows, or blurs.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "**Do** use `primary` / `brand` (`#4f72e2`) for the single main action and the active location on a screen.",
-      "**Do** build new surfaces from the card recipe: white, `rounded-xl`, 1px gray-100 border, `shadow-sm`, `hover:shadow-md`.",
-      "**Do** use Nuxt UI components (`UButton`, `UBadge`, `UInput`) with semantic color names before reaching for raw Tailwind colors.",
-      "**Do** pair every result color with a word (Victoria, Empate, Derrota) and keep copy in Spanish.",
-      "**Do** truncate names in single-line rows and keep meta text at 12px gray-500."
+      "Do keep black and white as the main colors and use blue (#2748d6) only for details.",
+      "Do use #8ea6ff for blue on black surfaces.",
+      "Do separate content with 3px ink rules and hairline rules (rgba(11,11,18,0.22)).",
+      "Do set display type in uppercase Big Shoulders Display and everything written on the lines in Courier Prime.",
+      "Do use tabular figures for every number.",
+      "Do keep tap targets at 44px or more and underline links with 2px blue.",
+      "Do respect reduced motion by removing the stamp animation."
     ],
     "donts": [
-      "**Don't** reintroduce gold or any second brand accent.",
-      "**Don't** hard-code `blue-100/700`, `green-600`, `gray-*` pairs where a semantic token exists; the repo already mixes both and drift is the main risk.",
-      "**Don't** add resting shadows heavier than `shadow-sm` or shadows on non-interactive surfaces.",
-      "**Don't** use fully round shapes for containers or buttons; round is reserved for avatars, crests and pills.",
-      "**Don't** add decorative type faces or gradients; hierarchy is weight and size."
+      "Don't fill surfaces or buttons with blue.",
+      "Don't round corners or add shadows; the crest is the only circle.",
+      "Don't use a signup call to action on the home until the club adopts it; the reserved slot stays hidden.",
+      "Don't apply this system to the admin or the other pages until they are migrated; they still use the Nuxt UI theme tokens."
     ]
   }
 }

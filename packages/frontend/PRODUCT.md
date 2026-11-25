@@ -8,7 +8,7 @@ web
 
 ## Users
 
-**Primary: the club's own squad players, on their phones.** They open the site around matchdays: to see the next fixture, confirm they are playing, bring friends as guests, and look up results and their own stats afterward. Mobile is the main device, not a fallback.
+**Primary: the club's own squad players, on their phones.** They open the site around matchdays: to see the next fixture (rival, date, time, venue), check who is in the squad, and look up results and their own stats afterward. Confirming attendance still happens in the team's WhatsApp group. Mobile is the main device, not a fallback.
 
 Other audiences, confirmed from the codebase and README but secondary for design decisions:
 - Public fans and families browsing roster, schedule and results without an account.
@@ -16,7 +16,7 @@ Other audiences, confirmed from the codebase and README but secondary for design
 
 ## Product Purpose
 
-Ministros FC is the home of one specific amateur football club: roster and player profiles, fixtures and results, game signups with guest invitations, tournaments, and an admin CMS behind them. Success means players find and confirm their next game in seconds and the club's record of games and players keeps accumulating in one place instead of in chat threads and spreadsheets.
+Ministros FC is the home of one specific amateur football club: roster and player profiles, fixtures and results, tournaments, and an admin CMS behind them. A game signup feature with guest invitations exists but is unfinished and not yet how the club works: the squad still confirms attendance by typing in the team's WhatsApp group. Success means players find their next game and their teammates' records in seconds and the club's record of games and players keeps accumulating in one place instead of in chat threads and spreadsheets.
 
 ## Positioning
 
@@ -24,7 +24,7 @@ Its lasting value is the **stats and history archive**: a durable record of play
 
 ## Operating Context
 
-- Signups happen close to kickoff, usually from a link shared in the team's chat, on a phone.
+- Attendance is confirmed today by manual messages in a WhatsApp group; the in-app signup is an unfinished feature, kept out of the public experience until the club adopts it. Visitors usually arrive from a link shared in that chat, on a phone.
 - Signed-in roles are Admin, Editor, DT and Player; guests invited by a player are not app users.
 - Games move through scheduled, in progress, completed and cancelled states; results and stats derive from completed games.
 - The public site is server-rendered; admin and signup flows require authentication and use a `returnUrl` to come back to where the user started.
@@ -50,7 +50,7 @@ Its lasting value is the **stats and history archive**: a durable record of play
 
 ## Product Principles
 
-1. **Players first, phone first.** Every decision is judged on how fast a squad player on a phone completes the next signup or finds a result.
+1. **Players first, phone first.** Every decision is judged on how fast a squad player on a phone finds the next game, a teammate or a result. Features the club has not adopted yet (such as in-app signup) must be easy to add later, never forced into today's experience.
 2. **The archive is the product.** Stats and history deserve clear structure and permanence; the interface should make accumulated records feel worth keeping.
 3. **One club, not a platform.** The site is the identity of Ministros FC specifically, not a generic team-management tool.
 4. **Spanish, plain and short.** Copy stays direct and Spanish; labels must fit narrow screens.
