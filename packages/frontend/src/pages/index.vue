@@ -7,6 +7,7 @@ import {
 import GameSheet from "~/components/pages/games/GameSheet.vue";
 import HomeCopies from "~/components/pages/home/HomeCopies.vue";
 import HomeArchive from "~/components/pages/home/HomeArchive.vue";
+import { fetchNextGame } from "~/utils/nextGame";
 
 definePageMeta({ public: true, layout: "sheet" });
 useHead({ title: "Inicio" });
@@ -16,29 +17,19 @@ const config = useRuntimeConfig();
 // Signup call to action stays off until the club adopts it (spec 023 FR-020/FR-021).
 const ctaEnabled = computed(() => config.public.signupCtaEnabled === true);
 
-const listGames = (status: GameStatus, limit: number) =>
-  $api<{ data: Game[] }>("/api/v1/games", { query: { status, limit } }).then(
-    (r) => r.data ?? [],
-  );
+const listGames = (
+  status: GameStatus,
+  limit: number,
+  dateFrom?: string,
+) =>
+  $api<{ data: Game[] }>("/api/v1/games", {
+    query: { status, limit, ...(dateFrom ? { dateFrom } : {}) },
+  }).then((r) => r.data ?? []);
 
 // The next sheet: earliest upcoming game that is scheduled, live, or called off.
 const { data: nextGame, pending: nextLoading } = await useAsyncData(
   "home-next-game",
-  async () => {
-    const [scheduled, live, cancelled] = await Promise.all([
-      listGames(GameStatus.SCHEDULED, 5),
-      listGames(GameStatus.IN_PROGRESS, 1),
-      listGames(GameStatus.CANCELLED, 3),
-    ]);
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-    const candidates = [
-      ...scheduled,
-      ...live,
-      ...cancelled.filter((g) => new Date(g.date) >= startOfToday),
-    ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    return candidates[0] ?? null;
-  },
+  () => fetchNextGame(listGames),
 );
 
 const { data: participants } = await useAsyncData(
