@@ -155,6 +155,8 @@ A strict black-and-white palette with a single blue reserved for details.
 
 A single centered column, max width 768px (`max-w-3xl`), 16px side gutter, designed phone first at 390px. Sheets stack vertically: header, next-game sheet, black and white copy strips, results and scorers sheet, black footer. Results and scorers sit side by side from the `md` breakpoint with a 40px gap and stack below it. Spacing rhythm observed: 8, 12, 16, 24, 40px. Tap rows are 44px minimum for links and 48px for lines, 56px for result rows. The header nav scrolls horizontally rather than wrapping.
 
+**The Fixed Frame Rule.** The header, section nav and footer are always 768px (`max-w-3xl`) wide on every page, so the logo, the nav and the footer never move between pages. Only page content may be wider: the home, schedule and game detail use the same 768px column; the roster, the player profile and the statistics section (tabs, title, filters, lists) use 1024px (`max-w-5xl`). Never size the frame by page.
+
 ## Elevation & Depth
 
 Flat. Depth is conveyed by rules, full-bleed black strips, and the step from white sheet to gray ground, never by shadows. The only inset rings are the two thin rings inside the crest, which are drawn with inset box-shadow to read as a printed stamp border.

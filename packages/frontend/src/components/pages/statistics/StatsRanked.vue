@@ -109,7 +109,7 @@ function toggle(id: string) {
 
     <p v-if="loading" class="mt-6">Cargando…</p>
     <p v-else-if="!sorted.length" class="mt-6">{{ emptyText }}</p>
-    <ol v-else class="mt-4 max-w-3xl border-t-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)]">
+    <ol v-else class="mt-4 border-t-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)]">
       <li
         v-for="(item, i) in sorted"
         :key="item.id"
