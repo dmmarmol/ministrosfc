@@ -81,6 +81,10 @@
   /* The colors of real cards: the one sanctioned exception to the single blue */
   --sheet-card-yellow: #f5c400;
   --sheet-card-red: #d62020;
+  /* Result tones for won / lost / tied games (text on paper, 4.5:1 or better) */
+  --sheet-win: #17753a;
+  --sheet-loss: #c0262d;
+  --sheet-draw: #8a6a00;
   --sheet-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
   --sheet-type: "Courier Prime", "Courier New", monospace;
   --sheet-ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -106,6 +110,9 @@
   --sheet-rule: rgb(243 244 248 / 0.24);
   --sheet-blue: #8ea6ff;
   --sheet-blue-on-ink: #2748d6;
+  --sheet-win: #5fd38a;
+  --sheet-loss: #ff7b80;
+  --sheet-draw: #f5c400;
 }
 
 /* Browser surfaces themed from the palette */

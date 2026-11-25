@@ -45,12 +45,16 @@ useHead(() => ({
       v-else-if="player"
       class="mt-4 grid gap-8 md:grid-cols-[minmax(0,22rem)_1fr]"
     >
-      <PlayerFicha
-        :player="player"
-        size="large"
-        :as-link="false"
-        :show-stats="false"
-      />
+      <!-- Sticky on wide screens: the ficha keeps its own height and follows the
+           scroll once the page moves past it, however long the stats column grows -->
+      <div class="md:sticky md:top-4 md:self-start">
+        <PlayerFicha
+          :player="player"
+          size="large"
+          :as-link="false"
+          :show-stats="false"
+        />
+      </div>
 
       <div>
         <h1 class="sheet-display text-[clamp(2.25rem,8vw,4rem)]">

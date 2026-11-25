@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 /**
  * Ranked rows (spec 023): every statistics table on a phone becomes ruled
@@ -20,6 +20,8 @@ export interface RankedItem {
   linkLabel?: string;
   values: Record<string, number | null | undefined>;
   detail?: { label: string; value: string | number }[];
+  /** Card counts shown on the collapsed row as yellow / red squares. */
+  cards?: { yellow: number; red: number };
 }
 
 const NATURAL = "__natural";
@@ -32,12 +34,18 @@ const props = withDefaults(
     natural?: boolean;
     emptyText?: string;
     sortLabel?: string;
+    /** Only one row open at a time. */
+    single?: boolean;
+    /** Show a search box that narrows rows by title. */
+    searchLabel?: string;
   }>(),
   {
     loading: false,
     natural: false,
     emptyText: "No hay datos para estos filtros.",
     sortLabel: "Ordenar por",
+    single: false,
+    searchLabel: "",
   },
 );
 
@@ -48,10 +56,22 @@ const shownMetric = computed(
   () =>
     props.metrics.find((m) => m.key === sortKey.value) ?? props.metrics[0]!,
 );
+const query = ref("");
+const visible = computed(() => {
+  const q = query.value.trim().toLowerCase();
+  return q
+    ? props.items.filter((i) => i.title.toLowerCase().includes(q))
+    : props.items;
+});
+// A search that leaves one row opens it
+watch(visible, (rows) => {
+  if (query.value.trim() && rows.length === 1)
+    open.value = new Set([rows[0]!.id]);
+});
 const sorted = computed(() => {
-  if (sortKey.value === NATURAL) return props.items;
+  if (sortKey.value === NATURAL) return visible.value;
   const k = sortKey.value;
-  return [...props.items].sort(
+  return [...visible.value].sort(
     (a, b) => (b.values[k] ?? -Infinity) - (a.values[k] ?? -Infinity),
   );
 });
@@ -74,14 +94,24 @@ function width(item: RankedItem) {
   return max.value > 0 && v > 0 ? Math.round((v / max.value) * 100) : 0;
 }
 function toggle(id: string) {
-  const s = new Set(open.value);
-  s.has(id) ? s.delete(id) : s.add(id);
+  const s = new Set(props.single ? [] : open.value);
+  if (open.value.has(id)) s.delete(id);
+  else s.add(id);
   open.value = s;
 }
 </script>
 
 <template>
   <div>
+    <label v-if="searchLabel" class="mt-4 block">
+      <span class="sheet-label">{{ searchLabel }}</span>
+      <input
+        v-model="query"
+        type="search"
+        :placeholder="searchLabel"
+        class="sheet-field mt-1"
+      />
+    </label>
     <div class="mt-4">
       <p class="sheet-label" id="rank-by">{{ sortLabel }}</p>
       <div class="mt-1.5 flex flex-wrap gap-2" role="group" aria-labelledby="rank-by">
@@ -132,6 +162,22 @@ function toggle(id: string) {
           <span class="min-w-0">
             <span class="sheet-display block break-words text-2xl">{{ item.title }}</span>
             <span v-if="item.subtitle" class="block break-words text-sm text-[var(--sheet-ink-soft)]">{{ item.subtitle }}</span>
+            <span v-if="item.cards && (item.cards.yellow || item.cards.red)" class="mt-1 flex gap-2">
+              <span
+                v-if="item.cards.yellow"
+                class="sheet-num inline-flex items-center gap-1.5 text-xs font-bold"
+                :title="`${item.cards.yellow} tarjetas amarillas`"
+              >
+                <span class="inline-block size-3 border border-[var(--sheet-ink)] bg-[var(--sheet-card-yellow)]" aria-hidden="true" />{{ item.cards.yellow }}<span class="sr-only"> tarjetas amarillas</span>
+              </span>
+              <span
+                v-if="item.cards.red"
+                class="sheet-num inline-flex items-center gap-1.5 text-xs font-bold"
+                :title="`${item.cards.red} tarjetas rojas`"
+              >
+                <span class="inline-block size-3 border border-[var(--sheet-ink)] bg-[var(--sheet-card-red)]" aria-hidden="true" />{{ item.cards.red }}<span class="sr-only"> tarjetas rojas</span>
+              </span>
+            </span>
           </span>
           <span class="text-right">
             <span class="sheet-display sheet-num block text-4xl leading-none">{{ fmt(item) }}</span>
@@ -163,6 +209,7 @@ function toggle(id: string) {
               <dd class="sheet-display sheet-num text-xl leading-none">{{ d.value }}</dd>
             </div>
           </dl>
+          <slot name="extra" :item="item" />
           <NuxtLink
             v-if="item.to"
             :to="item.to"

@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import type { SelectItem } from "#ui/types";
+import { computed } from "vue";
 import type { PlayerRivalPeriodDTO } from "@ministrosfc/shared";
+import StatsRanked, {
+  type RankedItem,
+  type RankedMetric,
+} from "~/components/pages/statistics/StatsRanked.vue";
 
 const props = defineProps<{ playerId: string }>();
 
@@ -16,174 +20,137 @@ const { data: rivalsData, pending } = await useAsyncData(
 
 const rivals = computed(() => rivalsData.value?.data ?? []);
 
-// Derive select options directly from the rival data — always in sync
-const teamOptions = computed((): SelectItem[] =>
-  rivals.value
-    .sort((a, b) => (a.gamesPlayed >= b.gamesPlayed ? -1 : 1))
-    .map((r) => ({
-      value: r.rivalId,
-      label: `${r.rivalName} (${r.gamesPlayed} PJ)`,
-    })),
+const pct = (v: number) => `${Math.round(v)}%`;
+const signed = (v: number) => (v > 0 ? `+${v}` : String(v));
+const metrics: RankedMetric[] = [
+  { key: "games", label: "Partidos", unit: "partidos" },
+  { key: "goals", label: "Goles", unit: "goles" },
+  { key: "winRate", label: "% Victorias", unit: "% vict.", format: pct },
+  { key: "goalDiff", label: "Dif. gol", unit: "dif. gol", format: signed },
+];
+
+const items = computed<RankedItem[]>(() =>
+  rivals.value.map((r) => {
+    const diff = r.goalsFor - r.goalsAgainst;
+    return {
+      id: r.rivalId,
+      title: r.rivalName,
+      cards: { yellow: r.yellowCards ?? 0, red: r.redCards ?? 0 },
+      values: {
+        games: r.gamesPlayed,
+        goals: r.playerGoals,
+        winRate: r.gamesPlayed ? (r.wins / r.gamesPlayed) * 100 : 0,
+        goalDiff: diff,
+      },
+      detail: [
+        { label: "PJ", value: r.gamesPlayed },
+        { label: "PG", value: r.wins },
+        { label: "PE", value: r.draws },
+        { label: "PP", value: r.losses },
+        { label: "GF", value: r.goalsFor },
+        { label: "GC", value: r.goalsAgainst },
+        { label: "G", value: r.playerGoals },
+        { label: "A", value: r.playerAssists ?? 0 },
+      ],
+    };
+  }),
 );
 
-const selectedRivalId = ref<string>("");
+const byId = computed(() => new Map(rivals.value.map((r) => [r.rivalId, r])));
+const matchesOf = (id: string) => byId.value.get(id)?.matches ?? [];
 
-const filteredRivals = computed(() => {
-  if (!selectedRivalId.value) return [];
-  return rivals.value.filter((r) => r.rivalId === selectedRivalId.value);
-});
-
-const expandedRivals = ref<string[]>([]);
-
-watch(filteredRivals, (rows) => {
-  rows.forEach((r) => {
-    if (!expandedRivals.value.includes(r.rivalId))
-      expandedRivals.value.push(r.rivalId);
-  });
-});
-
-function toggleRival(rivalId: string) {
-  const idx = expandedRivals.value.indexOf(rivalId);
-  if (idx >= 0) expandedRivals.value.splice(idx, 1);
-  else expandedRivals.value.push(rivalId);
-}
+const RESULT = {
+  W: { label: "Victoria", tone: "text-[var(--sheet-win)]" },
+  L: { label: "Derrota", tone: "text-[var(--sheet-loss)]" },
+  D: { label: "Empate", tone: "text-[var(--sheet-draw)]" },
+} as const;
 </script>
 
 <template>
-  <div class="space-y-4">
-    <header class="flex justify-between items-center">
-      <slot name="header"></slot>
-      <!-- Team filter -->
-      <div class="flex flex-col gap-1">
-        <USelectMenu
-          id="rival-team-select"
-          v-model="selectedRivalId"
-          :items="teamOptions"
-          placeholder="Elegí un equipo"
-          value-key="value"
-          label-key="label"
-          :clear="true"
-          :ui="{ content: 'min-w-fit' }"
-          :search-input="{
-            placeholder: 'Buscar equipo...',
-            icon: 'i-lucide-search',
-          }"
-        />
-      </div>
-    </header>
-
-    <div v-if="pending" class="text-center text-muted-foreground py-8">
-      Cargando...
-    </div>
-    <div
-      v-else-if="filteredRivals.length === 0"
-      class="text-center text-muted-foreground py-8"
+  <div>
+    <slot name="header"></slot>
+    <p v-if="pending" class="mt-4">Cargando…</p>
+    <StatsRanked
+      v-else
+      :items="items"
+      :metrics="metrics"
+      single
+      search-label="Buscar equipo"
+      empty-text="No hay partidos contra equipos rivales todavía."
     >
-      Sin datos para este equipo.
-    </div>
-    <div v-else class="space-y-2">
-      <UiAccordion
-        v-for="row in filteredRivals"
-        :key="row.rivalId"
-        :open="expandedRivals.includes(row.rivalId)"
-        @toggle="toggleRival(row.rivalId)"
-      >
-        <template #header>
+      <template #extra="{ item }">
+        <div class="mt-3 border-t-[3px] border-[var(--sheet-ink)]">
+          <!-- One grid for header and rows so the stat columns line up for comparison -->
           <div
-            class="grid items-center gap-x-3 px-4 py-3 text-gray-900 w-full"
-            style="
-              grid-template-columns: 9rem 3rem 3rem 3rem 3rem 3rem 3rem 3rem 4rem;
-            "
+            class="match-grid sheet-label border-b border-[var(--sheet-ink)] py-1.5 text-[0.6875rem]"
+            aria-hidden="true"
           >
-            <span class="font-semibold text-sm truncate">{{
-              row.rivalName
-            }}</span>
-            <span class="text-sm"
-              ><abbr title="Partidos Jugados">PJ</abbr>
-              {{ row.gamesPlayed }}</span
-            >
-            <span class="text-sm text-green-600"
-              ><abbr title="Partidos Ganados">PG</abbr> {{ row.wins }}</span
-            >
-            <span class="text-sm text-red-500"
-              ><abbr title="Partidos Perdidos">PP</abbr> {{ row.losses }}</span
-            >
-            <span class="text-sm text-yellow-500"
-              ><abbr title="Partidos Empatados">PE</abbr> {{ row.draws }}</span
-            >
-            <span class="text-sm"
-              ><abbr title="Goles a Favor">GF</abbr> {{ row.goalsFor }}</span
-            >
-            <span class="text-sm"
-              ><abbr title="Goles en Contra">GC</abbr>
-              {{ row.goalsAgainst }}</span
-            >
-            <span class="text-sm font-medium text-brand"
-              ><abbr title="Goles del Jugador">G</abbr>
-              {{ row.playerGoals }}</span
-            >
-            <span
-              class="text-sm"
-              :class="
-                row.goalsFor - row.goalsAgainst > 0
-                  ? 'text-green-600'
-                  : row.goalsFor - row.goalsAgainst < 0
-                    ? 'text-red-500'
-                    : ''
-              "
-            >
-              <abbr title="Diferencia de Gol">DG</abbr>
-              {{ row.goalsFor - row.goalsAgainst > 0 ? "+" : ""
-              }}{{ row.goalsFor - row.goalsAgainst }}
-            </span>
+            <span>Partido</span>
+            <span class="text-center" title="Goles">G</span>
+            <span class="text-center" title="Asistencias">A</span>
+            <span class="flex justify-center" title="Tarjetas amarillas"><span class="inline-block size-3 border border-[var(--sheet-ink)] bg-[var(--sheet-card-yellow)]" /></span>
+            <span class="flex justify-center" title="Tarjetas rojas"><span class="inline-block size-3 border border-[var(--sheet-ink)] bg-[var(--sheet-card-red)]" /></span>
+            <span class="match-link-head" />
           </div>
-        </template>
-
-        <template #content>
-          <div class="overflow-x-auto">
-            <ul class="divide-y min-w-max">
-              <li
-                v-for="match in row.matches"
-                :key="match.date + match.homeScore + match.awayScore"
-                class="grid items-center gap-x-3 px-4 py-2 text-sm text-gray-900"
-                style="grid-template-columns: 6rem 3.5rem 5rem 1fr 4rem auto"
+          <ul>
+            <li
+              v-for="m in matchesOf(item.id)"
+              :key="m.slug ?? m.date + m.homeScore + m.awayScore"
+              class="match-grid border-b border-[var(--sheet-rule)] py-2.5"
+            >
+              <span class="min-w-0">
+                <span class="sheet-num block text-xs text-[var(--sheet-ink-soft)]">{{ m.date }}</span>
+                <span class="sheet-display sheet-num mr-2 text-2xl">{{ m.homeScore }}–{{ m.awayScore }}</span>
+                <span class="font-bold" :class="RESULT[m.result].tone">{{ RESULT[m.result].label }}</span>
+                <span v-if="m.tournament" class="block truncate text-xs text-[var(--sheet-ink-soft)]">{{ m.tournament }}</span>
+              </span>
+              <span v-for="s in [
+                { v: m.playerGoals, n: 'goles' },
+                { v: m.playerAssists, n: 'asistencias' },
+                { v: m.yellowCards, n: 'tarjetas amarillas' },
+                { v: m.redCards, n: 'tarjetas rojas' },
+              ]" :key="s.n" class="sheet-display sheet-num text-center text-2xl leading-none" :class="s.v ? '' : 'text-[var(--sheet-rule)]'">
+                {{ s.v || "–" }}<span class="sr-only"> {{ s.n }}</span>
+              </span>
+              <NuxtLink
+                v-if="m.slug"
+                :to="`/games/${m.slug}`"
+                class="match-link sheet-link inline-flex min-h-11 items-center text-sm"
+                >Ir al partido →</NuxtLink
               >
-                <span>{{ match.date }}</span>
-                <span class="font-mono font-bold"
-                  >{{ match.homeScore }}–{{ match.awayScore }}</span
-                >
-                <span
-                  :class="{
-                    'text-green-600 font-medium': match.result === 'W',
-                    'text-red-500 font-medium': match.result === 'L',
-                    'text-yellow-500 font-medium': match.result === 'D',
-                  }"
-                >
-                  {{
-                    match.result === "W"
-                      ? "Victoria"
-                      : match.result === "L"
-                        ? "Derrota"
-                        : "Empate"
-                  }}
-                </span>
-                <span class="text-xs text-muted-foreground truncate">{{
-                  match.tournament ?? ""
-                }}</span>
-                <span class="text-sm font-medium text-brand whitespace-nowrap">
-                  ⚽ {{ match.playerGoals }}
-                </span>
-                <NuxtLink
-                  :to="`/games/${match.slug}`"
-                  class="text-xs text-brand text-right hover:underline whitespace-nowrap"
-                >
-                  Ir al partido
-                </NuxtLink>
-              </li>
-            </ul>
-          </div>
-        </template>
-      </UiAccordion>
-    </div>
+            </li>
+          </ul>
+        </div>
+      </template>
+    </StatsRanked>
   </div>
 </template>
+
+<style scoped>
+/* Phone: result block + four stat columns, link on its own line.
+   Wide: the link joins the row as a last column. */
+.match-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(4, 2.5rem);
+  align-items: center;
+  column-gap: 0.25rem;
+}
+.match-link {
+  grid-column: 1 / -1;
+}
+.match-link-head {
+  display: none;
+}
+@media (min-width: 40rem) {
+  .match-grid {
+    grid-template-columns: minmax(0, 1fr) repeat(4, 3rem) 9rem;
+  }
+  .match-link {
+    grid-column: auto;
+    justify-self: end;
+  }
+  .match-link-head {
+    display: block;
+  }
+}
+</style>
