@@ -4,6 +4,8 @@ import StatsTableByYear from "~/components/pages/statistics/StatsTableByYear.vue
 import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 
 const row: TeamStatPeriodDTO = {
+  key: "2023",
+  playgroundName: "Cancha 1",
   label: "2023",
   periodStart: "2023-01-01",
   periodEnd: "2023-12-31",
@@ -21,49 +23,46 @@ const row: TeamStatPeriodDTO = {
 };
 
 describe("StatsTableByYear", () => {
-  it("renders all expected columns", () => {
-    const wrapper = mount(StatsTableByYear, {
-      props: { rows: [row], loading: false },
-    });
-    const text = wrapper.text();
-    expect(text).toContain("Año");
-    expect(text).toContain("Período");
-    expect(text).toContain("PJ");
-    expect(text).toContain("PG");
-    expect(text).toContain("PP");
-    expect(text).toContain("PE");
-    expect(text).toContain("GF");
-    expect(text).toContain("GC");
-    expect(text).toContain("DG");
-    expect(text).toContain("PTS");
-    expect(text).toContain("Win%");
-  });
+  const mountIt = (rows = [row], loading = false) =>
+    mount(StatsTableByYear, { props: { rows, loading } });
 
-  it("maps row data correctly", () => {
-    const wrapper = mount(StatsTableByYear, {
-      props: { rows: [row], loading: false },
-    });
-    const text = wrapper.text();
+  it("shows the year and its period as the row title", () => {
+    const text = mountIt().text();
     expect(text).toContain("2023");
-    expect(text).toContain("30");
-    expect(text).toContain("18");
-    expect(text).toContain("55");
+    expect(text).toContain("01/23 – 12/23");
+  });
+
+  it("leads with points as the headline number", () => {
+    const text = mountIt().text();
     expect(text).toContain("59");
+    expect(text).toContain("puntos");
+  });
+
+  it("offers ranking chips for the main metrics", () => {
+    const text = mountIt().text();
+    for (const label of ["Orden", "Puntos", "Victorias", "Partidos", "% Victorias", "Dif. gol"])
+      expect(text).toContain(label);
+  });
+
+  it("opens the full columns when the row is tapped", async () => {
+    const wrapper = mountIt();
+    expect(wrapper.text()).not.toContain("GF");
+    await wrapper.find("ol button").trigger("click");
+    const text = wrapper.text();
+    for (const label of ["PJ", "PG", "PE", "PP", "GF", "GC", "DG", "% Vict."])
+      expect(text).toContain(label);
+    expect(text).toContain("55");
     expect(text).toContain("60.0%");
+    expect(text).toContain("+25");
   });
 
-  it("shows empty state when rows is empty", () => {
-    const wrapper = mount(StatsTableByYear, {
-      props: { rows: [], loading: false },
-    });
-    expect(wrapper.text()).toContain("Sin datos");
+  it("shows the empty message when there are no rows", () => {
+    const wrapper = mount(StatsTableByYear, { props: { rows: [], loading: false } });
+    expect(wrapper.text()).toContain("No hay datos para estos filtros.");
   });
 
-  it("shows loading skeleton when loading=true", () => {
-    const wrapper = mount(StatsTableByYear, {
-      props: { rows: [], loading: true },
-    });
-    const animatedDiv = wrapper.find(".animate-pulse");
-    expect(animatedDiv.exists()).toBe(true);
+  it("shows the loading message while loading", () => {
+    const wrapper = mount(StatsTableByYear, { props: { rows: [], loading: true } });
+    expect(wrapper.text()).toContain("Cargando…");
   });
 });
