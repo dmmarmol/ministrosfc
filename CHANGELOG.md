@@ -15,14 +15,41 @@ Per-package history is maintained in each package's own changelog:
 
 ## [Unreleased]
 
+---
+
+## [0.16.0] - 2026-11-25
+
+### Summary
+
+Minor release implementing spec 023: the public site, auth pages and admin shell move to the "Planilla en Triplicado" sheet design (with a dark theme and Spanish i18n), and the tournaments list gains win/draw/loss records.
+
+### Changed
+
+- Home, roster, player profile, statistics, game detail, schedule, tournaments, login, registration, onboarding and profile pages are rebuilt on the sheet design system.
+- Statistics become ranked rows (one headline number, sort chips, tap to open the rest); every position shows as a badge with its readable name.
+- The schedule is a month-grouped fixture sheet showing next and previous matches together.
+- The admin panel and the signup route are re-themed with the sheet tokens (layout only; internals unchanged).
+- The public header, navigation and footer keep one width on every page and fit at 320px.
+
 ### Added
 
-- The tournaments list shows each tournament's Ministros FC record (wins, draws, losses); `GET /api/v1/tournaments` now returns `ministrosRecord` on every row.
+- Dark "negative print" theme with a color-mode toggle on public pages.
+- `@nuxtjs/i18n` (Spanish only): every public-site string goes through `t()`, and a test fails on undefined keys.
+- Win/draw/loss record on each tournament in the list; `GET /api/v1/tournaments` returns `ministrosRecord` on every row.
+- Player rival breakdown includes assists, cards and the playground of each match, listed as single-open ranked rows.
+- Cards shown as yellow and red squares on the game detail.
+- Branded error page, shared sheet building blocks and the sheet palette as Tailwind colors.
 
 ### Fixed
 
+- The home picks the nearest upcoming game when more than five are scheduled.
 - The top-scorers page no longer logs a hydration mismatch.
-- Public end-to-end specs follow the redesigned markup (named navigation, hydration wait, a year the player really has).
+- The shared `MinistrosRecord` type matches what the API returns.
+- Public end-to-end specs follow the redesigned markup.
+
+### Removed
+
+- Unused old-look components and the `default` layout.
 
 ---
 

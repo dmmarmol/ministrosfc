@@ -11,6 +11,14 @@ For project-level release notes covering all packages, see the root [CHANGELOG.m
 
 ## [Unreleased]
 
+---
+
+## [0.16.0] - 2026-11-25
+
+### Summary
+
+Minor release implementing spec 023: the sheet redesign of the public site, dark theme, Spanish i18n and tournament records. See the root changelog for the full release.
+
 ### Added
 
 - `TournamentLine` shows the Ministros FC record ("1 G · 2 E · 3 P") with a screen-reader label; nothing is shown before a game is played.

@@ -9,6 +9,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+---
+
+## [0.16.0] - 2026-11-25
+
+### Summary
+
+Minor release for spec 023: tournament record types now match the API. See the root changelog for the full release.
+
 ### Added
 
 - `TournamentWithRecord`: a tournament row plus its `ministrosRecord`.

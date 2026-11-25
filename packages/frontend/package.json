@@ -1,6 +1,6 @@
 {
     "name": "@ministrosfc/frontend",
-    "version": "0.13.0",
+    "version": "0.16.0",
     "description": "Ministros FC Frontend - Nuxt 4 Application",
     "type": "module",
     "scripts": {
@@ -17,7 +17,7 @@
     },
     "dependencies": {
         "@heroicons/vue": "^2.2.0",
-        "@ministrosfc/shared": "^0.13.0",
+        "@ministrosfc/shared": "^0.16.0",
         "@nuxt/image": "^1.1.0",
         "@nuxt/ui": "4.7.1",
         "@nuxtjs/i18n": "^10.6.0",
