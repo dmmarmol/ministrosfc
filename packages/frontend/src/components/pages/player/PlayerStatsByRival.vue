@@ -112,11 +112,13 @@ const statCells = (m: PlayerRivalMatchDTO): { v: number; n: string }[] => [
               class="match-grid border-b border-[var(--sheet-rule)] py-2.5"
             >
               <span class="min-w-0">
-                <span class="sheet-num block text-xs text-[var(--sheet-ink-soft)]">{{ m.date }}</span>
+                <span class="sheet-num flex gap-x-2 text-xs text-[var(--sheet-ink-soft)]">
+                  <span class="shrink-0">{{ m.date }}</span>
+                  <span v-if="m.playgroundName" class="min-w-0 truncate" :title="m.playgroundName">· {{ m.playgroundName }}</span>
+                </span>
                 <span class="sheet-display sheet-num mr-2 text-2xl">{{ m.homeScore }}–{{ m.awayScore }}</span>
                 <span class="font-bold" :class="RESULT[m.result].tone">{{ RESULT[m.result].label }}</span>
                 <span v-if="m.tournament" class="block truncate text-xs text-[var(--sheet-ink-soft)]">{{ m.tournament }}</span>
-                <span v-if="m.playgroundName" class="block truncate text-xs text-[var(--sheet-ink-soft)]">{{ m.playgroundName }}</span>
               </span>
               <span v-for="s in statCells(m)" :key="s.n" class="sheet-display sheet-num text-center text-2xl leading-none" :title="s.n" :class="s.v ? '' : 'text-[var(--sheet-rule)]'">
                 {{ s.v || "–" }}<span class="sr-only"> {{ s.n }}</span>
