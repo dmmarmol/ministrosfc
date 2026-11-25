@@ -139,6 +139,8 @@ export interface PlayerRivalMatchDTO {
   homeScore: number;
   awayScore: number;
   tournament: string | null;
+  /** Where the game was played (its playground, else the free-text location). */
+  playgroundName: string | null;
   result: "W" | "L" | "D";
   slug: Game["slug"];
   playerGoals: number;
