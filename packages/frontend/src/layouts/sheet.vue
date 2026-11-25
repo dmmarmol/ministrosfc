@@ -5,9 +5,10 @@ import AdminProfileMenu from "~/components/common/AdminProfileMenu.vue";
 const authStore = useAuthStore();
 
 const links = computed(() => [
-  { to: "/", label: "Inicio", exact: true },
+  { to: "/", label: "Inicio", exact: true, wideOnly: true },
   { to: "/roster", label: "Plantilla" },
   { to: "/schedule", label: "Calendario" },
+  { to: "/tournaments", label: "Torneos" },
   {
     to: authStore.isAuthenticated ? "/statistics" : "/statistics/top-scorers",
     label: "Estadísticas",
@@ -73,7 +74,8 @@ const links = computed(() => [
           :key="l.to"
           :to="l.to"
           :exact="l.exact"
-          class="sheet-label whitespace-nowrap px-1 py-3 text-xs tracking-[0.04em] no-underline hover:underline sm:px-2 sm:tracking-[0.12em]"
+          class="sheet-label whitespace-nowrap px-1 py-3 text-xs tracking-[0.04em] no-underline hover:underline max-[380px]:text-[0.6875rem] max-[380px]:tracking-[0.01em] sm:px-2 sm:tracking-[0.12em]"
+          :class="l.wideOnly && 'hidden sm:block'"
           active-class="!text-[var(--sheet-ink)] underline"
           exact-active-class="!text-[var(--sheet-ink)] underline"
           >{{ l.label }}</NuxtLink

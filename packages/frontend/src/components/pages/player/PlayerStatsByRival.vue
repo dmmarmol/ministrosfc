@@ -104,6 +104,7 @@ const RESULT = {
                 <span class="sheet-display sheet-num mr-2 text-2xl">{{ m.homeScore }}–{{ m.awayScore }}</span>
                 <span class="font-bold" :class="RESULT[m.result].tone">{{ RESULT[m.result].label }}</span>
                 <span v-if="m.tournament" class="block truncate text-xs text-[var(--sheet-ink-soft)]">{{ m.tournament }}</span>
+                <span v-if="m.playgroundName" class="block truncate text-xs text-[var(--sheet-ink-soft)]">{{ m.playgroundName }}</span>
               </span>
               <span v-for="s in [
                 { v: m.playerGoals, n: 'goles' },
