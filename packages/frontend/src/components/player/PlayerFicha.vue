@@ -120,6 +120,7 @@ const cells = computed(() => [
   { key: "A", name: "Asistencias", value: props.stats?.assists },
 ]);
 const large = computed(() => props.size === "large");
+const split = computed(() => large.value && !!photo.value && !!dorsal.value);
 </script>
 
 <template>
@@ -129,7 +130,30 @@ const large = computed(() => props.size === "large");
     :aria-label="asLink ? label : undefined"
     class="ficha group flex h-full flex-col border-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] no-underline"
   >
+    <!-- Large + photo + dorsal: split picture, photo and the number plate side by side -->
     <div
+      v-if="split"
+      class="flex aspect-[4/3] border-b-[3px] border-[var(--sheet-ink)]"
+    >
+      <img
+        :src="photo!"
+        :alt="`${player.firstName} ${player.lastName}`"
+        class="min-w-0 grow basis-0 object-cover grayscale contrast-110 transition-[filter] duration-300 group-hover:grayscale-0"
+        @error="photoFailed = true"
+      />
+      <div
+        class="sheet-display sheet-num relative grid w-[36%] shrink-0 place-items-center border-l-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-ink)] text-[5.5rem] leading-none text-[var(--sheet-paper)]"
+      >
+        <span
+          class="absolute left-2 top-1.5 font-[var(--sheet-type)] text-xs font-bold tracking-[0.12em] text-[var(--sheet-blue-on-ink)]"
+          aria-hidden="true"
+          >Nº</span
+        >
+        <span :aria-label="`Camiseta ${dorsal}`">{{ dorsal }}</span>
+      </div>
+    </div>
+    <div
+      v-else
       class="relative overflow-hidden border-b-[3px] border-[var(--sheet-ink)]"
       :class="large ? 'aspect-[4/3]' : 'aspect-[4/3.2]'"
     >
@@ -166,6 +190,7 @@ const large = computed(() => props.size === "large");
           >{{ initials }}</span
         >
       </div>
+      <!-- Grid + photo: the dorsal rides on a paper tab -->
       <span
         v-if="dorsal && photo"
         class="sheet-display sheet-num absolute left-0 top-0 border-b-[3px] border-r-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] px-2.5 pt-1 leading-none text-[var(--sheet-blue)]"
