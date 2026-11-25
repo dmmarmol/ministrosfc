@@ -362,11 +362,10 @@ body:has(.sheet-world) {
 }
 .sheet-checkbox:checked::after {
   content: "";
-  width: 0.65rem;
-  height: 0.35rem;
-  border-left: 3px solid var(--sheet-paper);
-  border-bottom: 3px solid var(--sheet-paper);
-  transform: rotate(-45deg) translate(1px, -1px);
+  width: 0.8rem;
+  height: 0.8rem;
+  background: var(--sheet-paper);
+  clip-path: polygon(12% 46%, 0 64%, 42% 100%, 100% 22%, 82% 8%, 41% 66%);
 }
 
 /*
