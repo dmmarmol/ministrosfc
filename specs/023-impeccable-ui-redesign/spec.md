@@ -168,6 +168,13 @@ Confirmed by the maintainer after the Impeccable decision round; anchors the vis
 - **Player card**: A compact portrait-format card for one player combining identity (photo, name, number, position, club crest) and a stat grid. Data source: existing player and career-stats fields; ratings are a future extension.
 - **Surface brief**: Per-surface intent (public home, roster, schedule, game, stats, admin, auth) naming its mode (persuade, operate, read, experience).
 
+## Delivery status (end of stage 5)
+
+- Redesigned page by page: home, roster, player profile, statistics (all), game detail, schedule, tournaments (list and detail), login, registration, onboarding, both profile pages.
+- Re-themed, not redesigned: the admin panel (layout plus token remap) and the signup route (layout only; internals unchanged, FR-020).
+- Open against SC-005: hard-coded colors remain in a few legacy components (`GameLineupField`, `Position/Number`, `JerseySvg`, `common/Header` and `Navigation`, now unused by sheet pages). Open against SC-001: signup internals and admin page internals still carry old-look components.
+- Not run: a full Impeccable audit and Playwright end-to-end suite on the final branch.
+
 ## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes

@@ -223,6 +223,22 @@ Every statistics table is a list of ruled rows under a 3px ink rule on a paper g
 
 The statistics section sits under the header as a row of blue uppercase tabs (General, Goleadores, and, when signed in, Jugadores, Rivales, Año, Torneo). The active tab turns ink with a 4px blue underline. Tabs wrap to a second line instead of scrolling. Filters live in a ruled bar between two 3px ink rules in a one-column phone grid; Nuxt UI selects inside it are restyled to the same 3px ink, square, paper-filled field.
 
+### Buttons, Notices and Checkbox
+
+`sheet-button`: an ink block with display lettering, square, 3px border; `data-variant="outline"` for the quiet action. `sheet-notice`: a boxed line; `data-tone="error"` swaps border and text to the loss tone and always carries words. `sheet-checkbox`: a square ink box with a drawn tick. Login, registration, onboarding and both profile pages are built from these plus Form Fields on the sheet layout.
+
+### Tournaments
+
+The list is a register: an ink band per start year, ruled rows with the name in display caps, a typewriter format and date line, and a blue "En curso" or "Próximo" word. The detail reuses the record grid, ink-band sections, game lines grouped by month and the ranked scorers.
+
+### Rival Rows (player page)
+
+Ranked Rows with one row open at a time, a search box instead of a dropdown, a sticky open header, and a recessed well (`--sheet-well`) under the open row holding the stat strip and a column grid per match (goals, assists, yellow and red cards, link to the game). Results use the win, loss and draw tones with their words.
+
+### Admin
+
+The admin panel runs in the same world through a legacy token remap under `.sheet-world`: the old gray scale, brand, surface, square corners and no shadows read the sheet palette, and `.admin-sheet` quiets fields and labels for dense forms. The sidebar stays dark in both modes. This is a re-theme, not a page-by-page redesign.
+
 ### Focus and Selection
 Focus-visible is a 3px blue outline with 3px offset (on-ink blue inside black strips). Text selection is blue on white.
 
