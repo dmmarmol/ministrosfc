@@ -142,6 +142,9 @@ export interface PlayerRivalMatchDTO {
   result: "W" | "L" | "D";
   slug: Game["slug"];
   playerGoals: number;
+  playerAssists: number;
+  yellowCards: number;
+  redCards: number;
 }
 
 export interface PlayerRivalPeriodDTO {
@@ -154,6 +157,9 @@ export interface PlayerRivalPeriodDTO {
   goalsFor: number;
   goalsAgainst: number;
   playerGoals: number;
+  playerAssists: number;
+  yellowCards: number;
+  redCards: number;
   matches: PlayerRivalMatchDTO[];
 }
 
