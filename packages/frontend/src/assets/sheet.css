@@ -430,7 +430,7 @@ body:has(.sheet-world) {
   font-size: 0.75rem;
 }
 
-/* Footer: an ink block on light; deep blue in dark mode, with light text */
+/* Footer: an ink block on light; in dark mode it matches the header (paper) and mirrors its rule */
 .sheet-footer {
   background: var(--sheet-ink);
   color: var(--sheet-paper);
@@ -439,12 +439,13 @@ body:has(.sheet-world) {
   color: var(--sheet-blue-on-ink);
 }
 .dark .sheet-footer {
-  background: #0f1c52;
-  color: #f3f4f8;
+  background: var(--sheet-paper);
+  color: var(--sheet-ink);
+  border-top: 3px solid var(--sheet-ink);
 }
 .dark .sheet-footer-accent {
-  color: #9db1ff;
+  color: var(--sheet-blue);
 }
 .dark .sheet-footer.sheet-on-ink :focus-visible {
-  outline-color: #9db1ff;
+  outline-color: var(--sheet-blue);
 }
