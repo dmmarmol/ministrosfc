@@ -28,7 +28,7 @@ test.describe("Public browsing flow", () => {
   test("navigation links are present", async ({ page }) => {
     await page.goto("/");
     // Check navigation bar links (not footer or page content links)
-    const nav = page.locator("nav");
+    const nav = page.getByRole("navigation", { name: "Principal" });
     await expect(nav.getByRole("link", { name: /plantilla/i })).toBeVisible();
     await expect(nav.getByRole("link", { name: /calendario/i })).toBeVisible();
   });
