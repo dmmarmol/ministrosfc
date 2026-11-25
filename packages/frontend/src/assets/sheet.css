@@ -429,3 +429,22 @@ body:has(.sheet-world) {
   color: inherit;
   font-size: 0.75rem;
 }
+
+/* Footer: an ink block on light; deep blue in dark mode, with light text */
+.sheet-footer {
+  background: var(--sheet-ink);
+  color: var(--sheet-paper);
+}
+.sheet-footer-accent {
+  color: var(--sheet-blue-on-ink);
+}
+.dark .sheet-footer {
+  background: #0f1c52;
+  color: #f3f4f8;
+}
+.dark .sheet-footer-accent {
+  color: #9db1ff;
+}
+.dark .sheet-footer.sheet-on-ink :focus-visible {
+  outline-color: #9db1ff;
+}

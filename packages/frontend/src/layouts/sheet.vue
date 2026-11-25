@@ -87,12 +87,12 @@ const links = computed(() => [
       <slot />
     </main>
 
-    <footer class="sheet-on-ink bg-[var(--sheet-ink)] text-[var(--sheet-paper)]">
+    <footer class="sheet-on-ink sheet-footer">
       <div
         class="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-6 text-sm"
       >
         <span class="sheet-display text-lg">Ministros FC · Desde 2023</span>
-        <span class="text-[var(--sheet-blue-on-ink)]"
+        <span class="sheet-footer-accent"
           >&copy; {{ new Date().getFullYear() }}</span
         >
       </div>
