@@ -13,6 +13,15 @@ For project-level release notes covering all packages, see the root [CHANGELOG.m
 
 ### Added
 
+- `TournamentLine` shows the Ministros FC record ("1 G · 2 E · 3 P") with a screen-reader label; nothing is shown before a game is played.
+
+### Fixed
+
+- The top-scorers page derives its loading state from the fetch status, so the server and client render the same state (no hydration mismatch).
+- Public end-to-end specs: the navigation spec targets the "Principal" navigation, and the player year-filter specs wait for hydration and use a year the player has.
+
+### Added
+
 - `@nuxtjs/i18n` with a single Spanish locale (`i18n/locales/es.json`); every public-site string, the shared select/modal components and the composable error messages now go through `t()`. A unit test fails when the source asks for a key the messages do not define.
 - Shared sheet building blocks under `components/ui/Sheet/` (`Title`, `Heading`, `Band`, `Totals`, `Message`) and `TournamentLine`, replacing markup that was copied across pages.
 - The sheet palette as Tailwind colors (`bg-sheet-paper`, `text-sheet-win`, `fill-sheet-pitch`, ...) and `useSheetColors` for drawings that cannot take classes (jersey images).

@@ -15,6 +15,15 @@ Per-package history is maintained in each package's own changelog:
 
 ## [Unreleased]
 
+### Added
+
+- The tournaments list shows each tournament's Ministros FC record (wins, draws, losses); `GET /api/v1/tournaments` now returns `ministrosRecord` on every row.
+
+### Fixed
+
+- The top-scorers page no longer logs a hydration mismatch.
+- Public end-to-end specs follow the redesigned markup (named navigation, hydration wait, a year the player really has).
+
 ---
 
 ## [0.15.0] — 2026-11-23

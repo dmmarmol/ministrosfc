@@ -9,6 +9,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `TournamentWithRecord`: a tournament row plus its `ministrosRecord`.
+
+### Fixed
+
+- `MinistrosRecord` matches what the API returns (removed the never-sent `tournamentId` and `points`); `TournamentStatsResponse` reuses it.
+
 ---
 
 ## [0.13.0] - 2026-11-23

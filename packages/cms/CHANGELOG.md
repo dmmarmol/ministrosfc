@@ -9,6 +9,10 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `GET /api/v1/tournaments` returns `ministrosRecord` on every tournament, computed for all rows in a single query (`TournamentModel.calculateMinistrosRecords`); the tally logic is shared in `utils/ministros-record.ts`.
+
 ---
 
 ## [0.15.0] — 2026-11-23
