@@ -7,11 +7,13 @@ useHead({ title: "Calendario" });
 
 const { $api } = useNuxtApp();
 
-const tabs = [
+type View = "all" | "upcoming" | "past";
+const views: { key: View; label: string }[] = [
+  { key: "all", label: "Todos" },
   { key: "upcoming", label: "Próximos" },
   { key: "past", label: "Resultados" },
 ];
-const activeTab = ref("upcoming");
+const view = ref<View>("all");
 const opponentFilter = ref("");
 const LIMIT = 50;
 
@@ -20,48 +22,43 @@ const { data: teamsData } = await useAsyncData("schedule-teams", () =>
 );
 const teams = computed(() => teamsData.value?.data ?? []);
 
-const baseQuery = () => ({
-  ...(opponentFilter.value ? { opponentTeamId: opponentFilter.value } : {}),
-  limit: LIMIT,
-});
 const list = (status: GameStatus) =>
   $api<{ data: Game[] }>("/api/v1/games", {
-    query: { status, ...baseQuery() },
+    query: {
+      status,
+      ...(opponentFilter.value ? { opponentTeamId: opponentFilter.value } : {}),
+      limit: LIMIT,
+    },
   }).then((r) => r.data ?? []);
 
+// Both halves load once; the buttons only choose what is shown.
 const { data, pending, error, refresh } = await useAsyncData(
   "schedule",
   async () => {
-    if (activeTab.value === "past") return list(GameStatus.COMPLETED);
-    // Upcoming: scheduled games plus called-off ones that have not happened yet
-    const [scheduled, cancelled] = await Promise.all([
+    const [scheduled, cancelled, completed] = await Promise.all([
       list(GameStatus.SCHEDULED),
       list(GameStatus.CANCELLED),
+      list(GameStatus.COMPLETED),
     ]);
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
     const seen = new Set<string>();
-    return [
+    const upcoming = [
       ...scheduled,
       ...cancelled.filter((g) => new Date(g.date) >= startOfToday),
     ].filter((g) => (seen.has(g.id) ? false : (seen.add(g.id), true)));
+    return { upcoming, past: completed };
   },
 );
 
-watch([activeTab, opponentFilter], () => refresh());
+watch(opponentFilter, () => refresh());
 
-const games = computed(() => {
-  const list = [...(data.value ?? [])];
-  const dir = activeTab.value === "upcoming" ? 1 : -1;
-  return list.sort(
-    (a, b) => dir * (new Date(a.date).getTime() - new Date(b.date).getTime()),
-  );
-});
+const byDate = (dir: 1 | -1) => (a: Game, b: Game) =>
+  dir * (new Date(a.date).getTime() - new Date(b.date).getTime());
 
-// Group by month, keeping the sort order
-const groups = computed(() => {
+function monthGroups(games: Game[]) {
   const out: { key: string; label: string; items: Game[] }[] = [];
-  for (const g of games.value) {
+  for (const g of games) {
     const d = new Date(g.date);
     const key = `${d.getFullYear()}-${d.getMonth()}`;
     let grp = out.find((x) => x.key === key);
@@ -73,7 +70,35 @@ const groups = computed(() => {
     grp.items.push(g);
   }
   return out;
+}
+
+const upcomingGroups = computed(() =>
+  monthGroups([...(data.value?.upcoming ?? [])].sort(byDate(1))),
+);
+const pastGroups = computed(() =>
+  monthGroups([...(data.value?.past ?? [])].sort(byDate(-1))),
+);
+
+const sections = computed(() => {
+  const s = [
+    {
+      key: "upcoming" as const,
+      title: "Próximos partidos",
+      groups: upcomingGroups.value,
+      count: data.value?.upcoming.length ?? 0,
+      empty: "No hay partidos próximos.",
+    },
+    {
+      key: "past" as const,
+      title: "Partidos jugados",
+      groups: pastGroups.value,
+      count: data.value?.past.length ?? 0,
+      empty: "Todavía no hay partidos jugados.",
+    },
+  ];
+  return view.value === "all" ? s : s.filter((x) => x.key === view.value);
 });
+const hasData = computed(() => !!data.value);
 </script>
 
 <template>
@@ -82,14 +107,14 @@ const groups = computed(() => {
 
     <div class="mt-5 flex flex-wrap gap-2" role="group" aria-label="Ver">
       <button
-        v-for="tab in tabs"
-        :key="tab.key"
+        v-for="v in views"
+        :key="v.key"
         type="button"
         class="sheet-chip"
-        :aria-pressed="activeTab === tab.key"
-        @click="activeTab = tab.key"
+        :aria-pressed="view === v.key"
+        @click="view = v.key"
       >
-        {{ tab.label }}
+        {{ v.label }}
       </button>
     </div>
 
@@ -109,40 +134,45 @@ const groups = computed(() => {
       No se pudo cargar el calendario.
       <button type="button" class="sheet-link ml-1" @click="refresh()">Reintentar</button>
     </p>
-    <p v-else-if="pending && !groups.length" class="mt-6">Cargando partidos…</p>
-    <template v-else-if="groups.length">
+    <p v-else-if="!hasData" class="mt-6">Cargando partidos…</p>
+    <div v-else class="transition-opacity" :class="pending && 'opacity-60'">
       <section
-        v-for="grp in groups"
-        :key="grp.key"
+        v-for="sec in sections"
+        :key="sec.key"
         class="mt-8"
-        :aria-labelledby="`month-${grp.key}`"
+        :aria-labelledby="`sec-${sec.key}`"
       >
-        <h2 :id="`month-${grp.key}`" class="sheet-display text-3xl">{{ grp.label }}</h2>
-        <ul
-          class="mt-1 border-t-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] transition-opacity"
-          :class="pending && 'opacity-60'"
+        <h2
+          :id="`sec-${sec.key}`"
+          class="sheet-on-ink sheet-display flex items-baseline justify-between bg-[var(--sheet-ink)] px-3 py-2 text-4xl text-[var(--sheet-paper)]"
         >
-          <li
-            v-for="g in grp.items"
-            :key="g.id"
-            class="border-b border-[var(--sheet-rule)] px-3"
+          {{ sec.title }}
+          <span class="sheet-num font-[var(--sheet-type)] text-base font-bold text-[var(--sheet-blue-on-ink)]"
+            >{{ sec.count }}<span class="sr-only"> partidos</span></span
           >
-            <GameLine :game="g" />
-          </li>
-        </ul>
+        </h2>
+
+        <p v-if="!sec.groups.length" class="border-b-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] px-3 py-4">
+          {{ opponentFilter ? "No hay partidos con este rival." : sec.empty }}
+        </p>
+        <template v-else>
+          <div v-for="grp in sec.groups" :key="grp.key" class="mt-5">
+            <h3 class="sheet-display text-2xl">{{ grp.label }}</h3>
+            <ul class="mt-1 border-t-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)]">
+              <li
+                v-for="g in grp.items"
+                :key="g.id"
+                class="border-b border-[var(--sheet-rule)] px-3"
+              >
+                <GameLine :game="g" />
+              </li>
+            </ul>
+          </div>
+          <p v-if="sec.count >= LIMIT" class="mt-4 text-sm text-[var(--sheet-ink-soft)]">
+            Se muestran los {{ LIMIT }} partidos más {{ sec.key === "upcoming" ? "próximos" : "recientes" }}.
+          </p>
+        </template>
       </section>
-      <p v-if="games.length >= LIMIT" class="mt-6 text-sm text-[var(--sheet-ink-soft)]">
-        Se muestran los {{ LIMIT }} partidos más {{ activeTab === "upcoming" ? "próximos" : "recientes" }}.
-      </p>
-    </template>
-    <p v-else class="mt-8 text-lg">
-      {{
-        opponentFilter
-          ? "No hay partidos con este rival."
-          : activeTab === "upcoming"
-            ? "No hay partidos próximos."
-            : "Todavía no hay partidos jugados."
-      }}
-    </p>
+    </div>
   </div>
 </template>
