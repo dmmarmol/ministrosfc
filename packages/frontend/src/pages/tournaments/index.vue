@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { competitionTypeItems, type CompetitionType } from "@ministrosfc/shared";
+import {
+  competitionTypeItems,
+  type CompetitionType,
+  type TournamentWithRecord,
+} from "@ministrosfc/shared";
 import TournamentLine from "~/components/pages/tournaments/TournamentLine.vue";
 
 
@@ -7,13 +11,10 @@ const { t } = useI18n();
 definePageMeta({ public: true, layout: "sheet" });
 useHead({ title: t("common.torneos") });
 
-interface TournamentRow {
-  id: string;
-  name: string;
-  competitionType: string;
-  startDate: string;
-  endDate: string | null;
-}
+type TournamentRow = Pick<
+  TournamentWithRecord,
+  "id" | "name" | "competitionType" | "startDate" | "endDate" | "ministrosRecord"
+>;
 
 const { $api } = useNuxtApp();
 

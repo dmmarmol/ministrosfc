@@ -498,6 +498,8 @@
   "tournaments": {
     "cargandoTorneos": "Cargando torneos…",
     "formato": "Formato",
+    "record": "{wins} G · {draws} E · {losses} P",
+    "recordLabel": "Ganados {wins}, empatados {draws}, perdidos {losses}",
     "reintentar": "Reintentar"
   },
   "tournamentsDetail": {
