@@ -32,7 +32,7 @@ export async function importHistorial(
 
     const dateOnly = parseDate(fechaRaw ?? "");
     if (!dateOnly) {
-      warnings.push(`historial: invalid date "${fechaRaw}" — row skipped`);
+      warnings.push(`historial: la fecha "${fechaRaw}" no es válida; se omitió la fila.`);
       result.games.skipped++;
       continue;
     }
@@ -46,7 +46,7 @@ export async function importHistorial(
 
     const rivalName = row[HistorialCols.rival]?.trim();
     if (!rivalName) {
-      warnings.push(`historial: missing rival on ${fechaRaw} — row skipped`);
+      warnings.push(`historial: falta el rival en ${fechaRaw}; se omitió la fila.`);
       result.games.skipped++;
       continue;
     }
@@ -113,7 +113,7 @@ export async function importHistorial(
 
     if (hasCanchas && locationRaw && !playgroundId) {
       warnings.push(
-        `game ${fechaRaw} vs ${rivalName}: location '${locationRaw}' not found in canchas.csv`,
+        `Partido del ${fechaRaw} contra ${rivalName}: no se encontró la cancha '${locationRaw}' en canchas.csv.`,
       );
     }
 

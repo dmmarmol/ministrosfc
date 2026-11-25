@@ -101,7 +101,7 @@ router.get(
       if (hasExtend && !req.user) {
         res.status(401).json({
           code: "UNAUTHORIZED",
-          message: "Authentication required when using extend",
+          message: "Se requiere autenticación para usar extend.",
           statusCode: 401,
         });
         return;
@@ -115,7 +115,7 @@ router.get(
       ) {
         res.status(403).json({
           code: "FORBIDDEN",
-          message: "Insufficient permissions to use extend",
+          message: "No tenés permisos suficientes para usar extend.",
           statusCode: 403,
         });
         return;
@@ -244,7 +244,7 @@ router.patch(
         if (target.playerType !== "GUEST") {
           res.status(403).json({
             code: "FORBIDDEN",
-            message: "DT role can only change status of guest players",
+            message: "El rol DT solo puede cambiar el estado de jugadores invitados.",
             statusCode: 403,
           });
           return;

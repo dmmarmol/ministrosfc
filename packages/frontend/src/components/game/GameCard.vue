@@ -71,7 +71,7 @@ const statusClass = computed(() => {
 
 <template>
   <div
-    class="group bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100"
+    class="group bg-surface rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100"
   >
     <!-- Detail navigation link -->
     <NuxtLink :to="detailUrl" class="flex items-center gap-4 p-4">
@@ -82,7 +82,7 @@ const statusClass = computed(() => {
         <img
           v-if="game.opponentTeam?.logoUrl"
           :src="game.opponentTeam.logoUrl"
-          :alt="game.opponentTeam.name"
+          :alt="`Escudo de ${game.opponentTeam.name}`"
           class="w-full h-full object-cover"
         />
         <span v-else class="text-lg font-bold text-gray-400">{{
@@ -92,7 +92,7 @@ const statusClass = computed(() => {
       <!-- Game info -->
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-gray-900 text-sm truncate">
-          vs {{ game.opponentTeam?.name ?? "Unknown" }}
+          vs. {{ game.opponentTeam?.name ?? "Rival desconocido" }}
         </p>
         <p class="text-xs text-gray-500 mt-0.5">
           {{ formatDate(game.date)

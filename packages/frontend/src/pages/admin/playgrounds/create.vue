@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useHead } from "nuxt/app";
 import PlaygroundForm, {
   type PlaygroundFormData,
 } from "~/components/pages/admin/playground/PlaygroundForm.vue";
 import { usePlaygrounds } from "~/composables/usePlaygrounds";
+import { useQueryParams } from "~/composables/useQueryParams";
+import { resolveReturnUrl } from "~/utils/returnUrl";
 
 definePageMeta({
   layout: "admin",
@@ -12,9 +16,10 @@ definePageMeta({
   requiresRole: "editor",
   pageTitle: "Crear Cancha",
 });
-useHead({ title: "Nueva Cancha – Admin" });
+useHead({ title: "Nueva cancha – Administración" });
 
 const router = useRouter();
+const queryParams = useQueryParams();
 const { createPlayground } = usePlaygrounds();
 
 const loading = ref(false);
@@ -31,7 +36,9 @@ async function handleSubmit(payload: PlaygroundFormData) {
         ? { latitude: payload.latitude, longitude: payload.longitude }
         : {}),
     });
-    await router.push("/admin/playgrounds");
+    await router.push(
+      resolveReturnUrl(queryParams.get("returnUrl"), "/admin/playgrounds"),
+    );
   } catch (e: unknown) {
     const err = e as { data?: { code?: string }; message?: string };
     if (err?.data?.code === "ADDRESS_NOT_FOUND") {
@@ -50,7 +57,7 @@ async function handleSubmit(payload: PlaygroundFormData) {
 <template>
   <div class="max-w-lg">
     <header class="mb-4">
-      <UiBackButton to="/admin/playgrounds" label="Volver a Canchas" />
+      <UiBackButton to="/admin/playgrounds" label="Volvé a canchas" />
     </header>
 
     <div class="mb-4">

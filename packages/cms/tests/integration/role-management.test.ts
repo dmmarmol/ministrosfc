@@ -229,7 +229,7 @@ describe("Admin role management (integration)", () => {
         .send({ role: "PLAYER" });
 
       expect(res.status).toBe(403);
-      expect(res.body.message).toBe("Cannot demote yourself");
+      expect(res.body.message).toBe("No podés quitarte el rol de administrador.");
     });
 
     it("allows ADMIN to promote user to ADMIN role", async () => {

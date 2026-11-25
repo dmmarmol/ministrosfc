@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import type { OpponentTeam } from "@ministrosfc/shared";
+import { useRoute, useRouter } from "vue-router";
 import OpponentTeamForm from "~/components/pages/admin/teams/OpponentTeamForm.vue";
 import PageLoading from "~/components/ui/PageLoading.vue";
 import { useOpponentTeams } from "~/composables/useOpponentTeams";
+import { useQueryParams } from "~/composables/useQueryParams";
+import { resolveReturnUrl } from "~/utils/returnUrl";
 
 definePageMeta({
   layout: "admin",
@@ -14,6 +17,7 @@ definePageMeta({
 
 const route = useRoute();
 const router = useRouter();
+const queryParams = useQueryParams();
 const { fetchOpponentTeam, updateOpponentTeam } = useOpponentTeams();
 
 const teamId = computed(() => String(route.params.teamId));
@@ -46,7 +50,9 @@ async function handleSubmit(payload: OpponentTeam) {
 
   try {
     await updateOpponentTeam(teamId.value, payload);
-    await router.push("/admin/teams");
+    await router.push(
+      resolveReturnUrl(queryParams.get("returnUrl"), "/admin/teams"),
+    );
   } catch (e: any) {
     error.value = e?.message ?? "No se pudo guardar el equipo.";
   } finally {
@@ -58,7 +64,7 @@ async function handleSubmit(payload: OpponentTeam) {
 <template>
   <div class="space-y-4">
     <header class="mb-4">
-      <UiBackButton to="/admin/tournaments" label="Volver a Equipos" />
+      <UiBackButton to="/admin/teams" label="Volvé a equipos" />
     </header>
 
     <PageLoading
@@ -74,7 +80,7 @@ async function handleSubmit(payload: OpponentTeam) {
       :opponentTeam="team"
       :loading="saving"
       :error="error"
-      :submit-label="saving ? 'Guardando...' : 'Guardar equipo'"
+      :submit-label="saving ? 'Guardando...' : 'Guardá el equipo'"
       @submit="handleSubmit"
     />
   </div>

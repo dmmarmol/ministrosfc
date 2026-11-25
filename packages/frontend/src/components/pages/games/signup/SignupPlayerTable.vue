@@ -51,7 +51,7 @@ const isTeamFull = computed(
       </div>
     </div>
 
-    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+    <div class="bg-surface border border-gray-200 rounded-xl overflow-hidden">
       <div
         v-for="entry in props.roster"
         :key="entry.participantId"

@@ -14,16 +14,16 @@ const router = Router();
 
 const playgroundCreateSchema = z
   .object({
-    name: z.string().min(1).max(255, "Name must be 255 characters or less"),
+    name: z.string().min(1).max(255, "name no puede superar los 255 caracteres."),
     address: z
       .string()
       .min(1)
-      .max(500, "Address must be 500 characters or less"),
+      .max(500, "address no puede superar los 500 caracteres."),
     latitude: z.number().optional(),
     longitude: z.number().optional(),
   })
   .refine((d) => (d.latitude == null) === (d.longitude == null), {
-    message: "latitude and longitude must both be present or both absent",
+    message: "latitude y longitude deben estar presentes al mismo tiempo o faltar ambos.",
     path: ["latitude"],
   });
 
@@ -35,7 +35,7 @@ const playgroundUpdateSchema = z
     longitude: z.number().optional(),
   })
   .refine((d) => (d.latitude == null) === (d.longitude == null), {
-    message: "latitude and longitude must both be present or both absent",
+    message: "latitude y longitude deben estar presentes al mismo tiempo o faltar ambos.",
     path: ["latitude"],
   });
 

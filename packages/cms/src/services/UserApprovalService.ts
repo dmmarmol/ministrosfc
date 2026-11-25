@@ -119,7 +119,7 @@ function checkOptimisticLock(
 
   if (currentUpdatedAt.toISOString() !== expectedUpdatedAt) {
     throw createError(
-      "Stale update: request was already reviewed",
+      "La solicitud ya fue revisada. Actualizá la página e intentá de nuevo.",
       409,
       ErrorCode.CONFLICT,
     );
@@ -130,11 +130,11 @@ async function getPendingUserOrThrow(userId: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
   if (!user) {
-    throw createError("Pending user not found", 404, ErrorCode.NOT_FOUND);
+    throw createError("No se encontró el usuario pendiente de aprobación.", 404, ErrorCode.NOT_FOUND);
   }
 
   if (user.registrationStatus !== "PENDING_APPROVAL") {
-    throw createError("Request already decided", 409, ErrorCode.CONFLICT);
+    throw createError("La solicitud ya fue resuelta.", 409, ErrorCode.CONFLICT);
   }
 
   return user;
@@ -288,11 +288,11 @@ const UserApprovalService = {
     const result = await prisma.$transaction(async (tx) => {
       const pending = await tx.user.findUnique({ where: { id: userId } });
       if (!pending) {
-        throw createError("Pending user not found", 404, ErrorCode.NOT_FOUND);
+        throw createError("No se encontró el usuario pendiente de aprobación.", 404, ErrorCode.NOT_FOUND);
       }
 
       if (pending.registrationStatus !== "PENDING_APPROVAL") {
-        throw createError("Request already decided", 409, ErrorCode.CONFLICT);
+        throw createError("La solicitud ya fue resuelta.", 409, ErrorCode.CONFLICT);
       }
 
       checkOptimisticLock(pending.updatedAt, expectedUpdatedAt);
@@ -348,7 +348,7 @@ const UserApprovalService = {
     const trimmedReason = reason.trim();
     if (!trimmedReason) {
       throw createError(
-        "Denial reason is required",
+        "Tenés que indicar el motivo del rechazo.",
         400,
         ErrorCode.VALIDATION_ERROR,
       );
@@ -387,11 +387,11 @@ const UserApprovalService = {
         where: { id: userId },
       });
       if (!pending) {
-        throw createError("Pending user not found", 404, ErrorCode.NOT_FOUND);
+        throw createError("No se encontró el usuario pendiente de aprobación.", 404, ErrorCode.NOT_FOUND);
       }
 
       if (pending.registrationStatus !== "PENDING_APPROVAL") {
-        throw createError("Request already decided", 409, ErrorCode.CONFLICT);
+        throw createError("La solicitud ya fue resuelta.", 409, ErrorCode.CONFLICT);
       }
 
       checkOptimisticLock(pending.updatedAt, expectedUpdatedAt);
@@ -401,11 +401,11 @@ const UserApprovalService = {
         include: { user: true },
       });
       if (!player) {
-        throw createError("Merge player not found", 404, ErrorCode.NOT_FOUND);
+        throw createError("No se encontró el jugador que querés vincular.", 404, ErrorCode.NOT_FOUND);
       }
       if (player.user) {
         throw createError(
-          "Merge player already linked",
+          "El jugador ya está vinculado a una cuenta.",
           409,
           ErrorCode.CONFLICT,
         );
@@ -460,12 +460,12 @@ const UserApprovalService = {
     return prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({ where: { id: userId } });
       if (!user) {
-        throw createError("User not found", 404, ErrorCode.NOT_FOUND);
+        throw createError("No se encontró el usuario.", 404, ErrorCode.NOT_FOUND);
       }
 
       if (user.registrationStatus !== "APPROVED") {
         throw createError(
-          "User must be approved before merge",
+          "El usuario debe estar aprobado antes de vincularlo con un jugador.",
           409,
           ErrorCode.CONFLICT,
         );
@@ -473,7 +473,7 @@ const UserApprovalService = {
 
       if (user.playerId) {
         throw createError(
-          "User already linked to player",
+          "El usuario ya está vinculado a un jugador.",
           409,
           ErrorCode.CONFLICT,
         );
@@ -487,12 +487,12 @@ const UserApprovalService = {
       });
 
       if (!mergePlayer) {
-        throw createError("Merge player not found", 404, ErrorCode.NOT_FOUND);
+        throw createError("No se encontró el jugador que querés vincular.", 404, ErrorCode.NOT_FOUND);
       }
 
       if (mergePlayer.user) {
         throw createError(
-          "Merge player already linked",
+          "El jugador ya está vinculado a una cuenta.",
           409,
           ErrorCode.CONFLICT,
         );

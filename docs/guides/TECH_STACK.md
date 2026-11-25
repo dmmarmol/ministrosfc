@@ -1,5 +1,7 @@
 # Ministros FC - Tech Stack Summary
 
+> Deployment, environments and operations are documented in the [deployment runbook](./DEPLOYMENT.md); where this summary differs (for example health endpoints and hosting details), the runbook is current.
+
 **Version**: 1.0 | **Date**: March 17, 2026 | **Status**: Approved
 
 ---

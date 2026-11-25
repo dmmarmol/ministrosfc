@@ -53,7 +53,7 @@ async function submit() {
 </script>
 
 <template>
-  <div class="bg-white border border-gray-200 rounded-xl p-4 mb-4">
+  <div class="bg-surface border border-gray-200 rounded-xl p-4 mb-4">
     <p class="text-sm font-medium text-gray-700 mb-3">Agregar invitado</p>
     <template v-if="!guestMode">
       <UButton

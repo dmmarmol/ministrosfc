@@ -1,20 +1,13 @@
-name: CMS CI/CD
+name: CMS CI
 
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: "Deployment environment (manual deploys are development only)"
-        required: true
-        default: "development"
-        type: choice
-        options:
-          - development
-  release:
-    types: [published]
+  # Reused by deploy.yml (workflow_call) so the same tests gate every deployment.
+  workflow_call:
   push:
-    branches:
-      - "**"
+    # develop and main are tested by deploy.yml; other branches are tested here.
+    branches-ignore:
+      - develop
+      - main
     paths:
       - "packages/cms/**"
       - "packages/shared/**"
@@ -30,6 +23,10 @@ on:
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/ci-cms.yml"
+
+# Least privilege: tests only read the repository.
+permissions:
+  contents: read
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
@@ -107,30 +104,3 @@ jobs:
           JWT_SECRET: ci-test-secret-key-at-least-64-chars-long-for-ci-suite-only
           REDIS_HOST: localhost
           REDIS_PORT: 6379
-
-  # ─────────────────────────────────────────────────────────────────────────────
-  # Deploy CMS
-  #   release (published) → environment: production → ministrosfc-cms
-  #   push to develop     → environment: development → ministrosfc-cms-dev
-  #   workflow_dispatch   → environment: development → ministrosfc-cms-dev
-  # Production is ONLY reachable via a published GitHub Release.
-  # ─────────────────────────────────────────────────────────────────────────────
-  deploy-cms:
-    name: Deploy CMS
-    needs: [build-cms]
-    if: |
-      github.event_name == 'release' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/develop')
-    runs-on: ubuntu-latest
-    environment: ${{ github.event_name == 'release' && 'production' || 'development' }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-
-      - name: Deploy CMS to Fly.io
-        run: flyctl deploy --config packages/cms/fly.toml --app ${{ secrets.CMS_APP_NAME }} --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

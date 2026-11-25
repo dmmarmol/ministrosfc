@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import { computed, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import type { Tournament } from "@ministrosfc/shared";
 import TournamentForm, {
   type TournamentFormData,
 } from "~/components/pages/admin/tournaments/TournamentForm.vue";
 import { useTournaments } from "~/composables/useTournaments";
 import PageLoading from "~/components/ui/PageLoading.vue";
+import { useQueryParams } from "~/composables/useQueryParams";
+import { resolveReturnUrl } from "~/utils/returnUrl";
 
 definePageMeta({
   layout: "admin",
@@ -16,6 +20,7 @@ definePageMeta({
 
 const route = useRoute();
 const router = useRouter();
+const queryParams = useQueryParams();
 const { fetchTournament, updateTournament } = useTournaments();
 
 const tournamentId = computed(() => String(route.params.tournamentId));
@@ -45,7 +50,9 @@ async function handleSubmit(payload: TournamentFormData) {
   try {
     await updateTournament(tournamentId.value, payload);
 
-    await router.push("/admin/tournaments");
+    await router.push(
+      resolveReturnUrl(queryParams.get("returnUrl"), "/admin/tournaments"),
+    );
   } catch (e: any) {
     error.value = e?.message ?? "No se pudo guardar el torneo.";
   } finally {
@@ -59,7 +66,7 @@ await retrieveTournament();
 <template>
   <div class="space-y-4">
     <header class="mb-4">
-      <UiBackButton to="/admin/tournaments" label="Volver a Torneos" />
+      <UiBackButton to="/admin/tournaments" label="Volvé a torneos" />
     </header>
 
     <PageLoading
@@ -75,7 +82,7 @@ await retrieveTournament();
       :tournament="tournament"
       :loading="saving"
       :error="error"
-      :submit-label="saving ? 'Guardando...' : 'Guardar torneo'"
+      :submit-label="saving ? 'Guardando...' : 'Guardá el torneo'"
       @submit="handleSubmit"
     />
   </div>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import StatsField from "~/components/pages/statistics/StatsField.vue";
-import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
+import type { ApiResponse, TeamStatPeriodDTO } from "@ministrosfc/shared";
 import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vue";
 import StatsFilterBar from "~/components/pages/statistics/StatsFilterBar.vue";
@@ -30,7 +30,7 @@ const [{ data: teamData }, { data, pending, refresh }] = await Promise.all([
   useAsyncData(
     `rival-stats-${rivalId}`,
     () =>
-      $api<{ data: TeamStatPeriodDTO[] }>(
+      $api<ApiResponse<TeamStatPeriodDTO[]>>(
         `/api/v1/statistics/team/rivals/${rivalId}`,
         {
           query: {

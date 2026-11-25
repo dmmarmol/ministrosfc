@@ -1,17 +1,8 @@
 import { randomUUID } from "crypto";
 import type { ParsedHistorialRow } from "../parsers/parseHistorial";
 import type { IdMap } from "../types";
-
-type CompetitionType = "FRIENDLY" | "LEAGUE" | "CUP" | "PLAYOFF" | "SEASON";
-
-const COMPETITION_TYPE_MAP: Record<string, CompetitionType> = {
-  Liga: "LEAGUE",
-  Amistoso: "FRIENDLY",
-  "Torneo Apertura": "SEASON",
-  "Torneo Clausura": "SEASON",
-  "Torneo Mundialito": "CUP",
-  "Copa de Oro": "CUP",
-};
+import { CompetitionType } from "@ministrosfc/shared";
+import { COMPETITION_TYPE_MAP } from "./competitionTypes";
 
 interface TournamentData {
   id: string;
@@ -61,7 +52,7 @@ export function buildTournaments(
     const startDate = new Date(Math.min(...dates.map((d) => d.getTime())));
     const endDate = new Date(Math.max(...dates.map((d) => d.getTime())));
     const competitionType: CompetitionType =
-      COMPETITION_TYPE_MAP[torneo] ?? "FRIENDLY";
+      COMPETITION_TYPE_MAP[torneo] ?? CompetitionType.FRIENDLY;
 
     data.push({ id, name: key, competitionType, startDate, endDate });
     tournamentMap[key] = id;

@@ -81,7 +81,7 @@ const GameService = {
     });
     if (!opponentTeam) {
       throw createError(
-        "Opponent team not found",
+        "No se encontró el equipo rival.",
         404,
         ErrorCode.OPPONENT_NOT_FOUND,
       );
@@ -116,7 +116,7 @@ const GameService = {
   async getGameById(id: string) {
     const game = await GameModel.findById(id);
     if (!game)
-      throw createError("Game not found", 404, ErrorCode.GAME_NOT_FOUND);
+      throw createError("No se encontró el partido.", 404, ErrorCode.GAME_NOT_FOUND);
     return serializeGameParticipants(game);
   },
 
@@ -152,7 +152,7 @@ const GameService = {
       );
       if (disallowedFields.length > 0) {
         throw createError(
-          `Non-admin game editors cannot update fields: ${disallowedFields.join(", ")}`,
+          `Los editores que no son administradores no pueden modificar estos campos: ${disallowedFields.join(", ")}.`,
           403,
           ErrorCode.FORBIDDEN,
         );
@@ -288,7 +288,7 @@ const GameService = {
     );
 
     if (!matchingParticipant) {
-      throw createError("Game participant not found", 404, ErrorCode.NOT_FOUND);
+      throw createError("No se encontró al participante del partido.", 404, ErrorCode.NOT_FOUND);
     }
 
     type GameParticipantKeys = Pick<
@@ -313,7 +313,7 @@ const GameService = {
       const numericValue = Number(value);
       if (!Number.isInteger(numericValue) || numericValue < 0) {
         throw createError(
-          `Invalid value for ${key}`,
+          `El valor de ${key} no es válido.`,
           400,
           ErrorCode.VALIDATION_ERROR,
         );
@@ -324,7 +324,7 @@ const GameService = {
 
     if (Object.keys(data).length === 0) {
       throw createError(
-        "At least one stat field must be provided",
+        "Tenés que proporcionar al menos un campo estadístico.",
         400,
         ErrorCode.VALIDATION_ERROR,
       );

@@ -15,7 +15,7 @@ definePageMeta({
   requiresAuth: true,
   skipOnboardingCheck: true,
 });
-useHead({ title: "Perfil de Jugador – Ministros FC" });
+useHead({ title: "Perfil del jugador" });
 
 const {
   profile,

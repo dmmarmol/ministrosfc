@@ -134,8 +134,8 @@ async function saveEdit(userId: string) {
         targetUserLabel: fullName,
         currentValue: user!.email,
         nextValue: newEmail,
-        title: "Cambiar email",
-        actionDescription: `¿Cambiar el email de ${fullName} de "${user!.email}" a "${newEmail}"? Esto afecta sus credenciales de acceso.`,
+        title: "Cambiar correo electrónico",
+        actionDescription: `¿Cambiar el correo electrónico de ${fullName} de "${user!.email}" a "${newEmail}"? Esto afecta sus credenciales de acceso.`,
       },
       async () => {
         await $api(`/api/v1/admin/users/${userId}`, {
@@ -323,7 +323,7 @@ onMounted(fetchUsers);
       <UInput
         v-model="search"
         type="text"
-        placeholder="Buscar por nombre o email…"
+        placeholder="Buscá por nombre o correo electrónico…"
         class="flex-1"
         @input="debouncedFetch"
         size="lg"

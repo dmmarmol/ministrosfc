@@ -13,7 +13,7 @@ import {
 } from "../middleware/validation";
 import { TournamentService } from "../services/TournamentService";
 import { z } from "zod";
-import { CompetitionType } from "@prisma/client";
+import { CompetitionType } from "@ministrosfc/shared";
 
 const router = Router();
 

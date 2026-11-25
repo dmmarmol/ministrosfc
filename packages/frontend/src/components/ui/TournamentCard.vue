@@ -30,7 +30,7 @@ const goalDifferenceClasses = computed(() => {
 <template>
   <NuxtLink
     :to="`/tournaments/${tournament.id}`"
-    class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-5 block"
+    class="bg-surface rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-5 block"
   >
     <div class="flex items-start justify-between gap-3">
       <div class="flex-1 min-w-0">
@@ -50,17 +50,17 @@ const goalDifferenceClasses = computed(() => {
             tournament.ministrosRecord.draws
           }}–{{ tournament.ministrosRecord.losses }}
         </p>
-        <p class="text-xs text-gray-500 mt-1">W–D–L</p>
+        <p class="text-xs text-gray-500 mt-1">V–E–D</p>
       </div>
     </div>
     <div
       v-if="tournament.ministrosRecord"
       class="mt-3 pt-3 border-t border-gray-100 flex gap-4 text-xs text-gray-600"
     >
-      <span>⚽ {{ tournament.ministrosRecord.goalsFor }} scored</span>
-      <span>🥅 {{ tournament.ministrosRecord.goalsAgainst }} conceded</span>
+      <span>⚽ {{ tournament.ministrosRecord.goalsFor }} a favor</span>
+      <span>🥅 {{ tournament.ministrosRecord.goalsAgainst }} en contra</span>
       <span class="ml-auto font-semibold" :class="goalDifferenceClasses"
-        >GD {{ tournament.ministrosRecord.goalDifference >= 0 ? "+" : ""
+        >DG {{ tournament.ministrosRecord.goalDifference >= 0 ? "+" : ""
         }}{{ tournament.ministrosRecord.goalDifference }}</span
       >
     </div>

@@ -66,14 +66,14 @@ async function handleSelectPlayer(participantId: string | null) {
       :title="
         store.isGameParticipantsFull
           ? 'Se alcanzó el cupo máximo'
-          : 'Selecciona un jugador'
+          : 'Elegí un jugador'
       "
       :model-value="modelValue"
       @update:model-value="handleSelectPlayer"
       :items="nonParticipantPlayers"
       value-key="value"
       label-key="label"
-      placeholder="Seleccionar Jugador"
+      placeholder="Elegí un jugador"
       :search-input="true"
       :clear="true"
       class="w-full"

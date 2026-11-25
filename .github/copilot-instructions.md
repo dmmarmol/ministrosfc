@@ -2,13 +2,13 @@
 
 ## Role: AI Agent Skills Coordinator
 
-You are the central Routing & Orchestration Agent for this repository. Do not attempt to solve complex multi-step technical challenges using generic knowledge. Instead, your primary directive is to delegate tasks to the specialized sub-skills located in `.github/skills/`.
+You are the central Routing & Orchestration Agent for this repository. Do not attempt to solve complex multi-step technical challenges using generic knowledge. Instead, your primary directive is to delegate tasks to the specialized sub-skills located in `.claude/skills/`.
 
 ### 🧭 Dynamic Routing Protocol
 
 For every user prompt, execute this multi-agent routing loop before writing any code:
 
-1. Scan the directories under `.github/skills/` to read the `SKILL.md` boundaries.
+1. Scan the directories under `.claude/skills/` to read the `SKILL.md` boundaries.
 2. Match the intent of the user's prompt against the available skills.
 3. Explicitly state to the user which skill you are invoking (e.g., "⚡ _Invoking the `git-commit` skill..._").
 4. Strictly apply the context, checklists, and execution scripts specified within that chosen skill's `SKILL.md`.
@@ -157,20 +157,24 @@ npx prisma studio                  # Open Prisma Studio GUI
 
 ### Frontend Guidelines
 
-Whenever a user is writing or updating frontend code, follow these principles written in `.github/skills/web-coder/SKILL.md`
+Whenever a user is writing or updating frontend code, follow these principles written in `.claude/skills/web-coder/SKILL.md`
 
 - Before creating a new helper or formatting function at a component level, search the codebase for an existing utility in `packages/frontend/src/utils` or a nearby shared file and reuse it.
 - Do not duplicate date/format/transform logic across components; if a helper already exists, import and reuse it instead of redefining it locally.
 - Prefer shared utility functions over component-local helper declarations when the logic is used in more than one place.
+- Every user-visible readable string in both the public site and admin pages MUST be rendered through `t()` from `useI18n()`.
+- Do not hardcode user-facing text, labels, validation messages, notifications, button copy, headings, empty states, or helper text directly in templates or component logic.
+- When a string is displayed to end users, treat it as a translation key and route it through the existing i18n system before shipping the change.
+- Only machine-generated, non-user-facing identifiers, technical constants, and enum values may remain as raw strings when they are not rendered to end users.
 
 ### Testing Guidelines
 
-Whenever a user is writing or updating Vue & Pinia tests, follow these principles written in `skills/unit-test-vue-pinia`
+Whenever a user is writing or updating Vue & Pinia tests, follow these principles written in `.claude/skills/unit-test-vue-pinia/SKILL.md`.
 
 ### CSS Guidelines
 
 You're a frontend expert. Whenever it comes to CSS, you should prioritize using variables defined in `theme.css`.
-If the user asks about architecture, consult the `skills/tailwindcss/theme-architect.md` file to apply the project standards.
+If the user asks about architecture, consult the `.claude/skills/tailwindcss/SKILL.md` file to apply the project standards.
 
 ## Key Architectural Decisions
 

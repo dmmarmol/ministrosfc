@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import PlaygroundForm, {
   type PlaygroundFormData,
 } from "~/components/pages/admin/playground/PlaygroundForm.vue";
 import { usePlaygrounds } from "~/composables/usePlaygrounds";
 import type { Playground } from "@ministrosfc/shared";
 import { createTruthyObject } from "~/utils/object.js";
+import { useQueryParams } from "~/composables/useQueryParams";
+import { resolveReturnUrl } from "~/utils/returnUrl";
 
 definePageMeta({
   layout: "admin",
@@ -14,10 +17,11 @@ definePageMeta({
   requiresRole: "editor",
   pageTitle: "Editar Cancha",
 });
-useHead({ title: "Editar Cancha – Admin" });
+useHead({ title: "Editar cancha – Administración" });
 
 const route = useRoute();
 const router = useRouter();
+const queryParams = useQueryParams();
 const playgroundId = computed(() => String(route.params.playgroundId));
 const { fetchPlayground, updatePlayground } = usePlaygrounds();
 
@@ -42,7 +46,9 @@ async function handleSubmit(payload: PlaygroundFormData) {
       longitude: payload.longitude,
     });
     await updatePlayground(playgroundId.value, body);
-    await router.push("/admin/playgrounds");
+    await router.push(
+      resolveReturnUrl(queryParams.get("returnUrl"), "/admin/playgrounds"),
+    );
   } catch (e: unknown) {
     const err = e as { data?: { code?: string }; message?: string };
     if (err?.data?.code === "ADDRESS_NOT_FOUND") {
@@ -61,7 +67,7 @@ async function handleSubmit(payload: PlaygroundFormData) {
 <template>
   <div class="max-w-lg">
     <header class="mb-4">
-      <UiBackButton to="/admin/playgrounds" label="Volver a Canchas" />
+      <UiBackButton to="/admin/playgrounds" label="Volvé a canchas" />
     </header>
 
     <div class="mb-4">
@@ -70,7 +76,7 @@ async function handleSubmit(payload: PlaygroundFormData) {
 
     <PlaygroundForm
       :playground="playground"
-      submitLabel="Guardar cambios"
+      submitLabel="Guardá los cambios"
       :loading="loading"
       :error="error"
       @submit="handleSubmit"

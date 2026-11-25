@@ -10,6 +10,7 @@ import {
 } from "@ministrosfc/shared";
 import { createTruthyObject } from "~/utils/object";
 import type { FetchOptions } from "ofetch";
+import { useQueryParams } from "~/composables/useQueryParams";
 
 import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
 import GameStatusSelect from "~/components/pages/games/GameStatusSelect.vue";
@@ -23,17 +24,40 @@ definePageMeta({
   requiresRole: "editor",
   pageTitle: "Partidos",
 });
-useHead({ title: "Games – Admin" });
+useHead({ title: "Partidos – Administración" });
 
 const { $api } = useNuxtApp();
 
+const queryParams = useQueryParams();
+function initialEnumFilter<T extends string>(
+  value: string,
+  allowed: readonly T[],
+): T | typeof OPTION_FILTER_ALL {
+  return allowed.includes(value as T) ? (value as T) : OPTION_FILTER_ALL;
+}
+
 const statusFilter = ref<GameStatus | typeof OPTION_FILTER_ALL>(
-  OPTION_FILTER_ALL,
+  initialEnumFilter(queryParams.get("status"), Object.values(GameStatus)),
 );
 const resultFilter = ref<GameResult | typeof OPTION_FILTER_ALL>(
-  OPTION_FILTER_ALL,
+  initialEnumFilter(queryParams.get("result"), Object.values(GameResult)),
 );
-const opponentFilter = ref("");
+const opponentFilter = ref(queryParams.get("opponentTeamId"));
+
+const gamesIndexReturnUrl = computed(() => {
+  const query = new URLSearchParams();
+  if (statusFilter.value !== OPTION_FILTER_ALL) {
+    query.set("status", statusFilter.value);
+  }
+  if (resultFilter.value !== OPTION_FILTER_ALL) {
+    query.set("result", resultFilter.value);
+  }
+  if (opponentFilter.value && opponentFilter.value !== OPTION_FILTER_ALL) {
+    query.set("opponentTeamId", opponentFilter.value);
+  }
+  const serialized = query.toString();
+  return serialized ? `/admin/games?${serialized}` : "/admin/games";
+});
 
 const { data, pending, refresh } = await useAsyncData("admin-games", () => {
   const fetchOptions: FetchOptions<"json"> = {
@@ -55,7 +79,7 @@ const { data, pending, refresh } = await useAsyncData("admin-games", () => {
   };
 
   return $api<{ data: AdminGame[] }>("/api/v1/games", fetchOptions);
-});
+}, { getCachedData: () => undefined });
 watch([statusFilter, resultFilter, opponentFilter], () => refresh());
 const games = computed(() => data.value?.data ?? []);
 const gameToDelete = ref<any | null>(null);
@@ -109,7 +133,7 @@ async function shareLink(url: string, label: string) {
     }
   }
   await navigator.clipboard.writeText(url);
-  showToast("¡Link copiado al portapapeles!");
+  showToast("¡Se copió el enlace al portapapeles!");
 }
 
 function baseUrl() {
@@ -172,7 +196,7 @@ function getResultTone(game: AdminGame): string {
     <transition name="fade">
       <div
         v-if="toastMessage"
-        class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-50"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-ink text-white text-sm px-4 py-2 rounded-lg shadow-lg z-50"
       >
         {{ toastMessage }}
       </div>
@@ -181,7 +205,7 @@ function getResultTone(game: AdminGame): string {
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-base font-semibold text-gray-700">Partidos</h2>
       <UButton
-        to="/admin/games/create"
+        :to="`/admin/games/create?returnUrl=${encodeURIComponent(gamesIndexReturnUrl)}`"
         color="primary"
         variant="solid"
         icon="mdi:football-pitch"
@@ -204,14 +228,14 @@ function getResultTone(game: AdminGame): string {
       />
       <UiTeamSelect
         v-model="opponentFilter"
-        placeholder="Filtrar por rival"
+        placeholder="Filtrá por rival"
         class="w-full sm:w-auto"
       />
     </div>
 
     <!-- Table -->
     <div
-      class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+      class="bg-surface rounded-xl shadow-sm border border-gray-100 overflow-hidden"
     >
       <div v-if="pending" class="p-6 space-y-3">
         <div
@@ -261,7 +285,7 @@ function getResultTone(game: AdminGame): string {
                 class="truncate"
                 variant="link"
                 color="neutral"
-                :to="`/admin/games/${game.id}`"
+                :to="`/admin/games/${game.id}?returnUrl=${encodeURIComponent(gamesIndexReturnUrl)}`"
               >
                 {{ game.opponentTeam?.name ?? "—" }}
               </UButton>
@@ -308,7 +332,7 @@ function getResultTone(game: AdminGame): string {
                   variant="link"
                   color="success"
                   size="xs"
-                  :title="'Copiar link de convocatoria'"
+                  :title="'Copiar enlace de convocatoria'"
                   @click="
                     shareLink(
                       `${baseUrl()}/games/${game.slug}/signup`,
@@ -323,7 +347,7 @@ function getResultTone(game: AdminGame): string {
                   v-if="game.slug"
                   variant="ghost"
                   color="primary"
-                  :title="'Copiar link del partido'"
+                  :title="'Copiar enlace del partido'"
                   icon="mdi:link"
                   @click="
                     shareLink(`${baseUrl()}/games/${game.slug}`, 'Partido')

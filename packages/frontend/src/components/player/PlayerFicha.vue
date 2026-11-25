@@ -29,8 +29,10 @@ const props = withDefaults(
     size?: "grid" | "large";
     asLink?: boolean;
     showStats?: boolean;
+    /** Optional status tag (e.g. Activo / Inactivo) shown with the position. */
+    statusLabel?: string | null;
   }>(),
-  { stats: null, size: "grid", asLink: true, showStats: true },
+  { stats: null, size: "grid", asLink: true, showStats: true, statusLabel: null },
 );
 
 const NuxtLink = resolveComponent("NuxtLink");
@@ -209,6 +211,7 @@ const split = computed(() => large.value && !!photo.value && !!dorsal.value);
       <p class="mt-0.5 break-words text-sm" :class="large && 'text-base'">
         {{ player.firstName }}
       </p>
+      <p v-if="statusLabel" class="sheet-label mt-2">{{ statusLabel }}</p>
       <p
         v-if="positionShort || player.nickname"
         class="mt-2 flex items-center justify-between gap-2"

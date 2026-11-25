@@ -131,7 +131,7 @@ describe("YearSelect", () => {
     const wrapper = mount(YearSelect);
     expect(
       wrapper.findComponent({ name: "USelectMenu" }).props("placeholder"),
-    ).toBe("Seleccionar año");
+    ).toBe("Elegí un año");
   });
 
   it("emits update:modelValue with selected year string", async () => {

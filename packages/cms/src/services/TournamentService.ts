@@ -18,7 +18,7 @@ const TournamentService = {
     const end = new Date(dto.endDate);
     if (start >= end) {
       throw createError(
-        "startDate must be before endDate",
+        "startDate debe ser anterior a endDate.",
         400,
         ErrorCode.VALIDATION_ERROR,
       );
@@ -36,7 +36,7 @@ const TournamentService = {
     const tournament = await TournamentModel.findById(id);
     if (!tournament)
       throw createError(
-        "Tournament not found",
+        "No se encontró el torneo.",
         404,
         ErrorCode.TOURNAMENT_NOT_FOUND,
       );
@@ -63,7 +63,7 @@ const TournamentService = {
     const hasGames = await TournamentModel.hasGames(id);
     if (hasGames) {
       throw createError(
-        "Cannot delete a tournament that has associated games",
+        "No se puede eliminar un torneo que tiene partidos asociados.",
         409,
         ErrorCode.CONFLICT,
       );

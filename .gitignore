@@ -195,7 +195,8 @@ secrets.json
 credentials.json
 service-account.json
 
-private/
-
 # Temporary deployment notes (never commit)
 /DEPLOY_DEC_1.tmp.md
+
+# Local-only notes, QA runbooks and design sketches (never commit)
+/private/

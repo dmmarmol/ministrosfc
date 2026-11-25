@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { OPTION_FILTER_ALL, PlayerStatus } from "@ministrosfc/shared";
+import {
+  OPTION_FILTER_ALL,
+  PlayerStatus,
+  PlayerType,
+  type PlayerPublic,
+} from "@ministrosfc/shared";
+import { filterRegisteredPlayers, resolveRosterStatus } from "~/utils/roster";
 import PlayerFicha from "~/components/player/PlayerFicha.vue";
 import { useAuthStore } from "~/stores/auth";
 
@@ -18,11 +24,27 @@ const statusFilter = ref<PlayerStatus | typeof OPTION_FILTER_ALL>(
 const { data, pending } = await useAsyncData(
   "roster",
   () =>
-    $api<{ data: any[] }>("/api/v1/players", {
-      query: { status: statusFilter.value, limit: 100 },
+    $api<{ data: PlayerPublic[] }>("/api/v1/players", {
+      query: {
+        status: statusFilter.value,
+        playerType: PlayerType.REGISTERED,
+        search: search.value.trim() || undefined,
+        limit: 100,
+      },
     }),
-  { watch: [statusFilter] },
+  { watch: [statusFilter, search] },
 );
+
+// Searching looks across every status (behavior from main)
+watch(search, (value) => {
+  statusFilter.value = resolveRosterStatus(value, statusFilter.value);
+});
+
+function statusLabel(status: unknown): string {
+  if (status === PlayerStatus.ACTIVE) return "Activo";
+  if (status === PlayerStatus.INACTIVE) return "Inactivo";
+  return "Sin estado";
+}
 
 // Career totals per player (public endpoint); the roster still works without them.
 const { data: statsData } = await useAsyncData("roster-stats", () =>
@@ -40,10 +62,6 @@ const statsById = computed(() => {
     });
   return m;
 });
-
-const players = computed(() =>
-  (data.value?.data ?? []).filter((p: any) => p.playerType !== "GUEST"),
-);
 
 const positions = [
   { value: "GK", label: "Portero" },
@@ -63,20 +81,14 @@ const positions = [
   { value: "LWF", label: "Extremo Izquierdo" },
 ];
 
-const filteredPlayers = computed(() => {
-  let list = players.value;
-  if (positionFilter.value)
-    list = list.filter((p: any) => p.position === positionFilter.value);
-  if (search.value.trim()) {
-    const q = search.value.trim().toLowerCase();
-    list = list.filter((p: any) =>
-      [p.firstName, p.lastName, p.nickname].some((v) =>
-        v?.toLowerCase().includes(q),
-      ),
-    );
-  }
-  return list;
-});
+const filteredPlayers = computed(() =>
+  filterRegisteredPlayers(
+    data.value?.data ?? [],
+    search.value,
+    positionFilter.value,
+    statusFilter.value,
+  ),
+);
 
 const lines = [
   { title: "Arco", positions: ["GK"] },
@@ -165,7 +177,11 @@ const groups = computed(() => {
           class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4"
         >
           <li v-for="p in g.items" :key="p.id" class="flex"><div class="w-full">
-            <PlayerFicha :player="p" :stats="statsById.get(p.id) ?? null" />
+            <PlayerFicha
+              :player="p"
+              :stats="statsById.get(p.id) ?? null"
+              :status-label="statusFilter === OPTION_FILTER_ALL ? statusLabel(p.status) : null"
+            />
           </div></li>
         </ul>
       </section>

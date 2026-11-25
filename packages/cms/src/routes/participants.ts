@@ -42,7 +42,7 @@ const participantStatsUpdateSchema = z
         (fieldValue) => fieldValue !== undefined && fieldValue !== null,
       ),
     {
-      message: "At least one stat field is required",
+      message: "Tenés que proporcionar al menos un campo estadístico.",
     },
   );
 
@@ -62,7 +62,7 @@ const signupSchema = z.discriminatedUnion("mode", [
   }),
   z.object({
     mode: z.literal("proxy"),
-    targetPlayerId: z.uuid("targetPlayerId must be a valid UUID"),
+    targetPlayerId: z.uuid("Debe tener un formato UUID válido."),
   }),
 ]);
 
@@ -126,13 +126,13 @@ router.post(
           const mode: string = dto.mode ?? "self";
           if (mode === "proxy") {
             throw createError(
-              "Player is already registered for this game by another user",
+              "Otro usuario ya inscribió a este jugador en el partido.",
               409,
               ErrorCode.PROXY_CONFLICT,
             );
           } else {
             throw createError(
-              "You are already signed up for this game",
+              "Ya estás inscripto en este partido.",
               409,
               ErrorCode.SIGNUP_DUPLICATE,
             );

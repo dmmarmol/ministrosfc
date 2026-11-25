@@ -164,5 +164,17 @@
       "jestCommandLine": "npm test --",
       "runMode": "on-demand"
     }
+  ],
+
+  // Extension: https://github.com/ctf0/vscode-save-editor-layout
+  "saveEditorLayout.list": [
+    {
+      "file": "state_snapshot_1793189677283.vscdb",
+      "name": "Default Layout"
+    },
+    {
+      "file": "state_snapshot_1793189769980.vscdb",
+      "name": "Vertical Monitor 1"
+    }
   ]
 }

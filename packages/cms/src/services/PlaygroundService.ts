@@ -21,7 +21,7 @@ async function geocode(
   });
   const results = (await res.json()) as Array<{ lat: string; lon: string }>;
   if (!results.length || !results[0]) {
-    throw createError("Address not found", 422, ErrorCode.ADDRESS_NOT_FOUND);
+    throw createError("No se encontró la dirección.", 422, ErrorCode.ADDRESS_NOT_FOUND);
   }
   return {
     latitude: parseFloat(results[0].lat),
@@ -47,7 +47,7 @@ const PlaygroundService = {
     const playground = await PlaygroundModel.findById(id);
     if (!playground) {
       throw createError(
-        "Playground not found",
+        "No se encontró la cancha.",
         404,
         ErrorCode.PLAYGROUND_NOT_FOUND,
       );
@@ -87,7 +87,7 @@ const PlaygroundService = {
     const existing = await PlaygroundModel.findById(id);
     if (!existing) {
       throw createError(
-        "Playground not found",
+        "No se encontró la cancha.",
         404,
         ErrorCode.PLAYGROUND_NOT_FOUND,
       );
@@ -124,7 +124,7 @@ const PlaygroundService = {
     const existing = await PlaygroundModel.findById(id);
     if (!existing) {
       throw createError(
-        "Playground not found",
+        "No se encontró la cancha.",
         404,
         ErrorCode.PLAYGROUND_NOT_FOUND,
       );
@@ -132,7 +132,7 @@ const PlaygroundService = {
     const gameCount = await PlaygroundModel.countGames(id);
     if (gameCount > 0) {
       throw createError(
-        "Playground has associated games and cannot be deleted",
+        "La cancha tiene partidos asociados y no se puede eliminar.",
         409,
         ErrorCode.PLAYGROUND_IN_USE,
       );

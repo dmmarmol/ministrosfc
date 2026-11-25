@@ -124,7 +124,7 @@ describe("CSV Import (integration)", () => {
       .attach("historial", HISTORIAL_CSV, "historial.csv");
 
     expect(res.status).toBe(422);
-    expect(res.body.error).toMatch(/Missing required files/);
+    expect(res.body.error).toMatch(/Faltan archivos obligatorios/);
   });
 
   it("POST /api/v1/import/csv → 202 with final counts (happy path)", async () => {
@@ -218,7 +218,7 @@ Carlos Minimal,,,,,,,,,,,, ACTIVE
     const data = job.result;
     expect(data.appearances.skipped).toBeGreaterThanOrEqual(1);
     expect(
-      data.warnings.some((w: string) => w.includes("no matching game")),
+      data.warnings.some((w: string) => w.includes("no se encontró un partido")),
     ).toBe(true);
   });
 });

@@ -25,14 +25,14 @@ const statusClass = computed(() => {
   const map: Record<GameStatus, string> = {
     SCHEDULED: "bg-blue-500/20 text-blue-300",
     IN_PROGRESS: "bg-green-500/20 text-green-300",
-    COMPLETED: "bg-gray-500/20 text-gray-300",
+    COMPLETED: "bg-gray-500/20 text-white/70",
     CANCELLED: "bg-red-500/20 text-red-300",
   };
   return map[props.game?.status as GameStatus] ?? "";
 });
 </script>
 <template>
-  <div class="bg-gray-900 text-white rounded-2xl p-6">
+  <div class="bg-ink text-white rounded-2xl p-6">
     <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
       {{
         formatDate(

@@ -39,11 +39,38 @@ export function formatTime(
   return formatDateTime(dateString, options, locale);
 }
 
+const HAS_TIMEZONE = /(?:Z|[+-]\d{2}:?\d{2})$/i;
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+/**
+ * Splits an ISO datetime into the local calendar date and clock time that
+ * date/time inputs should display. Values carrying a timezone (e.g. the API's
+ * "...Z") are converted to the browser's local time so that re-submitting the
+ * form through `toISOWithOffset` round-trips without shifting the instant.
+ * Naive values ("2026-03-28T14:00:00") are returned as written.
+ */
+function toLocalInputParts(
+  value?: string | null,
+): { date: string; time: string } {
+  if (!value) return { date: "", time: "" };
+  if (value.includes("T") && HAS_TIMEZONE.test(value)) {
+    const d = new Date(value);
+    if (!isNaN(d.getTime())) {
+      return {
+        date: `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`,
+        time: `${pad2(d.getHours())}:${pad2(d.getMinutes())}`,
+      };
+    }
+  }
+  const [date = "", time = ""] = value.split("T");
+  return { date, time: time.slice(0, 5) };
+}
+
 export const formatDateInput = (value?: string | null) =>
-  value?.split("T")[0] ?? "";
+  toLocalInputParts(value).date;
 
 export const formatTimeInput = (value?: string | null) =>
-  value?.split("T")[1]?.slice(0, 5) ?? "";
+  toLocalInputParts(value).time;
 
 /**
  * Merges a date picker value (YYYY-MM-DD) and a time picker value (HH:mm)

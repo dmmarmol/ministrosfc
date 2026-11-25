@@ -37,7 +37,7 @@ const StatisticsService = {
   async getPlayerStats(playerId: string, tournamentId?: string, year?: number) {
     const player = await PlayerModel.findById(playerId);
     if (!player)
-      throw createError("Player not found", 404, ErrorCode.PLAYER_NOT_FOUND);
+      throw createError("No se encontró el jugador.", 404, ErrorCode.PLAYER_NOT_FOUND);
 
     const cacheKey = `cache:stats:player:${playerId}:${tournamentId ?? "all"}:${year ?? "all"}`;
     const [stats, availableYears] = await Promise.all([
@@ -72,7 +72,7 @@ const StatisticsService = {
     const tournament = await TournamentModel.findById(tournamentId);
     if (!tournament)
       throw createError(
-        "Tournament not found",
+        "No se encontró el torneo.",
         404,
         ErrorCode.TOURNAMENT_NOT_FOUND,
       );

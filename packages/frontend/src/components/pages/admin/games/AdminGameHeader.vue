@@ -20,7 +20,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="bg-gray-900 text-white rounded-2xl p-6 mb-6">
+  <div class="bg-ink text-white rounded-2xl p-6 mb-6">
     <p class="text-xs text-gray-400 uppercase tracking-wider mb-2">
       {{ formatDate(game.date, { weekday: "long", month: "long", day: "numeric", year: "numeric" }) }}
       <span v-if="game.playground?.name"> · {{ game.playground.name }}</span>
@@ -31,13 +31,13 @@ const emit = defineEmits<{
         <p v-if="game.status === GameStatus.COMPLETED" class="text-3xl font-bold">
           {{ game.homeTeamScore ?? 0 }} – {{ game.awayTeamScore ?? 0 }}
         </p>
-        <p v-else class="text-lg text-gray-400">vs</p>
+        <p v-else class="text-lg text-gray-400">vs.</p>
         <span
           class="text-xs px-2 py-0.5 rounded-full font-semibold mt-1 inline-block"
           :class="{
             'bg-blue-500/20 text-blue-300': game.status === GameStatus.SCHEDULED,
             'bg-green-500/20 text-green-300': game.status === GameStatus.IN_PROGRESS,
-            'bg-gray-500/20 text-gray-300': game.status === GameStatus.COMPLETED,
+            'bg-gray-500/20 text-white/70': game.status === GameStatus.COMPLETED,
             'bg-red-500/20 text-red-300': game.status === GameStatus.CANCELLED,
           }"
         >
@@ -63,7 +63,7 @@ const emit = defineEmits<{
         class="text-sm font-medium"
         @click="emit('copy-signup-link')"
       >
-        📋 Copiar link de convocatoria
+        📋 Copiar enlace de convocatoria
       </UButton>
     </div>
   </div>

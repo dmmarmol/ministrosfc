@@ -68,7 +68,6 @@ enum CompetitionType {
   LEAGUE
   CUP
   PLAYOFF
-  SEASON
 }
 
 enum ConfirmationStatus {

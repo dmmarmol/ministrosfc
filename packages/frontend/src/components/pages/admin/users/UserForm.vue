@@ -16,7 +16,7 @@ const props = withDefaults(
   }>(),
   {
     initialData: () => ({}),
-    submitLabel: "Guardar perfil",
+    submitLabel: "Guardá el perfil",
     cancelTo: "/admin/users",
     loading: false,
   },
@@ -60,20 +60,20 @@ function handleSubmit() {
 
 <template>
   <form
-    class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
+    class="bg-surface rounded-xl shadow-sm border border-gray-100 p-6 space-y-4"
     @submit.prevent="handleSubmit"
   >
     <div>
       <h3 class="text-sm font-semibold text-gray-800">Perfil de usuario</h3>
       <p class="text-xs text-gray-500">
-        Editá email y contraseña de la cuenta.
+        Editá el correo electrónico y la contraseña de la cuenta.
       </p>
     </div>
 
     <div class="grid lg:grid-cols-2 gap-4">
       <div>
         <label class="block text-xs font-medium text-gray-700 mb-1" for="email"
-          >Email *</label
+          >Correo electrónico *</label
         >
         <UInput
           id="email"

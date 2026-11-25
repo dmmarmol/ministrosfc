@@ -16,7 +16,7 @@ definePageMeta({
   requiresRole: "editor",
   pageTitle: "Jugadores",
 });
-useHead({ title: "Players – Admin" });
+useHead({ title: "Jugadores – Administración" });
 
 const { $api } = useNuxtApp();
 const playerToDelete = ref<{
@@ -154,7 +154,7 @@ async function confirmDelete() {
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-base font-semibold text-gray-700">Jugadores</h2>
       <UButton
-        to="/admin/players/create"
+        :to="`/admin/players/create?returnUrl=${encodeURIComponent('/admin/players')}`"
         variant="solid"
         color="primary"
         icon="mdi:account-plus"
@@ -164,7 +164,7 @@ async function confirmDelete() {
 
     <!-- Filters -->
     <div class="flex flex-col sm:flex-row gap-3 mb-4">
-      <UInput v-model="search" placeholder="Buscar…" class="flex-1" size="xl" />
+      <UInput v-model="search" placeholder="Buscá…" class="flex-1" size="xl" />
       <UiPlayerStatusSelect v-model="statusFilter" include-all size="xl" />
       <UiPositionSelect v-model="posFilter" size="xl" />
     </div>

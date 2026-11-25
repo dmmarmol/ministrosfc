@@ -1,7 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-  <footer class="bg-gray-900 text-gray-400 text-sm mt-auto">
+  <footer class="bg-ink text-gray-400 text-sm mt-auto">
     <div
       class="container mx-auto px-4 py-8 max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4"
     >

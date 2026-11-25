@@ -13,7 +13,7 @@ const props = withDefaults(
   {
     modelValue: OPTION_FILTER_ALL,
     includeAll: true,
-    placeholder: "Selecciona un equipo",
+    placeholder: "Elegí un equipo",
   },
 );
 

@@ -60,7 +60,8 @@ async function handleLogin(payload: { email: string; password: string }) {
     // re-render while Vue swaps the page component.
     return;
   } catch (e: any) {
-    error.value = e?.message ?? "Email o contraseña incorrectos.";
+    error.value =
+      e?.message ?? "El correo electrónico o la contraseña son incorrectos.";
   }
   loading.value = false;
 }
@@ -97,7 +98,7 @@ onMounted(() => {
   <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
     <div class="w-full max-w-sm">
       <div class="mb-3">
-        <BackButton to="/" label="Volver al sitio" />
+        <BackButton to="/" label="Volvé al sitio" />
       </div>
       <div class="text-center mb-8">
         <div
@@ -112,7 +113,7 @@ onMounted(() => {
       </div>
 
       <div
-        class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4"
+        class="bg-surface rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4"
       >
         <p
           v-if="googleError"
@@ -144,7 +145,7 @@ onMounted(() => {
             <div class="w-full border-t border-gray-200" />
           </div>
           <div class="relative flex justify-center text-xs">
-            <span class="bg-white px-2 text-gray-400">o</span>
+            <span class="bg-surface px-2 text-gray-400">o</span>
           </div>
         </div>
 

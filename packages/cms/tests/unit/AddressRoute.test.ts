@@ -67,6 +67,9 @@ describe("GET /api/v1/address/search", () => {
 
     expect(res.status).toBe(400);
     expect(res.body.code).toBe("QUERY_TOO_SHORT");
+    expect(res.body.message).toBe(
+      "La búsqueda debe tener al menos 3 caracteres.",
+    );
     expect(mockSearch).not.toHaveBeenCalled();
   });
 
@@ -75,13 +78,28 @@ describe("GET /api/v1/address/search", () => {
 
     expect(res.status).toBe(400);
     expect(res.body.code).toBe("VALIDATION_ERROR");
+    expect(res.body.message).toBe("No se pudo validar la solicitud.");
+    expect(res.body.errors).toEqual([
+      { field: "q", message: "Este campo es obligatorio." },
+    ]);
     expect(mockSearch).not.toHaveBeenCalled();
+  });
+
+  it("returns Spanish details for invalid query values", async () => {
+    const res = await request(app).get(
+      "/api/v1/address/search?q=Corrientes&limit=no",
+    );
+
+    expect(res.status).toBe(400);
+    expect(res.body.errors).toEqual([
+      { field: "limit", message: "El valor debe ser un número." },
+    ]);
   });
 
   it("returns 503 when service throws GEOCODER_UNAVAILABLE", async () => {
     mockSearch.mockRejectedValue(
       createError(
-        "Address search service temporarily unavailable",
+        "El servicio de búsqueda de direcciones no está disponible temporalmente.",
         503,
         "GEOCODER_UNAVAILABLE",
       ),

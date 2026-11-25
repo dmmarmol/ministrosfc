@@ -13,6 +13,58 @@ For project-level release notes covering all packages, see the root [CHANGELOG.m
 
 ---
 
+## [0.15.0] — 2026-11-23
+
+### Summary
+
+Minor release for the first production launch: cached public pages, crawler controls and capability-driven photo upload. See the root changelog for the full release.
+
+### Changed
+
+- The admin player form shows the photo input only when the API reports photo uploads enabled.
+- Nuxt UI built-in texts, such as empty tables, use the Spanish locale.
+- `robots.txt` depends on the environment (production allows public routes, other environments disallow everything).
+
+### Added
+
+- Public pages are cached for 5 minutes (stale-while-revalidate) in production builds; private routes are never cached.
+- Server middleware: `X-Robots-Tag: noindex` outside production, a deny-list for abusive crawlers and a per-IP rate limit.
+- `useCmsCapabilities` composable and per-environment Fly config files.
+
+### Fixed
+
+- The container image no longer copies `.env*` files.
+
+## [0.13.0] - 2026-11-23
+
+### Summary
+
+Minor release with the user-facing spec 021 fixes: game save and returnUrl navigation, roster and dashboard updates, and a legible dark mode with a toggle.
+
+### Changed
+
+- Saving a game returns to a validated internal `returnUrl` (or `/admin/games`) and the games list refetches fresh data; admin back actions use `BackButton`.
+- Roster search covers all registered players and shows status labels for "Todos".
+- Dashboard recent games use a `UTable` with an edit action to `/admin/games/:id`.
+- Dark mode is legible across public and admin pages and keeps the brand blue.
+
+### Added
+
+- Icon-only `ColorModeToggle` in the public nav and admin header.
+- Game draft restore when creating an opponent team from the game form.
+- `BackButton`, `returnUrl` resolver and `usePlayers` composable.
+
+### Fixed
+
+- Team, playground and tournament forms reloaded the page before the returnUrl redirect ran.
+- The game form listed only the first 20 opponent teams.
+- The dashboard recent-games table crashed when the API returned no participants.
+- Home hero overflowed horizontally at 320px.
+
+### Removed
+
+- "Temporada" from competition type options and labels.
+
 ## [0.12.0] — 2026-05-03
 
 ### Added

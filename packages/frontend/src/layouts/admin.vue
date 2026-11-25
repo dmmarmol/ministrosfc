@@ -1,10 +1,20 @@
 <script setup lang="ts">
+import { UserRole } from "@ministrosfc/shared";
 import { useAuthStore } from "~/stores/auth";
 
 const authStore = useAuthStore();
+const roleLabelMap: Record<UserRole, string> = {
+  [UserRole.ADMIN]: "Administrador",
+  [UserRole.DT]: "Director Técnico",
+  [UserRole.EDITOR]: "Editor",
+  [UserRole.PLAYER]: "Jugador",
+};
 const route = useRoute();
 const router = useRouter();
 const openSlideover = ref(true);
+const roleLabel = computed(
+  () => roleLabelMap[authStore.user?.role as UserRole] ?? "Sin rol",
+);
 
 const noPadding = computed(
   () => !!(route.meta as Record<string, unknown>).noPadding,
@@ -32,37 +42,37 @@ const handleLogout = () => {
       }"
     >
       <template #default>
-        <div class="p-4 pl-6 border-b border-gray-700">
+        <div class="p-4 pl-6 border-b border-white/10">
           <NuxtLink to="/admin/dashboard" class="flex items-center space-x-2">
             <span class="text-brand font-bold text-lg">Ministros FC</span>
           </NuxtLink>
-          <p class="text-xs text-gray-400 mt-1">Admin Panel</p>
+          <p class="text-xs text-gray-400 mt-1">Panel de administración</p>
         </div>
         <nav class="flex-1 flex flex-col p-4 space-y-2">
-          <UButton to="/admin/dashboard" variant="solid" color="secondary"
+          <UButton to="/admin/dashboard" variant="solid" color="secondary" class="bg-white/10 text-white hover:bg-white/20"
             >Inicio</UButton
           >
-          <UButton to="/admin/players" variant="solid" color="secondary"
+          <UButton to="/admin/players" variant="solid" color="secondary" class="bg-white/10 text-white hover:bg-white/20"
             >Jugadores</UButton
           >
-          <UButton to="/admin/games" variant="solid" color="secondary"
+          <UButton to="/admin/games" variant="solid" color="secondary" class="bg-white/10 text-white hover:bg-white/20"
             >Partidos</UButton
           >
-          <UButton to="/admin/playgrounds" variant="solid" color="secondary"
+          <UButton to="/admin/playgrounds" variant="solid" color="secondary" class="bg-white/10 text-white hover:bg-white/20"
             >Canchas</UButton
           >
-          <UButton to="/admin/teams" variant="solid" color="secondary"
+          <UButton to="/admin/teams" variant="solid" color="secondary" class="bg-white/10 text-white hover:bg-white/20"
             >Equipos</UButton
           >
-          <UButton to="/admin/tournaments" variant="solid" color="secondary"
+          <UButton to="/admin/tournaments" variant="solid" color="secondary" class="bg-white/10 text-white hover:bg-white/20"
             >Torneos</UButton
           >
-          <UButton to="/admin/users" variant="solid" color="secondary"
+          <UButton to="/admin/users" variant="solid" color="secondary" class="bg-white/10 text-white hover:bg-white/20"
             >Usuarios</UButton
           >
         </nav>
         <!-- User info + logout -->
-        <div class="p-4 border-t border-gray-700">
+        <div class="p-4 border-t border-white/10">
           <p
             v-if="authStore.user"
             class="text-sm text-gray-400 truncate mb-2 pl-2"
@@ -88,7 +98,7 @@ const handleLogout = () => {
               size="xs"
               class="w-full"
             >
-              Volver al sitio publico
+              Volvé al sitio público
             </UButton>
             <hr class="text-gray-600" />
             <UButton
@@ -109,11 +119,12 @@ const handleLogout = () => {
     <!-- Main content -->
     <div class="flex-1 flex flex-col overflow-hidden">
       <header
-        class="bg-white shadow-sm px-6 py-4 flex items-center justify-end"
+        class="bg-surface shadow-sm px-4 sm:px-6 py-4 flex items-center justify-end gap-2 sm:gap-3"
       >
         <!-- <h1 class="text-lg font-semibold text-gray-800">{{ pageTitle }}</h1> -->
-        <div v-if="authStore.user" class="flex flex-col text-right">
-          <p class="text-sm text-gray-800">
+        <UiColorModeToggle />
+        <div v-if="authStore.user" class="flex flex-col text-right min-w-0">
+          <p class="text-sm text-gray-800 truncate">
             Bienvenido,
             <span
               >{{ authStore.user?.firstName }}
@@ -121,7 +132,7 @@ const handleLogout = () => {
             >
           </p>
           <p class="text-[12px] text-gray-500 capitalize">
-            <strong>Rol:</strong> {{ authStore.user?.role?.toLowerCase() }}
+            <strong>Rol:</strong> {{ roleLabel }}
           </p>
         </div>
       </header>

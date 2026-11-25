@@ -1,5 +1,10 @@
 // --- Admin Users Governance DTOs ---
-import { PlayerStatus, PlayerType, Position } from "./player";
+import {
+  PlayerStatus,
+  PlayerType,
+  Position,
+  type Player,
+} from "./player";
 import { RegistrationStatus, UserRole } from "./user";
 
 export interface AdminUserListItem {
@@ -18,6 +23,20 @@ export interface AdminUserListItem {
     photoUrl: string | null;
   } | null;
 }
+
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
+
+export type PlayerListResponse = PaginatedResponse<Player>;
 
 export interface AdminUserListResponse {
   data: AdminUserListItem[];

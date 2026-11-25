@@ -21,6 +21,10 @@ const emit = defineEmits<{
     e: "update:modelValue",
     value: PlayerStatus | typeof OPTION_FILTER_ALL | undefined,
   ): void;
+  (
+    e: "selected",
+    value: PlayerStatus | typeof OPTION_FILTER_ALL | undefined,
+  ): void;
 }>();
 
 const optionAll: SelectItem = {
@@ -50,7 +54,9 @@ const selectModelValue = computed(() => {
 });
 
 function emitClearedValue() {
-  emit("update:modelValue", props.includeAll ? OPTION_FILTER_ALL : undefined);
+  const value = props.includeAll ? OPTION_FILTER_ALL : undefined;
+  emit("update:modelValue", value);
+  emit("selected", value);
 }
 
 function handleUpdate(value: unknown) {
@@ -63,11 +69,13 @@ function handleUpdate(value: unknown) {
 
   if (selectedValue === OPTION_FILTER_ALL && props.includeAll) {
     emit("update:modelValue", OPTION_FILTER_ALL);
+    emit("selected", OPTION_FILTER_ALL);
     return;
   }
 
   if (Object.values(PlayerStatus).includes(selectedValue as PlayerStatus)) {
     emit("update:modelValue", selectedValue as PlayerStatus);
+    emit("selected", selectedValue as PlayerStatus);
     return;
   }
 

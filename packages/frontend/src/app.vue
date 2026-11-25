@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { es } from "@nuxt/ui/locale";
 import { useAuthStore } from "~/stores/auth";
 
 const authStore = useAuthStore();
 
 // Set default page title
 useHead({
+  htmlAttrs: { lang: "es-AR" },
   title: "Ministros FC",
   titleTemplate: "%s | Ministros FC",
 });
@@ -16,7 +18,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <UApp>
+  <!-- Spanish locale: Nuxt UI's built-in texts (empty tables, close buttons, ...) -->
+  <UApp :locale="es">
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>

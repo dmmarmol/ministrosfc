@@ -1,21 +1,16 @@
 <script setup lang="ts">
-import { CompetitionType } from "@ministrosfc/shared";
-import { formatCompetitionType } from "~/utils/stats";
+import {
+  competitionTypeLabels,
+  type CompetitionType,
+} from "@ministrosfc/shared";
 
 const props = defineProps<{
-  type: CompetitionType;
+  type?: CompetitionType | string | null;
 }>();
 
-const competitionTypeDisplayMap: Record<CompetitionType, string> = {
-  [CompetitionType.FRIENDLY]: "Amistoso",
-  [CompetitionType.LEAGUE]: "Liga",
-  [CompetitionType.CUP]: "Copa",
-  [CompetitionType.PLAYOFF]: "Playoff",
-  [CompetitionType.SEASON]: "Temporada",
-};
-
-const displayValue = computed(() =>
-  formatCompetitionType(competitionTypeDisplayMap[props.type]),
+const displayValue = computed(
+  () =>
+    competitionTypeLabels[props.type as CompetitionType] ?? "Sin tipo",
 );
 </script>
 

@@ -140,7 +140,7 @@ await fetchOrphanPlayers();
     >
       {{ error }}
     </p>
-    <UiBackButton to="/admin/users" label="Volver a Usuarios" />
+    <UiBackButton to="/admin/users" label="Volvé a usuarios" />
 
     <div class="grid grid-cols-12 gap-4">
       <div class="col-span-12 lg:col-span-6">
@@ -159,7 +159,7 @@ await fetchOrphanPlayers();
         <PlayerForm
           :initial-data="playerInitialData"
           :player-id="user.playerId"
-          :submit-label="loadingPlayer ? 'Guardando...' : 'Guardar jugador'"
+          :submit-label="loadingPlayer ? 'Guardando...' : 'Guardá el jugador'"
           @submit="savePlayer"
         />
       </div>

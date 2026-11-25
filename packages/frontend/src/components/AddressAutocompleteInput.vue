@@ -104,7 +104,7 @@ function closeDropdown() {
     <ul
       v-if="open"
       data-testid="suggestions"
-      class="absolute z-50 mt-1 w-full rounded border border-gray-200 bg-white shadow-lg"
+      class="absolute z-50 mt-1 w-full rounded border border-gray-200 bg-surface shadow-lg"
     >
       <template v-if="error">
         <li class="px-3 py-2 text-xs text-red-600">{{ error }}</li>

@@ -6,7 +6,7 @@
  *
  * Examples of use:
  *  - A full weekend cup: one Tournament, several Game records.
- *  - A league season: one Tournament (type SEASON/LEAGUE), many Games over months.
+ *  - A league season: one Tournament (type LEAGUE), many Games over months.
  *  - Standalone friendly matches do NOT require a Tournament.
  *
  * `competitionType` mirrors the CompetitionType enum used on Game — both concepts

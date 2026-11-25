@@ -181,7 +181,7 @@ await fetchQueue();
 
 <template>
   <div class="@container space-y-4">
-    <UiBackButton to="/admin/users" label="Volver a Usuarios" />
+    <UiBackButton to="/admin/users" label="Volvé a usuarios" />
     <div class="flex flex-wrap items-end gap-3">
       <div class="flex-1 min-w-64">
         <label
@@ -194,7 +194,7 @@ await fetchQueue();
           type="text"
           size="lg"
           class="w-full"
-          placeholder="Nombre, apellido o email"
+          placeholder="Nombre, apellido o correo electrónico"
           @keyup.enter="handleSearch"
         />
       </div>

@@ -11,6 +11,24 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.13.0] - 2026-11-23
+
+### Summary
+
+Minor release: removes `CompetitionType.SEASON`, adds list and pagination types, and fixes date/time input conversion.
+
+### Added
+
+- `PaginationMeta`, `PaginatedResponse`, `PlayerListQuery`, `GameListQuery` and `competitionTypeLabels`.
+
+### Fixed
+
+- `formatDateInput` and `formatTimeInput` convert UTC datetimes to local time so editing a game no longer shifts it by the UTC offset on each save.
+
+### Removed
+
+- `CompetitionType.SEASON` and its "Temporada" label.
+
 ## [0.12.0] — 2026-05-03
 
 ### Added

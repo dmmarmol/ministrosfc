@@ -7,6 +7,8 @@ import type {
   OpponentTeamUpdatePayload,
 } from "@ministrosfc/shared";
 
+const TEAMS_PAGE_SIZE = 100;
+
 export function useOpponentTeams() {
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
@@ -40,9 +42,21 @@ export function useOpponentTeams() {
     loading.value = true;
     error.value = null;
     try {
-      const res = await $fetch<{ data: OpponentTeam[] }>(baseUrl);
-      opponentTeams.value = res.data;
-      return res.data;
+      // The API paginates (default 20), so walk every page to expose all teams.
+      const all: OpponentTeam[] = [];
+      let page = 1;
+      let totalPages = 1;
+      do {
+        const res = await $fetch<{
+          data: OpponentTeam[];
+          meta?: { totalPages?: number };
+        }>(baseUrl, { query: { page, limit: TEAMS_PAGE_SIZE } });
+        all.push(...res.data);
+        totalPages = res.meta?.totalPages ?? 1;
+        page += 1;
+      } while (page <= totalPages);
+      opponentTeams.value = all;
+      return all;
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : "Error al cargar canchas";

@@ -1,17 +1,8 @@
 import { randomUUID } from "crypto";
 import type { ParsedHistorialRow } from "../parsers/parseHistorial";
 import type { IdMap } from "../types";
-import { GameStatus } from "@ministrosfc/shared";
-type CompetitionType = "FRIENDLY" | "LEAGUE" | "CUP" | "PLAYOFF" | "SEASON";
-
-const COMPETITION_TYPE_MAP: Record<string, CompetitionType> = {
-  Liga: "LEAGUE",
-  Amistoso: "FRIENDLY",
-  "Torneo Apertura": "SEASON",
-  "Torneo Clausura": "SEASON",
-  "Torneo Mundialito": "CUP",
-  "Copa de Oro": "CUP",
-};
+import { CompetitionType, GameStatus } from "@ministrosfc/shared";
+import { COMPETITION_TYPE_MAP } from "./competitionTypes";
 
 const COMPLETED_CONCLUSIONES = new Set(["G", "P", "E"]);
 
@@ -62,7 +53,7 @@ export function buildGames(
     const tournamentId = tournamentMap[tournamentKey] ?? null;
 
     const competitionType: CompetitionType =
-      COMPETITION_TYPE_MAP[torneo] ?? "FRIENDLY";
+      COMPETITION_TYPE_MAP[torneo] ?? CompetitionType.FRIENDLY;
 
     const status: GameStatus = COMPLETED_CONCLUSIONES.has(
       raw["Conclusión"]?.trim(),

@@ -7,6 +7,7 @@ import {
 import { z } from "zod";
 import { AddressSearchService } from "../services/AddressSearchService";
 import { ErrorCode } from "../utils/error-codes";
+import { formatValidationIssue } from "../middleware/validation";
 
 const router = Router();
 
@@ -32,9 +33,9 @@ router.get(
           // q was absent (undefined after optional)
           res.status(400).json({
             code: ErrorCode.VALIDATION_ERROR,
-            message: "Validation failed",
+            message: "No se pudo validar la solicitud.",
             statusCode: 400,
-            errors: [{ field: "q", message: "Required" }],
+            errors: [{ field: "q", message: "Este campo es obligatorio." }],
           });
           return;
         }
@@ -46,7 +47,7 @@ router.get(
         if (isQueryTooShort) {
           res.status(400).json({
             code: "QUERY_TOO_SHORT",
-            message: "Query must be at least 3 characters",
+            message: "La búsqueda debe tener al menos 3 caracteres.",
             statusCode: 400,
           });
           return;
@@ -54,11 +55,11 @@ router.get(
 
         res.status(400).json({
           code: ErrorCode.VALIDATION_ERROR,
-          message: "Validation failed",
+          message: "No se pudo validar la solicitud.",
           statusCode: 400,
           errors: parsed.error.issues.map((i) => ({
             field: i.path.join("."),
-            message: i.message,
+            message: formatValidationIssue(i),
           })),
         });
         return;

@@ -12,30 +12,30 @@ export function useQueryParams() {
   const router = useRouter();
 
   function get(key: string): string {
-    return (route.query[key] as string) ?? "";
+    return (route?.query?.[key] as string) ?? "";
   }
 
   async function set(key: string, value: string) {
     const query: Record<string, string | undefined> = {
-      ...(route.query as Record<string, string>),
+      ...((route?.query ?? {}) as Record<string, string>),
       [key]: value || undefined,
     };
     Object.keys(query).forEach((k) => {
       if (!query[k]) delete query[k];
     });
-    await router.push({ query });
+    await router?.push({ query });
   }
 
   async function remove(key: string) {
     const query: Record<string, string | undefined> = {
-      ...(route.query as Record<string, string>),
+      ...((route?.query ?? {}) as Record<string, string>),
     };
     delete query[key];
-    await router.push({ query });
+    await router?.push({ query });
   }
 
   async function reset() {
-    await router.push({ query: {} });
+    await router?.push({ query: {} });
   }
 
   return { get, set, remove, reset };

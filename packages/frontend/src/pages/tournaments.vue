@@ -1,16 +1,17 @@
 <script setup lang="ts">
+import {
+  competitionTypeItems,
+  type CompetitionType,
+} from "@ministrosfc/shared";
+
 definePageMeta({ public: true });
-useHead({ title: "Tournaments – Ministros FC" });
+useHead({ title: "Torneos" });
 
 const { $api } = useNuxtApp();
 
-const formats = [
-  { value: "", label: "Todos" },
-  { value: "LEAGUE", label: "Liga" },
-  { value: "CUP", label: "Copa" },
-  { value: "PLAYOFF", label: "Playoff" },
-  { value: "SEASON", label: "Temporada" },
-  { value: "FRIENDLY", label: "Amistoso" },
+const formats: { value: CompetitionType; label: string }[] = [
+  { value: "" as CompetitionType, label: "Todos" },
+  ...competitionTypeItems,
 ];
 const formatFilter = ref("");
 
@@ -34,7 +35,7 @@ const tournaments = computed(() => data.value?.data ?? []);
         :class="
           formatFilter === fmt.value
             ? 'bg-brand text-gray-900 font-semibold'
-            : 'bg-white text-gray-600 hover:bg-gray-50'
+            : 'bg-surface text-gray-600 hover:bg-gray-50'
         "
         class="px-4 py-1.5 rounded-full text-sm border border-gray-200 transition-colors"
         @click="formatFilter = fmt.value"
