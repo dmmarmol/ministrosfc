@@ -75,6 +75,7 @@ const RESULT = {
       :items="items"
       :metrics="metrics"
       single
+      sticky-header
       search-label="Buscar equipo"
       empty-text="No hay partidos contra equipos rivales todavía."
     >

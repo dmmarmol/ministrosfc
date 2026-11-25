@@ -58,6 +58,20 @@ describe("StatsRanked single-open and search", () => {
     expect(w.text()).toContain("1 tarjetas rojas");
   });
 
+  it("makes only the open row header sticky when stickyHeader is on", async () => {
+    const w = mountIt({ stickyHeader: true });
+    const buttons = () => w.findAll("ol > li > button");
+    expect(buttons().some((b) => b.classes().includes("sticky"))).toBe(false);
+    await buttons()[0]!.trigger("click");
+    expect(buttons().filter((b) => b.classes().includes("sticky"))).toHaveLength(1);
+  });
+
+  it("never sticks headers by default", async () => {
+    const w = mountIt();
+    await w.findAll("ol > li > button")[0]!.trigger("click");
+    expect(w.find(".sticky").exists()).toBe(false);
+  });
+
   it("hides the search box unless a label is given", () => {
     expect(mountIt().find('input[type="search"]').exists()).toBe(false);
   });

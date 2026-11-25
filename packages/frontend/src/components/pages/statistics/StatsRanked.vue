@@ -54,6 +54,8 @@ const props = withDefaults(
     sortLabel?: string;
     /** Only one row open at a time. */
     single?: boolean;
+    /** The open row's header sticks to the top until the next row pushes it out. */
+    stickyHeader?: boolean;
     /** Show a search box that narrows rows by title. */
     searchLabel?: string;
   }>(),
@@ -63,6 +65,7 @@ const props = withDefaults(
     emptyText: "No hay datos para estos filtros.",
     sortLabel: "Ordenar por",
     single: false,
+    stickyHeader: false,
     searchLabel: "",
   },
 );
@@ -166,7 +169,12 @@ function toggle(id: string) {
         <button
           type="button"
           class="grid w-full min-h-14 items-center gap-x-3 px-3 py-2.5 text-left"
-          :class="showRank ? 'grid-cols-[1.75rem_1fr_auto]' : 'grid-cols-[1fr_auto]'"
+          :class="[
+            showRank ? 'grid-cols-[1.75rem_1fr_auto]' : 'grid-cols-[1fr_auto]',
+            stickyHeader && open.has(item.id)
+              ? 'sticky top-0 z-10 border-b-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)]'
+              : '',
+          ]"
           :aria-expanded="open.has(item.id)"
           :aria-controls="`row-${item.id}`"
           @click="toggle(item.id)"
