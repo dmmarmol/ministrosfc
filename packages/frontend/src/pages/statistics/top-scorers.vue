@@ -46,7 +46,7 @@ watch(topScorersStatusFilter, (value) => {
 
 const playerSearch = ref("");
 
-const { data, pending, refresh } = await useAsyncData(
+const { data, status, refresh } = await useAsyncData(
   "top-scorers",
   () =>
     $api<ApiResponse<TopScorerDTO[]>>("/api/v1/statistics/top-scorers", {
@@ -60,6 +60,12 @@ const { data, pending, refresh } = await useAsyncData(
       },
     }),
   { server: false },
+);
+
+// The fetch is client-only, so the server reports "idle" and the client "pending"
+// while hydrating. Both must render the same loading state or Vue warns of a mismatch.
+const loading = computed(
+  () => status.value === "idle" || status.value === "pending",
 );
 
 const allScorers = computed(() => data.value?.data ?? []);
@@ -131,6 +137,6 @@ const items = computed<RankedItem[]>(() =>
         v-model="topScorersStatusFilter"
       /></StatsField>
     </StatsFilterBar>
-    <StatsRanked :items="items" :metrics="metrics" :loading="pending" />
+    <StatsRanked :items="items" :metrics="metrics" :loading="loading" />
   </div>
 </template>

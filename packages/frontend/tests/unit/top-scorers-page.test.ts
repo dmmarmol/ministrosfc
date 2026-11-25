@@ -51,16 +51,18 @@ vi.stubGlobal("useStatsFilters", () => ({
 
 // ── Data mock returned by useAsyncData ────────────────────────────────────────
 let mockScorers: any[] = [];
+// "idle" is what the server reports for a client-only fetch (server: false)
+let mockStatus = "success";
 
 vi.stubGlobal(
   "useAsyncData",
   (_key: string, fetcher: () => Promise<any>, _opts?: any) => {
     const data = ref<any>({ data: mockScorers });
-    const pending = ref(false);
+    const status = ref(mockStatus);
     const refresh = vi.fn(async () => {
       data.value = await fetcher();
     });
-    return { data, pending, refresh };
+    return { data, status, refresh };
   },
 );
 
@@ -251,6 +253,36 @@ describe("top-scorers page — filteredScorers text search", () => {
     await wrapper.find('input[type="search"]').setValue("  juan  ");
     const table = wrapper.findComponent({ name: "StatsRanked" });
     expect(table.props("items")).toHaveLength(1);
+  });
+});
+
+describe("top-scorers page — loading state matches on server and client", () => {
+  beforeEach(() => {
+    authStoreMock.isAuthenticated = false;
+    mockScorers = [];
+  });
+
+  async function loading(status: string) {
+    mockStatus = status;
+    const wrapper = await mountPage();
+    mockStatus = "success";
+    return wrapper.findComponent({ name: "StatsRanked" }).props("loading");
+  }
+
+  it("is loading while the client-only fetch has not started (server render)", async () => {
+    expect(await loading("idle")).toBe(true);
+  });
+
+  it("is loading while the fetch runs (client hydration)", async () => {
+    expect(await loading("pending")).toBe(true);
+  });
+
+  it("stops loading once the fetch succeeded", async () => {
+    expect(await loading("success")).toBe(false);
+  });
+
+  it("stops loading when the fetch failed, so the empty state can show", async () => {
+    expect(await loading("error")).toBe(false);
   });
 });
 
