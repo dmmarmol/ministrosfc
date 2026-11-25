@@ -191,6 +191,6 @@ Confirmed by the maintainer after the Impeccable decision round; anchors the vis
 - Whether the card is also offered as a shareable image is out of scope for now.
 - The new direction may or may not keep the blue brand color; that is decided in User Story 2.
 - Game signup is deliberately deferred: the club signs up by WhatsApp message, adoption would take time, and the feature is incomplete. This redesign prepares a slot for it but does not ship it.
-- Dark mode is out of scope unless the chosen direction explicitly includes it. [NEEDS CLARIFICATION: ship a dark theme with this redesign, or remove the dormant dark tokens?]
+- Dark mode: resolved. The public sheet pages ship a negative-print dark theme (ink and paper swapped) with the `ColorModeToggle` in the header.
 - Specs after 023 were renumbered forward by one (old 023-029 are now 024-030); this spec does not depend on them.
 - `packages/frontend/DESIGN.md` and `.impeccable/` are currently uncommitted and should be committed as the baseline before the redesign replaces them.

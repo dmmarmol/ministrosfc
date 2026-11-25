@@ -92,6 +92,22 @@
   line-height: 1.45;
 }
 
+/*
+ * Negative print: the same sheet run in reverse. Ink and paper swap, so every
+ * ink band, plate and pressed chip flips with them. The two blues swap too:
+ * the light blue reads on the dark page, the deep blue on the light bands.
+ */
+.dark .sheet-world {
+  color-scheme: dark;
+  --sheet-paper: #171923;
+  --sheet-ground: #0b0b12;
+  --sheet-ink: #f3f4f8;
+  --sheet-ink-soft: #c4c8d8;
+  --sheet-rule: rgb(243 244 248 / 0.24);
+  --sheet-blue: #8ea6ff;
+  --sheet-blue-on-ink: #2748d6;
+}
+
 /* Browser surfaces themed from the palette */
 .sheet-world ::selection {
   background: var(--sheet-blue);
@@ -219,6 +235,17 @@ body:has(.sheet-world) {
   --font-sans: "Courier Prime", "Courier New", monospace;
 }
 
+.dark body:has(.sheet-world) {
+  --ui-primary: #8ea6ff;
+  --ui-border: #f3f4f8;
+  --ui-border-accented: #f3f4f8;
+  --ui-bg: #171923;
+  --ui-text: #f3f4f8;
+  --ui-text-highlighted: #f3f4f8;
+  --ui-text-dimmed: #9aa0b8;
+  --ui-text-muted: #c4c8d8;
+}
+
 /* Nuxt UI select triggers inside search bars match .sheet-field */
 .sheet-world [role="search"] button[data-slot="base"] {
   width: 100%;
@@ -229,4 +256,22 @@ body:has(.sheet-world) {
   box-shadow: inset 0 0 0 3px var(--sheet-ink);
   font-family: var(--sheet-type);
   font-size: 0.9375rem;
+}
+
+/* The color mode switch, drawn as a square sheet control */
+.sheet-world .sheet-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border-radius: 0;
+  background: transparent;
+  color: var(--sheet-ink);
+  box-shadow: inset 0 0 0 3px var(--sheet-ink);
+}
+.sheet-world .sheet-toggle:hover,
+.sheet-world .sheet-toggle:focus-visible {
+  background: var(--sheet-ink);
+  color: var(--sheet-paper);
 }

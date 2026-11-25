@@ -40,6 +40,7 @@ const links = computed(() => [
           <span class="sheet-display text-xl">Ministros FC</span>
         </NuxtLink>
         <div class="flex items-center gap-3 text-sm">
+          <UiColorModeToggle class="sheet-toggle" />
           <ClientOnly>
             <template v-if="authStore.isAuthenticated">
               <AdminProfileMenu v-if="authStore.isEditor" sheet />
