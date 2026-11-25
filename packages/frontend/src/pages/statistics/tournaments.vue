@@ -10,12 +10,14 @@ import PlaygroundSelect from "~/components/pages/admin/playground/PlaygroundSele
 import { useStatsFilters } from "~/composables/useStatsFilters";
 import { createTruthyObject } from "~/utils/object.js";
 
+
+const { t } = useI18n();
 definePageMeta({
   layout: "statistics-private",
   middleware: "auth",
   requiresAuth: true,
 });
-useHead({ title: "Estadísticas por Torneo" });
+useHead({ title: t("statisticsTournaments.estadisticasPorTorneo") });
 
 const { $api } = useNuxtApp();
 const route = useRoute();
@@ -53,11 +55,11 @@ watch(
 
 <template>
   <div>
-    <StatsTitle>Por torneo</StatsTitle>
+    <StatsTitle>{{ t("common.porTorneo") }}</StatsTitle>
     <StatsFilterBar>
-      <StatsField label="Año"><YearSelect v-model="yearFilter" /></StatsField>
-      <StatsField label="Torneo"><TournamentSelect v-model="tournamentFilter" /></StatsField>
-      <StatsField label="Cancha"><PlaygroundSelect v-model="playgroundFilter" placeholder="Todas" /></StatsField>
+      <StatsField :label="t('common.ano')"><YearSelect v-model="yearFilter" /></StatsField>
+      <StatsField :label="t('common.torneo')"><TournamentSelect v-model="tournamentFilter" /></StatsField>
+      <StatsField :label="t('common.cancha')"><PlaygroundSelect v-model="playgroundFilter" :placeholder="t('common.todas')" /></StatsField>
     </StatsFilterBar>
     <StatsTableByTournament :rows="rows" :loading="pending" />
   </div>

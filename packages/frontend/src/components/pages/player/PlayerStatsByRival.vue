@@ -9,6 +9,8 @@ import StatsRanked, {
   type RankedMetric,
 } from "~/components/pages/statistics/StatsRanked.vue";
 
+
+const { t } = useI18n();
 const props = defineProps<{ playerId: string }>();
 
 const { $api } = useNuxtApp();
@@ -26,10 +28,10 @@ const rivals = computed(() => rivalsData.value?.data ?? []);
 const pct = (v: number) => `${Math.round(v)}%`;
 const signed = (v: number) => (v > 0 ? `+${v}` : String(v));
 const metrics: RankedMetric[] = [
-  { key: "games", label: "Partidos", unit: "partidos" },
-  { key: "goals", label: "Goles", unit: "goles" },
-  { key: "winRate", label: "% Victorias", unit: "% vict.", format: pct },
-  { key: "goalDiff", label: "Dif. gol", unit: "dif. gol", format: signed },
+  { key: "games", label: t("common.partidos"), unit: t("units.partidos") },
+  { key: "goals", label: t("common.goles"), unit: t("units.goles") },
+  { key: "winRate", label: t("stats.winRate"), unit: t("units.vict"), format: pct },
+  { key: "goalDiff", label: t("common.difGol"), unit: t("units.difGol"), format: signed },
 ];
 
 const items = computed<RankedItem[]>(() =>
@@ -67,9 +69,9 @@ const RESULT: Record<
   PlayerRivalMatchDTO["result"],
   { label: string; tone: string }
 > = {
-  W: { label: "Victoria", tone: "text-[var(--sheet-win)]" },
-  L: { label: "Derrota", tone: "text-[var(--sheet-loss)]" },
-  D: { label: "Empate", tone: "text-[var(--sheet-draw)]" },
+  W: { label: t("common.victoria"), tone: "text-[var(--sheet-win)]" },
+  L: { label: t("common.derrota"), tone: "text-[var(--sheet-loss)]" },
+  D: { label: t("common.empate"), tone: "text-[var(--sheet-draw)]" },
 };
 
 // Stat columns of the match grid, in header order
@@ -84,15 +86,15 @@ const statCells = (m: PlayerRivalMatchDTO): { v: number; n: string }[] => [
 <template>
   <div>
     <slot name="header"></slot>
-    <p v-if="pending" class="mt-4">Cargando…</p>
+    <UiSheetMessage v-if="pending" class="mt-4">{{ t("common.cargando") }}</UiSheetMessage>
     <StatsRanked
       v-else
       :items="items"
       :metrics="metrics"
       single
       sticky-header
-      search-label="Buscar equipo"
-      empty-text="No hay partidos contra equipos rivales todavía."
+      :search-label="t('playerPlayerStatsByRival.buscarEquipo')"
+      :empty-text="t('playerPlayerStatsByRival.noHayPartidosContra')"
     >
       <template #extra="{ item }">
         <div class="mt-2">
@@ -101,14 +103,14 @@ const statCells = (m: PlayerRivalMatchDTO): { v: number; n: string }[] => [
             class="match-grid sheet-label border-b border-[var(--sheet-ink)] py-1.5 text-[0.6875rem]"
             aria-hidden="true"
           >
-            <span>Partido</span>
-            <span class="text-center" title="Goles">G</span>
-            <span class="text-center" title="Asistencias">A</span>
-            <span class="flex justify-center" title="Tarjetas amarillas"
+            <span>{{ t("common.partido") }}</span>
+            <span class="text-center" :title="t('playerPlayerStatsByRival.goles')">G</span>
+            <span class="text-center" :title="t('common.asistencias')">A</span>
+            <span class="flex justify-center" :title="t('common.tarjetasAmarillas')"
               ><span
                 class="inline-block size-3 border border-[var(--sheet-ink)] bg-[var(--sheet-card-yellow)]"
             /></span>
-            <span class="flex justify-center" title="Tarjetas rojas"
+            <span class="flex justify-center" :title="t('common.tarjetasRojas')"
               ><span
                 class="inline-block size-3 border border-[var(--sheet-ink)] bg-[var(--sheet-card-red)]"
             /></span>
@@ -157,7 +159,7 @@ const statCells = (m: PlayerRivalMatchDTO): { v: number; n: string }[] => [
                 v-if="m.slug"
                 :to="`/games/${m.slug}`"
                 class="match-link sheet-link inline-flex min-h-11 items-center text-sm"
-                >Ir al partido →</NuxtLink
+                >{{ t("playerPlayerStatsByRival.irAlPartido") }}</NuxtLink
               >
             </li>
           </ul>

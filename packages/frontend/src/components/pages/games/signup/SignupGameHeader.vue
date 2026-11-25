@@ -5,6 +5,8 @@ import {
   formatTime,
 } from "@ministrosfc/shared";
 
+
+const { t } = useI18n();
 const props = defineProps<{
   game: GameSignupPageDTO["game"];
   maxPlayers: number | null;
@@ -22,8 +24,8 @@ const props = defineProps<{
       <span>{{ game.playground?.name ?? game.location }}</span>
     </p>
     <div class="grid grid-cols-5 items-baseline justify-between gap-2 mb-4">
-      <span class="col-span-2 text-lg font-bold text-left">Ministros FC</span>
-      <span class="col-span-1 text-gray-400 text-center">vs</span>
+      <span class="col-span-2 text-lg font-bold text-left">{{ t("signupSignupGameHeader.ministrosFc") }}</span>
+      <span class="col-span-1 text-gray-400 text-center">{{ t("signupSignupGameHeader.vs") }}</span>
       <span class="col-span-2 text-lg font-bold text-right">{{
         game.opponentTeam?.name
       }}</span>

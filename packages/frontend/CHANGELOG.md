@@ -11,6 +11,22 @@ For project-level release notes covering all packages, see the root [CHANGELOG.m
 
 ## [Unreleased]
 
+### Added
+
+- `@nuxtjs/i18n` with a single Spanish locale (`i18n/locales/es.json`); every public-site string, the shared select/modal components and the composable error messages now go through `t()`. A unit test fails when the source asks for a key the messages do not define.
+- Shared sheet building blocks under `components/ui/Sheet/` (`Title`, `Heading`, `Band`, `Totals`, `Message`) and `TournamentLine`, replacing markup that was copied across pages.
+- The sheet palette as Tailwind colors (`bg-sheet-paper`, `text-sheet-win`, `fill-sheet-pitch`, ...) and `useSheetColors` for drawings that cannot take classes (jersey images).
+
+### Changed
+
+- The signup lineup field, jersey images, position numbers and signup status colors use sheet tokens, so they follow the dark mode; no hard-coded colors remain outside the token files (the Google logo keeps its brand colors).
+- The public navigation fits at 320px without scrolling sideways.
+- Public back links use `UiBackButton`.
+
+### Removed
+
+- Unused old-look components: `TournamentCard`, `GameCard`, `GameHeader`, `GameMetadataRow`, `GamePublicHeader`, `GameParticipantsTable`, `GameSignUpButton`, `PlayerCard`, `PlayerHeader`, `StatsFocusSelector`, `Accordion`, `SignupGuestForm`, `common/Header`, `common/Footer`, `common/Navigation` and the `default` layout (the logout page now uses the sheet layout).
+
 ---
 
 ## [0.15.0] — 2026-11-23

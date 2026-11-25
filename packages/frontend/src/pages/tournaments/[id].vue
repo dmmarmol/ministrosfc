@@ -11,6 +11,8 @@ import StatsRanked, {
   type RankedMetric,
 } from "~/components/pages/statistics/StatsRanked.vue";
 
+
+const { t } = useI18n();
 definePageMeta({ public: true, layout: "sheet" });
 
 const { $api } = useNuxtApp();
@@ -52,27 +54,27 @@ const gameGroups = computed(() => {
   return out;
 });
 
-useHead(() => ({ title: tournament.value?.name ?? "Torneo" }));
+useHead(() => ({ title: tournament.value?.name ?? t("common.torneo") }));
 
 const signed = (v: number) => (v > 0 ? `+${v}` : String(v));
 const totals = computed(() => {
   const r = record.value;
   if (!r) return [];
   return [
-    { label: "Partidos", value: r.played },
-    { label: "Victorias", value: r.wins },
-    { label: "Empates", value: r.draws },
-    { label: "Derrotas", value: r.losses },
-    { label: "Goles a favor", value: r.goalsFor },
-    { label: "Goles en contra", value: r.goalsAgainst },
-    { label: "Dif. gol", value: signed(r.goalDifference) },
+    { label: t("common.partidos"), value: r.played },
+    { label: t("common.victorias"), value: r.wins },
+    { label: t("common.empates"), value: r.draws },
+    { label: t("common.derrotas"), value: r.losses },
+    { label: t("common.golesAFavor"), value: r.goalsFor },
+    { label: t("common.golesEnContra"), value: r.goalsAgainst },
+    { label: t("common.difGol"), value: signed(r.goalDifference) },
   ];
 });
 
 const metrics: RankedMetric[] = [
-  { key: "goals", label: "Goles", unit: "goles" },
-  { key: "assists", label: "Asist.", unit: "asist." },
-  { key: "games", label: "Partidos", unit: "partidos" },
+  { key: "goals", label: t("common.goles"), unit: t("units.goles") },
+  { key: "assists", label: t("common.asist"), unit: t("units.asist") },
+  { key: "games", label: t("common.partidos"), unit: t("units.partidos") },
 ];
 const scorers = computed<RankedItem[]>(() =>
   (statsData.value?.data?.playerStats ?? [])
@@ -87,9 +89,9 @@ const scorers = computed<RankedItem[]>(() =>
       values: { goals: s.goalsScored, assists: s.assists, games: s.appearances },
       detail: [
         { label: "PJ", value: s.appearances },
-        { label: "Goles", value: s.goalsScored },
-        { label: "Asist.", value: s.assists },
-        { label: "Amar.", value: s.yellowCards },
+        { label: t("common.goles"), value: s.goalsScored },
+        { label: t("common.asist"), value: s.assists },
+        { label: t("common.amar"), value: s.yellowCards },
       ],
     })),
 );
@@ -97,43 +99,21 @@ const scorers = computed<RankedItem[]>(() =>
 
 <template>
   <div class="mx-auto max-w-3xl px-4 pb-12 pt-6">
-    <NuxtLink to="/tournaments" class="sheet-link inline-flex min-h-11 items-center"
-      >← Torneos</NuxtLink
-    >
+    <UiBackButton to="/tournaments" :label="t('tournamentsDetail.torneos')" />
 
-    <p v-if="pending" class="mt-6">Cargando torneo…</p>
+    <UiSheetMessage v-if="pending" class="mt-6">{{ t("tournamentsDetail.cargandoTorneo") }}</UiSheetMessage>
     <template v-else-if="tournament">
-      <h1 class="sheet-display mt-2 text-[clamp(2.75rem,12vw,5rem)]">{{ tournament.name }}</h1>
+      <UiSheetTitle size="md" class="mt-2">{{ tournament.name }}</UiSheetTitle>
       <p class="sheet-label mt-3">
         {{ formatCompetitionType(tournament.competitionType) }} ·
         {{ formatDateRange(tournament.startDate, tournament.endDate) }}
       </p>
       <p v-if="tournament.description" class="mt-3 max-w-prose">{{ tournament.description }}</p>
 
-      <dl
-        v-if="record && record.played"
-        class="mt-6 grid grid-cols-2 border-y-[3px] border-[var(--sheet-ink)] sm:grid-cols-4"
-      >
-        <div
-          v-for="t in totals"
-          :key="t.label"
-          class="border-b border-r border-[var(--sheet-rule)] px-3 py-3 [&:last-child:nth-child(odd)]:col-span-2 sm:[&:last-child:nth-child(odd)]:col-span-1"
-        >
-          <dt class="sheet-label">{{ t.label }}</dt>
-          <dd class="sheet-display sheet-num mt-1 text-5xl">{{ t.value }}</dd>
-        </div>
-      </dl>
+      <UiSheetTotals v-if="record && record.played" :items="totals" class="mt-6" />
 
       <section class="mt-10" aria-labelledby="t-games">
-        <h2
-          id="t-games"
-          class="sheet-on-ink sheet-display flex items-baseline justify-between bg-[var(--sheet-ink)] px-3 py-2 text-4xl text-[var(--sheet-paper)]"
-        >
-          Partidos
-          <span class="sheet-num font-[var(--sheet-type)] text-base font-bold text-[var(--sheet-blue-on-ink)]"
-            >{{ games.length }}<span class="sr-only"> partidos</span></span
-          >
-        </h2>
+        <UiSheetBand id="t-games" :count="games.length" count-label="partidos">{{ t("common.partidos") }}</UiSheetBand>
         <template v-if="games.length">
           <div v-for="grp in gameGroups" :key="grp.key" class="mt-5">
             <h3 class="sheet-display text-2xl">{{ grp.label }}</h3>
@@ -149,24 +129,19 @@ const scorers = computed<RankedItem[]>(() =>
           </div>
         </template>
         <p v-else class="border-b-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] px-3 py-4">
-          Todavía no hay partidos en este torneo.
+          {{ t("tournamentsDetail.todaviaNoHayPartidos") }}
         </p>
       </section>
 
       <section class="mt-10" aria-labelledby="t-scorers">
-        <h2
-          id="t-scorers"
-          class="sheet-on-ink sheet-display flex items-baseline justify-between bg-[var(--sheet-ink)] px-3 py-2 text-4xl text-[var(--sheet-paper)]"
-        >
-          Goleadores
-        </h2>
+        <UiSheetBand id="t-scorers">{{ t("common.goleadores") }}</UiSheetBand>
         <StatsRanked
           :items="scorers"
           :metrics="metrics"
-          empty-text="Todavía no hay goles registrados en este torneo."
+          :empty-text="t('tournamentsDetail.todaviaNoHayGoles')"
         />
       </section>
     </template>
-    <p v-else class="mt-8 text-lg">No se encontró el torneo.</p>
+    <UiSheetMessage v-else tone="empty" class="mt-8">{{ t("errors.noSeEncontroElTorneo") }}</UiSheetMessage>
   </div>
 </template>

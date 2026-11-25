@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { useAuthStore } from "~/stores/auth";
 
+
+const { t } = useI18n();
 const authStore = useAuthStore();
 
 const links = computed(() => [
-  { to: "/statistics", label: "General", exact: true },
-  { to: "/statistics/top-scorers?playerStatus=ACTIVE", label: "Goleadores", match: "/statistics/top-scorers" },
+  { to: "/statistics", label: t("common.general"), exact: true },
+  { to: "/statistics/top-scorers?playerStatus=ACTIVE", label: t("common.goleadores"), match: "/statistics/top-scorers" },
   ...(authStore.isAuthenticated
     ? [
-        { to: "/statistics/players", label: "Jugadores", match: "/statistics/players" },
-        { to: "/statistics/rivals", label: "Rivales", match: "/statistics/rivals" },
-        { to: "/statistics/years", label: "Por año", match: "/statistics/years" },
-        { to: "/statistics/tournaments", label: "Por torneo", match: "/statistics/tournaments" },
+        { to: "/statistics/players", label: t("common.jugadores"), match: "/statistics/players" },
+        { to: "/statistics/rivals", label: t("common.rivales"), match: "/statistics/rivals" },
+        { to: "/statistics/years", label: t("common.porAno"), match: "/statistics/years" },
+        { to: "/statistics/tournaments", label: t("common.porTorneo"), match: "/statistics/tournaments" },
       ]
     : []),
 ]);
@@ -21,7 +23,7 @@ const isActive = (l: { exact?: boolean; match?: string; to: string }) =>
 </script>
 
 <template>
-  <nav aria-label="Estadísticas" class="border-b-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)]">
+  <nav :aria-label="t('common.estadisticas')" class="border-b-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)]">
     <ul class="mx-auto flex max-w-5xl flex-wrap px-4">
       <li v-for="l in links" :key="l.label" class="shrink-0">
         <NuxtLink

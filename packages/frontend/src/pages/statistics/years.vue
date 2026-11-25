@@ -7,12 +7,14 @@ import YearSelect from "~/components/pages/statistics/StatsFilters/YearSelect.vu
 import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 import { useStatsFilters } from "~/composables/useStatsFilters";
 
+
+const { t } = useI18n();
 definePageMeta({
   layout: "statistics-private",
   middleware: "auth",
   requiresAuth: true,
 });
-useHead({ title: "Estadísticas por Año" });
+useHead({ title: t("statisticsYears.estadisticasPorAno") });
 
 const { $api } = useNuxtApp();
 const route = useRoute();
@@ -41,9 +43,9 @@ watch(
 
 <template>
   <div>
-    <StatsTitle>Por año</StatsTitle>
+    <StatsTitle>{{ t("common.porAno") }}</StatsTitle>
     <StatsFilterBar>
-      <StatsField label="Año"><YearSelect v-model="yearFilter" /></StatsField>
+      <StatsField :label="t('common.ano')"><YearSelect v-model="yearFilter" /></StatsField>
     </StatsFilterBar>
     <StatsTableByYear :rows="rows" :loading="pending" />
   </div>

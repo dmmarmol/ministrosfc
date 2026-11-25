@@ -11,8 +11,20 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     "@nuxt/image",
     "@nuxt/ui",
+    "@nuxtjs/i18n",
     /** "@nuxtjs/color-mode", */
   ],
+
+  // Spanish only for now; every visible string still goes through t() so a
+  // second locale is a message file away. Messages: i18n/locales/es.json.
+  i18n: {
+    defaultLocale: "es",
+    strategy: "no_prefix",
+    detectBrowserLanguage: false,
+    locales: [
+      { code: "es", language: "es-AR", name: "Español", file: "es.json" },
+    ],
+  },
 
   css: [
     // "leaflet/dist/leaflet.css",

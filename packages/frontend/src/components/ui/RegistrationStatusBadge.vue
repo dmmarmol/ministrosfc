@@ -2,6 +2,8 @@
 import { RegistrationStatus } from "@ministrosfc/shared";
 import type { BadgeProps } from "#ui/types";
 
+const { t } = useI18n();
+
 const props = defineProps<{
   status: RegistrationStatus;
 }>();
@@ -13,9 +15,9 @@ const statusColorMap: Record<RegistrationStatus, BadgeProps["color"]> = {
 } as const;
 
 const statusLabelMap: Record<RegistrationStatus, string> = {
-  [RegistrationStatus.APPROVED]: "Aprobado",
-  [RegistrationStatus.PENDING_APPROVAL]: "Pendiente",
-  [RegistrationStatus.DENIED]: "Rechazado",
+  [RegistrationStatus.APPROVED]: t("registrationStatusBadge.aprobado"),
+  [RegistrationStatus.PENDING_APPROVAL]: t("registrationStatusBadge.pendiente"),
+  [RegistrationStatus.DENIED]: t("registrationStatusBadge.rechazado"),
 } as const;
 </script>
 

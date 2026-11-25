@@ -4,16 +4,18 @@ import type { TeamStatPeriodDTO } from "@ministrosfc/shared";
 import { formatStatDate } from "~/utils/stats";
 import StatsRanked, { type RankedItem, type RankedMetric } from "./StatsRanked.vue";
 
+const { t } = useI18n();
+
 const props = defineProps<{ rows: TeamStatPeriodDTO[]; loading: boolean }>();
 
 const pct = (v: number) => `${Number(v).toFixed(1)}%`;
 const signed = (v: number) => (v > 0 ? `+${v}` : String(v));
 const metrics: RankedMetric[] = [
-  { key: "games", label: "Partidos", unit: "partidos" },
-  { key: "wins", label: "Victorias", unit: "victorias" },
-  { key: "winRate", label: "% Victorias", unit: "% vict.", format: pct },
-  { key: "goalDiff", label: "Dif. gol", unit: "dif. gol", format: signed },
-  { key: "points", label: "Puntos", unit: "puntos" },
+  { key: "games", label: t("common.partidos"), unit: t("units.partidos") },
+  { key: "wins", label: t("common.victorias"), unit: t("units.victorias") },
+  { key: "winRate", label: t("stats.winRate"), unit: t("units.vict"), format: pct },
+  { key: "goalDiff", label: t("common.difGol"), unit: t("units.difGol"), format: signed },
+  { key: "points", label: t("common.puntos"), unit: t("units.puntos") },
 ];
 
 const period = (r: TeamStatPeriodDTO) =>
@@ -43,7 +45,7 @@ const items = computed<RankedItem[]>(() =>
       { label: "GF", value: r.goalsFor },
       { label: "GC", value: r.goalsAgainst },
       { label: "DG", value: signed(r.goalDifference ?? r.goalsFor - r.goalsAgainst) },
-      { label: "% Vict.", value: pct(r.winRate) },
+      { label: t("stats.winRateShort"), value: pct(r.winRate) },
     ],
   })),
 );

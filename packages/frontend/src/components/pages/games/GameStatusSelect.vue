@@ -3,6 +3,8 @@ import type { SelectItem } from "#ui/types";
 import { GameStatus, OPTION_FILTER_ALL } from "@ministrosfc/shared";
 import { resolveSelectedValue } from "~/utils/object";
 
+const { t } = useI18n();
+
 const props = withDefaults(
   defineProps<{
     modelValue?: GameStatus | typeof OPTION_FILTER_ALL;
@@ -23,13 +25,13 @@ const emit = defineEmits<{
 
 const optionAll: SelectItem = {
   value: OPTION_FILTER_ALL,
-  label: "Todos los estados",
+  label: t("common.todosLosEstados"),
 };
 
 const gameStatusItems: SelectItem[] = [
-  { value: GameStatus.SCHEDULED, label: "Programado" },
-  { value: GameStatus.COMPLETED, label: "Completado" },
-  { value: GameStatus.CANCELLED, label: "Cancelado" },
+  { value: GameStatus.SCHEDULED, label: t("common.programado") },
+  { value: GameStatus.COMPLETED, label: t("common.completado") },
+  { value: GameStatus.CANCELLED, label: t("common.cancelado") },
 ];
 
 const items: SelectItem[] = props.includeAll

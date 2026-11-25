@@ -2,6 +2,8 @@
 import { ref } from "vue";
 import type { AddressSuggestion } from "@ministrosfc/shared";
 
+
+const { t } = useI18n();
 const config = useRuntimeConfig();
 const apiBase = config.public.apiBaseUrl as string;
 
@@ -58,7 +60,7 @@ function onInput(event: Event) {
       suggestions.value = result.data;
       open.value = true;
     } catch (e) {
-      error.value = "No se pueden cargar sugerencias en este momento";
+      error.value = t("errors.noSePuedenCargarSugerencias");
       suggestions.value = [];
       open.value = true;
       emit("error", e);
@@ -111,7 +113,7 @@ function closeDropdown() {
       </template>
       <template v-else-if="suggestions.length === 0">
         <li class="px-3 py-2 text-sm text-[var(--sheet-ink-soft)]">
-          Sin resultados para esta búsqueda
+          {{ t("addressAutocompleteInput.sinResultadosParaEsta") }}
         </li>
       </template>
       <template v-else>
@@ -127,7 +129,7 @@ function closeDropdown() {
         </li>
       </template>
       <li class="border-t border-[var(--sheet-rule)] px-3 py-1 text-xs text-[var(--sheet-ink-soft)]">
-        © OpenStreetMap contributors
+        {{ t("addressAutocompleteInput.openstreetmapContributors") }}
       </li>
     </ul>
   </div>

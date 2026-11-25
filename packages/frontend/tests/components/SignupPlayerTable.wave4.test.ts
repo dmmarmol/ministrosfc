@@ -52,7 +52,7 @@ describe("SignupPlayerTable Wave 4 header", () => {
 
     expect(wrapper.text()).toContain("Confirmados (2 / 2)");
     expect(wrapper.text()).toContain("Equipo completo");
-    expect(wrapper.find(".text-green-600 svg.w-5.h-5").exists()).toBe(true);
+    expect(wrapper.find("[data-testid='team-full'] svg").exists()).toBe(true);
   });
 
   it('shows "Confirmados (X)" and hides full indicator when maxPlayers is null', () => {

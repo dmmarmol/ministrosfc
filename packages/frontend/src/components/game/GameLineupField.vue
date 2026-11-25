@@ -58,22 +58,16 @@ function circleLabel(entry: GameParticipant | null, _idx: number): string {
   return (f + l).toUpperCase() || "?";
 }
 
-function circleFill(entry: GameParticipant | null): string {
-  if (!entry) return "#e5e7eb"; // gray-200
-  if (entry.player.playerType === "GUEST") return "#fef3c7"; // amber-100
-  return "#d1fae5"; // green-100
+// Tailwind classes per slot state: empty, guest (draw yellow) or registered (win green)
+function circleClass(entry: GameParticipant | null): string {
+  if (!entry) return "fill-sheet-well stroke-sheet-rule";
+  if (entry.player.playerType === "GUEST")
+    return "fill-sheet-paper stroke-sheet-draw";
+  return "fill-sheet-paper stroke-sheet-win";
 }
 
-function circleStroke(entry: GameParticipant | null): string {
-  if (!entry) return "#9ca3af";
-  if (entry.player.playerType === "GUEST") return "#d97706";
-  return "#059669";
-}
-
-function circleTextFill(entry: GameParticipant | null): string {
-  if (!entry) return "#6b7280";
-  if (entry.player.playerType === "GUEST") return "#92400e";
-  return "#065f46";
+function circleTextClass(entry: GameParticipant | null): string {
+  return entry ? "fill-sheet-ink" : "fill-sheet-ink-soft";
 }
 </script>
 
@@ -85,14 +79,14 @@ function circleTextFill(entry: GameParticipant | null): string {
       xmlns="http://www.w3.org/2000/svg"
     >
       <!-- Field background -->
-      <rect width="100%" height="100%" fill="#16a34a" rx="8" />
+      <rect width="100%" height="100%" rx="8" class="fill-sheet-pitch" />
       <!-- Center circle -->
       <circle
         :cx="W / 2"
         :cy="H / 2"
         r="42"
         fill="none"
-        stroke="#15803d"
+        class="stroke-sheet-pitch-line"
         stroke-width="1.5"
       />
       <!-- Halfway line -->
@@ -101,7 +95,7 @@ function circleTextFill(entry: GameParticipant | null): string {
         :y1="H / 2"
         :x2="W - 10"
         :y2="H / 2"
-        stroke="#15803d"
+        class="stroke-sheet-pitch-line"
         stroke-width="1.5"
       />
       <!-- Penalty areas -->
@@ -111,7 +105,7 @@ function circleTextFill(entry: GameParticipant | null): string {
         width="150"
         height="70"
         fill="none"
-        stroke="#15803d"
+        class="stroke-sheet-pitch-line"
         stroke-width="1.5"
         rx="2"
       />
@@ -121,7 +115,7 @@ function circleTextFill(entry: GameParticipant | null): string {
         width="150"
         height="70"
         fill="none"
-        stroke="#15803d"
+        class="stroke-sheet-pitch-line"
         stroke-width="1.5"
         rx="2"
       />
@@ -132,7 +126,7 @@ function circleTextFill(entry: GameParticipant | null): string {
         width="80"
         height="28"
         fill="none"
-        stroke="#15803d"
+        class="stroke-sheet-pitch-line"
         stroke-width="1.5"
         rx="2"
       />
@@ -142,7 +136,7 @@ function circleTextFill(entry: GameParticipant | null): string {
         width="80"
         height="28"
         fill="none"
-        stroke="#15803d"
+        class="stroke-sheet-pitch-line"
         stroke-width="1.5"
         rx="2"
       />
@@ -154,7 +148,7 @@ function circleTextFill(entry: GameParticipant | null): string {
         width="280"
         height="400"
         fill="none"
-        stroke="#15803d"
+        class="stroke-sheet-pitch-line"
         stroke-width="1.5"
       />
 
@@ -164,52 +158,52 @@ function circleTextFill(entry: GameParticipant | null): string {
         <path
           d="M 18,10 A 8,8 0 0,1 10,18"
           fill="none"
-          stroke="#15803d"
+          class="stroke-sheet-pitch-line"
           stroke-width="1.5"
         />
         <!-- Top-right -->
         <path
           d="M 282,10 A 8,8 0 0,0 290,18"
           fill="none"
-          stroke="#15803d"
+          class="stroke-sheet-pitch-line"
           stroke-width="1.5"
         />
         <!-- Bottom-right -->
         <path
           d="M 290,402 A 8,8 0 0,0 282,410"
           fill="none"
-          stroke="#15803d"
+          class="stroke-sheet-pitch-line"
           stroke-width="1.5"
         />
         <!-- Bottom-left -->
         <path
           d="M 10,402 A 8,8 0 0,1 18,410"
           fill="none"
-          stroke="#15803d"
+          class="stroke-sheet-pitch-line"
           stroke-width="1.5"
         />
       </g>
 
       <!-- Center spot -->
-      <circle :cx="W / 2" :cy="H / 2" r="2.5" fill="#15803d" />
+      <circle :cx="W / 2" :cy="H / 2" r="2.5" class="fill-sheet-pitch-line" />
 
       <!-- Penalty spots -->
-      <circle :cx="W / 2" cy="60" r="2.5" fill="#15803d" />
-      <circle :cx="W / 2" :cy="H - 60" r="2.5" fill="#15803d" />
+      <circle :cx="W / 2" cy="60" r="2.5" class="fill-sheet-pitch-line" />
+      <circle :cx="W / 2" :cy="H - 60" r="2.5" class="fill-sheet-pitch-line" />
 
       <!-- Penalty arcs (D) — only the portion outside the penalty area shown -->
       <!-- Top arc: center (150,60) r=42, arc below y=80 between x≈114.9 and x≈185.1 -->
       <path
         d="M 114.9,80 A 42,42 0 0,0 185.1,80"
         fill="none"
-        stroke="#15803d"
+        class="stroke-sheet-pitch-line"
         stroke-width="1.5"
       />
       <!-- Bottom arc: center (150,H-60) r=42, arc above y=H-80 -->
       <path
         :d="`M 114.9,${H - 80} A 42,42 0 0,1 185.1,${H - 80}`"
         fill="none"
-        stroke="#15803d"
+        class="stroke-sheet-pitch-line"
         stroke-width="1.5"
       />
 
@@ -226,8 +220,7 @@ function circleTextFill(entry: GameParticipant | null): string {
           :cx="slotX(idx)"
           :cy="slotY(idx)"
           :r="R"
-          :fill="circleFill(entry)"
-          :stroke="circleStroke(entry)"
+          :class="circleClass(entry)"
           stroke-width="2"
         />
         <text
@@ -236,7 +229,7 @@ function circleTextFill(entry: GameParticipant | null): string {
           text-anchor="middle"
           font-size="10"
           font-weight="600"
-          :fill="circleTextFill(entry)"
+          :class="circleTextClass(entry)"
         >
           {{ circleLabel(entry, idx) }}
         </text>

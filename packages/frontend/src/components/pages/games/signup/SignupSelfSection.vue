@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { CurrentPlayerStatus } from "@ministrosfc/shared";
 
+
+const { t } = useI18n();
 const props = defineProps<{
   status: CurrentPlayerStatus;
   loading: boolean;
@@ -15,16 +17,16 @@ const emit = defineEmits<{
 <template>
   <div
     v-if="status === 'signed_up'"
-    class="bg-green-50 border border-green-200 rounded-xl py-[0.57rem] px-4 flex items-center justify-between"
+    class="bg-sheet-win/10 border border-sheet-win/40 rounded-xl py-[0.57rem] px-4 flex items-center justify-between"
   >
-    <span class="text-sm text-green-700 font-medium"
-      >✓ Ya estás confirmado.</span
+    <span class="text-sm text-sheet-win font-medium"
+      >{{ t("signupSignupSelfSection.yaEstasConfirmado") }}</span
     >
     <button
-      class="text-sm text-red-500 hover:text-red-700 font-medium"
+      class="text-sm text-sheet-loss hover:text-sheet-loss font-medium"
       @click="$emit('cancel-self')"
     >
-      Cancelar inscripción
+      {{ t("signupSignupSelfSection.cancelarInscripcion") }}
     </button>
   </div>
   <button
@@ -33,6 +35,6 @@ const emit = defineEmits<{
     :disabled="loading"
     @click="emit('confirm')"
   >
-    {{ loading ? "Confirmando…" : "Confirmar asistencia" }}
+    {{ loading ? t("signupSignupSelfSection.confirmando") : t("signupSignupSelfSection.confirmarAsistencia") }}
   </button>
 </template>

@@ -3,6 +3,8 @@ import type { SelectItem } from "#ui/types";
 import { OPTION_FILTER_ALL } from "@ministrosfc/shared";
 import { useStatisticsAvailableTournaments } from "~/composables/useStatisticsAvailableTournaments";
 
+
+const { t } = useI18n();
 type TournamentOption = SelectItem & {
   value: string;
   label: string;
@@ -29,7 +31,7 @@ const { availableTournaments } = useStatisticsAvailableTournaments();
 
 const optionAll: TournamentOption = {
   value: OPTION_FILTER_ALL,
-  label: "Todos los torneos",
+  label: t("statsFiltersTournamentSelect.todosLosTorneos"),
 };
 const items = computed<TournamentOption[]>(() =>
   props.includeAll
@@ -90,7 +92,7 @@ function handleUpdate(value: SelectItem | undefined) {
     :items="items"
     value-key="value"
     label-key="label"
-    placeholder="Todos"
+    :placeholder="t('common.todos')"
     :search-input="false"
     :clear="true"
     :ui="{ content: 'min-w-fit' }"

@@ -12,6 +12,7 @@ import type {
 import type { PaginatedResponse } from "@ministrosfc/shared";
 
 export function useGames() {
+  const { t } = useI18n();
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
 
@@ -33,11 +34,11 @@ export function useGames() {
       return res.data;
     } catch (err) {
       error.value =
-        err instanceof Error ? err.message : "Error al cargar partidos";
+        err instanceof Error ? err.message : t("errors.errorAlCargarPartidos");
     } finally {
       loading.value = false;
     }
-    throw new Error(error.value ?? "Error al cargar el partido.");
+    throw new Error(error.value ?? t("errors.errorAlCargarElPartido"));
   }
 
   async function fetchGames(
@@ -54,7 +55,7 @@ export function useGames() {
       return res;
     } catch (err) {
       error.value =
-        err instanceof Error ? err.message : "Error al cargar partidos";
+        err instanceof Error ? err.message : t("errors.errorAlCargarPartidos");
       return { data: [], meta: { total: 0, page: 1, limit: 0, totalPages: 0 } };
     } finally {
       loading.value = false;

@@ -5,6 +5,8 @@ import { useAuthStore } from "~/stores/auth";
 import { useRuntime } from "~/composables/useRuntime";
 import { useOnboarding } from "~/composables/useOnboarding";
 
+
+const { t } = useI18n();
 definePageMeta({ layout: "sheet", middleware: "auth", authPage: true });
 
 const route = useRoute();
@@ -107,6 +109,6 @@ async function navigateAfterAuth() {
 
 <template>
   <div class="mx-auto max-w-md px-4 py-24">
-    <p class="sheet-display text-4xl" role="status">Procesando autenticación…</p>
+    <p class="sheet-display text-4xl" role="status">{{ t("googleCallback.procesandoAutenticacion") }}</p>
   </div>
 </template>

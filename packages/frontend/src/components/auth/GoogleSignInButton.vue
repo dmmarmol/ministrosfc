@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { t } = useI18n();
+
 const config = useRuntimeConfig();
 const googleAuthUrl = `${config.public.apiBaseUrl}/api/v1/auth/google`;
 </script>
@@ -26,6 +28,6 @@ const googleAuthUrl = `${config.public.apiBaseUrl}/api/v1/auth/google`;
         fill="#EA4335"
       />
     </svg>
-    <span>Iniciar sesión con Google</span>
+    <span>{{ t("authGoogleSignInButton.iniciarSesionConGoogle") }}</span>
   </a>
 </template>

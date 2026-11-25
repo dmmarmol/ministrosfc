@@ -3,6 +3,8 @@ import { reactive, ref, computed } from "vue";
 import { PASSWORD_RULES } from "@ministrosfc/shared";
 import EmailInput from "~/components/ui/EmailInput.vue";
 
+
+const { t } = useI18n();
 defineProps<{
   loading: boolean;
   error: string;
@@ -60,7 +62,7 @@ function handleSubmit() {
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="sheet-label" for="firstName">
-          Nombre
+          {{ t("common.nombre") }}
         </label>
         <input
           id="firstName"
@@ -69,12 +71,12 @@ function handleSubmit() {
           autocomplete="given-name"
           required
           class="sheet-field mt-1"
-          placeholder="Juan"
+          :placeholder="t('authRegisterForm.juan')"
         />
       </div>
       <div>
         <label class="sheet-label" for="lastName">
-          Apellido
+          {{ t("common.apellido") }}
         </label>
         <input
           id="lastName"
@@ -83,13 +85,13 @@ function handleSubmit() {
           autocomplete="family-name"
           required
           class="sheet-field mt-1"
-          placeholder="Pérez"
+          :placeholder="t('authRegisterForm.perez')"
         />
       </div>
     </div>
     <div>
       <label class="sheet-label" for="email">
-        Correo electrónico
+        {{ t("authRegisterForm.correoElectronico") }}
       </label>
       <EmailInput
         id="email"
@@ -101,7 +103,7 @@ function handleSubmit() {
     </div>
     <div>
       <label class="sheet-label" for="password">
-        Contraseña
+        {{ t("common.contrasena") }}
       </label>
       <input
         id="password"
@@ -120,7 +122,8 @@ function handleSubmit() {
         <li
           v-for="rule in passwordRuleStatus"
           :key="rule.message"
-          :class="rule.met ? 'text-green-600 font-bold' : 'text-[var(--sheet-ink-soft)]'"
+          :data-met="rule.met"
+          :class="rule.met ? 'text-sheet-win font-bold' : 'text-[var(--sheet-ink-soft)]'"
           class="flex items-center gap-1"
         >
           <span>{{ rule.met ? "✓" : "○" }}</span>
@@ -130,7 +133,7 @@ function handleSubmit() {
     </div>
     <div>
       <label class="sheet-label" for="passwordConfirmation">
-        Confirmar contraseña
+        {{ t("authRegisterForm.confirmarContrasena") }}
       </label>
       <input
         id="passwordConfirmation"
@@ -144,13 +147,13 @@ function handleSubmit() {
     </div>
 
     <p v-if="mismatchError" class="sheet-notice" data-tone="error" role="alert">
-      Las contraseñas no coinciden
+      {{ t("authRegisterForm.lasContrasenasNoCoinciden") }}
     </p>
     <p v-if="error" class="sheet-notice" data-tone="error" role="alert">
       {{ error }}
     </p>
     <button type="submit" :disabled="loading" class="sheet-button w-full">
-      {{ loading ? "Registrando…" : "Registrarse" }}
+      {{ loading ? t("authRegisterForm.registrando") : t("authRegisterForm.registrarse") }}
     </button>
   </form>
 </template>

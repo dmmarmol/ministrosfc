@@ -3,6 +3,8 @@ import { PlayerType, type RosterEntry } from "@ministrosfc/shared";
 import { CheckCircleIcon } from "@heroicons/vue/24/solid";
 import { computed, ref } from "vue";
 
+
+const { t } = useI18n();
 const props = defineProps<{
   roster: RosterEntry[];
   confirmedCount: number;
@@ -38,16 +40,19 @@ const isTeamFull = computed(
   <div>
     <div class="flex items-center justify-between mb-3">
       <p class="text-sm font-semibold text-gray-700">
-        Confirmados ({{ props.confirmedCount
-        }}<span v-if="props.maxPlayers"> / {{ props.maxPlayers }}</span
-        >)
+        {{
+          props.maxPlayers
+            ? t("signupTable.confirmedOfMax", { count: props.confirmedCount, max: props.maxPlayers })
+            : t("signupTable.confirmed", { count: props.confirmedCount })
+        }}
       </p>
       <div
         v-if="isTeamFull"
-        class="flex items-center gap-1.5 text-green-600 text-sm font-medium"
+        data-testid="team-full"
+        class="flex items-center gap-1.5 text-sheet-win text-sm font-medium"
       >
         <CheckCircleIcon class="w-5 h-5" />
-        Equipo completo
+        {{ t("signupSignupPlayerTable.equipoCompleto") }}
       </div>
     </div>
 
@@ -58,7 +63,7 @@ const isTeamFull = computed(
         class="flex items-start gap-3 px-4 py-3 border-b border-gray-50 last:border-0 text-sm transition-colors"
         :class="
           props.highlightedParticipantId === entry.participantId
-            ? 'bg-yellow-50'
+            ? 'bg-sheet-draw/10'
             : ''
         "
         @mouseenter="onMouseEnter(entry.participantId)"
@@ -87,7 +92,7 @@ const isTeamFull = computed(
             "
             class="text-xs text-gray-400 truncate"
           >
-            Invitado por {{ entry.player.invitedByName }}
+            {{ t("signupTable.invitedBy", { name: entry.player.invitedByName }) }}
           </p>
           <p
             v-else-if="
@@ -97,7 +102,7 @@ const isTeamFull = computed(
             "
             class="text-xs text-gray-400 truncate"
           >
-            Agregado por {{ entry.confirmedByName }}
+            {{ t("signupTable.addedBy", { name: entry.confirmedByName }) }}
           </p>
         </div>
         <div class="self-center">
@@ -107,11 +112,11 @@ const isTeamFull = computed(
               (props.canManageRoster ||
                 entry.player.id === props.currentPlayerId)
             "
-            class="p-0.5 text-gray-400 hover:text-red-500 transition-colors flex items-center gap-0.5"
-            title="Eliminar del equipo"
+            class="p-0.5 text-gray-400 hover:text-sheet-loss transition-colors flex items-center gap-0.5"
+            :title="t('signupSignupPlayerTable.eliminarDelEquipo')"
             @click="$emit('row-removePlayer', entry.participantId)"
           >
-            <span>Remover</span>
+            <span>{{ t("signupSignupPlayerTable.remover") }}</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -132,14 +137,14 @@ const isTeamFull = computed(
             class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 mt-0.5"
             :class="
               entry.player.playerType === 'GUEST'
-                ? 'bg-yellow-100 text-yellow-700'
-                : 'bg-green-100 text-green-700'
+                ? 'bg-sheet-draw/15 text-sheet-draw'
+                : 'bg-sheet-win/15 text-sheet-win'
             "
           >
             {{
               entry.player.playerType === PlayerType.GUEST
-                ? "Invitado"
-                : "Registrado"
+                ? t("common.invitado")
+                : t("signupSignupPlayerTable.registrado")
             }}
           </span>
         </div>

@@ -2,8 +2,10 @@
 import { ref, onMounted, reactive } from "vue";
 import { DEFAULT_DATE_LOCALE } from "@ministrosfc/shared";
 
+
+const { t } = useI18n();
 definePageMeta({ layout: "sheet", middleware: "auth", requiresAuth: true });
-useHead({ title: "Perfil de usuario" });
+useHead({ title: t("profile.perfilDeUsuario") });
 
 const { $api } = useNuxtApp();
 
@@ -37,7 +39,7 @@ onMounted(async () => {
     form.firstName = res.data.user.firstName;
     form.lastName = res.data.user.lastName;
   } catch (e: any) {
-    error.value = e?.message ?? "Error al cargar el perfil";
+    error.value = e?.message ?? t("errors.errorAlCargarElPerfil");
   } finally {
     loading.value = false;
   }
@@ -55,7 +57,7 @@ async function saveChanges() {
     form.firstName = res.data.user.firstName;
     form.lastName = res.data.user.lastName;
   } catch (e: any) {
-    error.value = e?.message ?? "Error al guardar los cambios";
+    error.value = e?.message ?? t("errors.errorAlGuardarLosCambios");
   }
 }
 
@@ -70,9 +72,9 @@ function memberSince(date: string): string {
 
 <template>
   <div class="mx-auto max-w-2xl px-4 pb-16 pt-6">
-    <h1 class="sheet-display text-[clamp(3rem,14vw,5rem)]">Mi perfil</h1>
+    <UiSheetTitle size="md">{{ t("profile.miPerfil") }}</UiSheetTitle>
 
-    <p v-if="loading" class="mt-6">Cargando perfil…</p>
+    <UiSheetMessage v-if="loading" class="mt-6">{{ t("profile.cargandoPerfil") }}</UiSheetMessage>
 
     <template v-else-if="profile">
       <section class="mt-6 border-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] p-5">
@@ -90,7 +92,7 @@ function memberSince(date: string): string {
 
         <div class="mt-6 grid grid-cols-2 gap-4">
           <div>
-            <label class="sheet-label" for="profile-first">Nombre</label>
+            <label class="sheet-label" for="profile-first">{{ t("common.nombre") }}</label>
             <input
               id="profile-first"
               v-model="form.firstName"
@@ -100,7 +102,7 @@ function memberSince(date: string): string {
             />
           </div>
           <div>
-            <label class="sheet-label" for="profile-last">Apellido</label>
+            <label class="sheet-label" for="profile-last">{{ t("common.apellido") }}</label>
             <input
               id="profile-last"
               v-model="form.lastName"
@@ -113,15 +115,15 @@ function memberSince(date: string): string {
 
         <dl class="mt-6 grid grid-cols-2 gap-4 border-t-[3px] border-[var(--sheet-ink)] pt-4 text-sm">
           <div>
-            <dt class="sheet-label">Miembro desde</dt>
+            <dt class="sheet-label">{{ t("profile.miembroDesde") }}</dt>
             <dd class="mt-1 font-bold">{{ memberSince(profile.user.createdAt) }}</dd>
           </div>
           <div>
-            <dt class="sheet-label">Autenticación</dt>
+            <dt class="sheet-label">{{ t("profile.autenticacion") }}</dt>
             <dd class="mt-1 font-bold">
-              <span v-if="profile.user.hasPassword">Contraseña</span>
+              <span v-if="profile.user.hasPassword">{{ t("common.contrasena") }}</span>
               <span v-if="profile.user.hasPassword && profile.user.hasGoogle"> + </span>
-              <span v-if="profile.user.hasGoogle">Google</span>
+              <span v-if="profile.user.hasGoogle">{{ t("profile.google") }}</span>
             </dd>
           </div>
         </dl>
@@ -133,28 +135,28 @@ function memberSince(date: string): string {
         <div class="mt-6 flex justify-end gap-3">
           <template v-if="editMode">
             <button type="button" class="sheet-button" data-variant="outline" @click="editMode = false">
-              Cancelar
+              {{ t("common.cancelar") }}
             </button>
             <button type="button" class="sheet-button" @click="saveChanges">
-              {{ loading ? "Guardando…" : "Guardá los cambios" }}
+              {{ loading ? t("common.guardando") : t("common.guardaLosCambios") }}
             </button>
           </template>
           <button v-else type="button" class="sheet-button" data-variant="outline" @click="editMode = true">
-            Editar
+            {{ t("profile.editar") }}
           </button>
         </div>
       </section>
 
       <section v-if="profile.user.playerId" class="mt-6 border-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] p-5">
-        <p>También tenés acceso a tu perfil de jugador</p>
+        <p>{{ t("profile.tambienTenesAccesoA") }}</p>
         <NuxtLink to="/profile/player" class="sheet-link mt-2 inline-flex min-h-11 items-center">
-          Ver perfil de jugador →
+          {{ t("profile.verPerfilDeJugador") }}
         </NuxtLink>
       </section>
     </template>
 
     <p v-else class="sheet-notice mt-6" data-tone="error" role="alert">
-      {{ error || "No se pudo cargar el perfil" }}
+      {{ error || t("errors.noSePudoCargarEl") }}
     </p>
   </div>
 </template>

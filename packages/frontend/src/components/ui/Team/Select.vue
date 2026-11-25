@@ -4,6 +4,8 @@ import { OPTION_FILTER_ALL } from "@ministrosfc/shared";
 import { useOpponentTeams } from "~/composables/useOpponentTeams";
 import { resolveSelectedValue } from "~/utils/object";
 
+const { t } = useI18n();
+
 const props = withDefaults(
   defineProps<{
     modelValue?: string | typeof OPTION_FILTER_ALL;
@@ -13,8 +15,11 @@ const props = withDefaults(
   {
     modelValue: OPTION_FILTER_ALL,
     includeAll: true,
-    placeholder: "Elegí un equipo",
   },
+);
+
+const placeholder = computed(
+  () => props.placeholder ?? t("teamSelect.elegiUnEquipo"),
 );
 
 const emit = defineEmits<{
@@ -33,7 +38,7 @@ const teams = computed(() => opponentTeams.value ?? []);
 
 const optionAll: SelectItem = {
   value: OPTION_FILTER_ALL,
-  label: "Todos los equipos",
+  label: t("teamSelect.todosLosEquipos"),
 };
 const teamsItems = computed<SelectItem[]>(() =>
   teams.value.map((team) => ({
@@ -91,12 +96,12 @@ function handleUpdate(value: unknown) {
     @clear="emitClearedValue"
     :clear="props.includeAll || undefined"
     :items="items"
-    :placeholder="props.placeholder"
+    :placeholder="placeholder"
     value-key="value"
     label-key="label"
     :ui="{ content: 'min-w-fit' }"
     :search-input="{
-      placeholder: props.placeholder,
+      placeholder,
       icon: 'i-lucide-search',
     }"
   />

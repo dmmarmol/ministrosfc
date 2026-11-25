@@ -1,5 +1,7 @@
 <script setup lang="ts">
-withDefaults(
+
+const { t } = useI18n();
+const props = withDefaults(
   defineProps<{
     modelValue: boolean;
     label?: string;
@@ -7,10 +9,13 @@ withDefaults(
     id?: string;
   }>(),
   {
-    label: "¿Eres jugador del equipo?",
-    description: "Marcá esta opción si jugas o jugaste en el equipo",
     id: "isPlayer",
   },
+);
+
+const label = computed(() => props.label ?? t("isPlayerCheckbox.eresJugadorDelEquipo"));
+const description = computed(
+  () => props.description ?? t("isPlayerCheckbox.marcaEstaOpcionSi"),
 );
 
 defineEmits<{

@@ -3,6 +3,7 @@ import { useAuthStore } from "~/stores/auth";
 import { useRuntimeConfig } from "nuxt/app";
 
 export function useOnboarding() {
+  const { t } = useI18n();
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
   const loading = ref(false);
@@ -27,7 +28,7 @@ export function useOnboarding() {
       return res.data;
     } catch (e: unknown) {
       error.value =
-        (e as Error)?.message ?? "Error al cargar el estado de onboarding.";
+        (e as Error)?.message ?? t("errors.errorAlCargarElEstado");
       throw e;
     } finally {
       loading.value = false;
@@ -63,10 +64,10 @@ export function useOnboarding() {
       return res.data;
     } catch (e: unknown) {
       if ((e as any)?.data?.code === "DUPLICATE_JERSEY_NUMBER") {
-        error.value = "Ese número de camiseta ya está en uso.";
+        error.value = t("errors.eseNumeroDeCamisetaYa");
       } else {
         error.value =
-          (e as Error)?.message ?? "Error al completar el onboarding.";
+          (e as Error)?.message ?? t("errors.errorAlCompletarElOnboarding");
       }
       throw e;
     } finally {

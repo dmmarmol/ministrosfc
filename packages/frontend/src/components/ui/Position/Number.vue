@@ -1,6 +1,9 @@
 <script lang="ts" setup>
 import { onMounted, ref, watch } from "vue";
 import SoccerJersey from "soccer-jersey";
+import { useSheetColors } from "~/composables/useSheetColors";
+
+const { t } = useI18n();
 
 type Props = {
   jerseyNumber: number | null;
@@ -10,9 +13,10 @@ type Props = {
 };
 const props = defineProps<Props>();
 
-const bgColor = "#1a1a1a";
-const textColor = "#FFFFFF";
-const emptyBgColor = "#FFFFFF";
+const sheet = useSheetColors(
+  { shirt: "ink", number: "paper" },
+  { shirt: "black", number: "white" },
+);
 
 const jerseyDataUri = ref("");
 
@@ -27,23 +31,23 @@ function updateJerseyUri() {
     if (props.jerseyNumber) {
       jerseyDataUri.value = SoccerJersey.draw({
         shirtText: props.jerseyNumber.toString(),
-        shirtColor: bgColor,
-        sleeveColor: bgColor,
+        shirtColor: sheet.shirt.value,
+        sleeveColor: sheet.shirt.value,
         shirtStyle: "plain",
         shirtStyleDirection: "vertical",
-        textColor: textColor,
-        textOutlineColor: textColor,
+        textColor: sheet.number.value,
+        textOutlineColor: sheet.number.value,
         isBack: true,
       });
     } else {
       jerseyDataUri.value = SoccerJersey.draw({
         shirtText: "",
-        shirtColor: emptyBgColor,
-        sleeveColor: emptyBgColor,
+        shirtColor: sheet.number.value,
+        sleeveColor: sheet.number.value,
         shirtStyle: "plain",
         shirtStyleDirection: "vertical",
-        textColor: emptyBgColor,
-        textOutlineColor: emptyBgColor,
+        textColor: sheet.number.value,
+        textOutlineColor: sheet.number.value,
         isBack: true,
       });
     }
@@ -54,6 +58,7 @@ function updateJerseyUri() {
 
 onMounted(updateJerseyUri);
 watch(() => props.jerseyNumber, updateJerseyUri);
+watch([sheet.shirt, sheet.number], updateJerseyUri);
 </script>
 <template>
   <div v-if="!props.isGuest">
@@ -61,13 +66,13 @@ watch(() => props.jerseyNumber, updateJerseyUri);
       v-if="props.isJersey"
       :src="jerseyDataUri"
       :class="['w-8 h-8', props.class]"
-      alt="Camiseta"
+      :alt="t('positionNumber.camiseta')"
     />
     <span
       v-else
       :class="[
         'text-xs rounded-full text-center flex items-center justify-center font-normal',
-        'border border-[#1a1a1a] text-gray-700',
+        'border border-sheet-ink text-sheet-ink-soft',
         'w-6 h-6',
       ]"
       >{{ props.jerseyNumber }}</span

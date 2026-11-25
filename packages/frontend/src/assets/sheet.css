@@ -87,6 +87,8 @@
   --sheet-win: #17753a;
   --sheet-loss: #c0262d;
   --sheet-draw: #8a6a00;
+  --sheet-pitch: #2f8a4f;
+  --sheet-pitch-line: #1f6a39;
   --sheet-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
   --sheet-type: "Courier Prime", "Courier New", monospace;
   --sheet-ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -116,6 +118,8 @@
   --sheet-win: #5fd38a;
   --sheet-loss: #ff7b80;
   --sheet-draw: #f5c400;
+  --sheet-pitch: #1a5632;
+  --sheet-pitch-line: #0f3a21;
 }
 
 /* Browser surfaces themed from the palette */

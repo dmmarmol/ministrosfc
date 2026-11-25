@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import type { TeamSummaryHeaderDTO } from "@ministrosfc/shared";
 
+
+const { t } = useI18n();
 const props = defineProps<{ summary: TeamSummaryHeaderDTO | null }>();
 
 const totals = computed(() => {
   const s = props.summary;
   if (!s) return [];
   return [
-    { label: "Partidos", value: s.totalGames },
-    { label: "Victorias", value: s.totalWins },
-    { label: "Empates", value: s.totalDraws },
-    { label: "Derrotas", value: s.totalLosses },
-    { label: "Goles a favor", value: s.totalGoalsFor },
-    { label: "Goles en contra", value: s.totalGoalsAgainst },
-    { label: "% Victorias", value: `${Number(s.winRate).toFixed(1)}%` },
+    { label: t("common.partidos"), value: s.totalGames },
+    { label: t("common.victorias"), value: s.totalWins },
+    { label: t("common.empates"), value: s.totalDraws },
+    { label: t("common.derrotas"), value: s.totalLosses },
+    { label: t("common.golesAFavor"), value: s.totalGoalsFor },
+    { label: t("common.golesEnContra"), value: s.totalGoalsAgainst },
+    { label: t("stats.winRate"), value: `${Number(s.winRate).toFixed(1)}%` },
   ];
 });
 const records = computed(() => {
@@ -24,27 +26,18 @@ const records = computed(() => {
     value: v?.name ? `${v.name} (${v.count ?? 0})` : "—",
   });
   return [
-    r("Rival más jugado", s.rivalMostPlayed),
-    r("Más victorias contra", s.rivalMostWins),
-    r("Más derrotas contra", s.rivalMostLosses),
-    r("Más empates contra", s.rivalMostDraws),
+    r(t("statisticsStatsHeader.rivalMasJugado"), s.rivalMostPlayed),
+    r(t("statisticsStatsHeader.masVictoriasContra"), s.rivalMostWins),
+    r(t("statisticsStatsHeader.masDerrotasContra"), s.rivalMostLosses),
+    r(t("statisticsStatsHeader.masEmpatesContra"), s.rivalMostDraws),
   ];
 });
 </script>
 
 <template>
   <div v-if="summary" class="mt-6">
-    <dl class="grid grid-cols-2 border-y-[3px] border-[var(--sheet-ink)] sm:grid-cols-4">
-      <div
-        v-for="t in totals"
-        :key="t.label"
-        class="border-b border-r border-[var(--sheet-rule)] px-3 py-3 [&:last-child:nth-child(odd)]:col-span-2 sm:[&:last-child:nth-child(odd)]:col-span-1"
-      >
-        <dt class="sheet-label">{{ t.label }}</dt>
-        <dd class="sheet-display sheet-num mt-1 text-5xl">{{ t.value }}</dd>
-      </div>
-    </dl>
-    <h2 class="sheet-display mt-8 text-3xl">Récords contra rivales</h2>
+    <UiSheetTotals :items="totals" />
+    <UiSheetHeading class="mt-8">{{ t("statisticsStatsHeader.recordsContraRivales") }}</UiSheetHeading>
     <dl class="mt-2 border-t-[3px] border-[var(--sheet-ink)]">
       <div
         v-for="r in records"

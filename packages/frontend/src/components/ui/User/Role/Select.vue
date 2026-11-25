@@ -3,6 +3,8 @@ import type { SelectItem } from "#ui/types";
 import { OPTION_FILTER_ALL, UserRole } from "@ministrosfc/shared";
 import { resolveSelectedValue } from "~/utils/object";
 
+
+const { t } = useI18n();
 type Props = {
   modelValue?: UserRole | typeof OPTION_FILTER_ALL;
   includeAll?: boolean;
@@ -25,24 +27,24 @@ const emit = defineEmits<{
 
 const optionAll: SelectItem = {
   value: OPTION_FILTER_ALL,
-  label: "Todos los roles",
+  label: t("roleSelect.todosLosRoles"),
 };
 const statusItems: SelectItem[] = [
   {
     value: UserRole.ADMIN,
-    label: props.singular ? "Admin" : "Admins",
+    label: props.singular ? "Admin" : t("roleSelect.admins"),
   },
   {
     value: UserRole.EDITOR,
-    label: props.singular ? "Editor" : "Editores",
+    label: props.singular ? "Editor" : t("roleSelect.editores"),
   },
   {
     value: UserRole.DT,
-    label: props.singular ? "DT" : "DTs",
+    label: props.singular ? "DT" : t("roleSelect.dts"),
   },
   {
     value: UserRole.PLAYER,
-    label: props.singular ? "Jugador" : "Jugadores",
+    label: props.singular ? t("common.jugador") : t("common.jugadores"),
   },
 ];
 const items: SelectItem[] = props.includeAll
@@ -98,7 +100,7 @@ function handleUpdate(value: unknown) {
     value-key="value"
     label-key="label"
     :search-input="false"
-    placeholder="Todos los roles"
+    :placeholder="t('roleSelect.todosLosRoles')"
     :ui="{ content: 'min-w-fit' }"
   />
 </template>

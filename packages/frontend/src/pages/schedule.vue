@@ -2,16 +2,18 @@
 import { GameStatus, type Game } from "@ministrosfc/shared";
 import GameLine from "~/components/pages/schedule/GameLine.vue";
 
+
+const { t } = useI18n();
 definePageMeta({ public: true, layout: "sheet" });
-useHead({ title: "Calendario" });
+useHead({ title: t("common.calendario") });
 
 const { $api } = useNuxtApp();
 
 type View = "all" | "upcoming" | "past";
 const views: { key: View; label: string }[] = [
-  { key: "all", label: "Todos" },
-  { key: "upcoming", label: "Próximos" },
-  { key: "past", label: "Resultados" },
+  { key: "all", label: t("common.todos") },
+  { key: "upcoming", label: t("schedule.proximos") },
+  { key: "past", label: t("common.resultados") },
 ];
 const view = ref<View>("all");
 const opponentFilter = ref("");
@@ -83,17 +85,17 @@ const sections = computed(() => {
   const s = [
     {
       key: "upcoming" as const,
-      title: "Próximos partidos",
+      title: t("schedule.proximosPartidos"),
       groups: upcomingGroups.value,
       count: data.value?.upcoming.length ?? 0,
-      empty: "No hay partidos próximos.",
+      empty: t("schedule.noHayPartidosProximos"),
     },
     {
       key: "past" as const,
-      title: "Partidos jugados",
+      title: t("common.partidosJugados"),
       groups: pastGroups.value,
       count: data.value?.past.length ?? 0,
-      empty: "Todavía no hay partidos jugados.",
+      empty: t("common.todaviaNoHayPartidos"),
     },
   ];
   return view.value === "all" ? s : s.filter((x) => x.key === view.value);
@@ -103,9 +105,9 @@ const hasData = computed(() => !!data.value);
 
 <template>
   <div class="mx-auto max-w-3xl px-4 pb-12 pt-6">
-    <h1 class="sheet-display text-[clamp(3rem,15vw,6rem)]">Calendario</h1>
+    <UiSheetTitle>{{ t("common.calendario") }}</UiSheetTitle>
 
-    <div class="mt-5 flex flex-wrap gap-2" role="group" aria-label="Ver">
+    <div class="mt-5 flex flex-wrap gap-2" role="group" :aria-label="t('schedule.ver')">
       <button
         v-for="v in views"
         :key="v.key"
@@ -120,9 +122,9 @@ const hasData = computed(() => !!data.value);
 
     <div class="mt-4 border-y-[3px] border-[var(--sheet-ink)] py-4" role="search">
       <label class="block sm:max-w-xs">
-        <span class="sheet-label">Rival</span>
+        <span class="sheet-label">{{ t("schedule.rival") }}</span>
         <select v-model="opponentFilter" class="sheet-field mt-1">
-          <option value="">Todos</option>
+          <option value="">{{ t("common.todos") }}</option>
           <option v-for="team in teams" :key="team.id" :value="team.id">
             {{ team.name }}
           </option>
@@ -131,10 +133,10 @@ const hasData = computed(() => !!data.value);
     </div>
 
     <p v-if="error" class="mt-8 text-lg" role="alert">
-      No se pudo cargar el calendario.
-      <button type="button" class="sheet-link ml-1" @click="refresh()">Reintentar</button>
+      {{ t("errors.noSePudoCargarEl2") }}
+      <button type="button" class="sheet-link ml-1" @click="refresh()">{{ t("schedule.reintentar") }}</button>
     </p>
-    <p v-else-if="!hasData" class="mt-6">Cargando partidos…</p>
+    <UiSheetMessage v-else-if="!hasData" class="mt-6">{{ t("schedule.cargandoPartidos") }}</UiSheetMessage>
     <div v-else class="transition-opacity" :class="pending && 'opacity-60'">
       <section
         v-for="sec in sections"
@@ -142,18 +144,10 @@ const hasData = computed(() => !!data.value);
         class="mt-8"
         :aria-labelledby="`sec-${sec.key}`"
       >
-        <h2
-          :id="`sec-${sec.key}`"
-          class="sheet-on-ink sheet-display flex items-baseline justify-between bg-[var(--sheet-ink)] px-3 py-2 text-4xl text-[var(--sheet-paper)]"
-        >
-          {{ sec.title }}
-          <span class="sheet-num font-[var(--sheet-type)] text-base font-bold text-[var(--sheet-blue-on-ink)]"
-            >{{ sec.count }}<span class="sr-only"> partidos</span></span
-          >
-        </h2>
+        <UiSheetBand :id="`sec-${sec.key}`" :count="sec.count" count-label="partidos">{{ sec.title }}</UiSheetBand>
 
         <p v-if="!sec.groups.length" class="border-b-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] px-3 py-4">
-          {{ opponentFilter ? "No hay partidos con este rival." : sec.empty }}
+          {{ opponentFilter ? t("schedule.noHayPartidosCon") : sec.empty }}
         </p>
         <template v-else>
           <div v-for="grp in sec.groups" :key="grp.key" class="mt-5">
@@ -169,7 +163,7 @@ const hasData = computed(() => !!data.value);
             </ul>
           </div>
           <p v-if="sec.count >= LIMIT" class="mt-4 text-sm text-[var(--sheet-ink-soft)]">
-            Se muestran los {{ LIMIT }} partidos más {{ sec.key === "upcoming" ? "próximos" : "recientes" }}.
+            {{ t(sec.key === "upcoming" ? "schedule.limitUpcoming" : "schedule.limitRecent", { limit: LIMIT }) }}
           </p>
         </template>
       </section>

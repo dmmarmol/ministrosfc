@@ -2,6 +2,8 @@
 import { computed, ref, watch } from "vue";
 import PositionLabel from "~/components/ui/Position/Label.vue";
 
+
+const { t } = useI18n();
 /**
  * Ranked rows (spec 023): every statistics table on a phone becomes ruled
  * lines with ONE headline number. Chips choose what that number means; tapping
@@ -30,21 +32,21 @@ export interface RankedItem {
 const NATURAL = "__natural";
 // Full names for the abbreviations used in the detail strips (title + screen readers)
 const ABBR: Record<string, string> = {
-  PJ: "Partidos jugados",
-  PG: "Partidos ganados",
-  PE: "Partidos empatados",
-  PP: "Partidos perdidos",
-  GF: "Goles a favor",
-  GC: "Goles en contra",
-  DG: "Diferencia de gol",
-  "% Vict.": "Porcentaje de victorias",
-  G: "Goles del jugador",
-  A: "Asistencias del jugador",
-  Goles: "Goles",
-  "Asist.": "Asistencias",
-  "Amar.": "Tarjetas amarillas",
-  Rojas: "Tarjetas rojas",
-  "G/PJ": "Goles por partido",
+  PJ: t("common.partidosJugados"),
+  PG: t("statisticsStatsRanked.partidosGanados"),
+  PE: t("statisticsStatsRanked.partidosEmpatados"),
+  PP: t("statisticsStatsRanked.partidosPerdidos"),
+  GF: t("common.golesAFavor"),
+  GC: t("common.golesEnContra"),
+  DG: t("statisticsStatsRanked.diferenciaDeGol"),
+  "% Vict.": t("statisticsStatsRanked.porcentajeDeVictorias"),
+  G: t("statisticsStatsRanked.golesDelJugador"),
+  A: t("statisticsStatsRanked.asistenciasDelJugador"),
+  Goles: t("common.goles"),
+  "Asist.": t("common.asistencias"),
+  "Amar.": t("common.tarjetasAmarillas"),
+  Rojas: t("common.tarjetasRojas"),
+  "G/PJ": t("statisticsStatsRanked.golesPorPartido"),
 };
 const props = withDefaults(
   defineProps<{
@@ -65,12 +67,17 @@ const props = withDefaults(
   {
     loading: false,
     natural: false,
-    emptyText: "No hay datos para estos filtros.",
-    sortLabel: "Ordenar por",
     single: false,
     stickyHeader: false,
     searchLabel: "",
   },
+);
+
+const emptyLabel = computed(
+  () => props.emptyText ?? t("statisticsStatsRanked.noHayDatosPara"),
+);
+const sortHeading = computed(
+  () => props.sortLabel ?? t("statisticsStatsRanked.ordenarPor"),
 );
 
 const sortKey = ref<string>(props.natural ? NATURAL : props.metrics[0]!.key);
@@ -137,7 +144,7 @@ function toggle(id: string) {
       />
     </label>
     <div class="mt-4">
-      <p class="sheet-label" id="rank-by">{{ sortLabel }}</p>
+      <p class="sheet-label" id="rank-by">{{ sortHeading }}</p>
       <div class="mt-1.5 flex flex-wrap gap-2" role="group" aria-labelledby="rank-by">
         <button
           v-if="natural"
@@ -146,7 +153,7 @@ function toggle(id: string) {
           :aria-pressed="sortKey === NATURAL"
           @click="sortKey = NATURAL"
         >
-          Orden
+          {{ t("statisticsStatsRanked.orden") }}
         </button>
         <button
           v-for="m in metrics"
@@ -161,8 +168,8 @@ function toggle(id: string) {
       </div>
     </div>
 
-    <p v-if="loading" class="mt-6">Cargando…</p>
-    <p v-else-if="!sorted.length" class="mt-6">{{ emptyText }}</p>
+    <UiSheetMessage v-if="loading" class="mt-6">{{ t("common.cargando") }}</UiSheetMessage>
+    <p v-else-if="!sorted.length" class="mt-6">{{ emptyLabel }}</p>
     <ol v-else class="mt-4 border-t-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)]">
       <li
         v-for="(item, i) in sorted"
@@ -198,16 +205,16 @@ function toggle(id: string) {
               <span
                 v-if="item.cards.yellow"
                 class="sheet-num inline-flex items-center gap-1.5 text-xs font-bold"
-                :title="`${item.cards.yellow} tarjetas amarillas`"
+                :title="`${item.cards.yellow} ${t('statisticsStatsRanked.tarjetasAmarillas', item.cards.yellow)}`"
               >
-                <span class="inline-block size-3 border border-[var(--sheet-ink)] bg-[var(--sheet-card-yellow)]" aria-hidden="true" />{{ item.cards.yellow }}<span class="sr-only"> tarjetas amarillas</span>
+                <span class="inline-block size-3 border border-[var(--sheet-ink)] bg-[var(--sheet-card-yellow)]" aria-hidden="true" />{{ item.cards.yellow }}<span class="sr-only">{{ " " + t("statisticsStatsRanked.tarjetasAmarillas", item.cards.yellow) }}</span>
               </span>
               <span
                 v-if="item.cards.red"
                 class="sheet-num inline-flex items-center gap-1.5 text-xs font-bold"
-                :title="`${item.cards.red} tarjetas rojas`"
+                :title="`${item.cards.red} ${t('statisticsStatsRanked.tarjetasRojas', item.cards.red)}`"
               >
-                <span class="inline-block size-3 border border-[var(--sheet-ink)] bg-[var(--sheet-card-red)]" aria-hidden="true" />{{ item.cards.red }}<span class="sr-only"> tarjetas rojas</span>
+                <span class="inline-block size-3 border border-[var(--sheet-ink)] bg-[var(--sheet-card-red)]" aria-hidden="true" />{{ item.cards.red }}<span class="sr-only">{{ " " + t("statisticsStatsRanked.tarjetasRojas", item.cards.red) }}</span>
               </span>
             </span>
           </span>
@@ -248,7 +255,7 @@ function toggle(id: string) {
             v-if="item.to"
             :to="item.to"
             class="sheet-link mt-2 inline-flex min-h-11 items-center"
-            >{{ item.linkLabel ?? "Ver detalle" }} →</NuxtLink
+            >{{ item.linkLabel ?? t("statisticsStatsRanked.verDetalle") }} →</NuxtLink
           >
         </div>
       </li>

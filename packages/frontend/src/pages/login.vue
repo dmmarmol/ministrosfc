@@ -7,6 +7,8 @@ import RegisterForm from "~/components/auth/RegisterForm.vue";
 import PendingApprovalBanner from "~/components/auth/PendingApprovalBanner.vue";
 import BackButton from "~/components/ui/BackButton.vue";
 
+
+const { t } = useI18n();
 definePageMeta({ layout: "sheet", middleware: "auth", authPage: true });
 
 const authStore = useAuthStore();
@@ -19,14 +21,14 @@ const error = ref("");
 const pendingApprovalMessage = ref("");
 
 const GOOGLE_ERROR_MESSAGES: Record<string, string> = {
-  google_cancelled: "Inicio de sesión con Google cancelado.",
-  google_failed: "Error al iniciar sesión con Google. Intentá de nuevo.",
-  csrf_mismatch: "Error de seguridad. Intentá de nuevo.",
+  google_cancelled: t("errors.inicioDeSesionConGoogle"),
+  google_failed: t("errors.errorAlIniciarSesionCon"),
+  csrf_mismatch: t("errors.errorDeSeguridadIntentaDe"),
 };
 
 const googleError = computed(() => {
   const err = route.query.error as string | undefined;
-  return err ? (GOOGLE_ERROR_MESSAGES[err] ?? "Error desconocido.") : "";
+  return err ? (GOOGLE_ERROR_MESSAGES[err] ?? t("errors.errorDesconocido")) : "";
 });
 
 function toggleMode() {
@@ -61,7 +63,7 @@ async function handleLogin(payload: { email: string; password: string }) {
     return;
   } catch (e: any) {
     error.value =
-      e?.message ?? "El correo electrónico o la contraseña son incorrectos.";
+      e?.message ?? t("login.elCorreoElectronicoO");
   }
   loading.value = false;
 }
@@ -81,7 +83,7 @@ async function handleRegister(payload: {
     pendingApprovalMessage.value = result.message;
     isRegisterMode.value = false;
   } catch (e: any) {
-    error.value = e?.message ?? "Error al registrarse. Intentá de nuevo.";
+    error.value = e?.message ?? t("errors.errorAlRegistrarseIntentaDe");
   } finally {
     loading.value = false;
   }
@@ -96,12 +98,12 @@ onMounted(() => {
 
 <template>
   <div class="mx-auto max-w-md px-4 pb-16 pt-6">
-    <BackButton to="/" label="Volvé al sitio" />
-    <h1 class="sheet-display mt-2 text-[clamp(3.25rem,16vw,5.5rem)]">
-      {{ isRegisterMode ? "Registrate" : "Ingresar" }}
-    </h1>
+    <BackButton to="/" :label="t('login.volveAlSitio')" />
+    <UiSheetTitle size="md" class="mt-2">
+      {{ isRegisterMode ? t("login.registrate") : t("common.ingresar") }}
+    </UiSheetTitle>
     <p class="mt-2">
-      {{ isRegisterMode ? "Creá tu cuenta" : "Iniciá sesión en tu cuenta" }}
+      {{ isRegisterMode ? t("login.creaTuCuenta") : t("login.iniciaSesionEnTu") }}
     </p>
 
     <div class="mt-6 space-y-5 border-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] p-5">
@@ -134,8 +136,8 @@ onMounted(() => {
         <button type="button" class="sheet-link min-h-11 text-left" @click="toggleMode">
           {{
             isRegisterMode
-              ? "¿Ya tenés cuenta? Iniciá sesión"
-              : "¿No tenés cuenta? Registrate"
+              ? t("login.yaTenesCuentaInicia")
+              : t("login.noTenesCuentaRegistrate")
           }}
         </button>
       </p>

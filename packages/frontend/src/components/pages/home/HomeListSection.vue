@@ -1,6 +1,8 @@
 <script setup lang="ts" generic="T">
 import HomeArrow from "./HomeArrow.vue";
 
+
+const { t } = useI18n();
 /**
  * A home page block: heading, ruled list (or loading / empty line) and a
  * "see all" link. The row content comes from the `item` slot.
@@ -25,8 +27,8 @@ withDefaults(
 
 <template>
   <section :aria-labelledby="id">
-    <h2 :id="id" class="sheet-display text-4xl">{{ title }}</h2>
-    <p v-if="loading" class="mt-4">Cargando…</p>
+    <UiSheetHeading :id="id" size="lg">{{ title }}</UiSheetHeading>
+    <UiSheetMessage v-if="loading" class="mt-4">{{ t("common.cargando") }}</UiSheetMessage>
     <component
       :is="ordered ? 'ol' : 'ul'"
       v-else-if="items.length"

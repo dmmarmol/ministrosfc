@@ -7,6 +7,8 @@ import StatsFilterBar from "~/components/pages/statistics/StatsFilterBar.vue";
 import PlaygroundSelect from "~/components/pages/admin/playground/PlaygroundSelect.vue";
 import { useStatsFilters } from "~/composables/useStatsFilters";
 
+
+const { t } = useI18n();
 definePageMeta({
   layout: "statistics",
   public: true,
@@ -14,7 +16,7 @@ definePageMeta({
 
 const route = useRoute();
 const rivalId = route.params.id as string;
-useHead({ title: "Estadísticas por rival" });
+useHead({ title: t("rivalsDetail.estadisticasPorRival") });
 
 const { $api } = useNuxtApp();
 const {
@@ -62,9 +64,6 @@ const tableRows = computed(() =>
   })),
 );
 
-const plural = (n: number, one: string, many: string) =>
-  `${n} ${n === 1 ? one : many}`;
-
 watch(
   () => route.query,
   () => refresh(),
@@ -73,20 +72,16 @@ watch(
 
 <template>
   <div>
-    <NuxtLink
-      to="/statistics/rivals"
-      class="sheet-link inline-flex min-h-11 items-center"
-      >← Rivales</NuxtLink
-    >
-    <StatsTitle>vs {{ rivalName }}</StatsTitle>
+    <UiBackButton to="/statistics/rivals" :label="t('rivalsDetail.rivales')" />
+    <StatsTitle>{{ t("common.vs", { name: rivalName }) }}</StatsTitle>
     <StatsFilterBar>
-      <StatsField label="Año"><YearSelect v-model="yearFilter" /></StatsField>
-      <StatsField label="Cancha"><PlaygroundSelect v-model="playgroundFilter" placeholder="Todas" /></StatsField>
+      <StatsField :label="t('common.ano')"><YearSelect v-model="yearFilter" /></StatsField>
+      <StatsField :label="t('common.cancha')"><PlaygroundSelect v-model="playgroundFilter" :placeholder="t('common.todas')" /></StatsField>
     </StatsFilterBar>
 
-    <p v-if="pending" class="mt-6">Cargando…</p>
+    <UiSheetMessage v-if="pending" class="mt-6">{{ t("common.cargando") }}</UiSheetMessage>
     <p v-else-if="tableRows.length === 0" class="mt-6">
-      No hay partidos contra este rival para estos filtros.
+      {{ t("rivalsDetail.noHayPartidosContra") }}
     </p>
     <div v-else class="mt-6 space-y-6">
       <details
@@ -101,20 +96,20 @@ watch(
           <span>
             <span class="sheet-display block text-4xl">{{ row.year }}</span>
             <span class="sheet-num flex flex-wrap gap-x-3 text-sm">
-              <span class="whitespace-nowrap">{{ plural(row.games, "partido", "partidos") }}</span>
-              <span class="whitespace-nowrap">{{ plural(row.wins, "ganado", "ganados") }}</span>
-              <span class="whitespace-nowrap">{{ plural(row.draws, "empatado", "empatados") }}</span>
-              <span class="whitespace-nowrap">{{ plural(row.losses, "perdido", "perdidos") }}</span>
+              <span class="whitespace-nowrap">{{ t("rivalDetail.played", row.games) }}</span>
+              <span class="whitespace-nowrap">{{ t("rivalDetail.won", row.wins) }}</span>
+              <span class="whitespace-nowrap">{{ t("rivalDetail.drawn", row.draws) }}</span>
+              <span class="whitespace-nowrap">{{ t("rivalDetail.lost", row.losses) }}</span>
             </span>
             <span class="sheet-num block text-sm text-[var(--sheet-ink-soft)]">
-              {{ row.goalsFor }} goles a favor, {{ row.goalsAgainst }} en contra
+              {{ t("rivalDetail.goalsSummary", { scored: row.goalsFor, conceded: row.goalsAgainst }) }}
             </span>
           </span>
           <span class="text-right">
             <span class="sheet-display sheet-num block text-4xl leading-none"
               >{{ Number(row.winRate).toFixed(1) }}%</span
             >
-            <span class="sheet-label block">victorias</span>
+            <span class="sheet-label block">{{ t("common.victorias") }}</span>
           </span>
         </summary>
         <ul>
@@ -130,10 +125,10 @@ watch(
               >
               <span class="font-bold">{{
                 match.result === "W"
-                  ? "Victoria"
+                  ? t("common.victoria")
                   : match.result === "L"
-                    ? "Derrota"
-                    : "Empate"
+                    ? t("common.derrota")
+                    : t("common.empate")
               }}</span>
               <span
                 v-if="match.tournament"
@@ -144,7 +139,7 @@ watch(
             <NuxtLink
               :to="`/games/${match.slug}`"
               class="sheet-link inline-flex min-h-11 items-center text-sm"
-              >Partido →</NuxtLink
+              >{{ t("rivalsDetail.partido") }}</NuxtLink
             >
           </li>
         </ul>

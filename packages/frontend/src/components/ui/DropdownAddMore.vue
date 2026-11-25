@@ -31,6 +31,8 @@ export interface DropdownAddMoreProps {
 import { ref, watch, computed } from "vue";
 import VSelect from "vue-select";
 
+const { t } = useI18n();
+
 const props = withDefaults(defineProps<DropdownAddMoreProps>(), {
   loading: false,
   creationError: null,
@@ -54,16 +56,16 @@ watch(
   },
 );
 
-const addNewLabel = computed(() => props.labels?.addNew ?? "Agregar nueva...");
+const addNewLabel = computed(() => props.labels?.addNew ?? t("dropdownAddMore.agregarNueva"));
 const showFooter = computed(() => addNewLabel.value !== "");
 const emptyLabel = computed(
-  () => props.labels?.empty ?? "Sin opciones disponibles",
+  () => props.labels?.empty ?? t("dropdownAddMore.sinOpcionesDisponibles"),
 );
 const noResultsLabel = computed(
-  () => props.labels?.noResults ?? "Sin resultados",
+  () => props.labels?.noResults ?? t("dropdownAddMore.sinResultados"),
 );
 const placeholderLabel = computed(
-  () => props.labels?.placeholder ?? "Elegí...",
+  () => props.labels?.placeholder ?? t("dropdownAddMore.elegi"),
 );
 
 // State for inline-create panel

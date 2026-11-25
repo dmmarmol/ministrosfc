@@ -2,6 +2,8 @@
 import { UserRole } from "@ministrosfc/shared";
 import type { BadgeProps } from "#ui/types";
 
+const { t } = useI18n();
+
 const props = defineProps<{
   role: UserRole;
 }>();
@@ -14,10 +16,10 @@ const roleColorMap: Record<UserRole, BadgeProps["color"]> = {
 } as const;
 
 const roleLabelMap: Record<UserRole, string> = {
-  [UserRole.ADMIN]: "Administrador",
-  [UserRole.DT]: "Director Técnico",
+  [UserRole.ADMIN]: t("userRoleBadge.administrador"),
+  [UserRole.DT]: t("userRoleBadge.directorTecnico"),
   [UserRole.EDITOR]: "Editor",
-  [UserRole.PLAYER]: "Jugador",
+  [UserRole.PLAYER]: t("common.jugador"),
 } as const;
 </script>
 

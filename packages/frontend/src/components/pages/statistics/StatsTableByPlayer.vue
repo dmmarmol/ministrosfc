@@ -3,15 +3,17 @@ import { computed } from "vue";
 import type { AllPlayersStatsRow } from "@ministrosfc/shared";
 import StatsRanked, { type RankedItem, type RankedMetric } from "./StatsRanked.vue";
 
+const { t } = useI18n();
+
 const props = defineProps<{ rows: AllPlayersStatsRow[]; loading: boolean }>();
 
 const pct = (v: number) => `${Number(v).toFixed(1)}%`;
 const metrics: RankedMetric[] = [
-  { key: "games", label: "Partidos", unit: "partidos" },
-  { key: "goals", label: "Goles", unit: "goles" },
-  { key: "assists", label: "Asist.", unit: "asist." },
-  { key: "winRate", label: "% Victorias", unit: "% vict.", format: pct },
-  { key: "participation", label: "Presencia", unit: "% presente", format: pct },
+  { key: "games", label: t("common.partidos"), unit: t("units.partidos") },
+  { key: "goals", label: t("common.goles"), unit: t("units.goles") },
+  { key: "assists", label: t("common.asist"), unit: t("units.asist") },
+  { key: "winRate", label: t("stats.winRate"), unit: t("units.vict"), format: pct },
+  { key: "participation", label: t("statisticsStatsTableByPlayer.presencia"), unit: t("statisticsStatsTableByPlayer.presente"), format: pct },
 ];
 
 const items = computed<RankedItem[]>(() =>
@@ -34,10 +36,10 @@ const items = computed<RankedItem[]>(() =>
       { label: "PG", value: r.wins },
       { label: "PE", value: r.draws },
       { label: "PP", value: r.losses },
-      { label: "Goles", value: r.goals },
-      { label: "Asist.", value: r.assists },
-      { label: "Amar.", value: r.yellowCards },
-      { label: "Rojas", value: r.redCards },
+      { label: t("common.goles"), value: r.goals },
+      { label: t("common.asist"), value: r.assists },
+      { label: t("common.amar"), value: r.yellowCards },
+      { label: t("common.rojas"), value: r.redCards },
     ],
   })),
 );

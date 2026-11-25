@@ -7,6 +7,8 @@ import { useJerseyAvailability } from "~/composables/useJerseyAvailability";
 import IsPlayerCheckbox from "~/components/ui/IsPlayerCheckbox.vue";
 import BackButton from "~/components/ui/BackButton.vue";
 
+
+const { t } = useI18n();
 definePageMeta({
   layout: "sheet",
   middleware: "auth",
@@ -125,26 +127,26 @@ async function handleSubmit() {
 
 <template>
   <div class="mx-auto max-w-md px-4 pb-16 pt-6">
-    <BackButton :to="backPath" label="Volvé" />
-    <h1 class="sheet-display mt-2 text-[clamp(3rem,14vw,5rem)]">
-      Bienvenido a Ministros FC
-    </h1>
-    <p class="mt-2">Completá tu perfil para continuar</p>
+    <BackButton :to="backPath" :label="t('common.volve')" />
+    <UiSheetTitle size="md" class="mt-2">
+      {{ t("authOnboarding.bienvenidoAMinistrosFc") }}
+    </UiSheetTitle>
+    <p class="mt-2">{{ t("authOnboarding.completaTuPerfilPara") }}</p>
 
     <div class="mt-6 space-y-5 border-[3px] border-[var(--sheet-ink)] bg-[var(--sheet-paper)] p-5">
       <IsPlayerCheckbox
         v-model="isPlayer"
-        label="¿Eres un jugador del equipo?"
-        description="Si sos parte del plantel, marcá esta opción"
+        :label="t('authOnboarding.eresUnJugadorDel')"
+        :description="t('authOnboarding.siSosParteDel')"
       />
 
       <template v-if="isPlayer">
         <div>
           <label class="sheet-label" for="position">
-            ¿Cuál es tu posición en la cancha?
+            {{ t("authOnboarding.cualEsTuPosicion") }}
           </label>
           <select id="position" v-model="position" required class="sheet-field mt-1">
-            <option :value="null" disabled>Seleccioná una posición</option>
+            <option :value="null" disabled>{{ t("authOnboarding.seleccionaUnaPosicion") }}</option>
             <option v-for="pos in POSITIONS" :key="pos.value" :value="pos.value">
               {{ pos.label }} ({{ pos.value }})
             </option>
@@ -155,7 +157,7 @@ async function handleSubmit() {
           <UiJerseyNumberInput
             v-model="jerseyNumber"
             :taken-numbers="takenJerseys"
-            label="¿Cuál es tu número de camiseta?"
+            :label="t('authOnboarding.cualEsTuNumero')"
           />
         </div>
       </template>
@@ -170,7 +172,7 @@ async function handleSubmit() {
         class="sheet-button w-full"
         @click="handleSubmit"
       >
-        {{ loading ? "Guardando…" : "Continuar" }}
+        {{ loading ? t("common.guardando") : t("authOnboarding.continuar") }}
       </button>
     </div>
   </div>

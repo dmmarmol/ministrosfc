@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import type { NuxtError } from "#app";
 
+
+const { t } = useI18n();
 const props = defineProps<{ error: NuxtError }>();
 
 const notFound = computed(() => props.error.statusCode === 404);
-const title = computed(() => (notFound.value ? "No encontrado" : "Algo salió mal"));
+const title = computed(() => (notFound.value ? t("error.noEncontrado") : t("error.algoSalioMal")));
 const message = computed(() =>
   notFound.value
-    ? "La página que buscás no existe o cambió de lugar."
-    : "Tuvimos un problema al cargar esta página. Probá de nuevo en un momento.",
+    ? t("error.laPaginaQueBuscas")
+    : t("error.tuvimosUnProblemaAl"),
 );
 
 useHead(() => ({ title: title.value }));
@@ -23,7 +25,7 @@ const goHome = () => clearError({ redirect: "/" });
       </p>
       <h1 class="sheet-display text-[clamp(3rem,14vw,5rem)]">{{ title }}</h1>
       <p class="mt-3 max-w-prose">{{ message }}</p>
-      <button type="button" class="sheet-button mt-6" @click="goHome">Volver al inicio</button>
+      <button type="button" class="sheet-button mt-6" @click="goHome">{{ t("error.volverAlInicio") }}</button>
     </div>
   </NuxtLayout>
 </template>

@@ -47,10 +47,10 @@ describe("RegisterForm", () => {
     const wrapper = mountForm();
     await wrapper.find("#password").setValue("Abcdefgh1!");
     const rulesContainer = wrapper.find("[data-testid='password-rules']");
-    // All rules should be satisfied — all items should have the satisfied class
+    // All rules should be satisfied — all items should have the satisfied state
     const ruleItems = rulesContainer.findAll("li");
     for (const item of ruleItems) {
-      expect(item.classes()).toContain("text-green-600");
+      expect(item.attributes("data-met")).toBe("true");
     }
   });
 

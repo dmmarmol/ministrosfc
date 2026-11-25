@@ -10,13 +10,15 @@ import {
   type UpdatePlayerProfilePayload,
 } from "@ministrosfc/shared";
 
+
+const { t } = useI18n();
 definePageMeta({
   layout: "sheet",
   middleware: "auth",
   requiresAuth: true,
   skipOnboardingCheck: true,
 });
-useHead({ title: "Perfil del jugador" });
+useHead({ title: t("profilePlayer.perfilDelJugador") });
 
 const {
   profile,
@@ -70,9 +72,9 @@ async function handlePhotoUpload(file: File) {
 
 <template>
   <div class="mx-auto max-w-4xl px-4 pb-16 pt-6">
-    <h1 class="sheet-display text-[clamp(3rem,14vw,5rem)]">Perfil de jugador</h1>
+    <UiSheetTitle size="md">{{ t("profilePlayer.perfilDeJugador") }}</UiSheetTitle>
 
-    <p v-if="loading && !profile" class="mt-6">Cargando perfil…</p>
+    <UiSheetMessage v-if="loading && !profile" class="mt-6">{{ t("profilePlayer.cargandoPerfil") }}</UiSheetMessage>
 
     <template v-else-if="profile">
       <div class="mt-6 flex flex-col gap-8 md:flex-row">
@@ -116,7 +118,7 @@ async function handlePhotoUpload(file: File) {
     </template>
 
     <p v-else class="sheet-notice mt-6" data-tone="error" role="alert">
-      {{ error || "No se pudo cargar el perfil" }}
+      {{ error || t("errors.noSePudoCargarEl") }}
     </p>
   </div>
 </template>

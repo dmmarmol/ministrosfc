@@ -7,6 +7,8 @@ import PlayerStatsByRival from "~/components/pages/player/PlayerStatsByRival.vue
 import { useAuthStore } from "~/stores/auth";
 import { useQueryParams } from "~/composables/useQueryParams";
 
+
+const { t } = useI18n();
 definePageMeta({ public: true, layout: "sheet", sheetWide: true });
 
 const route = useRoute();
@@ -30,17 +32,15 @@ async function onYearChange(newYear: string) {
 useHead(() => ({
   title: player.value
     ? `${player.value.firstName} ${player.value.lastName}`
-    : "Jugador no encontrado",
+    : t("playersDetail.jugadorNoEncontrado2"),
 }));
 </script>
 
 <template>
   <div class="mx-auto max-w-5xl px-4 pb-12 pt-6">
-    <NuxtLink to="/roster" class="sheet-link inline-flex min-h-11 items-center"
-      >← Plantilla</NuxtLink
-    >
+    <UiBackButton to="/roster" :label="t('common.plantilla')" />
 
-    <p v-if="pending" class="mt-6">Cargando jugador…</p>
+    <UiSheetMessage v-if="pending" class="mt-6">{{ t("playersDetail.cargandoJugador") }}</UiSheetMessage>
     <div
       v-else-if="player"
       class="mt-4 grid gap-8 md:grid-cols-[minmax(0,22rem)_1fr]"
@@ -57,11 +57,11 @@ useHead(() => ({
       </div>
 
       <div>
-        <h1 class="sheet-display text-[clamp(2.25rem,8vw,4rem)]">
+        <UiSheetTitle size="sm">
           {{ player.firstName }} {{ player.lastName }}
-        </h1>
+        </UiSheetTitle>
         <p v-if="player.status === 'INACTIVE'" class="sheet-label mt-2">
-          Inactivo
+          {{ t("common.inactivo") }}
         </p>
 
         <div class="mt-8">
@@ -77,13 +77,13 @@ useHead(() => ({
           <PlayerStatsByRival :player-id="id">
             <template #header>
               <h2 class="sheet-display text-3xl">
-                Estadísticas por equipo rival
+                {{ t("playersDetail.estadisticasPorEquipoRival") }}
               </h2>
             </template>
           </PlayerStatsByRival>
         </div>
       </div>
     </div>
-    <p v-else class="mt-8 text-lg">Jugador no encontrado.</p>
+    <p v-else class="mt-8 text-lg">{{ t("playersDetail.jugadorNoEncontrado") }}</p>
   </div>
 </template>

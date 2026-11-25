@@ -2,6 +2,8 @@
 import { computed } from "vue";
 import { formatAvailableRanges } from "@ministrosfc/shared";
 
+
+const { t } = useI18n();
 const props = withDefaults(
   defineProps<{
     modelValue: number | null;
@@ -9,8 +11,10 @@ const props = withDefaults(
     label?: string;
     disabled?: boolean;
   }>(),
-  { disabled: false, label: "Dorsal #" },
+  { disabled: false },
 );
+
+const label = computed(() => props.label ?? t("jerseyNumberInput.dorsal"));
 
 const emit = defineEmits<{
   "update:modelValue": [value: number | null];
@@ -37,13 +41,13 @@ function onInput(event: Event) {
 <template>
   <div>
     <label class="sheet-label flex flex-wrap items-baseline gap-x-2" for="jerseyNumberInput"
-      >{{ props.label }}
+      >{{ label }}
       <span
         v-if="isTaken"
         class="sheet-error-text normal-case tracking-normal"
         data-testid="jersey-taken-error"
       >
-        Este número ya está ocupado
+        {{ t("jerseyNumberInput.esteNumeroYaEsta") }}
       </span></label
     >
     <input
@@ -62,7 +66,7 @@ function onInput(event: Event) {
       class="mt-1 text-sm text-[var(--sheet-ink-soft)]"
       data-testid="jersey-available-hint"
     >
-      Disponibles: {{ availableRanges }}
+      {{ t("jerseyNumberInput.available", { ranges: availableRanges }) }}
     </p>
   </div>
 </template>

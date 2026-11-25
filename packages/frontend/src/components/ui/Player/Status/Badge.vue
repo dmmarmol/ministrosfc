@@ -2,6 +2,8 @@
 import type { PlayerStatus } from "@ministrosfc/shared";
 import type { BadgeProps } from "#ui/types";
 
+const { t } = useI18n();
+
 const props = defineProps<{
   status: PlayerStatus;
 }>();
@@ -12,8 +14,8 @@ const statusColorMap: Record<PlayerStatus, BadgeProps["color"]> = {
 } as const;
 
 const statusLabelMap: Record<PlayerStatus, string> = {
-  ACTIVE: "Activo",
-  INACTIVE: "Inactivo",
+  ACTIVE: t("common.activo"),
+  INACTIVE: t("common.inactivo"),
 } as const;
 </script>
 <template>

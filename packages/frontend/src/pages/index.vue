@@ -9,8 +9,10 @@ import HomeCopies from "~/components/pages/home/HomeCopies.vue";
 import HomeArchive from "~/components/pages/home/HomeArchive.vue";
 import { fetchNextGame } from "~/utils/nextGame";
 
+
+const { t } = useI18n();
 definePageMeta({ public: true, layout: "sheet" });
-useHead({ title: "Inicio" });
+useHead({ title: t("common.inicio") });
 
 const { $api } = useNuxtApp();
 const config = useRuntimeConfig();
@@ -68,12 +70,12 @@ const { data: scorersData, pending: scorersLoading } = await useAsyncData(
     />
     <section v-else class="sheet-paper" aria-labelledby="home-empty">
       <div class="mx-auto max-w-3xl px-4 pb-8 pt-6">
-        <h1 id="home-empty" class="sheet-display text-[clamp(3rem,15vw,6rem)]">
-          <template v-if="nextLoading">Cargando…</template>
-          <template v-else>Sin partido programado</template>
-        </h1>
+        <UiSheetTitle id="home-empty">
+          <template v-if="nextLoading">{{ t("common.cargando") }}</template>
+          <template v-else>{{ t("home.sinPartidoProgramado") }}</template>
+        </UiSheetTitle>
         <p v-if="!nextLoading" class="mt-4 max-w-prose">
-          Cuando se cargue el próximo partido vas a verlo acá.
+          {{ t("home.cuandoSeCargueEl") }}
         </p>
       </div>
     </section>

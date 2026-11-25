@@ -10,6 +10,8 @@ import {
   type UpdatePlayerProfilePayload,
 } from "@ministrosfc/shared";
 
+
+const { t } = useI18n();
 const positions = Object.values(Position);
 
 interface ProfileFields {
@@ -94,7 +96,7 @@ const isActive = computed({
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="sheet-label" for="profile-firstName">
-          Nombre
+          {{ t("common.nombre") }}
         </label>
         <input
           id="profile-firstName"
@@ -105,7 +107,7 @@ const isActive = computed({
       </div>
       <div>
         <label class="sheet-label" for="profile-lastName">
-          Apellido
+          {{ t("common.apellido") }}
         </label>
         <input
           id="profile-lastName"
@@ -119,7 +121,7 @@ const isActive = computed({
 
     <div>
       <label class="sheet-label" for="profile-nickname">
-        Apodo
+        {{ t("profileProfileEditForm.apodo") }}
       </label>
       <input
         id="profile-nickname"
@@ -127,7 +129,7 @@ const isActive = computed({
         type="text"
         maxlength="100"
         class="sheet-field mt-1"
-        placeholder="Ej: Juanchi"
+        :placeholder="t('profileProfileEditForm.ejJuanchi')"
       />
     </div>
 
@@ -135,8 +137,8 @@ const isActive = computed({
       <IsPlayerCheckbox
         id="profileStatus"
         v-model="isActive"
-        label="Activo en el equipo"
-        description="Desmarcá esta opción para marcarme como inactivo"
+        :label="t('profileProfileEditForm.activoEnElEquipo')"
+        :description="t('profileProfileEditForm.desmarcaEstaOpcionPara')"
       />
       <div
         v-if="!isActive"
@@ -145,10 +147,9 @@ const isActive = computed({
         data-testid="inactive-warning"
       >
         <p class="font-normal">
-          Al marcarte como <strong>inactivo</strong> dejás de aparecer en la
-          plantilla, no podés ser convocado a partidos y tu número de camiseta
-          queda disponible para otro jugador. Podés volver a activarte en
-          cualquier momento.
+          {{ t("profileEditForm.inactiveWarningStart") }}
+          <strong>{{ t("profileProfileEditForm.inactivo") }}</strong>
+          {{ t("profileEditForm.inactiveWarningEnd") }}
         </p>
       </div>
     </div>
@@ -156,14 +157,14 @@ const isActive = computed({
     <div class="grid grid-cols-2 items-end gap-3">
       <div>
         <label class="sheet-label" for="profile-position">
-          Posición
+          {{ t("profileProfileEditForm.posicion") }}
         </label>
         <select
           id="profile-position"
           v-model="form.position"
           class="sheet-field mt-1"
         >
-          <option value="">Sin asignar</option>
+          <option value="">{{ t("profileProfileEditForm.sinAsignar") }}</option>
           <option v-for="pos in positions" :key="pos" :value="pos">
             {{ PositionDisplayName[pos] }} ({{ pos }})
           </option>
@@ -174,14 +175,14 @@ const isActive = computed({
           v-model="form.jerseyNumber"
           :taken-numbers="takenJerseys"
           @update:model-value="emit('jerseyChange', $event)"
-          label="Número de camiseta"
+          :label="t('profileProfileEditForm.numeroDeCamiseta')"
         />
       </div>
     </div>
 
     <div>
       <label class="sheet-label" for="profile-dateOfBirth">
-        Fecha de nacimiento
+        {{ t("profileProfileEditForm.fechaDeNacimiento") }}
       </label>
       <input
         id="profile-dateOfBirth"
@@ -193,7 +194,7 @@ const isActive = computed({
 
     <div>
       <label class="sheet-label" for="profile-address">
-        Dirección
+        {{ t("profileProfileEditForm.direccion") }}
       </label>
       <AddressAutocompleteInput id="profile-address" v-model="form.address" />
     </div>
@@ -201,7 +202,7 @@ const isActive = computed({
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="sheet-label" for="profile-phone">
-          Teléfono
+          {{ t("profileProfileEditForm.telefono") }}
         </label>
         <input
           id="profile-phone"
@@ -212,7 +213,7 @@ const isActive = computed({
       </div>
       <div>
         <label class="sheet-label" for="profile-whatsapp">
-          WhatsApp
+          {{ t("profileProfileEditForm.whatsapp") }}
         </label>
         <input
           id="profile-whatsapp"
@@ -225,14 +226,14 @@ const isActive = computed({
 
     <div>
       <label class="sheet-label" for="profile-emergencyContact">
-        Contacto de emergencia
+        {{ t("profileProfileEditForm.contactoDeEmergencia") }}
       </label>
       <input
         id="profile-emergencyContact"
         v-model="form.emergencyContact"
         type="text"
         class="sheet-field mt-1"
-        placeholder="Nombre y teléfono"
+        :placeholder="t('profileProfileEditForm.nombreYTelefono')"
       />
     </div>
 
@@ -245,7 +246,7 @@ const isActive = computed({
       :disabled="loading || jerseyIsTaken"
       class="sheet-button w-full"
     >
-      {{ loading ? "Guardando…" : "Guardá los cambios" }}
+      {{ loading ? t("common.guardando") : t("common.guardaLosCambios") }}
     </button>
   </form>
 </template>

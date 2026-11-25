@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { t } = useI18n();
+
 defineProps<{
   message: string;
 }>();
@@ -6,7 +8,7 @@ defineProps<{
 
 <template>
   <div class="sheet-notice" role="status">
-    <p class="sheet-label">Solicitud enviada</p>
+    <p class="sheet-label">{{ t("authPendingApprovalBanner.solicitudEnviada") }}</p>
     <p class="mt-1 font-normal">
       {{ message }}
     </p>

@@ -3,6 +3,8 @@ import { computed, ref, resolveComponent, watch } from "vue";
 import { PositionDisplayName, type Position } from "@ministrosfc/shared";
 import PositionLabel from "~/components/ui/Position/Label.vue";
 
+const { t } = useI18n();
+
 /**
  * Player ficha (spec 023). Real data only: photo, dorsal, name, position and
  * career stats. No ratings, flags or abilities. Room for them later: the stat
@@ -96,9 +98,9 @@ const label = computed(() =>
     .join(", "),
 );
 const cells = computed(() => [
-  { key: "PJ", name: "Partidos jugados", value: props.stats?.gamesPlayed },
-  { key: "G", name: "Goles", value: props.stats?.goals },
-  { key: "A", name: "Asistencias", value: props.stats?.assists },
+  { key: "PJ", name: t("common.partidosJugados"), value: props.stats?.gamesPlayed },
+  { key: "G", name: t("common.goles"), value: props.stats?.goals },
+  { key: "A", name: t("common.asistencias"), value: props.stats?.assists },
 ]);
 const large = computed(() => props.size === "large");
 const split = computed(() => large.value && !!photo.value && !!dorsal.value);

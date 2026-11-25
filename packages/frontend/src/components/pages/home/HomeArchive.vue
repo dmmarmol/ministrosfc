@@ -3,6 +3,8 @@ import { computed } from "vue";
 import { formatDate, type Game } from "@ministrosfc/shared";
 import HomeListSection from "./HomeListSection.vue";
 
+
+const { t } = useI18n();
 interface Scorer {
   player?: { id: string; firstName: string; lastName: string };
   goalsScored: number;
@@ -20,10 +22,10 @@ const topScorers = computed(() => props.scorers.slice(0, 5));
 
 const scored = (g: Game) => g.homeTeamScore != null && g.awayTeamScore != null;
 function outcome(g: Game) {
-  if (!scored(g)) return "Sin resultado cargado";
+  if (!scored(g)) return t("homeHomeArchive.sinResultadoCargado");
   const h = g.homeTeamScore!;
   const a = g.awayTeamScore!;
-  return h > a ? "Victoria" : h === a ? "Empate" : "Derrota";
+  return h > a ? t("common.victoria") : h === a ? t("common.empate") : t("common.derrota");
 }
 </script>
 
@@ -32,11 +34,11 @@ function outcome(g: Game) {
     <div class="mx-auto grid max-w-3xl gap-10 px-4 py-10 md:grid-cols-2">
       <HomeListSection
         id="home-results"
-        title="Resultados"
+        :title="t('common.resultados')"
         :items="results"
         :item-key="(g: Game) => g.id"
         :loading="resultsLoading"
-        empty-text="Todavía no hay partidos jugados."
+        :empty-text="t('common.todaviaNoHayPartidos')"
         link-to="/schedule"
         link-label="Calendario completo"
       >
@@ -52,7 +54,7 @@ function outcome(g: Game) {
             </span>
             <span class="min-w-0 flex-1">
               <span class="block truncate font-bold">
-                vs {{ g.opponentTeam?.name }}
+                {{ t("common.vs", { name: g.opponentTeam?.name }) }}
               </span>
               <span class="sheet-num block text-sm text-[var(--sheet-ink-soft)]">
                 {{ outcome(g) }} ·
@@ -65,12 +67,12 @@ function outcome(g: Game) {
 
       <HomeListSection
         id="home-scorers"
-        title="Goleadores"
+        :title="t('common.goleadores')"
         ordered
         :items="topScorers"
         :item-key="(s: Scorer, i: number) => s.player?.id ?? i"
         :loading="scorersLoading"
-        empty-text="Sin datos de goleadores."
+        :empty-text="t('homeHomeArchive.sinDatosDeGoleadores')"
         link-to="/statistics/top-scorers"
         link-label="Tabla completa"
       >
@@ -88,7 +90,7 @@ function outcome(g: Game) {
               >{{ s.player?.firstName }} {{ s.player?.lastName }}</span
             >
             <span class="sheet-display sheet-num text-3xl"
-              >{{ s.goalsScored }}<span class="sr-only"> goles</span></span
+              >{{ s.goalsScored }}<span class="sr-only">{{ " " + t("common.goles") }}</span></span
             >
           </NuxtLink>
         </template>

@@ -3,14 +3,18 @@ import {
   OPTION_FILTER_ALL,
   PlayerStatus,
   PlayerType,
+  Position,
+  PositionDisplayName,
   type PlayerPublic,
 } from "@ministrosfc/shared";
 import { filterRegisteredPlayers, resolveRosterStatus } from "~/utils/roster";
 import PlayerFicha from "~/components/player/PlayerFicha.vue";
 import { useAuthStore } from "~/stores/auth";
 
+
+const { t } = useI18n();
 definePageMeta({ public: true, layout: "sheet", sheetWide: true });
-useHead({ title: "Plantilla" });
+useHead({ title: t("common.plantilla") });
 
 const { $api } = useNuxtApp();
 const authStore = useAuthStore();
@@ -41,9 +45,9 @@ watch(search, (value) => {
 });
 
 function statusLabel(status: unknown): string {
-  if (status === PlayerStatus.ACTIVE) return "Activo";
-  if (status === PlayerStatus.INACTIVE) return "Inactivo";
-  return "Sin estado";
+  if (status === PlayerStatus.ACTIVE) return t("common.activo");
+  if (status === PlayerStatus.INACTIVE) return t("common.inactivo");
+  return t("common.sinEstado");
 }
 
 // Career totals per player (public endpoint); the roster still works without them.
@@ -63,23 +67,10 @@ const statsById = computed(() => {
   return m;
 });
 
-const positions = [
-  { value: "GK", label: "Portero" },
-  { value: "CB", label: "Defensa Central" },
-  { value: "RB", label: "Lateral Derecho" },
-  { value: "LB", label: "Lateral Izquierdo" },
-  { value: "RWB", label: "Carrilero Derecho" },
-  { value: "LWB", label: "Carrilero Izquierdo" },
-  { value: "DMF", label: "Mediocampista Defensivo" },
-  { value: "CMF", label: "Mediocampista Central" },
-  { value: "AMF", label: "Mediocampista Ofensivo" },
-  { value: "RMF", label: "Mediocampista Derecho" },
-  { value: "LMF", label: "Mediocampista Izquierdo" },
-  { value: "SS", label: "Segundo Delantero" },
-  { value: "CF", label: "Delantero Centro" },
-  { value: "RWF", label: "Extremo Derecho" },
-  { value: "LWF", label: "Extremo Izquierdo" },
-];
+const positions = Object.values(Position).map((value) => ({
+  value,
+  label: PositionDisplayName[value],
+}));
 
 const filteredPlayers = computed(() =>
   filterRegisteredPlayers(
@@ -91,10 +82,10 @@ const filteredPlayers = computed(() =>
 );
 
 const lines = [
-  { title: "Arco", positions: ["GK"] },
-  { title: "Defensa", positions: ["CB", "RB", "LB", "RWB", "LWB"] },
-  { title: "Mediocampo", positions: ["DMF", "CMF", "AMF", "RMF", "LMF"] },
-  { title: "Ataque", positions: ["SS", "CF", "RWF", "LWF"] },
+  { title: t("roster.arco"), positions: ["GK"] },
+  { title: t("roster.defensa"), positions: ["CB", "RB", "LB", "RWB", "LWB"] },
+  { title: t("roster.mediocampo"), positions: ["DMF", "CMF", "AMF", "RMF", "LMF"] },
+  { title: t("roster.ataque"), positions: ["SS", "CF", "RWF", "LWF"] },
 ];
 
 const groups = computed(() => {
@@ -114,14 +105,14 @@ const groups = computed(() => {
   const rest = filteredPlayers.value
     .filter((p: any) => !used.has(p.id))
     .sort(byDorsal);
-  if (rest.length) out.push({ title: "Sin posición", items: rest });
+  if (rest.length) out.push({ title: t("common.sinPosicion"), items: rest });
   return out;
 });
 </script>
 
 <template>
   <div class="mx-auto max-w-5xl px-4 pb-12 pt-6">
-    <h1 class="sheet-display text-[clamp(3rem,15vw,6rem)]">Plantilla</h1>
+    <UiSheetTitle>{{ t("common.plantilla") }}</UiSheetTitle>
 
     <form
       class="mt-5 grid gap-3 border-y-[3px] border-[var(--sheet-ink)] py-4 sm:grid-cols-[1fr_auto_auto]"
@@ -129,34 +120,34 @@ const groups = computed(() => {
       @submit.prevent
     >
       <label class="block">
-        <span class="sheet-label">Buscar jugador</span>
+        <span class="sheet-label">{{ t("roster.buscarJugador") }}</span>
         <input
           v-model="search"
           type="search"
-          placeholder="Nombre o apodo"
+          :placeholder="t('roster.nombreOApodo')"
           class="sheet-field mt-1"
         />
       </label>
       <label class="block">
-        <span class="sheet-label">Posición</span>
+        <span class="sheet-label">{{ t("roster.posicion") }}</span>
         <select v-model="positionFilter" class="sheet-field mt-1">
-          <option value="">Todas</option>
+          <option value="">{{ t("common.todas") }}</option>
           <option v-for="p in positions" :key="p.value" :value="p.value">
             {{ p.label }}
           </option>
         </select>
       </label>
       <label v-if="authStore.isAuthenticated" class="block">
-        <span class="sheet-label">Estado</span>
+        <span class="sheet-label">{{ t("common.estado") }}</span>
         <select v-model="statusFilter" class="sheet-field mt-1">
-          <option :value="PlayerStatus.ACTIVE">Activos</option>
-          <option :value="PlayerStatus.INACTIVE">Inactivos</option>
-          <option :value="OPTION_FILTER_ALL">Todos</option>
+          <option :value="PlayerStatus.ACTIVE">{{ t("common.activos") }}</option>
+          <option :value="PlayerStatus.INACTIVE">{{ t("common.inactivos") }}</option>
+          <option :value="OPTION_FILTER_ALL">{{ t("common.todos") }}</option>
         </select>
       </label>
     </form>
 
-    <p v-if="pending" class="mt-8">Cargando plantilla…</p>
+    <UiSheetMessage v-if="pending" class="mt-8">{{ t("roster.cargandoPlantilla") }}</UiSheetMessage>
     <template v-else-if="groups.length">
       <section
         v-for="g in groups"
@@ -164,15 +155,7 @@ const groups = computed(() => {
         class="mt-8"
         :aria-labelledby="`line-${g.title}`"
       >
-        <h2
-          :id="`line-${g.title}`"
-          class="sheet-display mb-3 flex items-baseline gap-3 text-4xl"
-        >
-          {{ g.title }}
-          <span class="sheet-num font-[var(--sheet-type)] text-base font-bold text-[var(--sheet-blue)]">{{
-            g.items.length
-          }}</span>
-        </h2>
+        <UiSheetHeading :id="`line-${g.title}`" size="lg" :count="g.items.length" class="mb-3">{{ g.title }}</UiSheetHeading>
         <ul
           class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4"
         >
@@ -186,6 +169,6 @@ const groups = computed(() => {
         </ul>
       </section>
     </template>
-    <p v-else class="mt-8 text-lg">No se encontraron jugadores.</p>
+    <UiSheetMessage v-else tone="empty" class="mt-8">{{ t("errors.noSeEncontraronJugadores") }}</UiSheetMessage>
   </div>
 </template>

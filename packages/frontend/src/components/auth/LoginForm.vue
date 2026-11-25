@@ -2,6 +2,8 @@
 import { reactive } from "vue";
 import EmailInput from "~/components/ui/EmailInput.vue";
 
+
+const { t } = useI18n();
 const props = defineProps<{
   loading: boolean;
   error: string;
@@ -22,7 +24,7 @@ function handleSubmit() {
   <form class="space-y-5" @submit.prevent="handleSubmit">
     <div>
       <label class="sheet-label" for="login-email">
-        Correo electrónico
+        {{ t("authLoginForm.correoElectronico") }}
       </label>
       <EmailInput
         id="login-email"
@@ -33,7 +35,7 @@ function handleSubmit() {
     </div>
     <div>
       <label class="sheet-label" for="login-password">
-        Contraseña
+        {{ t("common.contrasena") }}
       </label>
       <input
         id="login-password"
@@ -49,7 +51,7 @@ function handleSubmit() {
       {{ error }}
     </p>
     <button type="submit" :disabled="loading" class="sheet-button w-full">
-      {{ loading ? "Iniciando sesión…" : "Iniciar sesión" }}
+      {{ loading ? t("authLoginForm.iniciandoSesion") : t("authLoginForm.iniciarSesion") }}
     </button>
   </form>
 </template>

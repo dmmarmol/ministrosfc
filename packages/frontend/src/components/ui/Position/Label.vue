@@ -2,6 +2,8 @@
 import { computed } from "vue";
 import { Position, PositionDisplayName } from "@ministrosfc/shared";
 
+const { t } = useI18n();
+
 /**
  * Position badge in the spirit of the old PES6 position tags: a dark block with
  * the code in display type and a thick bottom edge colored by the line of play
@@ -45,7 +47,7 @@ const displayName = computed(() =>
     ? PositionDisplayName[props.position as Position]
     : props.position
       ? String(props.position)
-      : "Sin posición",
+      : t("common.sinPosicion"),
 );
 const line = computed(() =>
   known.value ? LINE[props.position as Position] : undefined,

@@ -2,6 +2,8 @@
 import { computed, ref, watch } from "vue";
 import DOMPurify from "dompurify";
 
+const { t } = useI18n();
+
 const props = withDefaults(
   defineProps<{
     open: boolean;
@@ -14,10 +16,13 @@ const props = withDefaults(
   }>(),
   {
     description: "",
-    confirmText: "Confirmar",
-    cancelText: "Cancelar",
   },
 );
+
+const confirmLabel = computed(
+  () => props.confirmText ?? t("common.confirmar"),
+);
+const cancelLabel = computed(() => props.cancelText ?? t("common.cancelar"));
 
 const sanitizedDescription = computed(() =>
   import.meta.client
@@ -56,7 +61,7 @@ function requestClose() {
 
 function toMessage(error: unknown): string {
   if (error instanceof Error && error.message) return error.message;
-  return "No se pudo completar la acción. Intentá nuevamente.";
+  return t("errors.noSePudoCompletarLa");
 }
 
 function handleCancel() {
@@ -103,7 +108,7 @@ async function handleConfirm() {
           v-html="sanitizedDescription"
           class="text-sm text-gray-600 mb-4"
         />
-        <p v-if="errorMessage" class="text-sm text-red-600 mb-4" role="alert">
+        <p v-if="errorMessage" class="text-sm text-sheet-loss mb-4" role="alert">
           {{ errorMessage }}
         </p>
 
@@ -115,16 +120,16 @@ async function handleConfirm() {
             :disabled="isConfirming"
             @click="handleCancel"
           >
-            {{ cancelText }}
+            {{ cancelLabel }}
           </button>
           <button
             data-testid="confirm-confirmation"
             type="button"
-            class="text-sm px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 disabled:opacity-60"
+            class="text-sm px-4 py-2 rounded-lg bg-sheet-loss text-sheet-paper font-semibold hover:opacity-90 disabled:opacity-60"
             :disabled="isConfirming"
             @click="handleConfirm"
           >
-            {{ isConfirming ? "Procesando..." : confirmText }}
+            {{ isConfirming ? t("confirmationModal.procesando") : confirmLabel }}
           </button>
         </div>
       </div>

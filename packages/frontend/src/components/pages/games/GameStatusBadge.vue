@@ -3,6 +3,8 @@ import { computed } from "vue";
 import type { GameStatus } from "@ministrosfc/shared";
 import type { BadgeProps } from "#ui/types";
 
+const { t } = useI18n();
+
 const props = defineProps<{
   status?: GameStatus | string | null;
 }>();
@@ -15,17 +17,17 @@ const statusColorMap: Partial<Record<GameStatus, BadgeProps["color"]>> = {
 } as const;
 
 const statusLabelMap: Partial<Record<GameStatus, string>> = {
-  SCHEDULED: "Programado",
-  COMPLETED: "Completado",
-  CANCELLED: "Cancelado",
-  IN_PROGRESS: "En juego",
+  SCHEDULED: t("common.programado"),
+  COMPLETED: t("common.completado"),
+  CANCELLED: t("common.cancelado"),
+  IN_PROGRESS: t("common.enJuego"),
 } as const;
 
 const color = computed(
   () => statusColorMap[props.status as GameStatus] ?? "neutral",
 );
 const label = computed(
-  () => statusLabelMap[props.status as GameStatus] ?? "Sin estado",
+  () => statusLabelMap[props.status as GameStatus] ?? t("common.sinEstado"),
 );
 </script>
 <template>

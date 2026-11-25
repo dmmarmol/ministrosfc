@@ -2,6 +2,8 @@
 import { ref, computed } from "vue";
 import { isValidEmail } from "@ministrosfc/shared";
 
+
+const { t } = useI18n();
 const props = withDefaults(
   defineProps<{
     modelValue: string;
@@ -29,7 +31,7 @@ const error = computed(() =>
   touched.value &&
   props.modelValue.length > 0 &&
   !isValidEmail(props.modelValue)
-    ? "Ingresá un correo electrónico válido (ej: tu@ejemplo.com)"
+    ? t("emailInput.ingresaUnCorreoElectronico")
     : "",
 );
 
@@ -60,7 +62,7 @@ defineExpose({ validate, hasError });
       :disabled="disabled"
       class="sheet-field mt-1"
       :aria-invalid="hasError ? 'true' : undefined"
-      placeholder="tu@ejemplo.com"
+      :placeholder="t('emailInput.tuEjemploCom')"
       @input="
         emit('update:modelValue', ($event.target as HTMLInputElement).value)
       "

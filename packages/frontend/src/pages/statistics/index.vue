@@ -4,8 +4,10 @@ import StatsHeader from "../../components/pages/statistics/StatsHeader.vue";
 import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 import { useAuthStore } from "~/stores/auth";
 
+
+const { t } = useI18n();
 definePageMeta({ layout: "statistics", public: true });
-useHead({ title: "Estadísticas" });
+useHead({ title: t("common.estadisticas") });
 
 const authStore = useAuthStore();
 const { $api } = useNuxtApp();
@@ -23,11 +25,11 @@ const summary = computed(() => summaryData.value?.data ?? null);
 
 <template>
   <div>
-    <StatsTitle>General</StatsTitle>
+    <StatsTitle>{{ t("common.general") }}</StatsTitle>
     <StatsHeader v-if="authStore.isAuthenticated" :summary="summary" />
     <div v-else class="mt-6">
-      <p class="text-lg">Iniciá sesión para ver las estadísticas del equipo.</p>
-      <NuxtLink to="/login" class="sheet-link mt-2 inline-flex min-h-11 items-center">Iniciar sesión →</NuxtLink>
+      <p class="text-lg">{{ t("statistics.iniciaSesionParaVer") }}</p>
+      <NuxtLink to="/login" class="sheet-link mt-2 inline-flex min-h-11 items-center">{{ t("statistics.iniciarSesion") }}</NuxtLink>
     </div>
   </div>
 </template>

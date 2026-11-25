@@ -172,7 +172,8 @@ Confirmed by the maintainer after the Impeccable decision round; anchors the vis
 
 - Redesigned page by page: home, roster, player profile, statistics (all), game detail, schedule, tournaments (list and detail), login, registration, onboarding, both profile pages.
 - Re-themed, not redesigned: the admin panel (layout plus token remap) and the signup route (layout only; internals unchanged, FR-020).
-- Open against SC-005: hard-coded colors remain in a few legacy components (`GameLineupField`, `Position/Number`, `JerseySvg`, `common/Header` and `Navigation`, now unused by sheet pages). Open against SC-001: signup internals and admin page internals still carry old-look components.
+- SC-005 met for the public site: the lineup field, jersey images and signup statuses read sheet tokens; the unused old-look components were removed. The Google sign-in logo keeps its brand colors. Open against SC-001: signup internals and admin page internals still carry old-look components.
+- Public strings go through `t()` (`@nuxtjs/i18n`, Spanish only); admin pages and the auth store messages are not converted yet.
 - Not run: a full Impeccable audit and Playwright end-to-end suite on the final branch.
 
 ## Success Criteria _(mandatory)_

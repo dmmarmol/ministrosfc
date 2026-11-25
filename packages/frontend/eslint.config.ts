@@ -9,6 +9,7 @@ const nuxtGlobals = {
   useRoute: "readonly",
   useRuntimeConfig: "readonly",
   useNuxtApp: "readonly",
+  useI18n: "readonly",
   defineNuxtPlugin: "readonly",
   defineNuxtRouteMiddleware: "readonly",
   definePageMeta: "readonly",

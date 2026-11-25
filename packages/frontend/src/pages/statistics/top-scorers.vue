@@ -10,8 +10,10 @@ import TournamentSelect from "~/components/pages/statistics/StatsFilters/Tournam
 import { useAuthStore } from "~/stores/auth";
 import { useStatsFilters } from "~/composables/useStatsFilters";
 
+
+const { t } = useI18n();
 definePageMeta({ layout: "statistics", public: true });
-useHead({ title: "Goleadores" });
+useHead({ title: t("common.goleadores") });
 
 const { $api } = useNuxtApp();
 const authStore = useAuthStore();
@@ -74,13 +76,13 @@ watch(topScorersStatusFilter, () => refresh());
 watch(yearFilter, () => refresh());
 
 const metrics: RankedMetric[] = [
-  { key: "goals", label: "Goles", unit: "goles" },
-  { key: "assists", label: "Asist.", unit: "asist." },
-  { key: "games", label: "Partidos", unit: "partidos" },
+  { key: "goals", label: t("common.goles"), unit: t("units.goles") },
+  { key: "assists", label: t("common.asist"), unit: t("units.asist") },
+  { key: "games", label: t("common.partidos"), unit: t("units.partidos") },
   {
     key: "rate",
-    label: "Prom. gol",
-    unit: "goles/partido",
+    label: t("statisticsTopscorers.promGol"),
+    unit: t("statisticsTopscorers.golesPartido"),
     format: (v: number) => v.toFixed(2),
   },
 ];
@@ -99,8 +101,8 @@ const items = computed<RankedItem[]>(() =>
       values: { goals: e.goalsScored, assists: e.assists, games: e.appearances, rate },
       detail: [
         { label: "PJ", value: e.appearances },
-        { label: "Goles", value: e.goalsScored },
-        { label: "Asist.", value: e.assists },
+        { label: t("common.goles"), value: e.goalsScored },
+        { label: t("common.asist"), value: e.assists },
         { label: "G/PJ", value: rate.toFixed(2) },
       ],
     };
@@ -110,21 +112,21 @@ const items = computed<RankedItem[]>(() =>
 
 <template>
   <div>
-    <StatsTitle>Goleadores</StatsTitle>
+    <StatsTitle>{{ t("common.goleadores") }}</StatsTitle>
     <StatsFilterBar>
       <label class="col-span-full block lg:col-span-1">
-        <span class="sheet-label">Buscar jugador</span>
+        <span class="sheet-label">{{ t("statisticsTopscorers.buscarJugador") }}</span>
         <input
           :value="playerSearch"
           type="search"
-          placeholder="Nombre"
+          :placeholder="t('common.nombre')"
           class="sheet-field mt-1"
           @input="playerSearch = (($event.target as HTMLInputElement).value || '').toString()"
         />
       </label>
-      <StatsField label="Año"><YearSelect v-model="yearFilter" /></StatsField>
-      <StatsField label="Torneo" v-if="authStore.isAuthenticated"><TournamentSelect v-model="tournamentFilter" /></StatsField>
-      <StatsField label="Estado" v-if="authStore.isAuthenticated"><UiPlayerStatusSelect
+      <StatsField :label="t('common.ano')"><YearSelect v-model="yearFilter" /></StatsField>
+      <StatsField :label="t('common.torneo')" v-if="authStore.isAuthenticated"><TournamentSelect v-model="tournamentFilter" /></StatsField>
+      <StatsField :label="t('common.estado')" v-if="authStore.isAuthenticated"><UiPlayerStatusSelect
         include-all
         v-model="topScorersStatusFilter"
       /></StatsField>

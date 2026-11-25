@@ -8,6 +8,8 @@ import {
 } from "@ministrosfc/shared";
 import HomeArrow from "../home/HomeArrow.vue";
 
+
+const { t } = useI18n();
 const props = defineProps<{ game: Game }>();
 
 const completed = computed(() => props.game.status === GameStatus.COMPLETED);
@@ -16,10 +18,10 @@ const hasScore = computed(
   () => props.game.homeTeamScore != null && props.game.awayTeamScore != null,
 );
 const outcome = computed(() => {
-  if (!hasScore.value) return "Sin dato";
+  if (!hasScore.value) return t("scheduleGameLine.sinDato");
   const h = props.game.homeTeamScore!;
   const a = props.game.awayTeamScore!;
-  return h > a ? "Victoria" : h === a ? "Empate" : "Derrota";
+  return h > a ? t("common.victoria") : h === a ? t("common.empate") : t("common.derrota");
 });
 const day = computed(() => formatDate(props.game.date, { day: "numeric" }));
 const weekday = computed(() =>
@@ -36,7 +38,7 @@ const venue = computed(
 const url = computed(() => `/games/${props.game.slug || props.game.id}`);
 const label = computed(
   () =>
-    `vs ${props.game.opponentTeam?.name ?? "Rival a confirmar"}, ${weekday.value} ${day.value}` +
+    `vs ${props.game.opponentTeam?.name ?? t("common.rivalAConfirmar")}, ${weekday.value} ${day.value}` +
     (completed.value ? `, ${hasScore.value ? `${props.game.homeTeamScore} a ${props.game.awayTeamScore}, ` : ""}${outcome.value}` : ""),
 );
 </script>
@@ -55,7 +57,7 @@ const label = computed(
       <span
         class="sheet-display block break-words text-2xl"
         :class="cancelled && 'line-through decoration-[var(--sheet-blue)] decoration-[3px]'"
-        >vs {{ game.opponentTeam?.name ?? "Rival a confirmar" }}</span
+        >{{ t("common.vs", { name: game.opponentTeam?.name ?? t("common.rivalAConfirmar") }) }}</span
       >
       <span class="sheet-num block text-sm text-[var(--sheet-ink-soft)]"
         >{{ time }} h<template v-if="venue"> · {{ venue }}</template></span
@@ -74,7 +76,7 @@ const label = computed(
         >
       </template>
       <template v-else-if="cancelled">
-        <span class="sheet-label">Anulado</span>
+        <span class="sheet-label">{{ t("common.anulado") }}</span>
       </template>
       <HomeArrow v-else class="text-[var(--sheet-blue)]" />
     </span>

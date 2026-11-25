@@ -3,6 +3,8 @@ import type { SelectItem } from "#ui/types";
 import { OPTION_FILTER_ALL, PlayerStatus } from "@ministrosfc/shared";
 import { resolveSelectedValue } from "~/utils/object";
 
+
+const { t } = useI18n();
 const props = withDefaults(
   defineProps<{
     modelValue?: PlayerStatus | typeof OPTION_FILTER_ALL;
@@ -29,16 +31,16 @@ const emit = defineEmits<{
 
 const optionAll: SelectItem = {
   value: OPTION_FILTER_ALL,
-  label: "Todos los estados",
+  label: t("common.todosLosEstados"),
 };
 const statusItems: SelectItem[] = [
   {
     value: PlayerStatus.ACTIVE,
-    label: props.singlePlayer ? "Activo" : "Activos",
+    label: props.singlePlayer ? t("common.activo") : t("common.activos"),
   },
   {
     value: PlayerStatus.INACTIVE,
-    label: props.singlePlayer ? "Inactivo" : "Inactivos",
+    label: props.singlePlayer ? t("common.inactivo") : t("common.inactivos"),
   },
 ];
 
@@ -94,7 +96,7 @@ function handleUpdate(value: unknown) {
     value-key="value"
     label-key="label"
     :search-input="false"
-    placeholder="Todos los estados"
+    :placeholder="t('common.todosLosEstados')"
     :ui="{ content: 'min-w-fit' }"
   />
 </template>

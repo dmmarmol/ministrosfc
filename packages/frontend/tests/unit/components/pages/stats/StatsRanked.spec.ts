@@ -55,7 +55,7 @@ describe("StatsRanked single-open and search", () => {
   it("shows yellow and red card counts on the collapsed row", () => {
     const w = mountIt();
     expect(w.text()).toContain("2 tarjetas amarillas");
-    expect(w.text()).toContain("1 tarjetas rojas");
+    expect(w.text()).toContain("1 tarjeta roja");
   });
 
   it("makes only the open row header sticky when stickyHeader is on", async () => {

@@ -14,12 +14,14 @@ import StatsTitle from "~/components/pages/statistics/StatsTitle.vue";
 import { useStatsFilters } from "~/composables/useStatsFilters";
 import { createTruthyObject } from "~/utils/object.js";
 
+
+const { t } = useI18n();
 definePageMeta({
   layout: "statistics-private",
   middleware: "auth",
   requiresAuth: true,
 });
-useHead({ title: "Estadísticas de Jugadores" });
+useHead({ title: t("statisticsPlayers.estadisticasDeJugadores") });
 
 const { $api } = useNuxtApp();
 const route = useRoute();
@@ -62,15 +64,15 @@ watch(
 
 <template>
   <div>
-    <StatsTitle>Jugadores</StatsTitle>
+    <StatsTitle>{{ t("common.jugadores") }}</StatsTitle>
     <StatsFilterBar>
-      <StatsField label="Año"><YearSelect v-model="yearFilter" /></StatsField>
-      <StatsField label="Estado"><UiPlayerStatusSelect
+      <StatsField :label="t('common.ano')"><YearSelect v-model="yearFilter" /></StatsField>
+      <StatsField :label="t('common.estado')"><UiPlayerStatusSelect
         include-all
         v-model="playerStatusFilter"
        
       /></StatsField>
-      <StatsField label="Jugador"><PlayerSelect
+      <StatsField :label="t('common.jugador')"><PlayerSelect
         :items="availablePlayers"
         v-model="playerFilter"
         :status="selectedPlayerStatus"

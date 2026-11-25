@@ -3,6 +3,8 @@ import type { SelectItem } from "#ui/types";
 import { OPTION_FILTER_ALL } from "@ministrosfc/shared";
 import { useStatisticsAvailableRivals } from "~/composables/useStatisticsAvailableRivals";
 
+
+const { t } = useI18n();
 const props = withDefaults(
   defineProps<{
     modelValue?: string | typeof OPTION_FILTER_ALL;
@@ -24,7 +26,7 @@ const { availableRivals } = useStatisticsAvailableRivals();
 
 const optionAll: SelectItem = {
   value: OPTION_FILTER_ALL,
-  label: "Todos los rivales",
+  label: t("statsFiltersRivalSelect.todosLosRivales"),
 };
 const items = computed<SelectItem[]>(() =>
   props.includeAll
@@ -53,7 +55,7 @@ function handleUpdate(value: SelectItem | undefined) {
     :items="items"
     value-key="value"
     label-key="label"
-    placeholder="Todos"
+    :placeholder="t('common.todos')"
     :search-input="true"
     :clear="true"
     :ui="{ content: 'min-w-fit' }"

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { t } = useI18n();
+
 /**
  * Reserved slot for the signup call to action (spec 023 FR-021).
  * Not rendered today: GameSheet only mounts it when `ctaEnabled` is true.
@@ -12,7 +14,7 @@ defineProps<{ to: string }>();
     <NuxtLink
       :to="to"
       class="sheet-display block bg-[var(--sheet-ink)] px-4 py-3.5 text-center text-2xl text-[var(--sheet-paper)] no-underline hover:bg-[var(--sheet-ink-soft)]"
-      >Anotarme</NuxtLink
+      >{{ t("homeHomeCtaSlot.anotarme") }}</NuxtLink
     >
   </div>
 </template>
