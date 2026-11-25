@@ -175,6 +175,7 @@ Confirmed by the maintainer after the Impeccable decision round; anchors the vis
 - SC-005 met for the public site: the lineup field, jersey images and signup statuses read sheet tokens; the unused old-look components were removed. The Google sign-in logo keeps its brand colors. Open against SC-001: signup internals and admin page internals still carry old-look components.
 - Public strings go through `t()` (`@nuxtjs/i18n`, Spanish only); admin pages and the auth store messages are not converted yet.
 - Not run: a full Impeccable audit and Playwright end-to-end suite on the final branch.
+- Deferred follow-ups: verify signup with real data and the admin pages; type `$api` (about 165 `vue-tsc` errors); convert admin strings to `t()`; the top-scorers page logs a hydration mismatch (`StatsRanked` shows "no data" on the server and "loading" on the client); profile photo upload emits no file and the admin sidebar has no opener on phones (both predate this spec); the tournaments list cannot show win/draw/loss records because its API omits `ministrosRecord`.
 
 ## Success Criteria _(mandatory)_
 

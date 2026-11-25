@@ -13,6 +13,11 @@ colors:
   win: "#17753a"
   loss: "#c0262d"
   draw: "#8a6a00"
+  win-on-ink: "#5fd38a"
+  card-yellow: "#f5c400"
+  card-red: "#d62020"
+  pitch: "#2f8a4f"
+  pitch-line: "#1f6a39"
   paper-dark: "#171923"
   ink-dark: "#f3f4f8"
   ground-dark: "#0b0b12"
@@ -109,7 +114,7 @@ The public home is one team sheet for the next game, printed in black ink on a w
 
 The system is flat and ruled. There are no cards, no radii, no soft shadows; structure comes from 3px black rules, hairline rules between lines, and full-bleed black and white strips. Density is that of a form: numbered lines, tabular figures, generous 44-48px tap rows. Copy is Spanish.
 
-Migration status: every public page, the sign-in, onboarding and profile pages, and the error page are built in this system. The admin panel and the signup route run in the same world through a legacy token remap and their layout, not a page-by-page redesign; some legacy components keep fixed colors (lineup field, position number, jersey drawing). The tokens below apply to the `.sheet-world` scope.
+Migration status: every public page, the sign-in, onboarding and profile pages, and the error page are built in this system. The admin panel and the signup route run in the same world through a legacy token remap and their layout, not a page-by-page redesign; the lineup field, position number and jersey drawing read the same tokens (the jersey through `useSheetColors`). The tokens below apply to the `.sheet-world` scope.
 
 **Key Characteristics:**
 - Black ink on a white sheet, with a light gray ground (#e4e5ea) behind the sheets.
@@ -243,6 +248,18 @@ The list is a register: an ink band per start year, ruled rows with the name in 
 
 Ranked Rows with one row open at a time, a search box instead of a dropdown, a sticky open header, and a recessed well (`--sheet-well`) under the open row holding the stat strip and a column grid per match (goals, assists, yellow and red cards, link to the game). Results use the win, loss and draw tones with their words.
 
+### Position Badge
+
+`UiPositionLabel` (`.sheet-pos`): an ink block with the position code in display type and a 4px bottom edge colored by line of play: goalkeeper yellow (`--sheet-card-yellow`), defense blue (`--sheet-blue-on-ink`), midfield green (`--sheet-win-on-ink`), attack red (`--sheet-card-red`). The `title` and a screen-reader span carry the readable name from `PositionDisplayName` in `@ministrosfc/shared`; no position renders a quiet dash. Used wherever a position shows: ficha, game sheet, ranked rows, rosters, signup, admin game detail.
+
+### Sheet Building Blocks
+
+Repeated markup lives in `components/ui/Sheet/`: `UiSheetTitle` (page h1, sizes `lg`/`md`/`sm`), `UiSheetHeading` (h2 with optional blue count), `UiSheetBand` (inked section band with count and a screen-reader noun), `UiSheetTotals` (row of big totals, 4 or 5 columns) and `UiSheetMessage` (loading or empty line; loading announces `role="status"`). `TournamentLine` is the tournament list row; `UiBackButton` is the back link. Build new pages from these before adding markup.
+
+### Lineup Field
+
+The signup pitch is an SVG on `fill-sheet-pitch` with `stroke-sheet-pitch-line` markings; slots are paper circles stroked win-green (registered), draw-yellow (guest) or rule-gray (empty). All colors are Tailwind classes over the sheet tokens.
+
 ### Admin
 
 The admin panel runs in the same world through a legacy token remap under `.sheet-world`: the old gray scale, brand, surface, square corners and no shadows read the sheet palette, and `.admin-sheet` quiets fields and labels for dense forms. The sidebar stays dark in both modes. This is a re-theme, not a page-by-page redesign.
@@ -265,6 +282,7 @@ Focus-visible is a 3px blue outline with 3px offset (on-ink blue inside black st
 - **Don't** fill surfaces or buttons with blue.
 - **Don't** round corners or add shadows; the crest is the only circle.
 - **Don't** use a signup call to action on the home until the club adopts it; the reserved slot stays hidden.
-- **Don't** add new hard-coded hex colors or Tailwind gray utilities to sheet pages; use the `--sheet-*` tokens so dark mode and the admin remap follow.
+- **Don't** add new hard-coded hex colors or Tailwind palette utilities (`text-green-600`, `bg-gray-100`) to sheet pages; use the `--sheet-*` tokens or their Tailwind form (`bg-sheet-paper`, `text-sheet-win`, `fill-sheet-pitch`) so dark mode and the admin remap follow. The one exception is the Google logo's brand colors.
+- **Don't** hard-code Spanish in templates or scripts; go through `t()` (see AGENTS.md).
 
 Not canonized: none observed in the home that the craft floor bans.

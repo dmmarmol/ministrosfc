@@ -27,7 +27,7 @@ If a task needs several skills, split it into steps, run one skill per step, and
 
 - TypeScript 5.x (strict, `tsconfig.base.json`), Node.js >= 23, npm >= 10
 - Backend: Express, Prisma, PostgreSQL, Redis, Zod, jsonwebtoken, bcryptjs, Pino logging
-- Frontend: Nuxt 4, Vue 3 (Composition API, `<script setup>`), Pinia, `@nuxt/ui` 4, Tailwind CSS 4
+- Frontend: Nuxt 4, Vue 3 (Composition API, `<script setup>`), Pinia, `@nuxt/ui` 4, Tailwind CSS 4, `@nuxtjs/i18n` (Spanish only)
 - Testing: Jest (CMS), Vitest + Vue Test Utils (frontend), Playwright (E2E)
 - Deployment: Fly.io; local PostgreSQL (port 5100) and Redis (port 5101) via Podman/Docker Compose
 
@@ -80,6 +80,12 @@ Follow `.claude/skills/web-coder/SKILL.md`, plus:
 
 - Before creating a helper or formatter in a component, look for an existing one in `packages/frontend/src/utils` or a nearby shared file and reuse it. Do not duplicate date/format/transform logic; share helpers used in more than one place.
 - Every user-visible string (public and admin) MUST go through `t()` from `useI18n()`. Do not hardcode labels, validation messages, notifications, button copy, headings, empty states, or helper text. Only machine identifiers, technical constants, and enum values not shown to users may stay raw.
+  - Messages live in `packages/frontend/i18n/locales/es.json` (single locale, no URL prefix). Add the key there, then call `t("scope.key")`; shared words go under `common.*`, errors under `errors.*`, lowercase stat units under `units.*`.
+  - Declare `const { t } = useI18n();` in `<script setup>` and composables (called from setup). Do not name a variable, parameter or `v-for` item `t` in a file that calls `t()`. Prop defaults are hoisted, so they cannot call `t()`: leave the prop undefined and fall back in a `computed`.
+  - vue-i18n syntax: write `@` and `$` as `{'@'}` and `{'$'}`, use named params (`{name}`) and `a | b` plurals (`t("key", count)`). Leading or trailing spaces inside an element are trimmed, so build `" " + t(...)` when a space matters.
+  - `tests/setup.ts` stubs `useI18n` against the real `es.json`, so tests assert the Spanish users see; `tests/unit/i18n-keys.test.ts` fails when code asks for an undefined key.
+  - Not converted yet: admin pages (`pages/admin`, `components/admin`, `layouts/admin`, `components/common/AdminProfileMenu.vue`) and the auth store's thrown messages.
+- Public UI follows `packages/frontend/DESIGN.md` (the "Planilla en Triplicado" sheet world, spec 023). Build pages from `components/ui/Sheet/*` (`UiSheetTitle`, `Heading`, `Band`, `Totals`, `Message`), `UiBackButton`, `UiPositionLabel` and the `sheet-*` classes in `src/assets/sheet.css`. Colors come from the `--sheet-*` tokens or Tailwind's `sheet-*` colors (`bg-sheet-paper`, `text-sheet-win`, `fill-sheet-pitch`); no hex values or Tailwind palette classes. Use `useSheetColors` for drawings that cannot take classes. Show positions with `UiPositionLabel` and `PositionDisplayName` from `@ministrosfc/shared`.
 
 ### Tests (Vue & Pinia)
 

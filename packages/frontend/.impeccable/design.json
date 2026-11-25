@@ -404,13 +404,15 @@
       "**Do** set display type in uppercase Big Shoulders Display and everything written on the lines in Courier Prime.",
       "**Do** use tabular figures for every number.",
       "**Do** keep tap targets at 44px or more and underline links with 2px blue.",
-      "**Do** respect reduced motion by removing the stamp animation."
+      "**Do** respect reduced motion by removing the stamp animation.",
+      "Build pages from the shared blocks in components/ui/Sheet (Title, Heading, Band, Totals, Message) and UiPositionLabel before adding new markup."
     ],
     "donts": [
       "**Don't** fill surfaces or buttons with blue.",
       "**Don't** round corners or add shadows; the crest is the only circle.",
       "**Don't** use a signup call to action on the home until the club adopts it; the reserved slot stays hidden.",
-      "**Don't** apply this system to the admin or the other pages until they are migrated; they still use the Nuxt UI theme tokens."
+      "**Don't** apply this system to the admin or the other pages until they are migrated; they still use the Nuxt UI theme tokens.",
+      "Don't add hard-coded hex colors or Tailwind palette utilities to sheet pages; use the --sheet-* tokens or their Tailwind form (bg-sheet-paper, text-sheet-win, fill-sheet-pitch). Only the Google logo keeps brand colors."
     ]
   }
 }
