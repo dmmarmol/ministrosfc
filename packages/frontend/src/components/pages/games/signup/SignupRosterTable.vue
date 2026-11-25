@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PositionLabel from "~/components/ui/Position/Label.vue";
 import { ref } from "vue";
 import GameLineupField from "~/components/game/GameLineupField.vue";
 
@@ -58,9 +59,7 @@ const hoveredParticipantId = ref<string | null>(null);
           >
             {{ entry.player.playerType === "GUEST" ? "Inv." : "Reg." }}
           </span>
-          <span class="text-xs text-gray-500 w-8 flex-shrink-0 mt-0.5">
-            {{ entry.player.position ?? "—" }}
-          </span>
+          <PositionLabel :position="entry.player.position ?? null" size="sm" />
           <div class="flex-1 min-w-0">
             <p class="font-medium text-gray-900 truncate">
               <span

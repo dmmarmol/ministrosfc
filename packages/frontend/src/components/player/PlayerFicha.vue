@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, resolveComponent, watch } from "vue";
 import { PositionDisplayName, type Position } from "@ministrosfc/shared";
+import PositionLabel from "~/components/ui/Position/Label.vue";
 
 /**
  * Player ficha (spec 023). Real data only: photo, dorsal, name, position and
@@ -79,32 +80,10 @@ const initials = computed(
       .toUpperCase() || "?",
 );
 
-const SHORT: Record<string, string> = {
-  GK: "ARQ",
-  CB: "DFC",
-  RB: "LD",
-  LB: "LI",
-  RWB: "CAD",
-  LWB: "CAI",
-  DMF: "MCD",
-  CMF: "MC",
-  AMF: "MCO",
-  RMF: "MD",
-  LMF: "MI",
-  SS: "SD",
-  CF: "DC",
-  RWF: "ED",
-  LWF: "EI",
-};
 const positionName = computed(() =>
   props.player.position
     ? ((PositionDisplayName as Record<string, string>)[props.player.position] ??
       String(props.player.position))
-    : null,
-);
-const positionShort = computed(() =>
-  props.player.position
-    ? (SHORT[props.player.position] ?? String(props.player.position))
     : null,
 );
 const label = computed(() =>
@@ -213,15 +192,10 @@ const split = computed(() => large.value && !!photo.value && !!dorsal.value);
       </p>
       <p v-if="statusLabel" class="sheet-label mt-2">{{ statusLabel }}</p>
       <p
-        v-if="positionShort || player.nickname"
+        v-if="player.position || player.nickname"
         class="mt-2 flex items-center justify-between gap-2"
       >
-        <span
-          v-if="positionShort"
-          class="inline-block shrink-0 border border-[var(--sheet-blue)] px-1.5 text-xs font-bold text-[var(--sheet-blue)]"
-          :title="positionName ?? undefined"
-          >{{ positionShort }}<span class="sr-only"> ({{ positionName }})</span></span
-        >
+        <PositionLabel v-if="player.position" :position="player.position" size="sm" />
         <span
           v-if="player.nickname"
           class="min-w-0 truncate text-sm font-bold text-[var(--sheet-ink-soft)]"

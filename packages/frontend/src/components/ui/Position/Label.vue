@@ -1,48 +1,66 @@
 <script lang="ts" setup>
+import { computed } from "vue";
 import { Position, PositionDisplayName } from "@ministrosfc/shared";
 
-type Props = {
-  position?: Position | null;
+/**
+ * Position badge in the spirit of the old PES6 position tags: a dark block with
+ * the code in display type and a thick bottom edge colored by the line of play
+ * (goalkeeper yellow, defense blue, midfield green, attack red). The readable
+ * Spanish name comes from the shared enum and sits in the title and for screen
+ * readers; color is never the only carrier of the meaning.
+ */
+type Line = "gk" | "def" | "mid" | "fwd";
+
+const props = withDefaults(
+  defineProps<{
+    position?: Position | string | null;
+    size?: "sm" | "md";
+  }>(),
+  { position: null, size: "md" },
+);
+
+const LINE: Record<Position, Line> = {
+  [Position.GK]: "gk",
+  [Position.CB]: "def",
+  [Position.RB]: "def",
+  [Position.LB]: "def",
+  [Position.RWB]: "mid",
+  [Position.LWB]: "mid",
+  [Position.DMF]: "mid",
+  [Position.CMF]: "mid",
+  [Position.AMF]: "mid",
+  [Position.RMF]: "mid",
+  [Position.LMF]: "mid",
+  [Position.SS]: "fwd",
+  [Position.CF]: "fwd",
+  [Position.RWF]: "fwd",
+  [Position.LWF]: "fwd",
 };
 
-const pesPositionClassMap = {
-  [Position.GK]: "border-yellow-500",
-  [Position.CB]: "border-blue-500",
-  [Position.RB]: "border-blue-500",
-  [Position.LB]: "border-blue-500",
-  [Position.RWB]: "border-green-500",
-  [Position.LWB]: "border-green-500",
-  [Position.DMF]: "border-green-500",
-  [Position.CMF]: "border-green-500",
-  [Position.AMF]: "border-green-500",
-  [Position.RMF]: "border-green-500",
-  [Position.LMF]: "border-green-500",
-  [Position.SS]: "border-red-500",
-  [Position.CF]: "border-red-500",
-  [Position.RWF]: "border-red-500",
-  [Position.LWF]: "border-red-500",
-};
-
-const props = defineProps<Props>();
-
-const displayName = props.position
-  ? PositionDisplayName[props.position]
-  : "Sin posición";
+const known = computed(
+  () => !!props.position && props.position in PositionDisplayName,
+);
+const displayName = computed(() =>
+  known.value
+    ? PositionDisplayName[props.position as Position]
+    : props.position
+      ? String(props.position)
+      : "Sin posición",
+);
+const line = computed(() =>
+  known.value ? LINE[props.position as Position] : undefined,
+);
 </script>
+
 <template>
   <span
-    :class="[
-      'inline-block w-10 flex-shrink-0 mt-0.5 py-0.5 rounded',
-      'text-white text-[14px] text-center font-bold',
-      'border-b-4',
-      `${props.position ? 'bg-ink' : 'bg-gray-300'}`,
-      `${props.position ? pesPositionClassMap[props.position] : 'text-gray-500 border-gray-400'}`,
-    ]"
+    class="sheet-pos"
+    :data-line="line"
+    :data-size="size"
+    :data-empty="position ? undefined : ''"
     :title="displayName"
   >
-    <template v-if="props.position">
-      {{ props.position }}
-    </template>
-    <template v-else>-</template>
+    <span aria-hidden="true">{{ position || "–" }}</span>
+    <span class="sr-only">{{ displayName }}</span>
   </span>
 </template>

@@ -6,6 +6,7 @@ import AddressAutocompleteInput from "~/components/AddressAutocompleteInput.vue"
 import {
   PlayerStatus,
   Position,
+  PositionDisplayName,
   type UpdatePlayerProfilePayload,
 } from "@ministrosfc/shared";
 
@@ -164,7 +165,7 @@ const isActive = computed({
         >
           <option value="">Sin asignar</option>
           <option v-for="pos in positions" :key="pos" :value="pos">
-            {{ pos }}
+            {{ PositionDisplayName[pos] }} ({{ pos }})
           </option>
         </select>
       </div>

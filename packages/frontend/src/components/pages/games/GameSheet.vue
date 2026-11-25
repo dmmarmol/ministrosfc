@@ -10,6 +10,7 @@ import {
   type Game,
   type GameParticipant,
 } from "@ministrosfc/shared";
+import PositionLabel from "~/components/ui/Position/Label.vue";
 import HomeCtaSlot from "../home/HomeCtaSlot.vue";
 import HomeArrow from "../home/HomeArrow.vue";
 
@@ -265,11 +266,7 @@ const detailUrl = computed(() => `/games/${props.game.slug || props.game.id}`);
                   {{ t.n }}<span class="sr-only"> {{ t.name }}</span>
                 </span>
               </span>
-              <span
-                v-if="p.player.position"
-                class="border border-[var(--sheet-blue)] px-1.5 text-xs font-bold text-[var(--sheet-blue)]"
-                >{{ p.player.position }}</span
-              >
+              <PositionLabel v-if="p.player.position" :position="p.player.position" size="sm" />
             </NuxtLink>
           </li>
           <li

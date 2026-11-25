@@ -92,7 +92,8 @@ const items = computed<RankedItem[]>(() =>
     return {
       id: e.player?.id ?? `row-${i}`,
       title: e.player?.lastName || name,
-      subtitle: [e.player?.firstName, e.player?.position].filter(Boolean).join(" · "),
+      subtitle: e.player?.firstName,
+      position: e.player?.position ?? null,
       to: e.player?.id ? `/players/${e.player.id}` : undefined,
       linkLabel: `Ver ficha de ${e.player?.firstName ?? "jugador"}`,
       values: { goals: e.goalsScored, assists: e.assists, games: e.appearances, rate },

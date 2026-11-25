@@ -449,3 +449,52 @@ body:has(.sheet-world) {
 .dark .sheet-footer.sheet-on-ink :focus-visible {
   outline-color: var(--sheet-blue);
 }
+
+/* Position badge: dark block, code in display type, bottom edge colored by line of play */
+.sheet-world {
+  /* the win green, tuned to read on an ink block (swapped in dark mode like the blues) */
+  --sheet-win-on-ink: #5fd38a;
+}
+.dark .sheet-world {
+  --sheet-win-on-ink: #17753a;
+}
+.sheet-pos {
+  --pos-color: var(--sheet-ink-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 2.5rem;
+  padding: 0.1rem 0.375rem 0;
+  border-bottom: 4px solid var(--pos-color);
+  background: var(--sheet-ink);
+  color: var(--sheet-paper);
+  font-family: var(--sheet-display);
+  font-weight: 800;
+  font-size: 1rem;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.sheet-pos[data-size="sm"] {
+  min-width: 2rem;
+  font-size: 0.875rem;
+  border-bottom-width: 3px;
+}
+.sheet-pos[data-line="gk"] {
+  --pos-color: var(--sheet-card-yellow);
+}
+.sheet-pos[data-line="def"] {
+  --pos-color: var(--sheet-blue-on-ink);
+}
+.sheet-pos[data-line="mid"] {
+  --pos-color: var(--sheet-win-on-ink);
+}
+.sheet-pos[data-line="fwd"] {
+  --pos-color: var(--sheet-card-red);
+}
+.sheet-pos[data-empty] {
+  background: var(--sheet-ground);
+  color: var(--sheet-ink-soft);
+  border-bottom-color: var(--sheet-rule);
+}

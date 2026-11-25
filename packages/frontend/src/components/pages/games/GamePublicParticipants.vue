@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PositionLabel from "~/components/ui/Position/Label.vue";
 defineProps<{
   participants: any[];
 }>();
@@ -32,9 +33,7 @@ defineProps<{
         >
           {{ p.player?.playerType === "GUEST" ? "Inv." : "Reg." }}
         </span>
-        <span class="text-xs text-gray-500 w-8 flex-shrink-0">
-          {{ p.player?.position ?? "—" }}
-        </span>
+        <PositionLabel :position="p.player?.position ?? null" size="sm" />
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium text-gray-800 truncate">
             {{

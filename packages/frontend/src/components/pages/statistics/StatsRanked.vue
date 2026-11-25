@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import PositionLabel from "~/components/ui/Position/Label.vue";
 
 /**
  * Ranked rows (spec 023): every statistics table on a phone becomes ruled
@@ -20,6 +21,8 @@ export interface RankedItem {
   linkLabel?: string;
   values: Record<string, number | null | undefined>;
   detail?: { label: string; value: string | number; name?: string }[];
+  /** Player position (enum code), shown as a position badge before the subtitle. */
+  position?: string | null;
   /** Card counts shown on the collapsed row as yellow / red squares. */
   cards?: { yellow: number; red: number };
 }
@@ -187,7 +190,10 @@ function toggle(id: string) {
           >
           <span class="min-w-0">
             <span class="sheet-display block break-words text-2xl">{{ item.title }}</span>
-            <span v-if="item.subtitle" class="block break-words text-sm text-[var(--sheet-ink-soft)]">{{ item.subtitle }}</span>
+            <span v-if="item.subtitle || item.position" class="mt-0.5 flex items-center gap-2">
+              <PositionLabel v-if="item.position" :position="item.position" size="sm" />
+              <span v-if="item.subtitle" class="min-w-0 break-words text-sm text-[var(--sheet-ink-soft)]">{{ item.subtitle }}</span>
+            </span>
             <span v-if="item.cards && (item.cards.yellow || item.cards.red)" class="mt-1 flex gap-2">
               <span
                 v-if="item.cards.yellow"

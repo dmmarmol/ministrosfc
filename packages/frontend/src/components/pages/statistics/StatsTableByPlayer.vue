@@ -18,9 +18,8 @@ const items = computed<RankedItem[]>(() =>
   props.rows.map((r) => ({
     id: r.playerId,
     title: r.playerName,
-    subtitle: [r.position, r.playerNickname ? `“${r.playerNickname}”` : null]
-      .filter(Boolean)
-      .join(" · "),
+    subtitle: r.playerNickname ? `“${r.playerNickname}”` : undefined,
+    position: r.position,
     to: `/players/${r.playerId}`,
     linkLabel: `Ver ficha de ${r.playerName}`,
     values: {
